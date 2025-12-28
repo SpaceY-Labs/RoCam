@@ -1,31 +1,64 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+import { initializeApp } from "firebase/app";
+import { getStorage, ref, uploadBytes } from "firebase/storage";
 
-import {setGlobalOptions} from "firebase-functions";
+// TODO: Replace the following with your app's Firebase project configuration
+// See: https://firebase.google.com/docs/web/learn-more#config-object
+// Import the functions you need from the SDKs you need
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+
+require('dotenv').config();
+const {
+  VITE_FIREBASE_API_KEY,
+  VITE_FIREBASE_AUTH_DOMAIN,
+  VITE_FIREBASE_PROJECT_ID,
+  VITE_FIREBASE_STORAGE_BUCKET,
+  VITE_FIREBASE_MESSAGING_SENDER_ID,
+  VITE_FIREBASE_APP_ID,
+  VITE_FIREBASE_MEASUREMENT_ID,
+} = process.env;
+
+export const firebaseConfig = {
+  apiKey: VITE_FIREBASE_API_KEY!,
+  authDomain: VITE_FIREBASE_AUTH_DOMAIN!,
+  projectId: VITE_FIREBASE_PROJECT_ID!,
+  storageBucket: VITE_FIREBASE_STORAGE_BUCKET!,
+  messagingSenderId: VITE_FIREBASE_MESSAGING_SENDER_ID!,
+  appId: VITE_FIREBASE_APP_ID!,
+  measurementId: VITE_FIREBASE_MEASUREMENT_ID!,
+};
 
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({maxInstances: 10});
+// Create a root reference
+const storage = getStorage();
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+const storageRef = ref(storage);
+const imagesRef = ref(storage, 'img')
+const prototypeRef = ref(storage, 'img/prototype.png');
+
+const File = new Uint8Array([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+  0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+  0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+  0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,
+  0xDE, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
+  0x54, 0x78, 0x9C, 0x63, 0x60, 0x00, 0x00, 0x00,
+  0x02, 0x00, 0x01, 0xE2, 0x26, 0x05, 0x9B, 0x00,
+  0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
+  0x42, 0x60, 0x82]);
+
+uploadBytes(prototypeRef, File ).then((snapshot) => {
+    console.log('Uploaded a blob or file!');
+    });
+
+
+
+
+
