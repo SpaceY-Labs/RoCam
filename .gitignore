@@ -381,3 +381,6 @@ node_modules/
 *.local
 lib/
 libs/
+venv/
+*.mar
+design/
