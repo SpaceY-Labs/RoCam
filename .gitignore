@@ -384,3 +384,7 @@ libs/
 venv/
 *.mar
 design/
+deploy.ps1
+authorize.ps1
+src/labelling_app/backend/build.ps1
+dist/

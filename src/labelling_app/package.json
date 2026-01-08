@@ -1,0 +1,17 @@
+{
+  "name": "labelling-app",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "frontend",
+    "backend",
+    "functions"
+  ],
+  "scripts": {
+    "build:shared": "pnpm --filter shared build",
+    "build:frontend": "pnpm --filter frontend build",
+    "build:backend": "pnpm --filter backend build",
+    "build:functions": "pnpm --filter functions build",
+    "build:all": "pnpm build:shared && pnpm build:frontend && pnpm build:backend && pnpm build:functions"
+  }
+}

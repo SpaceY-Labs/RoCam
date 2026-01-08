@@ -1,5 +1,9 @@
 # Deployment Architecture v2
 
+Note: This document describes the target architecture. For the current
+implementation (as-built) module boundaries and API contracts, see
+`src/labelling_app/design_doc/as_built.md`.
+
 Aligned with MODULE_DOCUMENTATION_ENHANCED.md
 
 ---
@@ -419,10 +423,10 @@ pnpm build
 # Output: backend/dist/ (Node.js bundle)
 
 # Step 2c: Cloud Functions (depends on shared) - can parallel with 2a, 2b
-cd backend/functions
+cd functions
 pnpm install
 pnpm build
-# Output: backend/functions/lib/
+# Output: functions/lib/
 
 # Step 3: SAM3 Service (independent, can build anytime)
 cd sam3-service
@@ -441,7 +445,7 @@ pip install -r requirements.txt
     "shared",
     "frontend",
     "backend",
-    "backend/functions"
+    "functions"
   ],
   "scripts": {
     "build:shared": "pnpm --filter @rocam/shared build",
@@ -462,7 +466,7 @@ packages:
   - 'shared'
   - 'frontend'
   - 'backend'
-  - 'backend/functions'
+  - 'functions'
 ```
 
 **shared/package.json:**
@@ -611,7 +615,7 @@ REGION=us-central1
     ]
   },
   "functions": {
-    "source": "backend/functions",
+    "source": "functions",
     "runtime": "nodejs18",
     "predeploy": [
       "npm --prefix \"$RESOURCE_DIR\" run build"

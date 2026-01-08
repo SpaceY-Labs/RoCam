@@ -1,0 +1,31 @@
+﻿{
+    "compilerOptions":  {
+                            "outDir":  "dist",
+                            "rootDir":  "src",
+                            "declaration":  true,
+                            "declarationMap":  true,
+                            "target":  "ES2021",
+                            "module":  "NodeNext",
+                            "moduleResolution":  "NodeNext",
+                            "esModuleInterop":  true,
+                            "strict":  true,
+                            "skipLibCheck":  true,
+                            "baseUrl":  ".",
+                            "paths": {
+                                "@config/*" : [ "src/config/*"],
+                                "@middleware/*" : [ "src/middleware/*"], 
+                                "@models/*" : [ "src/models/*"], 
+                                "@routes/*" : [ "src/routes/*"],
+                                "@services/*" : [ "src/services/*"],
+                                "@utils/*" : [ "src/utils/*"]
+                            },
+
+                            "lib":  [
+                                        "ES2021",
+                                        "DOM"
+                                    ]
+                        },
+    "include":  [
+                    "src"
+                ]
+}

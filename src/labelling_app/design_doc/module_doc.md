@@ -3269,11 +3269,11 @@ export async function releaseImages(
 
 ---
 
-## 3.4 Cloud Functions (`backend/functions/`)
+## 3.4 Cloud Functions (`functions/`)
 
 ---
 
-### `backend/functions/onImageCreate.ts`
+### `functions/onImageCreate.ts`
 
 **Purpose:** Generate thumbnail when image is confirmed.
 
@@ -3338,7 +3338,7 @@ export const onImageCreate = functions.firestore
 
 ---
 
-### `backend/functions/onMaskWrite.ts`
+### `functions/onMaskWrite.ts`
 
 **Purpose:** Update stats and trigger combined mask generation.
 
@@ -3416,7 +3416,7 @@ async function queueCombinedMaskGeneration(
 
 ---
 
-### `backend/functions/scheduledLockCleanup.ts`
+### `functions/scheduledLockCleanup.ts`
 
 **Purpose:** Expire stale locks hourly.
 

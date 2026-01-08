@@ -1,0 +1,7 @@
+**/node_modules
+**/dist
+**/.pnpm-store
+**/.cache
+**/.turbo
+.git
+.gitignore

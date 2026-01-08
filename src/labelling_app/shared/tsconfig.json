@@ -1,0 +1,20 @@
+﻿{
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": false,
+    "target": "ES2019",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "index.ts",
+    "types/**/*.ts",
+    "constants/**/*.ts",
+    "validation/**/*.ts"
+  ]
+}
