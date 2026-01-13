@@ -1,6 +1,8 @@
 opencv-python
+numpy
 pycocotools
 matplotlib
 onnxruntime
 onnx
 segment-anything
+torchvision

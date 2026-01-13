@@ -1,34 +1,31 @@
-# Build context must be the labelling_app root (it needs backend/ and shared/).
-FROM node:20-bookworm-slim AS deps
-WORKDIR /app
+FROM node:20-slim AS build
+
+WORKDIR /workspace
+
 RUN corepack enable
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY backend/package.json backend/tsconfig.json ./backend/
-COPY shared/package.json shared/tsconfig.json ./shared/
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY shared/package.json shared/package.json
+COPY backend/package.json backend/package.json
 
-RUN pnpm install --filter backend... --filter shared... --frozen-lockfile
+RUN pnpm install --filter shared --filter backend
 
-FROM deps AS build
-COPY backend ./backend
-COPY shared ./shared
+COPY shared shared
+COPY backend backend
+
 RUN pnpm --filter shared build
 RUN pnpm --filter backend build
 
-FROM node:20-bookworm-slim AS runtime
+FROM node:20-slim
 WORKDIR /app
 ENV NODE_ENV=production
-ENV PORT=8080
-RUN corepack enable
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY backend/package.json ./backend/
-COPY shared/package.json ./shared/
-RUN pnpm install --filter backend... --filter shared... --prod --frozen-lockfile
-
-COPY --from=build /app/backend/dist ./backend/dist
-COPY --from=build /app/shared/dist ./shared/dist
+COPY --from=build /workspace/backend/dist ./dist
+COPY --from=build /workspace/backend/package.json ./package.json
+COPY --from=build /workspace/backend/node_modules ./node_modules
+COPY --from=build /workspace/shared/dist ./node_modules/shared/dist
+COPY --from=build /workspace/shared/package.json ./node_modules/shared/package.json
 
 EXPOSE 8080
-WORKDIR /app/backend
+
 CMD ["node", "dist/index.js"]

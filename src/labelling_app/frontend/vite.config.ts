@@ -12,8 +12,8 @@ export default defineConfig({
     }),
   ],
   build: {
-    outDir: '../public', 
+    outDir: 'dist',
     emptyOutDir: true,
-    assetsDir: './src/assets'
-    },
+    assetsDir: 'assets',
+  },
 })

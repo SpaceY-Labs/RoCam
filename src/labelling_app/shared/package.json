@@ -1,20 +1,13 @@
-﻿{
+{
   "name": "shared",
   "version": "0.0.0",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "dependencies": {
-    "firebase": "^12.7.0",
-    "zod": "^3.23.8"
-  },
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
-  "devDependencies": {
-    "typescript": "^5.7.3"
+  "dependencies": {
+    "zod": "^3.25.76"
   }
 }

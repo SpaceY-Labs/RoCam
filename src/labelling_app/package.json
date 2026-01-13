@@ -13,5 +13,8 @@
     "build:backend": "pnpm --filter backend build",
     "build:functions": "pnpm --filter functions build",
     "build:all": "pnpm build:shared && pnpm build:frontend && pnpm build:backend && pnpm build:functions"
+  },
+  "devDependencies": {
+    "firebase": "^12.7.0"
   }
 }

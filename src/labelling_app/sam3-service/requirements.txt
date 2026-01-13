@@ -1,5 +1,7 @@
-﻿fastapi
-uvicorn
+fastapi
+uvicorn[standard]
+torch
+torchvision
 numpy
-pillow
-httpx
+opencv-python
+segment-anything

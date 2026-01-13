@@ -6,7 +6,11 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    devDependencies:
+      firebase:
+        specifier: ^12.7.0
+        version: 12.7.0
 
   backend:
     dependencies:
