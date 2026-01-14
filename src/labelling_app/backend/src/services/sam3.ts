@@ -19,12 +19,38 @@ export const callSam3 = async (payload: Sam3Request) => {
       "Content-Type": "application/json",
     };
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
+    const retries = Math.max(0, config.sam3RetryCount);
+    const retryDelayMs = Math.max(0, config.sam3RetryDelayMs);
+
+    let response: Response | null = null;
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt <= retries; attempt += 1) {
+      try {
+        response = await fetch(url, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        break;
+      } catch (error) {
+        lastError = error as Error;
+        if ((error as Error).name === "AbortError") {
+          throw error;
+        }
+        if (attempt >= retries) {
+          break;
+        }
+        if (retryDelayMs > 0) {
+          await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+        }
+      }
+    }
+
+    if (!response) {
+      throw lastError || new Error("SAM3 request failed");
+    }
 
     const text = await response.text();
     let body: unknown = null;
@@ -50,7 +76,11 @@ export const callSam3 = async (payload: Sam3Request) => {
     if ((error as Error).name === "AbortError") {
       throw new HttpError(504, "INTERNAL_ERROR", "SAM3 request timeout");
     }
-    throw new HttpError(500, "INTERNAL_ERROR", "SAM3 request failed");
+    const message =
+      error instanceof Error && error.message
+        ? `SAM3 request failed: ${error.message}`
+        : "SAM3 request failed";
+    throw new HttpError(500, "INTERNAL_ERROR", message);
   } finally {
     clearTimeout(timeout);
   }

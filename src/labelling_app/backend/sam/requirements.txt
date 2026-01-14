@@ -1,5 +1,8 @@
 fastapi
 uvicorn[standard]
-numpy
-opencv-python
+numpy==1.26.4
+opencv-python==4.10.0.84
 pillow
+einops
+decord
+pycocotools

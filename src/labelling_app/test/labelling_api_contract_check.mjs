@@ -192,6 +192,72 @@ const runSegmentTest = async (projectId, imageId) => {
   });
 };
 
+const resolveSam3Resource = (projectId, imageId) => {
+  if (process.env.SAM3_RESOURCE_URL) {
+    return { resourceUrl: process.env.SAM3_RESOURCE_URL };
+  }
+  if (projectId && imageId) {
+    return { projectId, imageId };
+  }
+  return null;
+};
+
+const runSam3DirectTests = async (projectId, imageId) => {
+  const resource = resolveSam3Resource(projectId, imageId);
+  if (!resource) {
+    console.log("SKIP sam3 direct: missing SAM3_RESOURCE_URL or projectId/imageId.");
+    return [];
+  }
+
+  const startSession = await runJsonTest(
+    "sam3 start_session",
+    "POST",
+    "/segment",
+    {
+      type: "start_session",
+      ...resource,
+    }
+  );
+
+  const results = [startSession];
+  const sessionId =
+    startSession.body?.session_id ||
+    startSession.body?.sessionId ||
+    startSession.body?.session;
+
+  if (!sessionId) {
+    return results;
+  }
+
+  const promptText = process.env.SAM3_PROMPT_TEXT || "object";
+  results.push(
+    await runJsonTest("sam3 add_prompt", "POST", "/segment", {
+      type: "add_prompt",
+      session_id: sessionId,
+      frame_index: 0,
+      text: promptText,
+    })
+  );
+
+  if (process.env.RUN_SAM3_PROPAGATE === "1") {
+    results.push(
+      await runJsonTest("sam3 propagate", "POST", "/segment", {
+        type: "propagate_in_video",
+        session_id: sessionId,
+      })
+    );
+  }
+
+  results.push(
+    await runJsonTest("sam3 close_session", "POST", "/segment", {
+      type: "close_session",
+      session_id: sessionId,
+    })
+  );
+
+  return results;
+};
+
 const results = [];
 
 results.push(await runHealthTest());
@@ -243,6 +309,10 @@ if (projectId) {
     if (process.env.RUN_SEGMENT === "1") {
       results.push(await runSegmentTest(projectId, imageId));
     }
+
+    if (process.env.RUN_SAM3_DIRECT === "1") {
+      results.push(...(await runSam3DirectTests(projectId, imageId)));
+    }
   }
 }
 
@@ -250,7 +320,11 @@ let failures = 0;
 for (const result of results) {
   if (!result.ok) {
     failures += 1;
-    console.log(`FAIL ${result.name} (${result.status})`);
+    const detail =
+      typeof result.body === "string"
+        ? result.body
+        : JSON.stringify(result.body);
+    console.log(`FAIL ${result.name} (${result.status}) ${detail}`);
   } else {
     console.log(`PASS ${result.name}`);
   }

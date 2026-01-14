@@ -56,6 +56,8 @@ export const config = {
     process.env.SAM3_ENDPOINT || `http://127.0.0.1:${sam3InternalPort}`,
   sam3ModelName: process.env.SAM3_MODEL_NAME || "sam3",
   sam3TimeoutMs: optionalNumber("SAM3_TIMEOUT_MS", 60000),
+  sam3RetryCount: optionalNumber("SAM3_RETRY_COUNT", 5),
+  sam3RetryDelayMs: optionalNumber("SAM3_RETRY_DELAY_MS", 2000),
   maxImageMb,
   MaxImageMb: maxImageMb,
   requireAuth: process.env.REQUIRE_AUTH !== "false",

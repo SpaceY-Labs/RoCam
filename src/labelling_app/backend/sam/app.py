@@ -47,7 +47,14 @@ def _load_model() -> None:
         try:
             from sam3.model_builder import build_sam3_video_predictor
 
-            _sam3_predictor = build_sam3_video_predictor(checkpoint_path=model_path)
+            bpe_path = os.environ.get("SAM3_BPE_PATH", "/app/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz")
+            if os.path.exists(bpe_path):
+                _sam3_predictor = build_sam3_video_predictor(
+                    checkpoint_path=model_path,
+                    bpe_path=bpe_path,
+                )
+            else:
+                _sam3_predictor = build_sam3_video_predictor(checkpoint_path=model_path)
             _model_type = "sam3_video"
             return
         except Exception:
@@ -395,6 +402,7 @@ async def predict(model_name: str, request: Request) -> Dict[str, Any]:
         except HTTPException:
             raise
         except Exception as error:
+            logging.exception("SAM3 request failed")
             raise HTTPException(status_code=500, detail=str(error)) from error
 
     raise HTTPException(status_code=500, detail="Unsupported model type")
