@@ -9,7 +9,7 @@ if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
 
 Push-Location $WorkspaceRoot
 try {
-  python model_archiver/test_handler.py
+  python backend/sam/test_app.py
 } finally {
   Pop-Location
 }

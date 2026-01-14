@@ -1,14 +1,7 @@
 import { config } from "../config";
 import { HttpError } from "../middleware/error";
 
-export type Sam3Request = {
-  imageUrl?: string;
-  image?: string;
-  mode: "click" | "auto" | "semantic";
-  points?: { x: number; y: number; label: 0 | 1 }[];
-  box?: { x1: number; y1: number; x2: number; y2: number };
-  prompt?: string;
-};
+export type Sam3Request = Record<string, unknown>;
 
 export const callSam3 = async (payload: Sam3Request) => {
   if (!config.sam3Endpoint) {
@@ -25,9 +18,6 @@ export const callSam3 = async (payload: Sam3Request) => {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-    if (process.env.SAM3_API_KEY) {
-      headers["x-api-key"] = process.env.SAM3_API_KEY;
-    }
 
     const response = await fetch(url, {
       method: "POST",

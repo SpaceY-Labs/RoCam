@@ -375,6 +375,7 @@ lib/**/*.js.map
 
 # TypeScript v1 declaration files
 typings/
+*.tsbuildinfo
 
 # Node.js dependency directory
 node_modules/

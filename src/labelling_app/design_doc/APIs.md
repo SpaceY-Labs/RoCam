@@ -28,14 +28,12 @@ The RoCam Labeler API provides endpoints for managing image annotation projects 
 Frontend (React)
      |
      v
-Backend API (Cloud Run - Node/Express)
+Backend API (Cloud Run - Node/Express + SAM3 GPU)
      | \
      |  \
-     |   \
-     v    v    v
+     v   v
 Firestore (metadata)
 Storage (image files)
-SAM3 Service (Cloud Run - GPU)
 ```
 
 ---
@@ -133,6 +131,38 @@ GET /api/projects/:projectId
       "color": "#00FF00"
     }
   ]
+}
+```
+
+---
+
+### Update Project
+
+Updates the project name/description/classes.
+
+```
+PATCH /api/projects/:projectId
+```
+
+**Request Body (partial):**
+```json
+{
+  "name": "string",
+  "description": "string | null",
+  "classes": [
+    {
+      "id": "string",
+      "name": "string",
+      "color": "string"
+    }
+  ]
+}
+```
+
+**Response (200):**
+```json
+{
+  "projectId": "proj_abc123"
 }
 ```
 
@@ -265,6 +295,44 @@ GET /api/projects/:projectId/images/:imageId
     "status": "labeled",
     "tags": ["outdoor"]
   }
+}
+```
+
+---
+
+### Update Image Metadata / Masks
+
+Updates masks, labeller assignment, or metadata fields.
+
+```
+PATCH /api/projects/:projectId/images/:imageId
+```
+
+**Request Body (partial):**
+```json
+{
+  "masks": [
+    {
+      "id": "mask_001",
+      "classId": "cls_001",
+      "className": "Person",
+      "color": "#FF0000",
+      "polygon": [[{"x": 1, "y": 2}, {"x": 2, "y": 3}, {"x": 3, "y": 1}]],
+      "source": "manual"
+    }
+  ],
+  "labellerId": "user_123",
+  "meta": {
+    "status": "in_progress",
+    "tags": ["daytime"]
+  }
+}
+```
+
+**Response (200):**
+```json
+{
+  "imageId": "img_xyz789"
 }
 ```
 
@@ -557,49 +625,48 @@ Rate limit: 10 requests/minute per user.
 POST /api/segment
 ```
 
-**Request Body:**
+**Request Body (SAM3 direct):**
 ```json
 {
+  "type": "start_session",
+  "resourceUrl": "https://storage.googleapis.com/...",
   "projectId": "proj_abc123",
-  "imageId": "img_xyz789",
-  "mode": "click",
-  "points": [
-    {"x": 500, "y": 300, "label": 1},
-    {"x": 100, "y": 100, "label": 0}
-  ],
-  "box": {
-    "x1": 50,
-    "y1": 50,
-    "x2": 600,
-    "y2": 400
-  },
-  "prompt": "the red car"
+  "imageId": "img_xyz789"
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `projectId` | string | Yes | Project identifier |
-| `imageId` | string | Yes | Image to segment |
-| `mode` | string | Yes | One of: `click`, `auto`, `semantic` |
-| `points` | array | For click | Click points with labels |
-| `box` | object | No | Bounding box constraint |
-| `prompt` | string | For semantic | Text description |
+Use the SAM3 request format (`start_session`, `add_prompt`, `propagate_in_video`, `close_session`). The backend forwards the payload to the in-container SAM3 server. If `resourceUrl` is omitted and `projectId + imageId` is provided, the backend signs the image URL from storage for `start_session`.
 
-**Mode: `click`**
-- Uses point prompts to segment
-- `label: 1` = foreground (include this point)
-- `label: 0` = background (exclude this point)
-- Optional `box` constrains search area
+**Example: Add prompt**
+```json
+{
+  "type": "add_prompt",
+  "session_id": "session_123",
+  "frame_index": 0,
+  "text": "the red car"
+}
+```
 
-**Mode: `auto`**
-- Automatically segments all objects in image
-- No additional parameters needed
-- Returns multiple masks
+**Example: Propagate**
+```json
+{
+  "type": "propagate_in_video",
+  "session_id": "session_123"
+}
+```
 
-**Mode: `semantic`**
-- Uses text prompt to identify object
-- Requires `prompt` field
+**Legacy Request Body (torchscript-only):**
+```json
+{
+  "mode": "click",
+  "image": "<data-uri-or-raw-base64>",
+  "points": [
+    {"x": 500, "y": 300, "label": 1},
+    {"x": 100, "y": 100, "label": 0}
+  ]
+}
+```
+The legacy `mode` payload is supported only when the SAM handler is set to `torchscript`.
 
 **Response (200):**
 ```json

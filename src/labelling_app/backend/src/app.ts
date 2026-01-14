@@ -12,8 +12,10 @@ const corsOptions = config.allowedOrigins.length
   ? { origin: config.allowedOrigins, credentials: true }
   : { origin: true };
 
+const jsonLimitMb = Math.max(10, Math.ceil(config.maxImageMb * 1.5));
+
 app.use(cors(corsOptions));
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: `${jsonLimitMb}mb` }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use(healthRouter);

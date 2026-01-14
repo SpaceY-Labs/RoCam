@@ -1,13 +1,19 @@
-import { useState } from 'react';
-import { uploadImageToFirebase } from './API_Helps';
+import { useState, type ChangeEvent } from 'react';
+import { uploadImageToBackend } from './API_Helps';
 
-const ImageUploadButton = () => {
-  const [file, setFile] = useState(null);
+type ImageUploadButtonProps = {
+  projectId: string;
+  status?: 'unlabeled' | 'in_progress' | 'labeled';
+  tags?: string[];
+};
+
+const ImageUploadButton = ({ projectId, status = 'unlabeled', tags = [] }: ImageUploadButtonProps) => {
+  const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
 
-  const handleFileChange = (e : any) => {
-    if (e.target.files[0]) {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
       setFile(e.target.files[0]);
     }
   };
@@ -17,8 +23,26 @@ const ImageUploadButton = () => {
 
     setUploading(true);
     try {
-      const url = await uploadImageToFirebase(file);
-      setImageUrl(url as string);
+      const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
+        const img = new Image();
+        const previewUrl = URL.createObjectURL(file);
+        img.onload = () => {
+          resolve({ width: img.width, height: img.height });
+          URL.revokeObjectURL(previewUrl);
+        };
+        img.src = previewUrl;
+      });
+
+      await uploadImageToBackend(projectId, file, {
+        fileName: file.name,
+        width: dimensions.width,
+        height: dimensions.height,
+        status,
+        tags,
+      });
+
+      const previewUrl = URL.createObjectURL(file);
+      setImageUrl(previewUrl);
       alert("Upload successful!");
     } catch (err) {
       alert("Failed to upload image.");

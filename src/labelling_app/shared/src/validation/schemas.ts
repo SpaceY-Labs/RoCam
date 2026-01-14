@@ -56,10 +56,34 @@ export const imageRecordSchema = z.object({
   meta: imageMetaSchema,
 });
 
-export const segmentRequestSchema = z
+export const imageUpdateSchema = z
   .object({
-    projectId: z.string().min(1),
-    imageId: z.string().min(1),
+    videoId: z.string().nullable().optional(),
+    masks: z.array(maskSchema).optional(),
+    labellerId: z.string().nullable().optional(),
+    meta: imageMetaSchema.partial().optional(),
+  })
+  .superRefine((value, ctx) => {
+    const hasUpdate =
+      value.videoId !== undefined ||
+      value.masks !== undefined ||
+      value.labellerId !== undefined ||
+      value.meta !== undefined;
+    if (!hasUpdate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one field must be provided",
+      });
+    }
+  });
+
+const segmentLegacyRequestSchema = z
+  .object({
+    projectId: z.string().min(1).optional(),
+    imageId: z.string().min(1).optional(),
+    imageUrl: z.string().url().optional(),
+    image: z.string().min(1).optional(),
+    imageBase64: z.string().min(1).optional(),
     mode: z.enum(["click", "auto", "semantic"]),
     points: z.array(pointWithLabelSchema).optional(),
     box: z
@@ -73,6 +97,29 @@ export const segmentRequestSchema = z
     prompt: z.string().min(1).optional(),
   })
   .superRefine((value, ctx) => {
+    const hasProjectId = Boolean(value.projectId);
+    const hasImageId = Boolean(value.imageId);
+    if (hasProjectId !== hasImageId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "projectId and imageId must be provided together",
+        path: ["projectId"],
+      });
+    }
+
+    const hasImageInput =
+      Boolean(value.imageUrl) ||
+      Boolean(value.image) ||
+      Boolean(value.imageBase64) ||
+      (hasProjectId && hasImageId);
+    if (!hasImageInput) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "imageUrl, image/imageBase64, or projectId + imageId is required",
+        path: ["imageUrl"],
+      });
+    }
+
     if (value.mode === "click" && (!value.points || value.points.length === 0)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -89,6 +136,51 @@ export const segmentRequestSchema = z
       });
     }
   });
+
+const segmentSam3RequestSchema = z
+  .object({
+    type: z.string().min(1),
+    projectId: z.string().min(1).optional(),
+    imageId: z.string().min(1).optional(),
+    resourceUrl: z.string().url().optional(),
+    resource_url: z.string().url().optional(),
+    resourcePath: z.string().min(1).optional(),
+    resource_path: z.string().min(1).optional(),
+  })
+  .passthrough()
+  .superRefine((value, ctx) => {
+    const hasProjectId = Boolean(value.projectId);
+    const hasImageId = Boolean(value.imageId);
+    if (hasProjectId !== hasImageId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "projectId and imageId must be provided together",
+        path: ["projectId"],
+      });
+    }
+
+    if (value.type === "start_session") {
+      const hasResource =
+        Boolean(value.resourceUrl) ||
+        Boolean(value.resource_url) ||
+        Boolean(value.resourcePath) ||
+        Boolean(value.resource_path) ||
+        (hasProjectId && hasImageId);
+
+      if (!hasResource) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "resourceUrl/resourcePath or projectId + imageId is required",
+          path: ["resourceUrl"],
+        });
+      }
+    }
+  });
+
+export const segmentRequestSchema = z.union([
+  segmentSam3RequestSchema,
+  segmentLegacyRequestSchema,
+]);
 
 export const lockAcquireSchema = z.object({
   imageIds: z.array(z.string().min(1)).min(1),

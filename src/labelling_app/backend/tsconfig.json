@@ -9,7 +9,8 @@
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true, 
+    "allowJs": true
   },
   "include": ["src"],
   "references": [{ "path": "../shared" }]

@@ -1,23 +1,22 @@
 param(
   [string]$ServiceName = "labeler-backend",
-  [string]$Region = "us-east1",
-  [string]$ProjectId = "datalabelapp",
-  [string]$StorageBucket = "datalabelapp.appspot.com",
+  [string]$Region = "us-central1",
+  [string]$ProjectId = "dice-459903",
+  [string]$StorageBucket = "dice-459903.firebasestorage.app",
+  [string]$DatabaseId = "datalabelor123",
   [string]$Sam3Endpoint = "",
-  [string]$Sam3ModelName = "sam3",
-  [string]$Sam3ApiKey = ""
+  [int]$Sam3InternalPort = 9000,
+  [string]$Sam3ModelName = "sam3"
 )
 
 $root = Resolve-Path (Join-Path $PSScriptRoot "..")
 
-if (-not $Sam3Endpoint) {
-  Write-Error "Sam3Endpoint is required"
-  exit 1
+$envVars = "FIREBASE_PROJECT_ID=$ProjectId,FIREBASE_STORAGE_BUCKET=$StorageBucket,SAM3_MODEL_NAME=$Sam3ModelName,SAM3_INTERNAL_PORT=$Sam3InternalPort"
+if ($DatabaseId) {
+  $envVars = "$envVars,FIREBASE_DATABASE_ID=$DatabaseId"
 }
-
-$envVars = "FIREBASE_PROJECT_ID=$ProjectId,FIREBASE_STORAGE_BUCKET=$StorageBucket,SAM3_ENDPOINT=$Sam3Endpoint,SAM3_MODEL_NAME=$Sam3ModelName"
-if ($Sam3ApiKey) {
-  $envVars = "$envVars,SAM3_API_KEY=$Sam3ApiKey"
+if ($Sam3Endpoint) {
+  $envVars = "$envVars,SAM3_ENDPOINT=$Sam3Endpoint"
 }
 
 gcloud run deploy $ServiceName `
@@ -25,4 +24,11 @@ gcloud run deploy $ServiceName `
   --project $ProjectId `
   --source $root `
   --allow-unauthenticated `
+  --cpu 4 `
+  --memory 16Gi `
+  --concurrency 1 `
+  --min-instances 0 `
+  --max-instances 1 `
+  --gpu 1 `
+  --gpu-type nvidia-tesla-t4 `
   --set-env-vars $envVars

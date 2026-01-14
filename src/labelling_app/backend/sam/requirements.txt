@@ -1,7 +1,5 @@
 fastapi
 uvicorn[standard]
-torch
-torchvision
 numpy
 opencv-python
-segment-anything
+pillow

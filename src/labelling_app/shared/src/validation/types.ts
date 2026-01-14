@@ -47,6 +47,13 @@ export type ImageRecord = {
   meta: ImageMeta;
 };
 
+export type ImageUpdateRequest = {
+  videoId?: string | null;
+  masks?: Mask[];
+  labellerId?: string | null;
+  meta?: Partial<ImageMeta>;
+};
+
 export type BoundingBox = {
   x: number;
   y: number;
@@ -54,14 +61,30 @@ export type BoundingBox = {
   h: number;
 };
 
-export type SegmentRequest = {
-  projectId: string;
-  imageId: string;
+export type SegmentLegacyRequest = {
+  projectId?: string;
+  imageId?: string;
+  imageUrl?: string;
+  image?: string;
+  imageBase64?: string;
   mode: "click" | "auto" | "semantic";
   points?: PointWithLabel[];
   box?: { x1: number; y1: number; x2: number; y2: number };
   prompt?: string;
 };
+
+export type SegmentSam3Request = {
+  type: string;
+  projectId?: string;
+  imageId?: string;
+  resourceUrl?: string;
+  resource_url?: string;
+  resourcePath?: string;
+  resource_path?: string;
+  [key: string]: unknown;
+};
+
+export type SegmentRequest = SegmentLegacyRequest | SegmentSam3Request;
 
 export type SegmentMask = {
   polygon: Polygon;

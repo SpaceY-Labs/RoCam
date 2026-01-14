@@ -6,10 +6,12 @@ import { asyncHandler } from "../middleware/asyncHandler";
 import { HttpError } from "../middleware/error";
 import type { AuthenticatedRequest } from "../middleware/auth";
 import {
+  imageUpdateSchema,
   imageMetaSchema,
   lockAcquireSchema,
   lockReleaseSchema,
   projectCreateSchema,
+  projectUpdateSchema,
 } from "shared";
 import { config } from "../config";
 import {
@@ -123,6 +125,38 @@ router.get(
   })
 );
 
+router.patch(
+  "/:projectId",
+  asyncHandler(async (req: AuthenticatedRequest, res) => {
+    const user = req.user;
+    if (!user) {
+      throw new HttpError(401, "UNAUTHORIZED", "Missing auth context");
+    }
+
+    const projectId = req.params.projectId;
+    const doc = await ensureProjectAccess(projectId, user.uid);
+
+    const parsed = projectUpdateSchema.safeParse(req.body);
+    if (!parsed.success) {
+      throw new HttpError(400, "VALIDATION_ERROR", parsed.error.message);
+    }
+
+    if (Object.keys(parsed.data).length === 0) {
+      throw new HttpError(400, "VALIDATION_ERROR", "No fields to update");
+    }
+
+    await doc.ref.set(
+      {
+        ...parsed.data,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    res.json({ projectId: doc.id });
+  })
+);
+
 router.post(
   "/:projectId/images",
   upload.single("imageData"),
@@ -177,6 +211,55 @@ router.post(
     );
 
     res.status(201).json({ imageId });
+  })
+);
+
+router.patch(
+  "/:projectId/images/:imageId",
+  asyncHandler(async (req: AuthenticatedRequest, res) => {
+    const user = req.user;
+    if (!user) {
+      throw new HttpError(401, "UNAUTHORIZED", "Missing auth context");
+    }
+
+    const { projectId, imageId } = req.params;
+    await ensureProjectAccess(projectId, user.uid);
+
+    const parsed = imageUpdateSchema.safeParse(req.body);
+    if (!parsed.success) {
+      throw new HttpError(400, "VALIDATION_ERROR", parsed.error.message);
+    }
+
+    const imageRef = getProjectImagesCollection(projectId).doc(imageId);
+    const imageDoc = await imageRef.get();
+    if (!imageDoc.exists) {
+      throw new HttpError(404, "NOT_FOUND", "Image not found");
+    }
+
+    const updates: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+
+    if (parsed.data.videoId !== undefined) {
+      updates.videoId = parsed.data.videoId;
+    }
+    if (parsed.data.masks !== undefined) {
+      updates.masks = parsed.data.masks;
+    }
+    if (parsed.data.labellerId !== undefined) {
+      updates.labellerId = parsed.data.labellerId;
+    }
+    if (parsed.data.meta) {
+      for (const [key, value] of Object.entries(parsed.data.meta)) {
+        if (value !== undefined) {
+          updates[`meta.${key}`] = value;
+        }
+      }
+    }
+
+    await imageRef.update(updates);
+
+    res.json({ imageId });
   })
 );
 
@@ -411,7 +494,7 @@ router.post(
     const expiresAt = Timestamp.fromMillis(now + durationMs);
 
     const results = await Promise.all(
-      parsed.data.imageIds.map(async (imageId) => {
+      parsed.data.imageIds.map(async (imageId: string) => {
         const lockRef = getProjectLocksCollection(projectId).doc(imageId);
         return firestore.runTransaction(async (txn) => {
           const lockDoc = await txn.get(lockRef);
@@ -486,7 +569,7 @@ router.delete(
     }
 
     const results = await Promise.all(
-      parsed.data.imageIds.map(async (imageId) => {
+      parsed.data.imageIds.map(async (imageId: string) => {
         const lockRef = getProjectLocksCollection(projectId).doc(imageId);
         return firestore.runTransaction(async (txn) => {
           const lockDoc = await txn.get(lockRef);
