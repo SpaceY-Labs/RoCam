@@ -3,19 +3,19 @@
 :root {
   color-scheme: light;
   font-family: "Sora", "Segoe UI", sans-serif;
-  background-color: #f3efe8;
-  color: #1c1a16;
-  --bg: #f3efe8;
-  --panel: #fff9f2;
-  --panel-strong: #f1e2cf;
-  --ink: #1c1a16;
-  --muted: #6f655b;
-  --accent: #e06b3f;
-  --accent-2: #1f7a6e;
-  --accent-3: #f0b65c;
-  --border: rgba(28, 26, 22, 0.12);
-  --shadow: 0 20px 50px rgba(28, 26, 22, 0.12);
-  --shadow-soft: 0 12px 30px rgba(28, 26, 22, 0.08);
+  background-color: #f5f9ff;
+  color: #0f172a;
+  --bg: #f5f9ff;
+  --panel: #ffffff;
+  --panel-strong: #eef4ff;
+  --ink: #0f172a;
+  --muted: #5b6b84;
+  --accent: #2563eb;
+  --accent-2: #0ea5e9;
+  --accent-3: #60a5fa;
+  --border: rgba(15, 23, 42, 0.12);
+  --shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+  --shadow-soft: 0 12px 30px rgba(15, 23, 42, 0.08);
 }
 
 * {
@@ -26,9 +26,9 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 10% 10%, #fff1df 0%, transparent 50%),
-    radial-gradient(circle at 90% 0%, #e6f2f0 0%, transparent 48%),
-    linear-gradient(180deg, #f6f1ea 0%, #efe9e1 100%);
+    radial-gradient(circle at 10% 8%, #e8f1ff 0%, transparent 52%),
+    radial-gradient(circle at 92% 0%, #e3f5ff 0%, transparent 48%),
+    linear-gradient(180deg, #f9fbff 0%, #eef4ff 100%);
   color: var(--ink);
 }
 
@@ -54,5 +54,5 @@ textarea {
 }
 
 ::selection {
-  background: rgba(224, 107, 63, 0.2);
+  background: rgba(37, 99, 235, 0.2);
 }

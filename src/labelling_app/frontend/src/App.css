@@ -30,23 +30,25 @@
   flex-direction: column;
   gap: 18px;
   padding: 18px 12px;
-  background: rgba(255, 248, 240, 0.9);
+  background: rgba(240, 247, 255, 0.92);
   border: 1px solid var(--border);
   border-radius: 26px;
   box-shadow: var(--shadow);
   backdrop-filter: blur(12px);
-  transition: transform 200ms ease, opacity 200ms ease, width 200ms ease;
+  transition: transform 220ms ease, opacity 220ms ease, width 220ms ease;
   overflow: hidden;
   opacity: 0;
-  transform: translateX(-100%);
+  transform: translateX(-105%);
   pointer-events: none;
+  will-change: transform, opacity;
 }
 
 .side-nav::before {
   content: '';
   position: absolute;
   inset: 0 auto 0 0;
-  width: 12px;
+  width: 36px;
+  pointer-events: auto;
 }
 
 .side-nav:hover .nav-rail,
@@ -1755,6 +1757,14 @@ input[type='color'] {
     align-items: center;
     overflow: visible;
     padding: 12px;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    transition: none;
+  }
+
+  .side-nav::before {
+    display: none;
   }
 
   .nav-brand {

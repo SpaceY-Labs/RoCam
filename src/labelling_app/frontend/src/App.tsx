@@ -514,11 +514,11 @@ function App() {
               <p className="meta-value">
                 {selectedProject?.name || 'None selected'}
               </p>
-              {selectedProject && (
-                <p className="muted small">
-                  {selectedProject.imageCount || 0} images
-                </p>
-              )}
+                {selectedProject && (
+                  <p className="muted small">
+                    {selectedProject.unlabeledCount ?? selectedProject.imageCount ?? 0} unlabeled
+                  </p>
+                )}
             </div>
             <div className="status-row">
               <span className={queueLoading ? 'status-dot pulse' : 'status-dot'} />
