@@ -8,10 +8,6 @@ export const ensureProjectAccess = async (projectId: string, uid: string) => {
   if (!doc.exists) {
     throw new HttpError(404, "NOT_FOUND", "Project not found");
   }
-  const data = doc.data();
-  if (data?.ownerUid && data.ownerUid !== uid) {
-    throw new HttpError(403, "FORBIDDEN", "Access denied");
-  }
   return doc;
 };
 

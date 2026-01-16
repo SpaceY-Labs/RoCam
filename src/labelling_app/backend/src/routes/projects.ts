@@ -87,7 +87,6 @@ router.get(
 
     const snapshot = await firestore
       .collection("projects")
-      .where("ownerUid", "==", user.uid)
       .orderBy("createdAt", "desc")
       .get();
 
@@ -154,6 +153,37 @@ router.patch(
     );
 
     res.json({ projectId: doc.id });
+  })
+);
+
+router.delete(
+  "/:projectId",
+  asyncHandler(async (req: AuthenticatedRequest, res) => {
+    const user = req.user;
+    if (!user) {
+      throw new HttpError(401, "UNAUTHORIZED", "Missing auth context");
+    }
+
+    const projectId = req.params.projectId;
+    const doc = await ensureProjectAccess(projectId, user.uid);
+
+    const imagesCollection = getProjectImagesCollection(projectId);
+    const imagesSnapshot = await imagesCollection.get();
+    for (const imageDoc of imagesSnapshot.docs) {
+      const data = imageDoc.data();
+      if (data?.storagePath) {
+        await deleteFileIfExists(data.storagePath);
+      }
+      await imageDoc.ref.delete();
+    }
+
+    const locksCollection = getProjectLocksCollection(projectId);
+    const locksSnapshot = await locksCollection.get();
+    await Promise.all(locksSnapshot.docs.map((lockDoc) => lockDoc.ref.delete()));
+
+    await doc.ref.delete();
+
+    res.json({ projectId, deleted: true });
   })
 );
 
@@ -363,10 +393,8 @@ router.get(
         .map((lock) => lock.imageId as string)
     );
 
-    let query: FirebaseFirestore.Query = getProjectImagesCollection(projectId).orderBy(
-      "createdAt",
-      "desc"
-    );
+    let query: FirebaseFirestore.Query = getProjectImagesCollection(projectId)
+    
     if (status) {
       query = query.where("meta.status", "==", status);
     }

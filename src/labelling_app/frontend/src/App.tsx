@@ -1,97 +1,226 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import "./App.css";
+import { useEffect, useState, useRef, useCallback } from 'react';
+import type { CSSProperties } from 'react';
+import './App.css';
+import type { RouteId, Project, ProjectImage, ProjectFormData, ImageStatus, BoundingBox, LabelClass } from './types';
+import { ProjectList } from './components/ProjectList';
+import { CreateProject } from './components/CreateProject';
+import { ImageUpload } from './components/ImageUpload';
+import { LabelImage } from './components/LabelImage';
+import { ConfirmModal } from './components/ui';
 import {
-  acquireLocks,
-  createProject,
-  getAvailableImages,
-  getProject,
   listProjects,
+  createProject,
+  getProject,
+  listImages,
+  deleteProject,
+  getAvailableImages,
+  acquireLocks,
   uploadImageToBackend,
-} from "./modules/API_Helps";
+} from './modules/API_Helps';
 
-const statusOptions = ["unlabeled", "in_progress", "labeled"] as const;
 const LOCK_BATCH_SIZE = 5;
 const LOCK_DURATION_MS = 20 * 60 * 1000;
 const LOCK_REFRESH_MS = 5 * 60 * 1000;
 
-const makeId = () =>
-  typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `cls_${Date.now()}`;
+const NAV_ITEMS: Array<{
+  id: RouteId;
+  label: string;
+  description: string;
+  icon: string;
+}> = [
+  {
+    id: 'projects',
+    label: 'Projects',
+    description: 'Browse and select',
+    icon: 'P',
+  },
+  {
+    id: 'create',
+    label: 'Create',
+    description: 'New project setup',
+    icon: 'C',
+  },
+  {
+    id: 'label',
+    label: 'Label',
+    description: 'Annotate images',
+    icon: 'L',
+  },
+  {
+    id: 'upload',
+    label: 'Upload',
+    description: 'Add new images',
+    icon: 'U',
+  },
+];
+
+const PAGE_META: Record<RouteId, { eyebrow: string; title: string; subtitle: string }> = {
+  projects: {
+    eyebrow: 'Workspace',
+    title: 'Projects',
+    subtitle: 'Manage your labeling projects and track progress.',
+  },
+  create: {
+    eyebrow: 'Setup',
+    title: 'Create Project',
+    subtitle: 'Define your project and label classes.',
+  },
+  label: {
+    eyebrow: 'Annotation',
+    title: 'Label Images',
+    subtitle: 'Draw bounding boxes to annotate objects.',
+  },
+  upload: {
+    eyebrow: 'Ingest',
+    title: 'Upload Images',
+    subtitle: 'Add new images to your project queue.',
+  },
+};
+
+const panelStyle = (delay: string): CSSProperties =>
+  ({ '--delay': delay } as CSSProperties);
+
+const getRouteFromHash = (): RouteId => {
+  const hash = window.location.hash.replace('#', '');
+  const match = NAV_ITEMS.find((item) => item.id === hash);
+  return match ? match.id : 'projects';
+};
+
+const getErrorMessage = (err: unknown, fallback: string) =>
+  err instanceof Error && err.message ? err.message : fallback;
+
+const getResponseCount = (response: { total?: number; items: unknown[] }) =>
+  typeof response.total === 'number' ? response.total : response.items.length;
 
 function App() {
-  const [projects, setProjects] = useState<any[]>([]);
+  // Routing
+  const [route, setRoute] = useState<RouteId>(() => getRouteFromHash());
+
+  // Data state
+  const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [projectDetails, setProjectDetails] = useState<any | null>(null);
-  const [availableImages, setAvailableImages] = useState<any[]>([]);
-  const [activeImageId, setActiveImageId] = useState<string | null>(null);
+  const [projectDetails, setProjectDetails] = useState<Project | null>(null);
+  const [availableImages, setAvailableImages] = useState<ProjectImage[]>([]);
   const [lockedIds, setLockedIds] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+
+  // UI state
+  const [projectsLoading, setProjectsLoading] = useState(false);
+  const [queueLoading, setQueueLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [creatingProject, setCreatingProject] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const [projectForm, setProjectForm] = useState({
-    name: "",
-    description: "",
-    className: "Object",
-    classColor: "#F05D5E",
-  });
-
-  const [uploadState, setUploadState] = useState({
-    file: null as File | null,
-    width: 0,
-    height: 0,
-    status: "unlabeled",
-    tags: "",
-    uploading: false,
-  });
+  const [notification, setNotification] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
+  const [switchTarget, setSwitchTarget] = useState<Project | null>(null);
 
   const refreshTimer = useRef<number | null>(null);
 
-  const activeImage = useMemo(() => {
-    if (!activeImageId) {
-      return availableImages[0] || null;
-    }
-    return availableImages.find((image) => image.imageId === activeImageId) || null;
-  }, [availableImages, activeImageId]);
+  // Derived state
+  const projectFromList = projects.find(p => p.projectId === selectedProjectId) || null;
+  const selectedProject = projectDetails
+    ? {
+        ...projectDetails,
+        imageCount: projectFromList?.imageCount ?? projectDetails.imageCount,
+        labeledCount: projectFromList?.labeledCount ?? projectDetails.labeledCount,
+        unlabeledCount: projectFromList?.unlabeledCount ?? projectDetails.unlabeledCount,
+      }
+    : projectFromList;
+  const pageMeta = PAGE_META[route];
 
-  const refreshProjects = async () => {
-    setLoading(true);
+  // Navigation
+  const navigate = (id: RouteId) => {
+    if (window.location.hash !== `#${id}`) {
+      window.location.hash = id;
+    }
+    setRoute(id);
+    setError(null);
+  };
+
+  // Show notification
+  const showNotification = (message: string) => {
+    setNotification(message);
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  // API: Load projects list
+  const refreshProjects = useCallback(async () => {
+    setProjectsLoading(true);
     setError(null);
     try {
       const response = await listProjects();
-      const items = response.items || [];
-      setProjects(items);
-      if (!selectedProjectId && items.length > 0) {
-        setSelectedProjectId(items[0].projectId);
-      }
-    } catch (err: any) {
-      setError(err.message || "Failed to load projects");
-    } finally {
-      setLoading(false);
-    }
-  };
+      const items = (response.items || []).map((item) => ({
+        projectId: item.projectId,
+        name: item.name,
+        description: item.description || null,
+        classes: item.classes || [],
+        createdAt: item.createdAt || new Date().toISOString(),
+        imageCount: item.imageCount || 0,
+        labeledCount: item.labeledCount || 0,
+      }));
+      const itemsWithCounts = await Promise.all(
+        items.map(async (item) => {
+          try {
+            const [totalResponse, unlabeledResponse] = await Promise.all([
+              listImages(item.projectId, { includeTotal: true, limit: 1 }),
+              listImages(item.projectId, { status: 'unlabeled', includeTotal: true, limit: 1 }),
+            ]);
+            const total = getResponseCount(totalResponse);
+            const unlabeled = getResponseCount(unlabeledResponse);
+            const labeled = Math.max(total - unlabeled, 0);
+            return {
+              ...item,
+              imageCount: total,
+              labeledCount: labeled,
+              unlabeledCount: unlabeled,
+            };
+          } catch {
+            return item;
+          }
+        })
+      );
 
-  const loadProjectDetails = async (projectId: string) => {
+      setProjects(itemsWithCounts);
+
+      setSelectedProjectId((prev) => prev ?? itemsWithCounts[0]?.projectId ?? null);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to load projects'));
+    } finally {
+      setProjectsLoading(false);
+    }
+  }, []);
+
+  // API: Load project details
+  const loadProjectDetails = useCallback(async (projectId: string) => {
     try {
       const details = await getProject(projectId);
-      setProjectDetails(details);
-    } catch (err: any) {
-      setError(err.message || "Failed to load project");
+      setProjectDetails({
+        projectId: details.projectId,
+        name: details.name,
+        description: details.description || null,
+        classes: details.classes || [],
+        createdAt: details.createdAt || new Date().toISOString(),
+        imageCount: details.imageCount || 0,
+        labeledCount: details.labeledCount || 0,
+      });
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to load project'));
     }
-  };
+  }, []);
 
-  const loadAvailableQueue = async (projectId: string) => {
+  // API: Load available images and acquire locks
+  const loadAvailableQueue = useCallback(async (projectId: string) => {
+    setQueueLoading(true);
     try {
       const response = await getAvailableImages(projectId, {
         limit: LOCK_BATCH_SIZE,
-        status: "unlabeled",
+        status: 'unlabeled',
         includeFileUrl: true,
       });
 
       const items = response.items || [];
       if (items.length === 0) {
         setAvailableImages([]);
-        setActiveImageId(null);
         setLockedIds([]);
         return;
       }
@@ -103,51 +232,91 @@ function App() {
       );
 
       const locked = (lockResponse.results || [])
-        .filter((result: any) => result.locked)
-        .map((result: any) => result.imageId);
+        .filter((result) => result.locked)
+        .map((result) => result.imageId);
 
-      const lockedImages = items.filter((item) => locked.includes(item.imageId));
+      const lockedImages: ProjectImage[] = items
+        .filter((item) => locked.includes(item.imageId))
+        .map((item) => ({
+          imageId: item.imageId,
+          projectId: projectId,
+          meta: {
+            fileName: item.meta?.fileName || 'Unknown',
+            width: item.meta?.width || 0,
+            height: item.meta?.height || 0,
+            status: item.meta?.status || 'unlabeled',
+            tags: item.meta?.tags || [],
+          },
+          fileUrl: item.fileUrl,
+          createdAt: item.createdAt || new Date().toISOString(),
+        }));
 
       setAvailableImages(lockedImages);
       setLockedIds(locked);
-      setActiveImageId(lockedImages[0]?.imageId || null);
-    } catch (err: any) {
-      setError(err.message || "Failed to lock images");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to load images'));
+    } finally {
+      setQueueLoading(false);
     }
-  };
+  }, []);
 
-  const refreshLocks = async () => {
+  // API: Refresh locks
+  const refreshLocks = useCallback(async () => {
     if (!selectedProjectId || lockedIds.length === 0) {
       return;
     }
-
     try {
       await acquireLocks(selectedProjectId, lockedIds, LOCK_DURATION_MS);
-    } catch (err: any) {
-      setError(err.message || "Failed to refresh locks");
+    } catch (err: unknown) {
+      console.error('Failed to refresh locks:', err);
     }
-  };
+  }, [lockedIds, selectedProjectId]);
 
+  // Hash change listener
   useEffect(() => {
-    refreshProjects();
+    if (!window.location.hash) {
+      window.history.replaceState(null, '', '#projects');
+    }
+
+    const onHashChange = () => {
+      setRoute(getRouteFromHash());
+    };
+
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
+  // Load projects on mount
+  useEffect(() => {
+    refreshProjects();
+  }, [refreshProjects]);
+
+  // Load project details when selection changes
   useEffect(() => {
     if (!selectedProjectId) {
+      setProjectDetails(null);
       return;
     }
-
-    setError(null);
     loadProjectDetails(selectedProjectId);
-    loadAvailableQueue(selectedProjectId);
-  }, [selectedProjectId]);
+  }, [loadProjectDetails, selectedProjectId]);
 
+  // Load queue when on label page
+  useEffect(() => {
+    if (!selectedProjectId || route !== 'label') {
+      setAvailableImages([]);
+      setLockedIds([]);
+      return;
+    }
+    loadAvailableQueue(selectedProjectId);
+  }, [loadAvailableQueue, selectedProjectId, route]);
+
+  // Refresh locks periodically
   useEffect(() => {
     if (refreshTimer.current) {
       window.clearInterval(refreshTimer.current);
     }
 
-    if (lockedIds.length === 0) {
+    if (route !== 'label' || lockedIds.length === 0) {
       return;
     }
 
@@ -160,362 +329,328 @@ function App() {
         window.clearInterval(refreshTimer.current);
       }
     };
-  }, [lockedIds.join(","), selectedProjectId]);
+  }, [lockedIds, refreshLocks, route]);
 
-  const handleCreateProject = async () => {
-    setLoading(true);
+  // Handler: Create project
+  const handleCreateProject = async (data: ProjectFormData) => {
+    setCreatingProject(true);
     setError(null);
     try {
-      if (!projectForm.name.trim()) {
-        throw new Error("Project name is required");
-      }
       const response = await createProject({
-        name: projectForm.name.trim(),
-        description: projectForm.description.trim() || null,
-        classes: [
-          {
-            id: makeId(),
-            name: projectForm.className.trim() || "Object",
-            color: projectForm.classColor,
-          },
-        ],
+        name: data.name,
+        description: data.description || null,
+        classes: data.classes.map((cls: LabelClass) => ({
+          id: cls.id,
+          name: cls.name,
+          color: cls.color,
+        })),
       });
+
       setSelectedProjectId(response.projectId);
-      setProjectForm({
-        name: "",
-        description: "",
-        className: "Object",
-        classColor: "#F05D5E",
-      });
       await refreshProjects();
-    } catch (err: any) {
-      setError(err.message || "Failed to create project");
+      showNotification(`Project "${data.name}" created successfully!`);
+      navigate('projects');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to create project'));
     } finally {
-      setLoading(false);
+      setCreatingProject(false);
     }
   };
 
-  const handleFileChange = async (file: File | null) => {
-    if (!file) {
-      setUploadState((prev) => ({ ...prev, file: null }));
+  const requestDeleteProject = (project: Project) => {
+    setDeleteTarget(project);
+  };
+
+  const handleConfirmDeleteProject = async () => {
+    if (!deleteTarget || deletingProjectId) {
       return;
     }
 
-    const image = new Image();
-    const url = URL.createObjectURL(file);
-    const dimensions = await new Promise<{ width: number; height: number }>(
-      (resolve) => {
-        image.onload = () => {
-          resolve({ width: image.width, height: image.height });
+    setDeletingProjectId(deleteTarget.projectId);
+    setError(null);
+
+    try {
+      await deleteProject(deleteTarget.projectId);
+
+      setProjects((prev) => prev.filter((project) => project.projectId !== deleteTarget.projectId));
+
+      if (selectedProjectId === deleteTarget.projectId) {
+        setSelectedProjectId(null);
+        setProjectDetails(null);
+        setAvailableImages([]);
+        setLockedIds([]);
+      }
+
+      showNotification(`Project "${deleteTarget.name}" deleted successfully!`);
+      setDeleteTarget(null);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to delete project'));
+    } finally {
+      setDeletingProjectId(null);
+    }
+  };
+
+  const requestSwitchProject = (project: Project) => {
+    if (selectedProjectId && selectedProjectId !== project.projectId) {
+      setSwitchTarget(project);
+      return;
+    }
+    setSelectedProjectId(project.projectId);
+  };
+
+  const handleConfirmSwitchProject = () => {
+    if (!switchTarget) {
+      return;
+    }
+    setProjectDetails(null);
+    setAvailableImages([]);
+    setLockedIds([]);
+    setSelectedProjectId(switchTarget.projectId);
+    setSwitchTarget(null);
+  };
+
+  // Handler: Upload image
+  const handleUploadImage = async (file: File, meta: { status: ImageStatus; tags: string[] }) => {
+    if (!selectedProjectId) {
+      setError('Select a project first');
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      // Get image dimensions
+      const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          resolve({ width: img.width, height: img.height });
           URL.revokeObjectURL(url);
         };
-        image.src = url;
-      }
-    );
+        img.onerror = () => {
+          resolve({ width: 0, height: 0 });
+          URL.revokeObjectURL(url);
+        };
+        img.src = url;
+      });
 
-    setUploadState((prev) => ({
-      ...prev,
-      file,
-      width: dimensions.width,
-      height: dimensions.height,
-    }));
+      await uploadImageToBackend(selectedProjectId, file, {
+        fileName: file.name,
+        width: dimensions.width,
+        height: dimensions.height,
+        status: meta.status,
+        tags: meta.tags,
+      });
+
+      showNotification(`Image "${file.name}" uploaded successfully!`);
+
+      // Refresh project details to update counts
+      await loadProjectDetails(selectedProjectId);
+
+      // If on label page, reload queue
+      if (route === 'label') {
+        await loadAvailableQueue(selectedProjectId);
+      }
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Upload failed'));
+    } finally {
+      setUploading(false);
+    }
   };
 
-  const handleUpload = async () => {
-    if (!selectedProjectId) {
-      setError("Select a project first");
-      return;
-    }
-    if (!uploadState.file) {
-      setError("Select an image to upload");
-      return;
-    }
+  // Handler: Save annotations (placeholder - needs backend endpoint)
+  const handleSaveAnnotations = async (imageId: string, boxes: BoundingBox[]) => {
+    // TODO: Implement when backend endpoint is available
+    // For now, just show notification
+    showNotification(`Saved ${boxes.length} annotations for image`);
 
-    setUploadState((prev) => ({ ...prev, uploading: true }));
-    setError(null);
-
-    try {
-      const tags = uploadState.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean);
-
-      await uploadImageToBackend(selectedProjectId, uploadState.file, {
-        fileName: uploadState.file.name,
-        width: uploadState.width,
-        height: uploadState.height,
-        status: uploadState.status,
-        tags,
-      });
-
-      setUploadState({
-        file: null,
-        width: 0,
-        height: 0,
-        status: "unlabeled",
-        tags: "",
-        uploading: false,
-      });
-
-      await loadAvailableQueue(selectedProjectId);
-    } catch (err: any) {
-      setError(err.message || "Upload failed");
-    } finally {
-      setUploadState((prev) => ({ ...prev, uploading: false }));
+    // Move to next image in queue
+    const currentIndex = availableImages.findIndex(img => img.imageId === imageId);
+    if (currentIndex < availableImages.length - 1) {
+      // Has more images
+    } else {
+      // Reload queue for more images
+      if (selectedProjectId) {
+        await loadAvailableQueue(selectedProjectId);
+      }
     }
   };
 
   return (
-    <div className="layout">
-      <aside className="sidebar">
-        <div className="brand">
-          <span className="dot" />
-          <div>
-            <p className="eyebrow">RoCam Labeler</p>
-            <h1>Workspace</h1>
+    <div className="shell">
+      {/* Sidebar Navigation */}
+      <aside className="side-nav">
+        <div className="nav-rail">
+          <div className="nav-brand">
+            <span className="brand-mark" />
+            <div className="brand-copy">
+              <span className="eyebrow">RoCam Labeler</span>
+              <span className="brand-title">Studio</span>
+            </div>
           </div>
-        </div>
 
-        <button className="ghost" onClick={refreshProjects} disabled={loading}>
-          Refresh projects
-        </button>
+          <nav className="nav-list">
+            {NAV_ITEMS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={route === item.id ? 'nav-link active' : 'nav-link'}
+                onClick={() => navigate(item.id)}
+                aria-label={item.label}
+              >
+                <span className="nav-icon">{item.icon}</span>
+                <span className="nav-label">
+                  <span className="nav-title">{item.label}</span>
+                  <span className="nav-subtitle">{item.description}</span>
+                </span>
+              </button>
+            ))}
+          </nav>
 
-        <div className="project-list">
-          {projects.length === 0 && <p className="muted">No projects yet.</p>}
-          {projects.map((project) => (
-            <button
-              key={project.projectId}
-              className={
-                project.projectId === selectedProjectId
-                  ? "project-item active"
-                  : "project-item"
-              }
-              onClick={() => setSelectedProjectId(project.projectId)}
-            >
-              <span>{project.name}</span>
-              <small>{project.description || "No description"}</small>
-            </button>
-          ))}
-        </div>
-
-        <div className="panel inset">
-          <h2>New project</h2>
-          <label>
-            Name
-            <input
-              type="text"
-              value={projectForm.name}
-              onChange={(event) =>
-                setProjectForm((prev) => ({
-                  ...prev,
-                  name: event.target.value,
-                }))
-              }
-              placeholder="Urban Traffic"
-            />
-          </label>
-          <label>
-            Description
-            <input
-              type="text"
-              value={projectForm.description}
-              onChange={(event) =>
-                setProjectForm((prev) => ({
-                  ...prev,
-                  description: event.target.value,
-                }))
-              }
-              placeholder="Optional context"
-            />
-          </label>
-          <div className="inline">
-            <input
-              type="text"
-              value={projectForm.className}
-              onChange={(event) =>
-                setProjectForm((prev) => ({
-                  ...prev,
-                  className: event.target.value,
-                }))
-              }
-            />
-            <input
-              type="color"
-              value={projectForm.classColor}
-              onChange={(event) =>
-                setProjectForm((prev) => ({
-                  ...prev,
-                  classColor: event.target.value,
-                }))
-              }
-            />
+          <div className="nav-footer">
+            <div className="active-project">
+              <p className="meta-label">Active project</p>
+              <p className="meta-value">
+                {selectedProject?.name || 'None selected'}
+              </p>
+              {selectedProject && (
+                <p className="muted small">
+                  {selectedProject.imageCount || 0} images
+                </p>
+              )}
+            </div>
+            <div className="status-row">
+              <span className={queueLoading ? 'status-dot pulse' : 'status-dot'} />
+              {queueLoading ? 'Syncing...' : 'Ready'}
+            </div>
           </div>
-          <button onClick={handleCreateProject} disabled={loading}>
-            Create project
-          </button>
         </div>
       </aside>
 
-      <main className="main">
-        {error && <div className="error">{error}</div>}
-
-        <section className="panel hero">
+      {/* Main Content */}
+      <main className="page">
+        {/* Page Header */}
+        <header className="page-header">
           <div>
-            <p className="eyebrow">Project overview</p>
-            <h2>{projectDetails?.name || "Select a project"}</h2>
-            <p className="muted">
-              {projectDetails?.description || "No description provided."}
-            </p>
+            <p className="eyebrow">{pageMeta.eyebrow}</p>
+            <h1>{pageMeta.title}</h1>
+            <p className="muted">{pageMeta.subtitle}</p>
           </div>
-          <div className="meta-grid">
-            <div>
-              <p className="meta-label">Classes</p>
-              <p className="meta-value">
-                {projectDetails?.classes?.length || 0}
-              </p>
-            </div>
-            <div>
-              <p className="meta-label">Locked queue</p>
-              <p className="meta-value">{lockedIds.length}</p>
-            </div>
-            <div>
-              <p className="meta-label">Lock refresh</p>
-              <p className="meta-value">every 5 min</p>
-            </div>
+          <div className="header-actions">
+            {route === 'projects' && (
+              <button
+                className="btn btn-ghost btn-small"
+                onClick={refreshProjects}
+                disabled={projectsLoading}
+              >
+                {projectsLoading ? 'Refreshing...' : 'Refresh Projects'}
+              </button>
+            )}
+            {route === 'label' && selectedProjectId && (
+              <button
+                className="btn btn-ghost btn-small"
+                onClick={() => loadAvailableQueue(selectedProjectId)}
+                disabled={queueLoading}
+              >
+                {queueLoading ? 'Loading...' : 'Reload Queue'}
+              </button>
+            )}
           </div>
-        </section>
+        </header>
 
-        <section className="panel image-panel">
-          <div className="image-header">
-            <div>
-              <h2>Labeling focus</h2>
-              <p className="muted">First unlocked image is loaded by default.</p>
-            </div>
-            <button
-              className="ghost"
-              onClick={() => selectedProjectId && loadAvailableQueue(selectedProjectId)}
-              disabled={!selectedProjectId}
-            >
-              Reload queue
+        {/* Notifications */}
+        {notification && (
+          <div className="banner success">
+            <span>{notification}</span>
+            <button className="btn btn-ghost btn-small" onClick={() => setNotification(null)}>
+              Dismiss
             </button>
           </div>
+        )}
 
-          {activeImage ? (
-            <div className="image-body">
-              <div className="preview">
-                {activeImage.fileUrl ? (
-                  <img src={activeImage.fileUrl} alt={activeImage.meta?.fileName} />
-                ) : (
-                  <div className="empty">No preview available</div>
-                )}
-              </div>
-              <div className="details">
-                <p className="filename">{activeImage.meta?.fileName}</p>
-                <p className="muted">
-                  {activeImage.meta?.width} x {activeImage.meta?.height} · {" "}
-                  {activeImage.meta?.status}
-                </p>
-                <div className="pill-row">
-                  {(activeImage.meta?.tags || []).length === 0 && (
-                    <span className="pill">no tags</span>
-                  )}
-                  {(activeImage.meta?.tags || []).map((tag: string) => (
-                    <span className="pill" key={tag}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <div className="queue">
-                  <h3>Locked queue</h3>
-                  {availableImages.length === 0 && (
-                    <p className="muted">No unlocked images found.</p>
-                  )}
-                  {availableImages.map((image) => (
-                    <button
-                      key={image.imageId}
-                      className={
-                        image.imageId === activeImage.imageId
-                          ? "queue-item active"
-                          : "queue-item"
-                      }
-                      onClick={() => setActiveImageId(image.imageId)}
-                    >
-                      <span>{image.meta?.fileName || image.imageId}</span>
-                      <small>{image.imageId}</small>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="empty">No images available to label.</div>
-          )}
-        </section>
-
-        <section className="panel upload-panel">
-          <h2>Upload image</h2>
-          <div className="upload-grid">
-            <label>
-              File
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(event) =>
-                  handleFileChange(event.target.files?.[0] || null)
-                }
-              />
-            </label>
-            <label>
-              Status
-              <select
-                value={uploadState.status}
-                onChange={(event) =>
-                  setUploadState((prev) => ({
-                    ...prev,
-                    status: event.target.value,
-                  }))
-                }
-              >
-                {statusOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Tags
-              <input
-                type="text"
-                value={uploadState.tags}
-                onChange={(event) =>
-                  setUploadState((prev) => ({
-                    ...prev,
-                    tags: event.target.value,
-                  }))
-                }
-                placeholder="comma-separated"
-              />
-            </label>
-            <label>
-              Dimensions
-              <input
-                type="text"
-                value={
-                  uploadState.width && uploadState.height
-                    ? `${uploadState.width} x ${uploadState.height}`
-                    : ""
-                }
-                placeholder="auto"
-                disabled
-              />
-            </label>
+        {/* Error Banner */}
+        {error && (
+          <div className="banner error">
+            <span>{error}</span>
+            <button className="btn btn-ghost btn-small" onClick={() => setError(null)}>
+              Dismiss
+            </button>
           </div>
-          <button onClick={handleUpload} disabled={uploadState.uploading}>
-            {uploadState.uploading ? "Uploading..." : "Upload"}
-          </button>
-        </section>
+        )}
+
+        {/* Page Content */}
+        {route === 'projects' && (
+          <section className="panel" style={panelStyle('0.05s')}>
+            <ProjectList
+              projects={projects}
+              activeProjectId={selectedProjectId}
+              onRequestSelectProject={requestSwitchProject}
+              onCreateNew={() => navigate('create')}
+              onDeleteProject={requestDeleteProject}
+              deletingProjectId={deletingProjectId}
+              loading={projectsLoading}
+            />
+          </section>
+        )}
+
+        {route === 'create' && (
+          <section className="panel" style={panelStyle('0.05s')}>
+            <CreateProject
+              onSubmit={handleCreateProject}
+              onCancel={() => navigate('projects')}
+              loading={creatingProject}
+            />
+          </section>
+        )}
+
+        {route === 'label' && (
+          <section className="panel label-panel" style={panelStyle('0.05s')}>
+            <LabelImage
+              project={selectedProject}
+              images={availableImages}
+              onSelectProject={() => navigate('projects')}
+              onSaveAnnotations={handleSaveAnnotations}
+              onNextImage={() => {}}
+              onPrevImage={() => {}}
+              loading={queueLoading}
+            />
+          </section>
+        )}
+
+        {route === 'upload' && (
+          <section className="panel" style={panelStyle('0.05s')}>
+            <ImageUpload
+              project={selectedProject}
+              onUpload={handleUploadImage}
+              onSelectProject={() => navigate('projects')}
+              loading={uploading}
+            />
+          </section>
+        )}
       </main>
+
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDeleteProject}
+        title="Delete project"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This will remove all images and locks in the project.`}
+        confirmText={deletingProjectId ? 'Deleting...' : 'Delete'}
+        cancelText="Cancel"
+        variant="danger"
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(switchTarget)}
+        onClose={() => setSwitchTarget(null)}
+        onConfirm={handleConfirmSwitchProject}
+        title="Switch project"
+        message={`Switch active project to "${switchTarget?.name}"? Your current labeling queue will be cleared.`}
+        confirmText="Switch"
+        cancelText="Cancel"
+        variant="primary"
+      />
     </div>
   );
 }

@@ -1,5 +1,12 @@
 import { signInAnonymously } from "firebase/auth";
 import { auth } from "../firebaseconfig";
+import type {
+  LockResponse,
+  ProjectApiItem,
+  ProjectImagesApiResponse,
+  ProjectsApiResponse,
+  UploadImageResponse,
+} from "../types";
 
 const apiBase = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 
@@ -60,7 +67,7 @@ const apiFetch = async (path: string, options: RequestInit = {}) => {
 };
 
 export const listProjects = async () =>
-  apiFetch("/projects", { method: "GET" }) as Promise<{ items: any[] }>;
+  apiFetch("/projects", { method: "GET" }) as Promise<ProjectsApiResponse>;
 
 export const createProject = async (payload: {
   name: string;
@@ -74,12 +81,41 @@ export const createProject = async (payload: {
   }) as Promise<{ projectId: string }>;
 
 export const getProject = async (projectId: string) =>
-  apiFetch(`/projects/${projectId}`, { method: "GET" }) as Promise<any>;
+  apiFetch(`/projects/${projectId}`, { method: "GET" }) as Promise<ProjectApiItem>;
 
-export const listImages = async (projectId: string) =>
-  apiFetch(`/projects/${projectId}/images`, {
-    method: "GET",
-  }) as Promise<{ items: any[] }>;
+export const deleteProject = async (projectId: string) =>
+  apiFetch(`/projects/${projectId}`, { method: "DELETE" }) as Promise<{ projectId: string; deleted: boolean }>;
+
+export const listImages = async (
+  projectId: string,
+  options: {
+    limit?: number;
+    status?: string;
+    cursor?: string;
+    includeTotal?: boolean;
+  } = {}
+) => {
+  const params = new URLSearchParams();
+  if (options.limit) {
+    params.set("limit", String(options.limit));
+  }
+  if (options.status) {
+    params.set("status", options.status);
+  }
+  if (options.cursor) {
+    params.set("cursor", options.cursor);
+  }
+  if (options.includeTotal) {
+    params.set("includeTotal", "1");
+  }
+
+  const query = params.toString();
+  const path = query
+    ? `/projects/${projectId}/images?${query}`
+    : `/projects/${projectId}/images`;
+
+  return apiFetch(path, { method: "GET" }) as Promise<ProjectImagesApiResponse>;
+};
 
 export const getAvailableImages = async (
   projectId: string,
@@ -101,7 +137,7 @@ export const getAvailableImages = async (
     ? `/projects/${projectId}/images/available?${query}`
     : `/projects/${projectId}/images/available`;
 
-  return apiFetch(path, { method: "GET" }) as Promise<{ items: any[] }>;
+  return apiFetch(path, { method: "GET" }) as Promise<ProjectImagesApiResponse>;
 };
 
 export const acquireLocks = async (
@@ -114,7 +150,7 @@ export const acquireLocks = async (
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ imageIds, userId, durationMs }),
-  }) as Promise<{ results: any[] }>;
+  }) as Promise<LockResponse>;
 };
 
 export const uploadImageToBackend = async (
@@ -157,5 +193,5 @@ export const uploadImageToBackend = async (
     throw new Error(message);
   }
 
-  return data as { imageId: string };
+  return data as UploadImageResponse;
 };

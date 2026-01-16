@@ -44,7 +44,7 @@ const ImageUploadButton = ({ projectId, status = 'unlabeled', tags = [] }: Image
       const previewUrl = URL.createObjectURL(file);
       setImageUrl(previewUrl);
       alert("Upload successful!");
-    } catch (err) {
+    } catch {
       alert("Failed to upload image.");
     } finally {
       setUploading(false);

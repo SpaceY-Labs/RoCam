@@ -1,19 +1,21 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+﻿@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Sora:wght@300;400;500;600;700&display=swap");
 
 :root {
   color-scheme: light;
-  font-family: "Space Grotesk", "Segoe UI", sans-serif;
-  background-color: #f5f1ea;
-  color: #1f1a17;
-  --bg: #f5f1ea;
-  --panel: #fff6ea;
-  --panel-strong: #fbe7cf;
-  --ink: #1f1a17;
-  --muted: #6f665f;
-  --accent: #d8543a;
-  --accent-2: #1c8f7b;
-  --border: rgba(31, 26, 23, 0.12);
-  --shadow: 0 20px 60px rgba(31, 26, 23, 0.12);
+  font-family: "Sora", "Segoe UI", sans-serif;
+  background-color: #f3efe8;
+  color: #1c1a16;
+  --bg: #f3efe8;
+  --panel: #fff9f2;
+  --panel-strong: #f1e2cf;
+  --ink: #1c1a16;
+  --muted: #6f655b;
+  --accent: #e06b3f;
+  --accent-2: #1f7a6e;
+  --accent-3: #f0b65c;
+  --border: rgba(28, 26, 22, 0.12);
+  --shadow: 0 20px 50px rgba(28, 26, 22, 0.12);
+  --shadow-soft: 0 12px 30px rgba(28, 26, 22, 0.08);
 }
 
 * {
@@ -23,7 +25,11 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at top, #fff6e6 0%, #f5f1ea 45%, #efe9e1 100%);
+  background:
+    radial-gradient(circle at 10% 10%, #fff1df 0%, transparent 50%),
+    radial-gradient(circle at 90% 0%, #e6f2f0 0%, transparent 48%),
+    linear-gradient(180deg, #f6f1ea 0%, #efe9e1 100%);
+  color: var(--ink);
 }
 
 #root {
@@ -35,9 +41,18 @@ a {
   text-decoration: none;
 }
 
+img {
+  display: block;
+  max-width: 100%;
+}
+
 button,
 input,
 select,
 textarea {
   font-family: inherit;
+}
+
+::selection {
+  background: rgba(224, 107, 63, 0.2);
 }
