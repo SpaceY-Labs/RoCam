@@ -17,6 +17,35 @@ export interface Project {
   unlabeledCount?: number;
 }
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export type Polygon = Point[][];
+
+export type MaskSource = 'sam3_click' | 'sam3_auto' | 'sam3_semantic' | 'manual';
+
+export interface ImageMask {
+  id: string;
+  classId: string;
+  className: string;
+  color: string;
+  polygon: Polygon;
+  source: MaskSource;
+}
+
+export interface SegmentMask {
+  polygon: Polygon;
+  boundingBox: { x: number; y: number; w: number; h: number };
+  area: number;
+  score: number;
+}
+
+export interface SegmentResponse {
+  masks: SegmentMask[];
+}
+
 export interface ImageMeta {
   fileName: string;
   width: number;
@@ -34,6 +63,7 @@ export interface ProjectImage {
   fileUrl?: string;
   thumbnailUrl?: string;
   createdAt: string;
+  masks?: ImageMask[];
 }
 
 export interface BoundingBox {
@@ -43,6 +73,7 @@ export interface BoundingBox {
   y: number;
   width: number;
   height: number;
+  source?: MaskSource;
 }
 
 export interface ImageAnnotation {
@@ -143,6 +174,7 @@ export interface ProjectImageApiItem {
   meta?: ProjectImageMetaApi;
   fileUrl?: string;
   createdAt?: string;
+  masks?: ImageMask[];
 }
 
 export interface ProjectImagesApiResponse {

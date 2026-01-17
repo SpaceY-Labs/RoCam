@@ -1,7 +1,18 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import './App.css';
-import type { RouteId, Project, ProjectImage, ProjectFormData, ImageStatus, BoundingBox, LabelClass } from './types';
+import type {
+  RouteId,
+  Project,
+  ProjectImage,
+  ProjectFormData,
+  ImageStatus,
+  BoundingBox,
+  LabelClass,
+  ImageMask,
+  MaskSource,
+  SegmentMask,
+} from './types';
 import { ProjectList } from './components/ProjectList';
 import { CreateProject } from './components/CreateProject';
 import { ImageUpload } from './components/ImageUpload';
@@ -15,6 +26,9 @@ import {
   deleteProject,
   getAvailableImages,
   acquireLocks,
+  releaseLocks,
+  updateImage,
+  segmentImage,
   uploadImageToBackend,
 } from './modules/API_Helps';
 
@@ -91,6 +105,63 @@ const getErrorMessage = (err: unknown, fallback: string) =>
 
 const getResponseCount = (response: { total?: number; items: unknown[] }) =>
   typeof response.total === 'number' ? response.total : response.items.length;
+
+const resolveMaskClass = (project: Project, classId?: string): LabelClass => {
+  if (classId) {
+    const match = project.classes.find((cls) => cls.id === classId);
+    if (match) {
+      return match;
+    }
+  }
+  return (
+    project.classes[0] || {
+      id: classId || 'unknown',
+      name: 'Unknown',
+      color: '#999999',
+    }
+  );
+};
+
+const buildPolygonFromBox = (box: BoundingBox) => ([
+  [
+    { x: box.x, y: box.y },
+    { x: box.x + box.width, y: box.y },
+    { x: box.x + box.width, y: box.y + box.height },
+    { x: box.x, y: box.y + box.height },
+  ],
+]);
+
+const buildMasksFromBoxes = (
+  boxes: BoundingBox[],
+  project: Project
+): ImageMask[] =>
+  boxes.map((box) => {
+    const cls = resolveMaskClass(project, box.classId);
+    return {
+      id: box.id,
+      classId: cls.id,
+      className: cls.name,
+      color: cls.color,
+      polygon: buildPolygonFromBox(box),
+      source: (box.source || 'manual') as MaskSource,
+    };
+  });
+
+const buildMasksFromSegments = (
+  segments: SegmentMask[],
+  targetClass: LabelClass,
+  source: MaskSource
+): ImageMask[] =>
+  segments
+    .filter((segment) => Array.isArray(segment.polygon) && segment.polygon.length > 0)
+    .map((segment, index) => ({
+      id: `mask_${Date.now()}_${index}`,
+      classId: targetClass.id,
+      className: targetClass.name,
+      color: targetClass.color,
+      polygon: segment.polygon,
+      source,
+    }));
 
 function App() {
   // Routing
@@ -249,6 +320,7 @@ function App() {
           },
           fileUrl: item.fileUrl,
           createdAt: item.createdAt || new Date().toISOString(),
+          masks: item.masks || [],
         }));
 
       setAvailableImages(lockedImages);
@@ -435,7 +507,7 @@ function App() {
         img.src = url;
       });
 
-      await uploadImageToBackend(selectedProjectId, file, {
+      const uploadResponse = await uploadImageToBackend(selectedProjectId, file, {
         fileName: file.name,
         width: dimensions.width,
         height: dimensions.height,
@@ -444,6 +516,23 @@ function App() {
       });
 
       showNotification(`Image "${file.name}" uploaded successfully!`);
+
+      const autoClass = selectedProject?.classes[0];
+      if (autoClass) {
+        try {
+          const segmentResponse = await segmentImage({
+            projectId: selectedProjectId,
+            imageId: uploadResponse.imageId,
+            mode: 'auto',
+          });
+          const masks = buildMasksFromSegments(segmentResponse.masks || [], autoClass, 'sam3_auto');
+          if (masks.length > 0) {
+            await updateImage(selectedProjectId, uploadResponse.imageId, { masks });
+          }
+        } catch (error) {
+          console.warn('Auto segmentation failed:', error);
+        }
+      }
 
       // Refresh project details to update counts
       await loadProjectDetails(selectedProjectId);
@@ -461,21 +550,85 @@ function App() {
 
   // Handler: Save annotations (placeholder - needs backend endpoint)
   const handleSaveAnnotations = async (imageId: string, boxes: BoundingBox[]) => {
-    // TODO: Implement when backend endpoint is available
-    // For now, just show notification
-    showNotification(`Saved ${boxes.length} annotations for image`);
+    if (!selectedProjectId || !selectedProject) {
+      setError('Select a project first');
+      return;
+    }
+
+    try {
+      const masks = buildMasksFromBoxes(boxes, selectedProject);
+      await updateImage(selectedProjectId, imageId, {
+        meta: { status: 'labeled' },
+        masks,
+      });
+      showNotification(`Saved ${boxes.length} annotations for image`);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to save annotations'));
+      return;
+    }
+
+    let remainingLocks = lockedIds;
+    if (lockedIds.includes(imageId)) {
+      try {
+        await releaseLocks(selectedProjectId, [imageId]);
+        remainingLocks = lockedIds.filter((id) => id !== imageId);
+        setLockedIds(remainingLocks);
+      } catch (err: unknown) {
+        console.warn('Failed to release image lock:', err);
+      }
+    }
 
     // Move to next image in queue
     const currentIndex = availableImages.findIndex(img => img.imageId === imageId);
-    if (currentIndex < availableImages.length - 1) {
-      // Has more images
-    } else {
+    if (currentIndex >= availableImages.length - 1) {
       // Reload queue for more images
       if (selectedProjectId) {
+        if (remainingLocks.length > 0) {
+          try {
+            await releaseLocks(selectedProjectId, remainingLocks);
+          } catch (err: unknown) {
+            console.warn('Failed to release locks:', err);
+          }
+          setLockedIds([]);
+        }
         await loadAvailableQueue(selectedProjectId);
       }
     }
   };
+
+  const handleReloadQueue = async () => {
+    if (!selectedProjectId) {
+      return;
+    }
+
+    if (lockedIds.length > 0) {
+      try {
+        await releaseLocks(selectedProjectId, lockedIds);
+      } catch (err: unknown) {
+        console.warn('Failed to release locks:', err);
+      }
+      setLockedIds([]);
+    }
+
+    await loadAvailableQueue(selectedProjectId);
+  };
+
+  const handleSegmentImage = useCallback(
+    async (
+      imageId: string,
+      payload: {
+        mode: 'click' | 'auto' | 'semantic';
+        points?: { x: number; y: number; label: 0 | 1 }[];
+        prompt?: string;
+      }
+    ) => {
+      if (!selectedProjectId) {
+        throw new Error('Select a project first');
+      }
+      return segmentImage({ projectId: selectedProjectId, imageId, ...payload });
+    },
+    [selectedProjectId]
+  );
 
   return (
     <div className="shell">
@@ -550,7 +703,7 @@ function App() {
             {route === 'label' && selectedProjectId && (
               <button
                 className="btn btn-ghost btn-small"
-                onClick={() => loadAvailableQueue(selectedProjectId)}
+                onClick={handleReloadQueue}
                 disabled={queueLoading}
               >
                 {queueLoading ? 'Loading...' : 'Reload Queue'}
@@ -611,6 +764,7 @@ function App() {
               images={availableImages}
               onSelectProject={() => navigate('projects')}
               onSaveAnnotations={handleSaveAnnotations}
+              onSegmentImage={handleSegmentImage}
               onNextImage={() => {}}
               onPrevImage={() => {}}
               loading={queueLoading}

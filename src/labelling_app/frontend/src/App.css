@@ -1578,6 +1578,47 @@ input[type='color'] {
   color: var(--muted);
 }
 
+.segmentation-card .hint {
+  margin: 0 0 12px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.segment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.segment-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.segment-field label {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.segment-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.segment-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 0;
+}
+
+.segment-error {
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  color: #e74c3c;
+}
+
 .class-buttons {
   display: flex;
   flex-direction: column;
@@ -1834,6 +1875,10 @@ input[type='color'] {
   }
 
   .file-info {
+    grid-template-columns: 1fr;
+  }
+
+  .segment-grid {
     grid-template-columns: 1fr;
   }
 }

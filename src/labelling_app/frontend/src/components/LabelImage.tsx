@@ -1,6 +1,14 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { CSSProperties } from 'react';
-import type { Project, ProjectImage, BoundingBox } from '../types';
+import type {
+  Project,
+  ProjectImage,
+  BoundingBox,
+  ImageMask,
+  MaskSource,
+  SegmentMask,
+  SegmentResponse,
+} from '../types';
 import { Button, Card, StatusBadge, EmptyState } from './ui';
 
 // Generate unique ID
@@ -13,6 +21,14 @@ interface LabelImageProps {
   images: ProjectImage[];
   onSelectProject: () => void;
   onSaveAnnotations: (imageId: string, boxes: BoundingBox[]) => void;
+  onSegmentImage: (
+    imageId: string,
+    payload: {
+      mode: 'click' | 'auto' | 'semantic';
+      points?: { x: number; y: number; label: 0 | 1 }[];
+      prompt?: string;
+    }
+  ) => Promise<SegmentResponse>;
   onNextImage: () => void;
   onPrevImage: () => void;
   loading?: boolean;
@@ -34,6 +50,14 @@ interface LabelImageContentProps {
   activeClassId: string | null;
   onSelectClass: (classId: string) => void;
   onSaveAnnotations: (imageId: string, boxes: BoundingBox[]) => void;
+  onSegmentImage: (
+    imageId: string,
+    payload: {
+      mode: 'click' | 'auto' | 'semantic';
+      points?: { x: number; y: number; label: 0 | 1 }[];
+      prompt?: string;
+    }
+  ) => Promise<SegmentResponse>;
   onNavigate: (direction: 'prev' | 'next') => void;
   loading: boolean;
 }
@@ -43,6 +67,7 @@ export function LabelImage({
   images,
   onSelectProject,
   onSaveAnnotations,
+  onSegmentImage,
   onNextImage,
   onPrevImage,
   loading = false,
@@ -106,12 +131,88 @@ export function LabelImage({
         activeClassId={activeClassId}
         onSelectClass={setSelectedClassId}
         onSaveAnnotations={onSaveAnnotations}
+        onSegmentImage={onSegmentImage}
         onNavigate={handleNavigate}
         loading={loading}
       />
     </div>
   );
 }
+
+const getBoundsFromPolygon = (polygon: ImageMask['polygon']) => {
+  const points = polygon.flat();
+  if (points.length === 0) {
+    return null;
+  }
+  let minX = points[0].x;
+  let minY = points[0].y;
+  let maxX = points[0].x;
+  let maxY = points[0].y;
+
+  for (const point of points) {
+    minX = Math.min(minX, point.x);
+    minY = Math.min(minY, point.y);
+    maxX = Math.max(maxX, point.x);
+    maxY = Math.max(maxY, point.y);
+  }
+
+  return {
+    x: minX,
+    y: minY,
+    width: Math.max(0, maxX - minX),
+    height: Math.max(0, maxY - minY),
+  };
+};
+
+const masksToBoxes = (masks: ImageMask[] = []): BoundingBox[] =>
+  masks
+    .map((mask) => {
+      const bounds = getBoundsFromPolygon(mask.polygon);
+      if (!bounds || bounds.width === 0 || bounds.height === 0) {
+        return null;
+      }
+      return {
+        id: mask.id,
+        classId: mask.classId,
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+        source: mask.source,
+      };
+    })
+    .filter((box): box is BoundingBox => Boolean(box));
+
+const segmentMaskToBox = (
+  mask: SegmentMask,
+  classId: string,
+  source: MaskSource
+): BoundingBox | null => {
+  const bounds = mask.boundingBox
+    ? {
+        x: mask.boundingBox.x,
+        y: mask.boundingBox.y,
+        width: mask.boundingBox.w,
+        height: mask.boundingBox.h,
+      }
+    : mask.polygon
+      ? getBoundsFromPolygon(mask.polygon)
+      : null;
+
+  if (!bounds || bounds.width === 0 || bounds.height === 0) {
+    return null;
+  }
+
+  return {
+    id: generateId('box'),
+    classId,
+    x: bounds.x,
+    y: bounds.y,
+    width: bounds.width,
+    height: bounds.height,
+    source,
+  };
+};
 
 function LabelImageContent({
   project,
@@ -121,10 +222,13 @@ function LabelImageContent({
   activeClassId,
   onSelectClass,
   onSaveAnnotations,
+  onSegmentImage,
   onNavigate,
   loading,
 }: LabelImageContentProps) {
-  const [boxes, setBoxes] = useState<BoundingBox[]>([]);
+  const [boxes, setBoxes] = useState<BoundingBox[]>(() =>
+    masksToBoxes(currentImage?.masks || [])
+  );
   const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null);
   const [drawing, setDrawing] = useState<DrawingState>({
     isDrawing: false,
@@ -135,6 +239,14 @@ function LabelImageContent({
   });
   const [imageLoaded, setImageLoaded] = useState(false);
   const [scale, setScale] = useState(1);
+  const [segmentPoint, setSegmentPoint] = useState({
+    x: 0.5,
+    y: 0.5,
+    label: 1 as 0 | 1,
+  });
+  const [segmentPrompt, setSegmentPrompt] = useState('');
+  const [segmentError, setSegmentError] = useState<string | null>(null);
+  const [segmentLoading, setSegmentLoading] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -243,6 +355,80 @@ function LabelImageContent({
   const handleSave = () => {
     if (currentImage) {
       onSaveAnnotations(currentImage.imageId, boxes);
+    }
+  };
+
+  const handleSegmentPoint = async () => {
+    if (!currentImage) {
+      return;
+    }
+    if (!activeClassId) {
+      setSegmentError('Select a class before segmenting.');
+      return;
+    }
+
+    if (
+      Number.isNaN(segmentPoint.x) ||
+      Number.isNaN(segmentPoint.y) ||
+      segmentPoint.x < 0 ||
+      segmentPoint.x > 1 ||
+      segmentPoint.y < 0 ||
+      segmentPoint.y > 1
+    ) {
+      setSegmentError('Point coordinates must be between 0 and 1.');
+      return;
+    }
+
+    setSegmentError(null);
+    setSegmentLoading(true);
+    try {
+      const response = await onSegmentImage(currentImage.imageId, {
+        mode: 'click',
+        points: [{ x: segmentPoint.x, y: segmentPoint.y, label: segmentPoint.label }],
+      });
+      const newBoxes = (response.masks || [])
+        .map((mask) => segmentMaskToBox(mask, activeClassId, 'sam3_click'))
+        .filter((box): box is BoundingBox => Boolean(box));
+      if (newBoxes.length > 0) {
+        setBoxes((prev) => [...prev, ...newBoxes]);
+      }
+    } catch (error) {
+      setSegmentError('Segmentation failed. Try again.');
+    } finally {
+      setSegmentLoading(false);
+    }
+  };
+
+  const handleSegmentPrompt = async () => {
+    if (!currentImage) {
+      return;
+    }
+    if (!activeClassId) {
+      setSegmentError('Select a class before segmenting.');
+      return;
+    }
+    if (!segmentPrompt.trim()) {
+      setSegmentError('Enter a prompt for semantic segmentation.');
+      return;
+    }
+
+    setSegmentError(null);
+    setSegmentLoading(true);
+    try {
+      const response = await onSegmentImage(currentImage.imageId, {
+        mode: 'semantic',
+        prompt: segmentPrompt.trim(),
+      });
+      const newBoxes = (response.masks || [])
+        .map((mask) => segmentMaskToBox(mask, activeClassId, 'sam3_semantic'))
+        .filter((box): box is BoundingBox => Boolean(box));
+      if (newBoxes.length > 0) {
+        setBoxes((prev) => [...prev, ...newBoxes]);
+      }
+    } catch (error) {
+      setSegmentError('Segmentation failed. Try again.');
+    } finally {
+      setSegmentLoading(false);
     }
   };
 
@@ -453,6 +639,99 @@ function LabelImageContent({
               </button>
             ))}
           </div>
+        </Card>
+
+        <Card variant="bordered" padding="medium" className="segmentation-card">
+          <h4>Segmentation</h4>
+          <p className="hint">Use a point (0-1) or a prompt to segment.</p>
+          <div className="segment-grid">
+            <div className="segment-field">
+              <label htmlFor="segment-point-x">X</label>
+              <input
+                id="segment-point-x"
+                type="number"
+                step="0.01"
+                min="0"
+                max="1"
+                value={segmentPoint.x}
+                onChange={(e) =>
+                  setSegmentPoint((prev) => ({
+                    ...prev,
+                    x: Number.isNaN(Number.parseFloat(e.target.value))
+                      ? 0
+                      : Number.parseFloat(e.target.value),
+                  }))
+                }
+              />
+            </div>
+            <div className="segment-field">
+              <label htmlFor="segment-point-y">Y</label>
+              <input
+                id="segment-point-y"
+                type="number"
+                step="0.01"
+                min="0"
+                max="1"
+                value={segmentPoint.y}
+                onChange={(e) =>
+                  setSegmentPoint((prev) => ({
+                    ...prev,
+                    y: Number.isNaN(Number.parseFloat(e.target.value))
+                      ? 0
+                      : Number.parseFloat(e.target.value),
+                  }))
+                }
+              />
+            </div>
+            <div className="segment-field">
+              <label htmlFor="segment-point-label">Label</label>
+              <select
+                id="segment-point-label"
+                value={segmentPoint.label}
+                onChange={(e) =>
+                  setSegmentPoint((prev) => ({
+                    ...prev,
+                    label: Number(e.target.value) as 0 | 1,
+                  }))
+                }
+              >
+                <option value={1}>Foreground</option>
+                <option value={0}>Background</option>
+              </select>
+            </div>
+          </div>
+          <div className="segment-actions">
+            <Button
+              variant="secondary"
+              size="small"
+              onClick={handleSegmentPoint}
+              disabled={segmentLoading}
+            >
+              Segment from Point
+            </Button>
+          </div>
+          <div className="segment-divider" />
+          <div className="segment-field">
+            <label htmlFor="segment-prompt">Prompt</label>
+            <input
+              id="segment-prompt"
+              type="text"
+              placeholder="e.g. person, vehicle"
+              value={segmentPrompt}
+              onChange={(e) => setSegmentPrompt(e.target.value)}
+            />
+          </div>
+          <div className="segment-actions">
+            <Button
+              variant="secondary"
+              size="small"
+              onClick={handleSegmentPrompt}
+              disabled={segmentLoading}
+            >
+              Segment from Prompt
+            </Button>
+          </div>
+          {segmentError && <p className="segment-error">{segmentError}</p>}
         </Card>
 
         {/* Annotations List */}

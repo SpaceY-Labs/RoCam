@@ -5,6 +5,7 @@ import type {
   ProjectApiItem,
   ProjectImagesApiResponse,
   ProjectsApiResponse,
+  SegmentResponse,
   UploadImageResponse,
 } from "../types";
 
@@ -152,6 +153,53 @@ export const acquireLocks = async (
     body: JSON.stringify({ imageIds, userId, durationMs }),
   }) as Promise<LockResponse>;
 };
+
+export const releaseLocks = async (projectId: string, imageIds: string[]) => {
+  const userId = await getUserId();
+  return apiFetch(`/projects/${projectId}/locks`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ imageIds, userId }),
+  }) as Promise<LockResponse>;
+};
+
+export const updateImage = async (
+  projectId: string,
+  imageId: string,
+  payload: {
+    meta?: {
+      status?: string;
+      tags?: string[];
+    };
+    masks?: {
+      id: string;
+      classId: string;
+      className: string;
+      color: string;
+      polygon: { x: number; y: number }[][];
+      source: string;
+    }[];
+    labellerId?: string | null;
+  }
+) =>
+  apiFetch(`/projects/${projectId}/images/${imageId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+export const segmentImage = async (payload: {
+  projectId: string;
+  imageId: string;
+  mode: "click" | "auto" | "semantic";
+  points?: { x: number; y: number; label: 0 | 1 }[];
+  prompt?: string;
+}) =>
+  apiFetch("/segment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }) as Promise<SegmentResponse>;
 
 export const uploadImageToBackend = async (
   projectId: string,
