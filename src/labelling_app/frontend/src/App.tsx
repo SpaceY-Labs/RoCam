@@ -142,24 +142,72 @@ const buildMasksFromBoxes = (
       classId: cls.id,
       className: cls.name,
       color: cls.color,
-      polygon: buildPolygonFromBox(box),
+      polygon: box.mask ? undefined : buildPolygonFromBox(box),
+      rle: box.mask,
+      boundingBox: {
+        x: box.x,
+        y: box.y,
+        w: box.width,
+        h: box.height,
+      },
       source: (box.source || 'manual') as MaskSource,
     };
   });
 
+const scalePolygonIfNormalized = (
+  polygon: ImageMask['polygon'],
+  width?: number,
+  height?: number
+) => {
+  if (!polygon || !width || !height || width <= 1 || height <= 1) {
+    return polygon;
+  }
+
+  let maxX = 0;
+  let maxY = 0;
+  for (const ring of polygon) {
+    for (const point of ring) {
+      maxX = Math.max(maxX, point.x);
+      maxY = Math.max(maxY, point.y);
+    }
+  }
+
+  if (maxX <= 1 && maxY <= 1) {
+    return polygon.map((ring) =>
+      ring.map((point) => ({
+        x: point.x * width,
+        y: point.y * height,
+      }))
+    );
+  }
+
+  return polygon;
+};
+
 const buildMasksFromSegments = (
   segments: SegmentMask[],
   targetClass: LabelClass,
-  source: MaskSource
+  source: MaskSource,
+  imageSize?: { width: number; height: number }
 ): ImageMask[] =>
   segments
-    .filter((segment) => Array.isArray(segment.polygon) && segment.polygon.length > 0)
+    .filter((segment) => segment.rle || (Array.isArray(segment.polygon) && segment.polygon.length > 0))
     .map((segment, index) => ({
       id: `mask_${Date.now()}_${index}`,
       classId: targetClass.id,
       className: targetClass.name,
       color: targetClass.color,
-      polygon: segment.polygon,
+      polygon: segment.rle
+        ? undefined
+        : segment.polygon
+          ? scalePolygonIfNormalized(
+              segment.polygon,
+              imageSize?.width,
+              imageSize?.height
+            )
+          : undefined,
+      rle: segment.rle,
+      boundingBox: segment.boundingBox,
       source,
     }));
 
@@ -520,12 +568,19 @@ function App() {
       const autoClass = selectedProject?.classes[0];
       if (autoClass) {
         try {
+          const autoPrompt = autoClass.name || 'object';
           const segmentResponse = await segmentImage({
             projectId: selectedProjectId,
             imageId: uploadResponse.imageId,
             mode: 'auto',
+            prompt: autoPrompt,
           });
-          const masks = buildMasksFromSegments(segmentResponse.masks || [], autoClass, 'sam3_auto');
+          const masks = buildMasksFromSegments(
+            segmentResponse.masks || [],
+            autoClass,
+            'sam3_auto',
+            dimensions
+          );
           if (masks.length > 0) {
             await updateImage(selectedProjectId, uploadResponse.imageId, { masks });
           }
@@ -617,7 +672,8 @@ function App() {
     async (
       imageId: string,
       payload: {
-        mode: 'click' | 'auto' | 'semantic';
+        mode: 'click' | 'auto';
+        resourceUrl?: string;
         points?: { x: number; y: number; label: 0 | 1 }[];
         prompt?: string;
       }

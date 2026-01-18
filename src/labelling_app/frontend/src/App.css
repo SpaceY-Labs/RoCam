@@ -1469,6 +1469,14 @@ input[type='color'] {
   -webkit-user-drag: none;
 }
 
+.mask-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
 .canvas-empty {
   display: flex;
   flex-direction: column;

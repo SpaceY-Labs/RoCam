@@ -22,12 +22,19 @@ export type PointWithLabel = Point & {
 
 export type Polygon = Point[][];
 
+export type MaskRle = {
+  counts: string;
+  size: [number, number];
+};
+
 export type Mask = {
   id: string;
   classId: string;
   className: string;
   color: string;
-  polygon: Polygon;
+  polygon?: Polygon;
+  rle?: MaskRle;
+  boundingBox?: BoundingBox;
   source: "sam3_click" | "sam3_auto" | "sam3_semantic" | "manual";
 };
 
@@ -87,7 +94,8 @@ export type SegmentSam3Request = {
 export type SegmentRequest = SegmentLegacyRequest | SegmentSam3Request;
 
 export type SegmentMask = {
-  polygon: Polygon;
+  polygon?: Polygon;
+  rle?: MaskRle;
   boundingBox: BoundingBox;
   area: number;
   score: number;

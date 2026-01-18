@@ -79,7 +79,7 @@ if (-not $GcsObject) {
     exit 1
   }
 
-  $GcsObject = "gs://$bucket/sam3-test/capstone.mp4"
+  $GcsObject = "gs://$bucket/sam-test/capstone.mp4"
 }
 
 if (-not $ServiceAccountKey) {

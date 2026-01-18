@@ -176,7 +176,9 @@ export const updateImage = async (
       classId: string;
       className: string;
       color: string;
-      polygon: { x: number; y: number }[][];
+      polygon?: { x: number; y: number }[][];
+      rle?: { counts: string; size: [number, number] };
+      boundingBox?: { x: number; y: number; w: number; h: number };
       source: string;
     }[];
     labellerId?: string | null;
@@ -191,15 +193,78 @@ export const updateImage = async (
 export const segmentImage = async (payload: {
   projectId: string;
   imageId: string;
-  mode: "click" | "auto" | "semantic";
+  mode: "click" | "auto";
+  resourceUrl?: string;
   points?: { x: number; y: number; label: 0 | 1 }[];
   prompt?: string;
-}) =>
-  apiFetch("/segment", {
+}) => {
+  const startResponse = await apiFetch("/segment", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  }) as Promise<SegmentResponse>;
+    body: JSON.stringify({
+      type: "start_session",
+      projectId: payload.projectId,
+      imageId: payload.imageId,
+      ...(payload.resourceUrl ? { resourceUrl: payload.resourceUrl } : {}),
+    }),
+  });
+
+  const sessionId =
+    (startResponse as { session_id?: string }).session_id ||
+    (startResponse as { sessionId?: string }).sessionId ||
+    (startResponse as { session?: string }).session;
+
+  if (!sessionId) {
+    throw new Error("SAM3 session_id missing");
+  }
+
+  try {
+    const addPrompt: Record<string, unknown> = {
+      type: "add_prompt",
+      session_id: sessionId,
+      frame_index: 0,
+    };
+
+    if (payload.mode === "click") {
+      if (!payload.points || payload.points.length === 0) {
+        throw new Error("SAM3 click mode requires points");
+      }
+      addPrompt.points = payload.points.map((point) => [point.x, point.y]);
+      addPrompt.point_labels = payload.points.map((point) => point.label);
+      addPrompt.obj_id = 1;
+    } else {
+      const text = payload.prompt?.trim() || "object";
+      addPrompt.text = text;
+    }
+
+    const response = await apiFetch("/segment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(addPrompt),
+    });
+
+    const outputs = (response as { outputs?: SegmentResponse }).outputs;
+    const masks =
+      outputs?.masks ||
+      (response as SegmentResponse).masks ||
+      [];
+
+    return { masks } as SegmentResponse;
+  } finally {
+    try {
+      await apiFetch("/segment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "close_session",
+          session_id: sessionId,
+        }),
+      });
+    } catch (error) {
+      void error;
+    }
+  }
+};
 
 export const uploadImageToBackend = async (
   projectId: string,

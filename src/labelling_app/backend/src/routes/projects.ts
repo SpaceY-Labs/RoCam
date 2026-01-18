@@ -47,6 +47,104 @@ const parseJsonField = <T>(value: string | undefined, fieldName: string): T => {
 const buildStoragePath = (projectId: string, imageId: string, fileName: string) =>
   `projects/${projectId}/images/${imageId}/${fileName}`;
 
+type Point = { x: number; y: number };
+
+const isPoint = (value: unknown): value is Point => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const point = value as Point;
+  return Number.isFinite(point.x) && Number.isFinite(point.y);
+};
+
+const isRingObject = (value: unknown): value is { points: unknown } =>
+  Boolean(value && typeof value === "object" && "points" in (value as Record<string, unknown>));
+
+const toPolygonPoints = (polygon: unknown): Point[][] => {
+  if (!Array.isArray(polygon)) {
+    return [];
+  }
+
+  if (polygon.every((ring) => Array.isArray(ring))) {
+    return polygon.map((ring) => (ring as unknown[]).filter(isPoint));
+  }
+
+  if (polygon.every((ring) => isRingObject(ring))) {
+    return polygon.map((ring) => {
+      const points = (ring as { points?: unknown }).points;
+      return Array.isArray(points) ? points.filter(isPoint) : [];
+    });
+  }
+
+  return [];
+};
+
+const toPolygonRings = (polygon: unknown): Array<{ points: Point[] }> => {
+  if (!Array.isArray(polygon)) {
+    return [];
+  }
+
+  if (polygon.every((ring) => Array.isArray(ring))) {
+    return polygon
+      .map((ring) => ({ points: (ring as unknown[]).filter(isPoint) }))
+      .filter((ring) => ring.points.length >= 3);
+  }
+
+  if (polygon.every((ring) => isRingObject(ring))) {
+    return polygon
+      .map((ring) => {
+        const points = (ring as { points?: unknown }).points;
+        return { points: Array.isArray(points) ? points.filter(isPoint) : [] };
+      })
+      .filter((ring) => ring.points.length >= 3);
+  }
+
+  return [];
+};
+
+const normalizeMasksForResponse = (masks: unknown) => {
+  if (!Array.isArray(masks)) {
+    return [];
+  }
+
+  return masks.flatMap((mask) => {
+    if (!mask || typeof mask !== "object") {
+      return [];
+    }
+    const typedMask = mask as Record<string, unknown>;
+    const polygon = toPolygonPoints(typedMask.polygon);
+    return [
+      {
+        ...typedMask,
+        ...(polygon.length > 0 ? { polygon } : {}),
+      },
+    ];
+  });
+};
+
+const serializeMasksForStorage = (masks: unknown) => {
+  if (!Array.isArray(masks)) {
+    return [];
+  }
+
+  return masks.flatMap((mask) => {
+    if (!mask || typeof mask !== "object") {
+      return [];
+    }
+    const typedMask = mask as Record<string, unknown>;
+    const polygon = toPolygonRings(typedMask.polygon);
+    return [
+      {
+        ...typedMask,
+        ...(polygon.length > 0 ? { polygon } : {}),
+      },
+    ];
+  });
+};
+
+const normalizeImageData = (data: FirebaseFirestore.DocumentData) =>
+  ({ ...data, masks: normalizeMasksForResponse(data.masks) } as FirebaseFirestore.DocumentData);
+
 router.post(
   "/",
   asyncHandler(async (req: AuthenticatedRequest, res) => {
@@ -216,7 +314,7 @@ router.post(
     const videoId = req.body.videoId ?? null;
     const labellerId = req.body.labellerId ?? null;
     const masks = req.body.masks
-      ? parseJsonField(req.body.masks, "masks")
+      ? serializeMasksForStorage(parseJsonField(req.body.masks, "masks"))
       : [];
 
     const storagePath = buildStoragePath(projectId, imageId, meta.data.fileName);
@@ -274,7 +372,7 @@ router.patch(
       updates.videoId = parsed.data.videoId;
     }
     if (parsed.data.masks !== undefined) {
-      updates.masks = parsed.data.masks;
+      updates.masks = serializeMasksForStorage(parsed.data.masks);
     }
     if (parsed.data.labellerId !== undefined) {
       updates.labellerId = parsed.data.labellerId;
@@ -325,7 +423,7 @@ router.get(
       );
 
       const items = results.flatMap((snapshot) =>
-        snapshot.docs.map((doc) => doc.data())
+        snapshot.docs.map((doc) => normalizeImageData(doc.data()))
       );
 
       return res.json({ items, cursor: null });
@@ -351,7 +449,7 @@ router.get(
     }
 
     const snapshot = await query.limit(limit).get();
-    const items = snapshot.docs.map((doc) => doc.data());
+    const items = snapshot.docs.map((doc) => normalizeImageData(doc.data()));
     const nextCursor = snapshot.docs.length
       ? snapshot.docs[snapshot.docs.length - 1].id
       : null;
@@ -403,7 +501,7 @@ router.get(
     const snapshot = await query.limit(batchLimit).get();
 
     const available = snapshot.docs
-      .map((doc) => doc.data())
+      .map((doc) => normalizeImageData(doc.data()))
       .filter((image) => !lockedIds.has(image.imageId))
       .slice(0, limit);
 
@@ -439,7 +537,7 @@ router.get(
       throw new HttpError(404, "NOT_FOUND", "Image not found");
     }
 
-    res.json(doc.data());
+    res.json(normalizeImageData(doc.data() || {}));
   })
 );
 

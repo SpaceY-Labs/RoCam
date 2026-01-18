@@ -36,12 +36,6 @@ WORKDIR /app
 COPY backend/sam/requirements.txt /app/sam/requirements.txt
 RUN pip install --no-cache-dir -r /app/sam/requirements.txt
 
-ARG SAM3_GIT_URL=https://github.com/facebookresearch/sam3.git
-ARG SAM3_GIT_REF=main
-RUN git clone --depth 1 --branch "$SAM3_GIT_REF" "$SAM3_GIT_URL" /app/sam3 \
-  && pip install --no-cache-dir -e /app/sam3 \
-  && rm -rf /app/sam3/.git
-
 COPY --from=build /workspace/backend/dist ./dist
 COPY --from=build /workspace/backend/package.json ./package.json
 COPY --from=build /workspace/node_modules ./node_modules
@@ -53,7 +47,8 @@ COPY backend/scripts/start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
 ENV SAM3_INTERNAL_PORT=9000
-ENV SAM3_MODEL_PATH=/app/sam/weights/sam3.pt
+ENV SAM2_MODEL_PATH=/app/sam/weights/sam_b.pt
+ENV SAM3_MODEL_PATH=/app/sam/weights/sam_b.pt
 
 EXPOSE 8080
 

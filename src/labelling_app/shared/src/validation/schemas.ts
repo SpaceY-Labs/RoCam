@@ -29,13 +29,35 @@ export const pointWithLabelSchema = pointSchema.extend({
 
 export const polygonSchema = z.array(z.array(pointSchema).min(3)).min(1);
 
+const maskRleSchema = z.object({
+  counts: z.string().min(1),
+  size: z.tuple([z.number().int().positive(), z.number().int().positive()]),
+});
+
+const boundingBoxSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  w: z.number(),
+  h: z.number(),
+});
+
 export const maskSchema = z.object({
   id: z.string().min(1),
   classId: z.string().min(1),
   className: z.string().min(1),
   color: colorSchema,
-  polygon: polygonSchema,
+  polygon: polygonSchema.optional(),
+  rle: maskRleSchema.optional(),
+  boundingBox: boundingBoxSchema.optional(),
   source: z.enum(["sam3_click", "sam3_auto", "sam3_semantic", "manual"]),
+}).superRefine((value, ctx) => {
+  if (!value.polygon && !value.rle) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "polygon or rle is required for masks",
+      path: ["polygon"],
+    });
+  }
 });
 
 export const imageStatusSchema = z.enum(["unlabeled", "in_progress", "labeled"]);

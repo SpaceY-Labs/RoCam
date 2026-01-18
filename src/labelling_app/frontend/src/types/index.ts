@@ -26,17 +26,25 @@ export type Polygon = Point[][];
 
 export type MaskSource = 'sam3_click' | 'sam3_auto' | 'sam3_semantic' | 'manual';
 
+export interface MaskRle {
+  counts: string;
+  size: [number, number];
+}
+
 export interface ImageMask {
   id: string;
   classId: string;
   className: string;
   color: string;
-  polygon: Polygon;
+  polygon?: Polygon;
+  rle?: MaskRle;
+  boundingBox?: { x: number; y: number; w: number; h: number };
   source: MaskSource;
 }
 
 export interface SegmentMask {
-  polygon: Polygon;
+  polygon?: Polygon;
+  rle?: MaskRle;
   boundingBox: { x: number; y: number; w: number; h: number };
   area: number;
   score: number;
@@ -74,6 +82,7 @@ export interface BoundingBox {
   width: number;
   height: number;
   source?: MaskSource;
+  mask?: MaskRle;
 }
 
 export interface ImageAnnotation {

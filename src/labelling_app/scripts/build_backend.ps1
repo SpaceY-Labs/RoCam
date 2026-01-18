@@ -143,8 +143,28 @@ try {
   if ($ImageTag -ne $remoteImage) {
     docker tag $ImageTag $remoteImage
   }
-  gcloud auth configure-docker "$Region-docker.pkg.dev" --quiet
-  docker push $remoteImage
+  $prevOutputEncoding = [Console]::OutputEncoding
+  $prevPythonEncoding = $env:PYTHONIOENCODING
+  $prevPythonUtf8 = $env:PYTHONUTF8
+  try {
+    [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+    $env:PYTHONIOENCODING = "utf-8"
+    $env:PYTHONUTF8 = "1"
+    gcloud auth configure-docker "$Region-docker.pkg.dev" --quiet
+    docker push $remoteImage
+  } finally {
+    [Console]::OutputEncoding = $prevOutputEncoding
+    if ($prevPythonEncoding) {
+      $env:PYTHONIOENCODING = $prevPythonEncoding
+    } else {
+      Remove-Item Env:PYTHONIOENCODING -ErrorAction SilentlyContinue
+    }
+    if ($prevPythonUtf8) {
+      $env:PYTHONUTF8 = $prevPythonUtf8
+    } else {
+      Remove-Item Env:PYTHONUTF8 -ErrorAction SilentlyContinue
+    }
+  }
 } finally {
   if ($RunDockerTest) {
     docker rm -f $TestContainerName 2>$null | Out-Null

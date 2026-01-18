@@ -1,11 +1,11 @@
 import { config } from "../config";
 import { HttpError } from "../middleware/error";
 
-export type Sam3Request = Record<string, unknown>;
+export type SamRequest = Record<string, unknown>;
 
-export const callSam3 = async (payload: Sam3Request) => {
+export const callSam = async (payload: SamRequest) => {
   if (!config.sam3Endpoint) {
-    throw new HttpError(500, "INTERNAL_ERROR", "SAM3_ENDPOINT not configured");
+    throw new HttpError(500, "INTERNAL_ERROR", "SAM endpoint not configured");
   }
 
   const controller = new AbortController();
@@ -64,7 +64,7 @@ export const callSam3 = async (payload: Sam3Request) => {
       throw new HttpError(
         response.status,
         "INTERNAL_ERROR",
-        `SAM3 error: ${response.status}`
+        `SAM error: ${response.status}`
       );
     }
 
@@ -74,12 +74,12 @@ export const callSam3 = async (payload: Sam3Request) => {
       throw error;
     }
     if ((error as Error).name === "AbortError") {
-      throw new HttpError(504, "INTERNAL_ERROR", "SAM3 request timeout");
+      throw new HttpError(504, "INTERNAL_ERROR", "SAM request timeout");
     }
     const message =
       error instanceof Error && error.message
-        ? `SAM3 request failed: ${error.message}`
-        : "SAM3 request failed";
+        ? `SAM request failed: ${error.message}`
+        : "SAM request failed";
     throw new HttpError(500, "INTERNAL_ERROR", message);
   } finally {
     clearTimeout(timeout);
