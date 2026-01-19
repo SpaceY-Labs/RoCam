@@ -46,9 +46,8 @@ COPY backend/sam /app/sam
 COPY backend/scripts/start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
-ENV SAM3_INTERNAL_PORT=9000
+ENV SAM2_INTERNAL_PORT=9000
 ENV SAM2_MODEL_PATH=/app/sam/weights/sam_b.pt
-ENV SAM3_MODEL_PATH=/app/sam/weights/sam_b.pt
 
 EXPOSE 8080
 

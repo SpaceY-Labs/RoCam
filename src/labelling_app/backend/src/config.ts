@@ -43,28 +43,40 @@ const optionalNumber = (key: string, fallback: number) => {
   return parsed;
 };
 
-const sam3InternalPort = optionalNumber("SAM3_INTERNAL_PORT", 9000);
+const sam2InternalPort = optionalNumber("SAM2_INTERNAL_PORT", 9000);
 const maxImageMb = optionalNumber("MAX_IMAGE_MB", 50);
+const maskChunkRows = optionalNumber("MASK_CHUNK_ROWS", 256);
+const maskChunkTtlMs = optionalNumber("MASK_CHUNK_TTL_MS", 5 * 60 * 1000);
+const memoryGcThresholdMb = optionalNumber("MEMORY_GC_THRESHOLD_MB", 0);
+const memoryGcIntervalMs = optionalNumber("MEMORY_GC_INTERVAL_MS", 0);
+
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((entry) => entry.trim())
+  .filter(Boolean);
+const allowAllOrigins = allowedOrigins.includes("*");
 
 export const config = {
   port: optionalNumber("PORT", 8080),
   firebaseProjectId: process.env.FIREBASE_PROJECT_ID,
   firebaseStorageBucket: process.env.FIREBASE_STORAGE_BUCKET,
   firebaseDatabaseId: process.env.FIREBASE_DATABASE_ID || "",
-  sam3InternalPort,
-  sam3Endpoint:
-    process.env.SAM3_ENDPOINT || `http://127.0.0.1:${sam3InternalPort}`,
-  sam3ModelName: process.env.SAM3_MODEL_NAME || "sam3",
-  sam3TimeoutMs: optionalNumber("SAM3_TIMEOUT_MS", 60000),
-  sam3RetryCount: optionalNumber("SAM3_RETRY_COUNT", 5),
-  sam3RetryDelayMs: optionalNumber("SAM3_RETRY_DELAY_MS", 2000),
+  sam2InternalPort,
+  sam2Endpoint:
+    process.env.SAM2_ENDPOINT || `http://127.0.0.1:${sam2InternalPort}`,
+  sam2ModelName: process.env.SAM2_MODEL_NAME || "sam2",
+  sam2TimeoutMs: optionalNumber("SAM2_TIMEOUT_MS", 60000),
+  sam2RetryCount: optionalNumber("SAM2_RETRY_COUNT", 5),
+  sam2RetryDelayMs: optionalNumber("SAM2_RETRY_DELAY_MS", 2000),
   maxImageMb,
   MaxImageMb: maxImageMb,
+  maskChunkRows,
+  maskChunkTtlMs,
+  memoryGcThresholdMb,
+  memoryGcIntervalMs,
   requireAuth: process.env.REQUIRE_AUTH !== "false",
-  allowedOrigins: (process.env.ALLOWED_ORIGINS || "")
-    .split(",")
-    .map((entry) => entry.trim())
-    .filter(Boolean),
+  allowedOrigins,
+  allowAllOrigins,
   publicBaseUrl: process.env.PUBLIC_BASE_URL || "",
   firebaseIdTokenUrl: process.env.FIREBASE_ID_TOKEN_URL || "",
   storageSignedUrlTtlMs: optionalNumber("STORAGE_SIGNED_URL_TTL_MS", 5 * 60 * 1000),

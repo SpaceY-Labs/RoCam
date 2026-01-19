@@ -1,18 +1,19 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import type { ImageStatus, Project } from '../types';
 import { Button, Select, Input, Card, EmptyState, TagBadge } from './ui';
 
 interface ImageUploadProps {
   project: Project | null;
-  onUpload: (file: File, meta: { status: ImageStatus; tags: string[] }) => void;
+  onUpload: (file: File, meta: { status: ImageStatus; tags: string[] }, uploadId: string) => void;
   onSelectProject: () => void;
   loading?: boolean;
 }
 
 interface UploadFile {
   file: File;
-  preview: string;
+  preview?: string;
   dimensions: { width: number; height: number } | null;
+  kind: 'image' | 'zip';
 }
 
 const STATUS_OPTIONS = [
@@ -20,6 +21,25 @@ const STATUS_OPTIONS = [
   { value: 'in_progress', label: 'In Progress' },
   { value: 'labeled', label: 'Labeled' },
 ];
+
+const MAX_WS_RETRIES = 3;
+
+const buildProgressWsUrl = (uploadId: string) => {
+  const apiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+  if (!apiBase) {
+    return null;
+  }
+  try {
+    const url = new URL('/api/progress', apiBase);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    if (uploadId) {
+      url.searchParams.set('uploadId', uploadId);
+    }
+    return url.toString();
+  } catch {
+    return null;
+  }
+};
 
 export function ImageUpload({
   project,
@@ -33,10 +53,105 @@ export function ImageUpload({
   const [tags, setTags] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const uploadIdRef = useRef<string | null>(null);
+  const reconnectTimerRef = useRef<number | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const uploadInFlightRef = useRef(false);
+  const [uploadProgress, setUploadProgress] = useState<{
+    completed: number;
+    total: number;
+    status: 'idle' | 'running' | 'done' | 'error';
+    error?: string;
+  }>({ completed: 0, total: 0, status: 'idle' });
+
+  const clearReconnectTimer = () => {
+    if (reconnectTimerRef.current !== null) {
+      window.clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
+  };
+
+  const connectWebSocket = (uploadId: string) => {
+    const wsUrl = buildProgressWsUrl(uploadId);
+    if (!wsUrl) {
+      return;
+    }
+
+    const socket = new WebSocket(wsUrl);
+    wsRef.current = socket;
+
+    socket.onopen = () => {
+      reconnectAttemptsRef.current = 0;
+      socket.send(JSON.stringify({ type: 'subscribe', uploadId }));
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data as string);
+        if (
+          message?.type === 'progress' &&
+          message.uploadId &&
+          message.uploadId === uploadIdRef.current
+        ) {
+          setUploadProgress({
+            completed: Number(message.completed) || 0,
+            total: Number(message.total) || 0,
+            status: message.status || 'running',
+            error: message.error,
+          });
+          if (message.status === 'done' || message.status === 'error') {
+            uploadInFlightRef.current = false;
+            clearReconnectTimer();
+            socket.close();
+          }
+        }
+      } catch {
+        // Ignore malformed messages
+      }
+    };
+
+    socket.onclose = () => {
+      wsRef.current = null;
+      if (!uploadInFlightRef.current) {
+        return;
+      }
+      if (reconnectAttemptsRef.current >= MAX_WS_RETRIES) {
+        return;
+      }
+      reconnectAttemptsRef.current += 1;
+      const delay = Math.min(1000 * 2 ** (reconnectAttemptsRef.current - 1), 8000);
+      clearReconnectTimer();
+      reconnectTimerRef.current = window.setTimeout(() => {
+        const currentUpload = uploadIdRef.current;
+        if (currentUpload) {
+          connectWebSocket(currentUpload);
+        }
+      }, delay);
+    };
+  };
+
+  useEffect(() => {
+    return () => {
+      uploadInFlightRef.current = false;
+      clearReconnectTimer();
+      wsRef.current?.close();
+      wsRef.current = null;
+    };
+  }, []);
+
+  const isZipFile = (file: File) =>
+    file.type.includes('zip') || file.name.toLowerCase().endsWith('.zip');
 
   const processFile = useCallback(async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+    const isZip = isZipFile(file);
+    if (!file.type.startsWith('image/') && !isZip) {
+      alert('Please select an image or zip file');
+      return;
+    }
+
+    if (isZip) {
+      setUploadFile({ file, dimensions: null, kind: 'zip' });
       return;
     }
 
@@ -54,8 +169,8 @@ export function ImageUpload({
       img.src = preview;
     });
 
-    setUploadFile({ file, preview, dimensions });
-  }, []);
+    setUploadFile({ file, preview, dimensions, kind: 'image' });
+  }, [isZipFile]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -105,7 +220,15 @@ export function ImageUpload({
 
   const handleUpload = () => {
     if (!uploadFile) return;
-    onUpload(uploadFile.file, { status, tags });
+    const uploadId = crypto.randomUUID();
+    uploadIdRef.current = uploadId;
+    setUploadProgress({ completed: 0, total: 0, status: 'running' });
+    uploadInFlightRef.current = true;
+    clearReconnectTimer();
+    reconnectAttemptsRef.current = 0;
+    wsRef.current?.close();
+    connectWebSocket(uploadId);
+    onUpload(uploadFile.file, { status, tags }, uploadId);
 
     // Reset form
     setUploadFile(null);
@@ -121,7 +244,12 @@ export function ImageUpload({
     if (uploadFile?.preview) {
       URL.revokeObjectURL(uploadFile.preview);
     }
+    uploadInFlightRef.current = false;
+    clearReconnectTimer();
+    wsRef.current?.close();
+    wsRef.current = null;
     setUploadFile(null);
+    setUploadProgress({ completed: 0, total: 0, status: 'idle' });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -156,14 +284,24 @@ export function ImageUpload({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,.zip,application/zip"
                 onChange={handleFileSelect}
                 className="hidden-input"
               />
 
               {uploadFile ? (
                 <div className="upload-preview">
-                  <img src={uploadFile.preview} alt="Preview" />
+                  {uploadFile.kind === 'image' && uploadFile.preview ? (
+                    <img src={uploadFile.preview} alt="Preview" />
+                  ) : (
+                    <div className="dropzone-content">
+                      <div className="dropzone-icon">
+                        <UploadIcon />
+                      </div>
+                      <h3>Zip archive selected</h3>
+                      <p>{uploadFile.file.name}</p>
+                    </div>
+                  )}
                   <button className="preview-clear" onClick={handleClear} aria-label="Clear">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M18 6L6 18M6 6l12 12" />
@@ -177,13 +315,13 @@ export function ImageUpload({
                   </div>
                   <h3>Drop image here</h3>
                   <p>or click to browse</p>
-                  <span className="dropzone-hint">Supports JPG, PNG, WebP</span>
+                  <span className="dropzone-hint">Supports JPG, PNG, WebP, ZIP</span>
                 </div>
               )}
             </div>
           </Card>
 
-          {uploadFile?.dimensions && (
+          {uploadFile && (
             <div className="file-info">
               <div className="file-info-item">
                 <span className="file-info-label">File</span>
@@ -198,7 +336,9 @@ export function ImageUpload({
               <div className="file-info-item">
                 <span className="file-info-label">Dimensions</span>
                 <span className="file-info-value">
-                  {uploadFile.dimensions.width} x {uploadFile.dimensions.height}
+                  {uploadFile.kind === 'zip'
+                    ? 'Zip archive'
+                    : `${uploadFile.dimensions?.width || 0} x ${uploadFile.dimensions?.height || 0}`}
                 </span>
               </div>
             </div>
@@ -263,6 +403,20 @@ export function ImageUpload({
               >
                 Upload Image
               </Button>
+              {uploadProgress.status !== 'idle' && (
+                <div
+                  className={
+                    uploadProgress.status === 'error' ? 'upload-progress error' : 'upload-progress'
+                  }
+                >
+                  <span>
+                    {uploadProgress.status === 'error'
+                      ? 'Segmentation failed'
+                      : `Segmentation ${uploadProgress.completed}/${uploadProgress.total || '?'}`}
+                  </span>
+                  {uploadProgress.error && <span>{uploadProgress.error}</span>}
+                </div>
+              )}
             </div>
           </Card>
 

@@ -15,6 +15,10 @@ export const authenticate = async (
   res: Response,
   next: NextFunction
 ) => {
+  if (req.method === "OPTIONS") {
+    return next();
+  }
+
   if (!config.requireAuth) {
     (req as AuthenticatedRequest).user = { uid: "dev", token: {} };
     return next();

@@ -2,7 +2,9 @@ param(
   [string]$WorkspaceRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")),
   [ValidateSet("contract", "smoke")]
   [string]$Mode = "contract",
-  [string]$ApiBaseUrl = ""
+  [string]$ApiBaseUrl = "",
+  [switch]$RunSegment,
+  [string]$SegmentImageUrl = ""
 )
 
 if ($Mode -eq "smoke") {
@@ -34,8 +36,16 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
 Push-Location $WorkspaceRoot
 try {
   $previousApiBaseUrl = $env:API_BASE_URL
+  $prevRunSegment = $env:RUN_SEGMENT
+  $prevSegmentImageUrl = $env:SEGMENT_IMAGE_URL
   if ($ApiBaseUrl) {
     $env:API_BASE_URL = $ApiBaseUrl
+  }
+  if ($RunSegment) {
+    $env:RUN_SEGMENT = "1"
+  }
+  if ($SegmentImageUrl) {
+    $env:SEGMENT_IMAGE_URL = $SegmentImageUrl
   }
   node test/labelling_api_contract_check.mjs
 } finally {
@@ -44,6 +54,20 @@ try {
       $env:API_BASE_URL = $previousApiBaseUrl
     } else {
       Remove-Item Env:API_BASE_URL -ErrorAction SilentlyContinue
+    }
+  }
+  if ($RunSegment) {
+    if ($prevRunSegment) {
+      $env:RUN_SEGMENT = $prevRunSegment
+    } else {
+      Remove-Item Env:RUN_SEGMENT -ErrorAction SilentlyContinue
+    }
+  }
+  if ($SegmentImageUrl) {
+    if ($prevSegmentImageUrl) {
+      $env:SEGMENT_IMAGE_URL = $prevSegmentImageUrl
+    } else {
+      Remove-Item Env:SEGMENT_IMAGE_URL -ErrorAction SilentlyContinue
     }
   }
   Pop-Location

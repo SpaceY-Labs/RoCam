@@ -4,23 +4,23 @@ import { HttpError } from "../middleware/error";
 export type SamRequest = Record<string, unknown>;
 
 export const callSam = async (payload: SamRequest) => {
-  if (!config.sam3Endpoint) {
+  if (!config.sam2Endpoint) {
     throw new HttpError(500, "INTERNAL_ERROR", "SAM endpoint not configured");
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), config.sam3TimeoutMs);
+  const timeout = setTimeout(() => controller.abort(), config.sam2TimeoutMs);
 
   try {
-    const endpoint = config.sam3Endpoint.replace(/\/$/, "");
-    const url = `${endpoint}/predictions/${config.sam3ModelName}`;
+    const endpoint = config.sam2Endpoint.replace(/\/$/, "");
+    const url = `${endpoint}/predictions/${config.sam2ModelName}`;
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
 
-    const retries = Math.max(0, config.sam3RetryCount);
-    const retryDelayMs = Math.max(0, config.sam3RetryDelayMs);
+    const retries = Math.max(0, config.sam2RetryCount);
+    const retryDelayMs = Math.max(0, config.sam2RetryDelayMs);
 
     let response: Response | null = null;
     let lastError: Error | null = null;
@@ -49,7 +49,7 @@ export const callSam = async (payload: SamRequest) => {
     }
 
     if (!response) {
-      throw lastError || new Error("SAM3 request failed");
+      throw lastError || new Error("SAM request failed");
     }
 
     const text = await response.text();

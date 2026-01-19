@@ -4,12 +4,12 @@ param(
   [string]$ProjectId = "",
   [string]$StorageBucket = "",
   [string]$DatabaseId = "",
-  [string]$Sam3Endpoint = "",
-  [int]$Sam3InternalPort = 9000,
-  [string]$Sam3ModelName = "sam3",
-  [int]$Sam3TimeoutMs = 180000,
-  [int]$Sam3RetryCount = 60,
-  [int]$Sam3RetryDelayMs = 2000
+  [string]$Sam2Endpoint = "",
+  [int]$Sam2InternalPort = 9000,
+  [string]$Sam2ModelName = "sam2",
+  [int]$Sam2TimeoutMs = 180000,
+  [int]$Sam2RetryCount = 60,
+  [int]$Sam2RetryDelayMs = 2000
 )
 
 $root = Resolve-Path (Join-Path $PSScriptRoot "..")
@@ -102,12 +102,12 @@ if (-not $StorageBucket) {
   throw "Missing FIREBASE_STORAGE_BUCKET (or VITE_FIREBASE_STORAGE_BUCKET) in .env."
 }
 
-$envVars = "FIREBASE_PROJECT_ID=$ProjectId,FIREBASE_STORAGE_BUCKET=$StorageBucket,SAM3_MODEL_NAME=$Sam3ModelName,SAM3_INTERNAL_PORT=$Sam3InternalPort,SAM3_TIMEOUT_MS=$Sam3TimeoutMs,SAM3_RETRY_COUNT=$Sam3RetryCount,SAM3_RETRY_DELAY_MS=$Sam3RetryDelayMs"
+$envVars = "FIREBASE_PROJECT_ID=$ProjectId,FIREBASE_STORAGE_BUCKET=$StorageBucket,SAM2_MODEL_NAME=$Sam2ModelName,SAM2_INTERNAL_PORT=$Sam2InternalPort,SAM2_TIMEOUT_MS=$Sam2TimeoutMs,SAM2_RETRY_COUNT=$Sam2RetryCount,SAM2_RETRY_DELAY_MS=$Sam2RetryDelayMs"
 if ($DatabaseId) {
   $envVars = "$envVars,FIREBASE_DATABASE_ID=$DatabaseId"
 }
-if ($Sam3Endpoint) {
-  $envVars = "$envVars,SAM3_ENDPOINT=$Sam3Endpoint"
+if ($Sam2Endpoint) {
+  $envVars = "$envVars,SAM2_ENDPOINT=$Sam2Endpoint"
 }
 
 gcloud run deploy $ServiceName `

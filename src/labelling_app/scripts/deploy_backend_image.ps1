@@ -5,11 +5,11 @@ param(
   [string]$Image = "us-central1-docker.pkg.dev/dice-459903/rocam-backend/backend:latest",
   [string]$StorageBucket = "dice-459903.firebasestorage.app",
   [string]$DatabaseId = "datalabelor123",
-  [int]$Sam3InternalPort = 9000,
-  [string]$Sam3ModelName = "sam3",
-  [int]$Sam3TimeoutMs = 180000,
-  [int]$Sam3RetryCount = 60,
-  [int]$Sam3RetryDelayMs = 2000
+  [int]$Sam2InternalPort = 9000,
+  [string]$Sam2ModelName = "sam2",
+  [int]$Sam2TimeoutMs = 180000,
+  [int]$Sam2RetryCount = 60,
+  [int]$Sam2RetryDelayMs = 2000
 )
 
 if (-not $Image) {
@@ -17,7 +17,7 @@ if (-not $Image) {
   exit 1
 }
 
-$envVars = "FIREBASE_PROJECT_ID=$ProjectId,FIREBASE_STORAGE_BUCKET=$StorageBucket,SAM3_MODEL_NAME=$Sam3ModelName,SAM3_INTERNAL_PORT=$Sam3InternalPort,SAM3_TIMEOUT_MS=$Sam3TimeoutMs,SAM3_RETRY_COUNT=$Sam3RetryCount,SAM3_RETRY_DELAY_MS=$Sam3RetryDelayMs"
+$envVars = "FIREBASE_PROJECT_ID=$ProjectId,FIREBASE_STORAGE_BUCKET=$StorageBucket,SAM2_MODEL_NAME=$Sam2ModelName,SAM2_INTERNAL_PORT=$Sam2InternalPort,SAM2_TIMEOUT_MS=$Sam2TimeoutMs,SAM2_RETRY_COUNT=$Sam2RetryCount,SAM2_RETRY_DELAY_MS=$Sam2RetryDelayMs"
 if ($DatabaseId) {
   $envVars = "$envVars,FIREBASE_DATABASE_ID=$DatabaseId"
 }

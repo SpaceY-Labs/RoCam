@@ -1,5 +1,7 @@
+import path from "node:path";
 import { Router } from "express";
 import multer from "multer";
+import AdmZip from "adm-zip";
 import { v4 as uuidv4 } from "uuid";
 import { firestore, FieldValue, Timestamp } from "../firebase";
 import { asyncHandler } from "../middleware/asyncHandler";
@@ -21,11 +23,24 @@ import {
   getSignedReadUrl,
   uploadImageBuffer,
 } from "../services/storage";
+import { resizeImageBuffer, TARGET_HEIGHT, TARGET_WIDTH } from "../services/image";
+import { callSam } from "../services/sam";
 import {
   ensureProjectAccess,
   getProjectImagesCollection,
   getProjectLocksCollection,
 } from "../services/projects";
+import {
+  buildMasksFromSam,
+  normalizeMasksForResponse,
+  serializeMasksForStorage,
+} from "../services/masks";
+import {
+  failProgress,
+  finishProgress,
+  incrementProgress,
+  initProgress,
+} from "../services/progress";
 
 const router = Router();
 const upload = multer({
@@ -47,103 +62,47 @@ const parseJsonField = <T>(value: string | undefined, fieldName: string): T => {
 const buildStoragePath = (projectId: string, imageId: string, fileName: string) =>
   `projects/${projectId}/images/${imageId}/${fileName}`;
 
-type Point = { x: number; y: number };
-
-const isPoint = (value: unknown): value is Point => {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-  const point = value as Point;
-  return Number.isFinite(point.x) && Number.isFinite(point.y);
-};
-
-const isRingObject = (value: unknown): value is { points: unknown } =>
-  Boolean(value && typeof value === "object" && "points" in (value as Record<string, unknown>));
-
-const toPolygonPoints = (polygon: unknown): Point[][] => {
-  if (!Array.isArray(polygon)) {
-    return [];
-  }
-
-  if (polygon.every((ring) => Array.isArray(ring))) {
-    return polygon.map((ring) => (ring as unknown[]).filter(isPoint));
-  }
-
-  if (polygon.every((ring) => isRingObject(ring))) {
-    return polygon.map((ring) => {
-      const points = (ring as { points?: unknown }).points;
-      return Array.isArray(points) ? points.filter(isPoint) : [];
-    });
-  }
-
-  return [];
-};
-
-const toPolygonRings = (polygon: unknown): Array<{ points: Point[] }> => {
-  if (!Array.isArray(polygon)) {
-    return [];
-  }
-
-  if (polygon.every((ring) => Array.isArray(ring))) {
-    return polygon
-      .map((ring) => ({ points: (ring as unknown[]).filter(isPoint) }))
-      .filter((ring) => ring.points.length >= 3);
-  }
-
-  if (polygon.every((ring) => isRingObject(ring))) {
-    return polygon
-      .map((ring) => {
-        const points = (ring as { points?: unknown }).points;
-        return { points: Array.isArray(points) ? points.filter(isPoint) : [] };
-      })
-      .filter((ring) => ring.points.length >= 3);
-  }
-
-  return [];
-};
-
-const normalizeMasksForResponse = (masks: unknown) => {
-  if (!Array.isArray(masks)) {
-    return [];
-  }
-
-  return masks.flatMap((mask) => {
-    if (!mask || typeof mask !== "object") {
-      return [];
-    }
-    const typedMask = mask as Record<string, unknown>;
-    const polygon = toPolygonPoints(typedMask.polygon);
-    return [
-      {
-        ...typedMask,
-        ...(polygon.length > 0 ? { polygon } : {}),
-      },
-    ];
-  });
-};
-
-const serializeMasksForStorage = (masks: unknown) => {
-  if (!Array.isArray(masks)) {
-    return [];
-  }
-
-  return masks.flatMap((mask) => {
-    if (!mask || typeof mask !== "object") {
-      return [];
-    }
-    const typedMask = mask as Record<string, unknown>;
-    const polygon = toPolygonRings(typedMask.polygon);
-    return [
-      {
-        ...typedMask,
-        ...(polygon.length > 0 ? { polygon } : {}),
-      },
-    ];
-  });
-};
-
 const normalizeImageData = (data: FirebaseFirestore.DocumentData) =>
   ({ ...data, masks: normalizeMasksForResponse(data.masks) } as FirebaseFirestore.DocumentData);
+
+const zipMetaSchema = imageMetaSchema.pick({ status: true, tags: true });
+
+const getUploadId = (req: AuthenticatedRequest) => {
+  const uploadId = typeof req.body.uploadId === "string" ? req.body.uploadId.trim() : "";
+  return uploadId.length > 0 ? uploadId : null;
+};
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error && error.message ? error.message : "Segmentation failed";
+
+const resolveDefaultClass = (classes: FirebaseFirestore.DocumentData["classes"]) => {
+  if (!Array.isArray(classes) || classes.length === 0) {
+    throw new HttpError(400, "VALIDATION_ERROR", "Project has no classes");
+  }
+  return classes[0];
+};
+
+const buildImageMeta = (
+  meta: { fileName: string; status: string; tags?: string[] },
+  fileNameOverride?: string
+) => ({
+  fileName: fileNameOverride || meta.fileName,
+  width: TARGET_WIDTH,
+  height: TARGET_HEIGHT,
+  status: meta.status,
+  tags: meta.tags || [],
+});
+
+const segmentImageBuffer = async (buffer: Buffer, labelClass: { id: string; name: string; color: string }) => {
+  const samResponse = await callSam({
+    image: buffer.toString("base64"),
+    mode: "auto",
+    prompt: labelClass.name,
+  });
+
+  const masks = buildMasksFromSam(samResponse, labelClass, "sam2_auto");
+  return serializeMasksForStorage(masks);
+};
 
 router.post(
   "/",
@@ -295,7 +254,8 @@ router.post(
     }
 
     const projectId = req.params.projectId;
-    await ensureProjectAccess(projectId, user.uid);
+    const projectDoc = await ensureProjectAccess(projectId, user.uid);
+    const projectData = projectDoc.data();
 
     const file = req.file;
     if (!file) {
@@ -310,35 +270,178 @@ router.post(
       throw new HttpError(400, "VALIDATION_ERROR", meta.error.message);
     }
 
+    const uploadId = getUploadId(req);
+    if (uploadId) {
+      initProgress(uploadId, 1);
+    }
+
     const imageId = req.body.imageId || uuidv4();
     const videoId = req.body.videoId ?? null;
     const labellerId = req.body.labellerId ?? null;
-    const masks = req.body.masks
-      ? serializeMasksForStorage(parseJsonField(req.body.masks, "masks"))
-      : [];
 
-    const storagePath = buildStoragePath(projectId, imageId, meta.data.fileName);
+    try {
+      const resized = await resizeImageBuffer(file.buffer);
+      const labelClass = resolveDefaultClass(projectData?.classes);
+      const masks = await segmentImageBuffer(resized.buffer, labelClass);
 
-    await uploadImageBuffer(storagePath, file.buffer, file.mimetype);
+      const storagePath = buildStoragePath(projectId, imageId, meta.data.fileName);
 
-    await getProjectImagesCollection(projectId).doc(imageId).set(
-      {
-        imageId,
-        projectId,
-        videoId,
-        masks,
-        labellerId,
-        meta: meta.data,
-        storagePath,
-        contentType: file.mimetype,
-        sizeBytes: file.size,
-        createdAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
+      await uploadImageBuffer(storagePath, resized.buffer, resized.contentType);
 
-    res.status(201).json({ imageId });
+      await getProjectImagesCollection(projectId).doc(imageId).set(
+        {
+          imageId,
+          projectId,
+          videoId,
+          masks,
+          labellerId,
+          meta: buildImageMeta(meta.data),
+          storagePath,
+          contentType: resized.contentType,
+          sizeBytes: resized.buffer.length,
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      if (uploadId) {
+        incrementProgress(uploadId);
+        finishProgress(uploadId);
+      }
+
+      res.status(201).json({ imageId, masksCount: masks.length });
+    } catch (error) {
+      if (uploadId) {
+        failProgress(uploadId, getErrorMessage(error));
+      }
+      throw error;
+    }
+  })
+);
+
+router.post(
+  "/:projectId/images/zip",
+  upload.single("zipData"),
+  asyncHandler(async (req: AuthenticatedRequest, res) => {
+    const user = req.user;
+    if (!user) {
+      throw new HttpError(401, "UNAUTHORIZED", "Missing auth context");
+    }
+
+    const projectId = req.params.projectId;
+    const projectDoc = await ensureProjectAccess(projectId, user.uid);
+    const projectData = projectDoc.data();
+
+    const file = req.file;
+    if (!file) {
+      throw new HttpError(400, "VALIDATION_ERROR", "zipData is required");
+    }
+    const isZip =
+      file.mimetype.includes("zip") ||
+      file.originalname.toLowerCase().endsWith(".zip");
+    if (!isZip) {
+      throw new HttpError(400, "VALIDATION_ERROR", "zipData must be a zip file");
+    }
+
+    const meta = zipMetaSchema.safeParse(parseJsonField(req.body.meta, "meta"));
+    if (!meta.success) {
+      throw new HttpError(400, "VALIDATION_ERROR", meta.error.message);
+    }
+
+    const uploadId = getUploadId(req);
+
+    const zip = new AdmZip(file.buffer);
+    const entries = zip.getEntries().filter((entry: { isDirectory: boolean }) => !entry.isDirectory);
+    if (entries.length === 0) {
+      throw new HttpError(400, "VALIDATION_ERROR", "Zip archive is empty");
+    }
+
+    const labelClass = resolveDefaultClass(projectData?.classes);
+    const prepared: Array<{
+      fileName: string;
+      resized: { buffer: Buffer; contentType: string };
+    }> = [];
+
+    if (uploadId) {
+      initProgress(uploadId, entries.length);
+    }
+
+    try {
+      for (const entry of entries) {
+        const fileName = path.basename(entry.entryName);
+        if (!fileName) {
+          throw new HttpError(400, "VALIDATION_ERROR", "Zip entry name is invalid");
+        }
+        const data = entry.getData();
+        const resized = await resizeImageBuffer(data);
+        prepared.push({ fileName, resized: { buffer: resized.buffer, contentType: resized.contentType } });
+      }
+    } catch (error) {
+      if (uploadId) {
+        failProgress(uploadId, getErrorMessage(error));
+      }
+      throw error;
+    }
+
+    const saved: Array<{ imageId: string; storagePath: string }> = [];
+
+    try {
+      for (const item of prepared) {
+        const imageId = uuidv4();
+        const masks = await segmentImageBuffer(item.resized.buffer, labelClass);
+        const storagePath = buildStoragePath(projectId, imageId, item.fileName);
+
+        await uploadImageBuffer(storagePath, item.resized.buffer, item.resized.contentType);
+
+        await getProjectImagesCollection(projectId).doc(imageId).set(
+          {
+            imageId,
+            projectId,
+            videoId: null,
+            masks,
+            labellerId: null,
+            meta: buildImageMeta(
+              {
+                fileName: item.fileName,
+                status: meta.data.status,
+                tags: meta.data.tags,
+              },
+              item.fileName
+            ),
+            storagePath,
+            contentType: item.resized.contentType,
+            sizeBytes: item.resized.buffer.length,
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true }
+        );
+
+        saved.push({ imageId, storagePath });
+
+        if (uploadId) {
+          incrementProgress(uploadId);
+        }
+      }
+    } catch (error) {
+      if (uploadId) {
+        failProgress(uploadId, getErrorMessage(error));
+      }
+      await Promise.allSettled(
+        saved.map(async (item) => {
+          await deleteFileIfExists(item.storagePath);
+          await getProjectImagesCollection(projectId).doc(item.imageId).delete();
+        })
+      );
+      throw error;
+    }
+
+    if (uploadId) {
+      finishProgress(uploadId);
+    }
+
+    res.status(201).json({ imageIds: saved.map((item) => item.imageId), count: saved.length });
   })
 );
 

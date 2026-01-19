@@ -6,7 +6,6 @@ import type {
   BoundingBox,
   ImageMask,
   MaskSource,
-  MaskRle,
   SegmentMask,
   SegmentResponse,
 } from '../types';
@@ -21,13 +20,15 @@ interface LabelImageProps {
   project: Project | null;
   images: ProjectImage[];
   onSelectProject: () => void;
-  onSaveAnnotations: (imageId: string, boxes: BoundingBox[]) => void;
+  onSaveAnnotations: (
+    imageId: string,
+    boxes: BoundingBox[],
+    imageSize: { width: number; height: number }
+  ) => Promise<boolean>;
   onSegmentImage: (
     imageId: string,
     payload: {
-      mode: 'click' | 'auto';
-      resourceUrl?: string;
-      points?: { x: number; y: number; label: 0 | 1 }[];
+      mode: 'auto';
       prompt?: string;
     }
   ) => Promise<SegmentResponse>;
@@ -51,19 +52,23 @@ interface LabelImageContentProps {
   currentIndex: number;
   activeClassId: string | null;
   onSelectClass: (classId: string) => void;
-  onSaveAnnotations: (imageId: string, boxes: BoundingBox[]) => void;
+  onSaveAnnotations: (
+    imageId: string,
+    boxes: BoundingBox[],
+    imageSize: { width: number; height: number }
+  ) => Promise<boolean>;
   onSegmentImage: (
     imageId: string,
     payload: {
-      mode: 'click' | 'auto';
-      resourceUrl?: string;
-      points?: { x: number; y: number; label: 0 | 1 }[];
+      mode: 'auto';
       prompt?: string;
     }
   ) => Promise<SegmentResponse>;
   onNavigate: (direction: 'prev' | 'next') => void;
   loading: boolean;
 }
+
+const DISPLAY_SIZE = 1024;
 
 export function LabelImage({
   project,
@@ -142,31 +147,41 @@ export function LabelImage({
   );
 }
 
-const getBoundsFromPolygon = (polygon?: ImageMask['polygon']) => {
-  if (!polygon) {
+const getBoundsFromMask = (mask?: ImageMask['mask']) => {
+  if (!mask || mask.length === 0) {
     return null;
   }
-  const points = polygon.flat();
-  if (points.length === 0) {
-    return null;
-  }
-  let minX = points[0].x;
-  let minY = points[0].y;
-  let maxX = points[0].x;
-  let maxY = points[0].y;
 
-  for (const point of points) {
-    minX = Math.min(minX, point.x);
-    minY = Math.min(minY, point.y);
-    maxX = Math.max(maxX, point.x);
-    maxY = Math.max(maxY, point.y);
+  let minX = Number.POSITIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+
+  for (let y = 0; y < mask.length; y += 1) {
+    const row = mask[y];
+    if (!Array.isArray(row)) {
+      continue;
+    }
+    for (let x = 0; x < row.length; x += 1) {
+      if (!row[x]) {
+        continue;
+      }
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+  }
+
+  if (!Number.isFinite(minX) || !Number.isFinite(minY)) {
+    return null;
   }
 
   return {
     x: minX,
     y: minY,
-    width: Math.max(0, maxX - minX),
-    height: Math.max(0, maxY - minY),
+    width: Math.max(0, maxX - minX + 1),
+    height: Math.max(0, maxY - minY + 1),
   };
 };
 
@@ -179,7 +194,7 @@ const masksToBoxes = (masks: ImageMask[] = []): BoundingBox[] =>
           width: mask.boundingBox.w,
           height: mask.boundingBox.h,
         }
-      : getBoundsFromPolygon(mask.polygon);
+      : getBoundsFromMask(mask.mask);
     if (!bounds || bounds.width === 0 || bounds.height === 0) {
       return [];
     }
@@ -192,7 +207,7 @@ const masksToBoxes = (masks: ImageMask[] = []): BoundingBox[] =>
         width: bounds.width,
         height: bounds.height,
         source: mask.source,
-        mask: mask.rle,
+        mask: mask.mask,
       },
     ];
   });
@@ -233,9 +248,7 @@ const segmentMaskToBox = (
         width: mask.boundingBox.w,
         height: mask.boundingBox.h,
       }
-    : mask.polygon
-      ? getBoundsFromPolygon(mask.polygon)
-      : null;
+    : getBoundsFromMask(mask.mask);
 
   if (!bounds || bounds.width === 0 || bounds.height === 0) {
     return null;
@@ -251,48 +264,8 @@ const segmentMaskToBox = (
     width: scaledBounds.width,
     height: scaledBounds.height,
     source,
-    mask: mask.rle,
+    mask: mask.mask,
   };
-};
-
-const decodeCompressedRle = (counts: string, size: number) => {
-  const data = new Uint8Array(size);
-  let index = 0;
-  let value = 0;
-  let position = 0;
-
-  while (position < counts.length && index < size) {
-    let count = 0;
-    let shift = 0;
-    let more = true;
-
-    while (more && position < counts.length) {
-      const charCode = counts.charCodeAt(position) - 48;
-      position += 1;
-      count |= (charCode & 0x1f) << shift;
-      more = (charCode & 0x20) !== 0;
-      shift += 5;
-      if (!more && (charCode & 0x10)) {
-        count |= -1 << shift;
-      }
-    }
-
-    const run = Math.max(0, count);
-    for (let i = 0; i < run && index < size; i += 1) {
-      data[index++] = value;
-    }
-    value = value ^ 1;
-  }
-
-  return data;
-};
-
-const decodeRleMask = (rle: MaskRle) => {
-  const [height, width] = rle.size;
-  const size = height * width;
-  const counts = rle.counts;
-
-  return decodeCompressedRle(counts, size);
 };
 
 const hexToRgb = (hex: string) => {
@@ -360,35 +333,32 @@ function LabelImageContent({
     currentY: 0,
   });
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState({ x: 1, y: 1 });
   const [imageSize, setImageSize] = useState(() => ({
     width: currentImage?.meta.width || 0,
     height: currentImage?.meta.height || 0,
   }));
-  const [segmentPoint, setSegmentPoint] = useState({
-    x: 0.5,
-    y: 0.5,
-    label: 1 as 0 | 1,
-  });
   const [segmentError, setSegmentError] = useState<string | null>(null);
   const [segmentLoading, setSegmentLoading] = useState(false);
 
-  const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const maskCanvasRef = useRef<HTMLCanvasElement>(null);
 
   // Calculate scale when image loads
   const handleImageLoad = useCallback(() => {
-    if (imageRef.current && containerRef.current) {
-      const containerWidth = containerRef.current.clientWidth;
-      const containerHeight = containerRef.current.clientHeight - 60;
+    if (imageRef.current) {
       const imgWidth = imageRef.current.naturalWidth;
       const imgHeight = imageRef.current.naturalHeight;
 
-      const scaleX = containerWidth / imgWidth;
-      const scaleY = containerHeight / imgHeight;
-      setScale(Math.min(scaleX, scaleY, 1));
-      setImageSize({ width: imgWidth, height: imgHeight });
+      if (imgWidth > 0 && imgHeight > 0) {
+        setScale({
+          x: DISPLAY_SIZE / imgWidth,
+          y: DISPLAY_SIZE / imgHeight,
+        });
+        setImageSize({ width: imgWidth, height: imgHeight });
+      } else {
+        setScale({ x: 1, y: 1 });
+      }
     }
     setImageLoaded(true);
   }, []);
@@ -397,8 +367,8 @@ function LabelImageContent({
     if (!imageRef.current) return null;
 
     const rect = imageRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / scale;
-    const y = (e.clientY - rect.top) / scale;
+    const x = (e.clientX - rect.left) / scale.x;
+    const y = (e.clientY - rect.top) / scale.y;
 
     return { x, y };
   };
@@ -479,52 +449,21 @@ function LabelImageContent({
     setSelectedBoxId(null);
   }, []);
 
-  const handleSave = () => {
-    if (currentImage) {
-      onSaveAnnotations(currentImage.imageId, boxes);
-    }
-  };
-
-  const handleSegmentPoint = async () => {
+  const handleSave = async () => {
     if (!currentImage) {
       return;
     }
-    if (!activeClassId) {
-      setSegmentError('Select a class before segmenting.');
-      return;
-    }
-
-    if (
-      Number.isNaN(segmentPoint.x) ||
-      Number.isNaN(segmentPoint.y) ||
-      segmentPoint.x < 0 ||
-      segmentPoint.x > 1 ||
-      segmentPoint.y < 0 ||
-      segmentPoint.y > 1
-    ) {
-      setSegmentError('Point coordinates must be between 0 and 1.');
-      return;
-    }
-
-    setSegmentError(null);
-    setSegmentLoading(true);
+    const resolvedSize = imageSize.width && imageSize.height
+      ? imageSize
+      : { width: currentImage.meta.width, height: currentImage.meta.height };
+    let ok = false;
     try {
-      const response = await onSegmentImage(currentImage.imageId, {
-        mode: 'click',
-        resourceUrl: currentImage?.fileUrl,
-        points: [{ x: segmentPoint.x, y: segmentPoint.y, label: segmentPoint.label }],
-      });
-      const newBoxes = (response.masks || []).flatMap((mask) => {
-        const box = segmentMaskToBox(mask, activeClassId, 'sam3_click', imageSize);
-        return box ? [box] : [];
-      });
-      if (newBoxes.length > 0) {
-        setBoxes((prev) => [...prev, ...newBoxes]);
-      }
-    } catch (error) {
-      setSegmentError('Segmentation failed. Try again.');
-    } finally {
-      setSegmentLoading(false);
+      ok = await onSaveAnnotations(currentImage.imageId, boxes, resolvedSize);
+    } catch {
+      ok = false;
+    }
+    if (ok) {
+      onNavigate('next');
     }
   };
 
@@ -544,11 +483,10 @@ function LabelImageContent({
         project.classes.find((cls) => cls.id === activeClassId)?.name || 'object';
       const response = await onSegmentImage(currentImage.imageId, {
         mode: 'auto',
-        resourceUrl: currentImage?.fileUrl,
         prompt,
       });
       const newBoxes = (response.masks || []).flatMap((mask) => {
-        const box = segmentMaskToBox(mask, activeClassId, 'sam3_auto', imageSize);
+        const box = segmentMaskToBox(mask, activeClassId, 'sam2_auto', imageSize);
         return box ? [box] : [];
       });
       if (newBoxes.length > 0) {
@@ -585,6 +523,7 @@ function LabelImageContent({
     if (!ctx) {
       return;
     }
+    ctx.imageSmoothingEnabled = false;
 
     if (canvas.width !== width || canvas.height !== height) {
       canvas.width = width;
@@ -607,16 +546,27 @@ function LabelImageContent({
 
       const { r, g, b } = hexToRgb(getClassColor(box.classId));
       const alpha = 110;
-      const [maskHeight, maskWidth] = box.mask.size;
+      const maskHeight = box.mask.length;
+      let maskWidth = 0;
+      for (const row of box.mask) {
+        if (Array.isArray(row)) {
+          maskWidth = Math.max(maskWidth, row.length);
+        }
+      }
+      if (!maskHeight || !maskWidth) {
+        continue;
+      }
 
-      const maskData = decodeRleMask(box.mask);
       const imageData = ctx.createImageData(maskWidth, maskHeight);
       const data = imageData.data;
 
       for (let y = 0; y < maskHeight; y += 1) {
+        const row = box.mask[y];
+        if (!Array.isArray(row)) {
+          continue;
+        }
         for (let x = 0; x < maskWidth; x += 1) {
-          const maskIndex = x * maskHeight + y;
-          if (maskData[maskIndex] !== 1) {
+          if (!row[x]) {
             continue;
           }
           const pixelIndex = (y * maskWidth + x) * 4;
@@ -633,10 +583,11 @@ function LabelImageContent({
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = maskWidth;
         tempCanvas.height = maskHeight;
-        const tempCtx = tempCanvas.getContext('2d');
-        if (!tempCtx) {
-          continue;
-        }
+      const tempCtx = tempCanvas.getContext('2d');
+      if (!tempCtx) {
+        continue;
+      }
+      tempCtx.imageSmoothingEnabled = false;
         tempCtx.putImageData(imageData, 0, 0);
         ctx.drawImage(tempCanvas, 0, 0, maskWidth, maskHeight, 0, 0, width, height);
       }
@@ -741,7 +692,6 @@ function LabelImageContent({
         </div>
 
         <div
-          ref={containerRef}
           className="canvas-container"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -749,7 +699,7 @@ function LabelImageContent({
           onMouseLeave={handleMouseUp}
         >
           {currentImage?.fileUrl ? (
-            <div className="canvas-wrapper" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+            <div className="canvas-wrapper" style={{ transform: `scale(${scale.x}, ${scale.y})`, transformOrigin: 'top left' }}>
               <img
                 ref={imageRef}
                 src={currentImage.fileUrl}
@@ -760,7 +710,7 @@ function LabelImageContent({
               <canvas ref={maskCanvasRef} className="mask-overlay" />
 
               {/* Existing boxes */}
-              {imageLoaded && boxes.filter((box) => !box.mask).map(box => (
+              {imageLoaded && boxes.filter((box) => !box.mask || box.source === 'manual').map(box => (
                 <div
                   key={box.id}
                   className={`annotation-box ${box.id === selectedBoxId ? 'selected' : ''}`}
@@ -855,74 +805,7 @@ function LabelImageContent({
 
         <Card variant="bordered" padding="medium" className="segmentation-card">
           <h4>Segmentation</h4>
-          <p className="hint">Use a point (0-1) or segment all for the active class.</p>
-          <div className="segment-grid">
-            <div className="segment-field">
-              <label htmlFor="segment-point-x">X</label>
-              <input
-                id="segment-point-x"
-                type="number"
-                step="0.01"
-                min="0"
-                max="1"
-                value={segmentPoint.x}
-                onChange={(e) =>
-                  setSegmentPoint((prev) => ({
-                    ...prev,
-                    x: Number.isNaN(Number.parseFloat(e.target.value))
-                      ? 0
-                      : Number.parseFloat(e.target.value),
-                  }))
-                }
-              />
-            </div>
-            <div className="segment-field">
-              <label htmlFor="segment-point-y">Y</label>
-              <input
-                id="segment-point-y"
-                type="number"
-                step="0.01"
-                min="0"
-                max="1"
-                value={segmentPoint.y}
-                onChange={(e) =>
-                  setSegmentPoint((prev) => ({
-                    ...prev,
-                    y: Number.isNaN(Number.parseFloat(e.target.value))
-                      ? 0
-                      : Number.parseFloat(e.target.value),
-                  }))
-                }
-              />
-            </div>
-            <div className="segment-field">
-              <label htmlFor="segment-point-label">Label</label>
-              <select
-                id="segment-point-label"
-                value={segmentPoint.label}
-                onChange={(e) =>
-                  setSegmentPoint((prev) => ({
-                    ...prev,
-                    label: Number(e.target.value) as 0 | 1,
-                  }))
-                }
-              >
-                <option value={1}>Foreground</option>
-                <option value={0}>Background</option>
-              </select>
-            </div>
-          </div>
-          <div className="segment-actions">
-            <Button
-              variant="secondary"
-              size="small"
-              onClick={handleSegmentPoint}
-              disabled={segmentLoading}
-            >
-              Segment from Point
-            </Button>
-          </div>
-          <div className="segment-divider" />
+          <p className="hint">Run full-image segmentation for the active class.</p>
           <div className="segment-actions">
             <Button
               variant="secondary"

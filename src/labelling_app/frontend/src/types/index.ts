@@ -22,36 +22,34 @@ export interface Point {
   y: number;
 }
 
-export type Polygon = Point[][];
+export type MaskValue = 0 | 1 | boolean;
+export type MaskTensor = MaskValue[][];
 
-export type MaskSource = 'sam3_click' | 'sam3_auto' | 'sam3_semantic' | 'manual';
-
-export interface MaskRle {
-  counts: string;
-  size: [number, number];
-}
+export type MaskSource = 'sam2_click' | 'sam2_auto' | 'sam2_semantic' | 'manual';
 
 export interface ImageMask {
   id: string;
   classId: string;
   className: string;
   color: string;
-  polygon?: Polygon;
-  rle?: MaskRle;
+  mask?: MaskTensor;
   boundingBox?: { x: number; y: number; w: number; h: number };
   source: MaskSource;
 }
 
 export interface SegmentMask {
-  polygon?: Polygon;
-  rle?: MaskRle;
+  mask: MaskTensor;
   boundingBox: { x: number; y: number; w: number; h: number };
   area: number;
   score: number;
 }
 
 export interface SegmentResponse {
-  masks: SegmentMask[];
+  masks?: SegmentMask[];
+  imageId?: string;
+  masksCount?: number;
+  saved?: boolean;
+  skipped?: boolean;
 }
 
 export interface ImageMeta {
@@ -82,7 +80,7 @@ export interface BoundingBox {
   width: number;
   height: number;
   source?: MaskSource;
-  mask?: MaskRle;
+  mask?: MaskTensor;
 }
 
 export interface ImageAnnotation {
@@ -203,4 +201,10 @@ export interface LockResponse {
 
 export interface UploadImageResponse {
   imageId: string;
+  masksCount?: number;
+}
+
+export interface UploadZipResponse {
+  imageIds: string[];
+  count: number;
 }

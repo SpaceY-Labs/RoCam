@@ -2,7 +2,9 @@ param(
   [string]$WorkspaceRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")),
   [ValidateSet("contract", "smoke")]
   [string]$Mode = "contract",
-  [string]$ServiceUrl = ""
+  [string]$ServiceUrl = "",
+  [switch]$RunSegment,
+  [string]$SegmentImageUrl = ""
 )
 
 function Get-EnvValue([string]$Path, [string]$Key) {
@@ -76,5 +78,37 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
   exit 1
 }
 
+$prevApiBaseUrl = $env:API_BASE_URL
 $env:API_BASE_URL = $ServiceUrl
-node (Join-Path $WorkspaceRoot "test/labelling_api_contract_check.mjs")
+$prevRunSegment = $env:RUN_SEGMENT
+$prevSegmentImageUrl = $env:SEGMENT_IMAGE_URL
+
+try {
+  if ($RunSegment) {
+    $env:RUN_SEGMENT = "1"
+  }
+  if ($SegmentImageUrl) {
+    $env:SEGMENT_IMAGE_URL = $SegmentImageUrl
+  }
+  node (Join-Path $WorkspaceRoot "test/labelling_api_contract_check.mjs")
+} finally {
+  if ($prevApiBaseUrl) {
+    $env:API_BASE_URL = $prevApiBaseUrl
+  } else {
+    Remove-Item Env:API_BASE_URL -ErrorAction SilentlyContinue
+  }
+  if ($RunSegment) {
+    if ($prevRunSegment) {
+      $env:RUN_SEGMENT = $prevRunSegment
+    } else {
+      Remove-Item Env:RUN_SEGMENT -ErrorAction SilentlyContinue
+    }
+  }
+  if ($SegmentImageUrl) {
+    if ($prevSegmentImageUrl) {
+      $env:SEGMENT_IMAGE_URL = $prevSegmentImageUrl
+    } else {
+      Remove-Item Env:SEGMENT_IMAGE_URL -ErrorAction SilentlyContinue
+    }
+  }
+}

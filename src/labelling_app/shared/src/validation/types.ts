@@ -20,22 +20,18 @@ export type PointWithLabel = Point & {
   label: 0 | 1;
 };
 
-export type Polygon = Point[][];
+export type MaskValue = 0 | 1 | boolean;
 
-export type MaskRle = {
-  counts: string;
-  size: [number, number];
-};
+export type MaskTensor = MaskValue[][];
 
 export type Mask = {
   id: string;
   classId: string;
   className: string;
   color: string;
-  polygon?: Polygon;
-  rle?: MaskRle;
+  mask?: MaskTensor;
   boundingBox?: BoundingBox;
-  source: "sam3_click" | "sam3_auto" | "sam3_semantic" | "manual";
+  source: "sam2_click" | "sam2_auto" | "sam2_semantic" | "manual";
 };
 
 export type ImageMeta = {
@@ -69,40 +65,27 @@ export type BoundingBox = {
 };
 
 export type SegmentLegacyRequest = {
-  projectId?: string;
-  imageId?: string;
-  imageUrl?: string;
-  image?: string;
-  imageBase64?: string;
-  mode: "click" | "auto" | "semantic";
-  points?: PointWithLabel[];
-  box?: { x1: number; y1: number; x2: number; y2: number };
+  projectId: string;
+  imageId: string;
+  mode: "auto";
   prompt?: string;
 };
 
-export type SegmentSam3Request = {
-  type: string;
-  projectId?: string;
-  imageId?: string;
-  resourceUrl?: string;
-  resource_url?: string;
-  resourcePath?: string;
-  resource_path?: string;
-  [key: string]: unknown;
-};
-
-export type SegmentRequest = SegmentLegacyRequest | SegmentSam3Request;
+export type SegmentRequest = SegmentLegacyRequest;
 
 export type SegmentMask = {
-  polygon?: Polygon;
-  rle?: MaskRle;
+  mask: MaskTensor;
   boundingBox: BoundingBox;
   area: number;
   score: number;
 };
 
 export type SegmentResponse = {
-  masks: SegmentMask[];
+  masks?: SegmentMask[];
+  imageId?: string;
+  masksCount?: number;
+  saved?: boolean;
+  skipped?: boolean;
 };
 
 export type LockAcquireRequest = {

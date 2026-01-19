@@ -27,12 +27,9 @@ export const pointWithLabelSchema = pointSchema.extend({
   label: z.union([z.literal(0), z.literal(1)]),
 });
 
-export const polygonSchema = z.array(z.array(pointSchema).min(3)).min(1);
-
-const maskRleSchema = z.object({
-  counts: z.string().min(1),
-  size: z.tuple([z.number().int().positive(), z.number().int().positive()]),
-});
+export const maskValueSchema = z.union([z.literal(0), z.literal(1), z.boolean()]);
+const maskRowSchema = z.array(maskValueSchema).min(1);
+export const maskTensorSchema = z.array(maskRowSchema).min(1);
 
 const boundingBoxSchema = z.object({
   x: z.number(),
@@ -46,16 +43,22 @@ export const maskSchema = z.object({
   classId: z.string().min(1),
   className: z.string().min(1),
   color: colorSchema,
-  polygon: polygonSchema.optional(),
-  rle: maskRleSchema.optional(),
+  mask: maskTensorSchema.optional(),
   boundingBox: boundingBoxSchema.optional(),
-  source: z.enum(["sam3_click", "sam3_auto", "sam3_semantic", "manual"]),
+  source: z.enum(["sam2_click", "sam2_auto", "sam2_semantic", "manual"]),
 }).superRefine((value, ctx) => {
-  if (!value.polygon && !value.rle) {
+  if (!value.mask && !value.boundingBox) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "polygon or rle is required for masks",
-      path: ["polygon"],
+      message: "mask or boundingBox is required",
+      path: ["mask"],
+    });
+  }
+  if (value.source !== "manual" && !value.mask) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "mask is required for SAM masks",
+      path: ["mask"],
     });
   }
 });
@@ -101,108 +104,22 @@ export const imageUpdateSchema = z
 
 const segmentLegacyRequestSchema = z
   .object({
-    projectId: z.string().min(1).optional(),
-    imageId: z.string().min(1).optional(),
-    imageUrl: z.string().url().optional(),
-    image: z.string().min(1).optional(),
-    imageBase64: z.string().min(1).optional(),
-    mode: z.enum(["click", "auto", "semantic"]),
-    points: z.array(pointWithLabelSchema).optional(),
-    box: z
-      .object({
-        x1: z.number(),
-        y1: z.number(),
-        x2: z.number(),
-        y2: z.number(),
-      })
-      .optional(),
+    projectId: z.string().min(1),
+    imageId: z.string().min(1),
+    mode: z.enum(["auto"]),
     prompt: z.string().min(1).optional(),
   })
   .superRefine((value, ctx) => {
-    const hasProjectId = Boolean(value.projectId);
-    const hasImageId = Boolean(value.imageId);
-    if (hasProjectId !== hasImageId) {
+    if (value.mode === "auto" && value.prompt !== undefined && value.prompt.trim().length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "projectId and imageId must be provided together",
-        path: ["projectId"],
-      });
-    }
-
-    const hasImageInput =
-      Boolean(value.imageUrl) ||
-      Boolean(value.image) ||
-      Boolean(value.imageBase64) ||
-      (hasProjectId && hasImageId);
-    if (!hasImageInput) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "imageUrl, image/imageBase64, or projectId + imageId is required",
-        path: ["imageUrl"],
-      });
-    }
-
-    if (value.mode === "click" && (!value.points || value.points.length === 0)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "points are required for click mode",
-        path: ["points"],
-      });
-    }
-
-    if (value.mode === "semantic" && !value.prompt) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "prompt is required for semantic mode",
+        message: "prompt must be non-empty when provided",
         path: ["prompt"],
       });
     }
   });
 
-const segmentSam3RequestSchema = z
-  .object({
-    type: z.string().min(1),
-    projectId: z.string().min(1).optional(),
-    imageId: z.string().min(1).optional(),
-    resourceUrl: z.string().url().optional(),
-    resource_url: z.string().url().optional(),
-    resourcePath: z.string().min(1).optional(),
-    resource_path: z.string().min(1).optional(),
-  })
-  .passthrough()
-  .superRefine((value, ctx) => {
-    const hasProjectId = Boolean(value.projectId);
-    const hasImageId = Boolean(value.imageId);
-    if (hasProjectId !== hasImageId) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "projectId and imageId must be provided together",
-        path: ["projectId"],
-      });
-    }
-
-    if (value.type === "start_session") {
-      const hasResource =
-        Boolean(value.resourceUrl) ||
-        Boolean(value.resource_url) ||
-        Boolean(value.resourcePath) ||
-        Boolean(value.resource_path) ||
-        (hasProjectId && hasImageId);
-
-      if (!hasResource) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "resourceUrl/resourcePath or projectId + imageId is required",
-          path: ["resourceUrl"],
-        });
-      }
-    }
-  });
-
-export const segmentRequestSchema = z.union([
-  segmentSam3RequestSchema,
-  segmentLegacyRequestSchema,
-]);
+export const segmentRequestSchema = segmentLegacyRequestSchema;
 
 export const lockAcquireSchema = z.object({
   imageIds: z.array(z.string().min(1)).min(1),

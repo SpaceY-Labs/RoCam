@@ -125,9 +125,16 @@ if (!authToken) {
   }
 }
 
-const imageUrl = process.env.SAM_RLE_IMAGE_URL;
-const projectId = process.env.SAM_RLE_PROJECT_ID || process.env.PROJECT_ID;
-const imageId = process.env.SAM_RLE_IMAGE_ID || process.env.IMAGE_ID;
+const imageUrl =
+  process.env.SAM_MASK_IMAGE_URL || process.env.SAM_RLE_IMAGE_URL;
+const projectId =
+  process.env.SAM_MASK_PROJECT_ID ||
+  process.env.SAM_RLE_PROJECT_ID ||
+  process.env.PROJECT_ID;
+const imageId =
+  process.env.SAM_MASK_IMAGE_ID ||
+  process.env.SAM_RLE_IMAGE_ID ||
+  process.env.IMAGE_ID;
 
 if (!imageUrl && (!projectId || !imageId)) {
   console.error(
@@ -136,8 +143,8 @@ if (!imageUrl && (!projectId || !imageId)) {
   process.exit(1);
 }
 
-const mode = (process.env.SAM_RLE_MODE || "click").toLowerCase();
-const prompt = process.env.SAM_RLE_PROMPT;
+const mode = (process.env.SAM_MASK_MODE || process.env.SAM_RLE_MODE || "click").toLowerCase();
+const prompt = process.env.SAM_MASK_PROMPT || process.env.SAM_RLE_PROMPT;
 
 const payload = {
   mode,
@@ -154,14 +161,14 @@ if (mode === "auto" && prompt) {
   payload.prompt = prompt;
 }
 
-const box = parseBox(process.env.SAM_RLE_BOX);
+const box = parseBox(process.env.SAM_MASK_BOX || process.env.SAM_RLE_BOX);
 if (box) {
   payload.box = box;
 }
 
 if (mode !== "auto") {
-  const x = parseNumber(process.env.SAM_RLE_POINT_X, 0.5);
-  const y = parseNumber(process.env.SAM_RLE_POINT_Y, 0.5);
+  const x = parseNumber(process.env.SAM_MASK_POINT_X || process.env.SAM_RLE_POINT_X, 0.5);
+  const y = parseNumber(process.env.SAM_MASK_POINT_Y || process.env.SAM_RLE_POINT_Y, 0.5);
   payload.points = [{ x, y, label: 1 }];
 }
 
@@ -184,31 +191,43 @@ try {
 
 if (!response.ok) {
   const detail = typeof body === "string" ? body : JSON.stringify(body);
-  console.error(`FAIL sam rle (${response.status}) ${detail}`);
+  console.error(`FAIL sam mask (${response.status}) ${detail}`);
   process.exit(1);
 }
 
 const masks = body?.masks;
 if (!Array.isArray(masks) || masks.length === 0) {
-  console.error("FAIL sam rle: response.masks is empty");
+  console.error("FAIL sam mask: response.masks is empty");
   process.exit(1);
 }
 
 const first = masks[0] || {};
-const rle = first.rle;
-if (!rle || typeof rle.counts !== "string") {
-  console.error("FAIL sam rle: missing rle.counts");
+let height = 0;
+let width = 0;
+
+if (Array.isArray(first.mask) && first.mask.length > 0) {
+  const mask = first.mask;
+  if (!Array.isArray(mask[0])) {
+    console.error("FAIL sam mask: invalid 2D mask array");
+    process.exit(1);
+  }
+  height = mask.length;
+  width = Math.max(0, ...mask.map((row) => (Array.isArray(row) ? row.length : 0)));
+} else if (
+  typeof first.maskChunkId === "string" &&
+  first.maskChunk &&
+  Array.isArray(first.maskChunk.rows)
+) {
+  const chunkRows = first.maskChunk.rows;
+  height = Number(first.totalRows) || chunkRows.length;
+  width = Math.max(0, ...chunkRows.map((row) => (Array.isArray(row) ? row.length : 0)));
+} else {
+  console.error("FAIL sam mask: missing 2D mask array or chunk");
   process.exit(1);
 }
 
-if (!Array.isArray(rle.size) || rle.size.length !== 2) {
-  console.error("FAIL sam rle: missing rle.size");
-  process.exit(1);
-}
-
-const [height, width] = rle.size;
-if (!Number.isInteger(height) || !Number.isInteger(width)) {
-  console.error("FAIL sam rle: rle.size must be integers");
+if (!Number.isInteger(height) || !Number.isInteger(width) || width === 0) {
+  console.error("FAIL sam mask: invalid mask size");
   process.exit(1);
 }
 
@@ -217,10 +236,8 @@ if (
   !bbox ||
   !["x", "y", "w", "h"].every((key) => Number.isFinite(Number(bbox[key])))
 ) {
-  console.error("FAIL sam rle: missing boundingBox");
+  console.error("FAIL sam mask: missing boundingBox");
   process.exit(1);
 }
 
-console.log(
-  `PASS sam rle: masks=${masks.length} size=${height}x${width}`
-);
+console.log(`PASS sam mask: masks=${masks.length} size=${height}x${width}`);

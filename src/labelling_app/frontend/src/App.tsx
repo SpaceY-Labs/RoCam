@@ -11,7 +11,6 @@ import type {
   LabelClass,
   ImageMask,
   MaskSource,
-  SegmentMask,
 } from './types';
 import { ProjectList } from './components/ProjectList';
 import { CreateProject } from './components/CreateProject';
@@ -30,11 +29,14 @@ import {
   updateImage,
   segmentImage,
   uploadImageToBackend,
+  uploadZipToBackend,
 } from './modules/API_Helps';
 
 const LOCK_BATCH_SIZE = 5;
 const LOCK_DURATION_MS = 20 * 60 * 1000;
 const LOCK_REFRESH_MS = 5 * 60 * 1000;
+const TARGET_WIDTH = 1920;
+const TARGET_HEIGHT = 1080;
 
 const NAV_ITEMS: Array<{
   id: RouteId;
@@ -122,28 +124,19 @@ const resolveMaskClass = (project: Project, classId?: string): LabelClass => {
   );
 };
 
-const buildPolygonFromBox = (box: BoundingBox) => ([
-  [
-    { x: box.x, y: box.y },
-    { x: box.x + box.width, y: box.y },
-    { x: box.x + box.width, y: box.y + box.height },
-    { x: box.x, y: box.y + box.height },
-  ],
-]);
-
 const buildMasksFromBoxes = (
   boxes: BoundingBox[],
   project: Project
 ): ImageMask[] =>
   boxes.map((box) => {
     const cls = resolveMaskClass(project, box.classId);
+    const mask = Array.isArray(box.mask) && box.mask.length > 0 ? box.mask : undefined;
     return {
       id: box.id,
       classId: cls.id,
       className: cls.name,
       color: cls.color,
-      polygon: box.mask ? undefined : buildPolygonFromBox(box),
-      rle: box.mask,
+      ...(mask ? { mask } : {}),
       boundingBox: {
         x: box.x,
         y: box.y,
@@ -153,63 +146,6 @@ const buildMasksFromBoxes = (
       source: (box.source || 'manual') as MaskSource,
     };
   });
-
-const scalePolygonIfNormalized = (
-  polygon: ImageMask['polygon'],
-  width?: number,
-  height?: number
-) => {
-  if (!polygon || !width || !height || width <= 1 || height <= 1) {
-    return polygon;
-  }
-
-  let maxX = 0;
-  let maxY = 0;
-  for (const ring of polygon) {
-    for (const point of ring) {
-      maxX = Math.max(maxX, point.x);
-      maxY = Math.max(maxY, point.y);
-    }
-  }
-
-  if (maxX <= 1 && maxY <= 1) {
-    return polygon.map((ring) =>
-      ring.map((point) => ({
-        x: point.x * width,
-        y: point.y * height,
-      }))
-    );
-  }
-
-  return polygon;
-};
-
-const buildMasksFromSegments = (
-  segments: SegmentMask[],
-  targetClass: LabelClass,
-  source: MaskSource,
-  imageSize?: { width: number; height: number }
-): ImageMask[] =>
-  segments
-    .filter((segment) => segment.rle || (Array.isArray(segment.polygon) && segment.polygon.length > 0))
-    .map((segment, index) => ({
-      id: `mask_${Date.now()}_${index}`,
-      classId: targetClass.id,
-      className: targetClass.name,
-      color: targetClass.color,
-      polygon: segment.rle
-        ? undefined
-        : segment.polygon
-          ? scalePolygonIfNormalized(
-              segment.polygon,
-              imageSize?.width,
-              imageSize?.height
-            )
-          : undefined,
-      rle: segment.rle,
-      boundingBox: segment.boundingBox,
-      source,
-    }));
 
 function App() {
   // Routing
@@ -226,6 +162,7 @@ function App() {
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [queueLoading, setQueueLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [savingAnnotations, setSavingAnnotations] = useState(false);
   const [creatingProject, setCreatingProject] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
@@ -530,7 +467,11 @@ function App() {
   };
 
   // Handler: Upload image
-  const handleUploadImage = async (file: File, meta: { status: ImageStatus; tags: string[] }) => {
+  const handleUploadImage = async (
+    file: File,
+    meta: { status: ImageStatus; tags: string[] },
+    uploadId: string
+  ) => {
     if (!selectedProjectId) {
       setError('Select a project first');
       return;
@@ -540,53 +481,25 @@ function App() {
     setError(null);
 
     try {
-      // Get image dimensions
-      const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
-        const img = new Image();
-        const url = URL.createObjectURL(file);
-        img.onload = () => {
-          resolve({ width: img.width, height: img.height });
-          URL.revokeObjectURL(url);
-        };
-        img.onerror = () => {
-          resolve({ width: 0, height: 0 });
-          URL.revokeObjectURL(url);
-        };
-        img.src = url;
-      });
+      const isZip =
+        file.type.includes('zip') || file.name.toLowerCase().endsWith('.zip');
 
-      const uploadResponse = await uploadImageToBackend(selectedProjectId, file, {
-        fileName: file.name,
-        width: dimensions.width,
-        height: dimensions.height,
-        status: meta.status,
-        tags: meta.tags,
-      });
+      if (isZip) {
+        const zipResponse = await uploadZipToBackend(selectedProjectId, file, {
+          status: meta.status,
+          tags: meta.tags,
+        }, uploadId);
+        showNotification(`Uploaded ${zipResponse.count} images from "${file.name}"`);
+      } else {
+        await uploadImageToBackend(selectedProjectId, file, {
+          fileName: file.name,
+          width: TARGET_WIDTH,
+          height: TARGET_HEIGHT,
+          status: meta.status,
+          tags: meta.tags,
+        }, uploadId);
 
-      showNotification(`Image "${file.name}" uploaded successfully!`);
-
-      const autoClass = selectedProject?.classes[0];
-      if (autoClass) {
-        try {
-          const autoPrompt = autoClass.name || 'object';
-          const segmentResponse = await segmentImage({
-            projectId: selectedProjectId,
-            imageId: uploadResponse.imageId,
-            mode: 'auto',
-            prompt: autoPrompt,
-          });
-          const masks = buildMasksFromSegments(
-            segmentResponse.masks || [],
-            autoClass,
-            'sam3_auto',
-            dimensions
-          );
-          if (masks.length > 0) {
-            await updateImage(selectedProjectId, uploadResponse.imageId, { masks });
-          }
-        } catch (error) {
-          console.warn('Auto segmentation failed:', error);
-        }
+        showNotification(`Image "${file.name}" uploaded successfully!`);
       }
 
       // Refresh project details to update counts
@@ -604,12 +517,16 @@ function App() {
   };
 
   // Handler: Save annotations (placeholder - needs backend endpoint)
-  const handleSaveAnnotations = async (imageId: string, boxes: BoundingBox[]) => {
+  const handleSaveAnnotations = async (
+    imageId: string,
+    boxes: BoundingBox[]
+  ) => {
     if (!selectedProjectId || !selectedProject) {
       setError('Select a project first');
-      return;
+      return false;
     }
 
+    setSavingAnnotations(true);
     try {
       const masks = buildMasksFromBoxes(boxes, selectedProject);
       await updateImage(selectedProjectId, imageId, {
@@ -617,37 +534,41 @@ function App() {
         masks,
       });
       showNotification(`Saved ${boxes.length} annotations for image`);
+
+      let remainingLocks = lockedIds;
+      if (lockedIds.includes(imageId)) {
+        try {
+          await releaseLocks(selectedProjectId, [imageId]);
+          remainingLocks = lockedIds.filter((id) => id !== imageId);
+          setLockedIds(remainingLocks);
+        } catch (err: unknown) {
+          console.warn('Failed to release image lock:', err);
+        }
+      }
+
+      // Move to next image in queue
+      const currentIndex = availableImages.findIndex(img => img.imageId === imageId);
+      if (currentIndex >= availableImages.length - 1) {
+        // Reload queue for more images
+        if (selectedProjectId) {
+          if (remainingLocks.length > 0) {
+            try {
+              await releaseLocks(selectedProjectId, remainingLocks);
+            } catch (err: unknown) {
+              console.warn('Failed to release locks:', err);
+            }
+            setLockedIds([]);
+          }
+          await loadAvailableQueue(selectedProjectId);
+        }
+      }
+
+      return true;
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Failed to save annotations'));
-      return;
-    }
-
-    let remainingLocks = lockedIds;
-    if (lockedIds.includes(imageId)) {
-      try {
-        await releaseLocks(selectedProjectId, [imageId]);
-        remainingLocks = lockedIds.filter((id) => id !== imageId);
-        setLockedIds(remainingLocks);
-      } catch (err: unknown) {
-        console.warn('Failed to release image lock:', err);
-      }
-    }
-
-    // Move to next image in queue
-    const currentIndex = availableImages.findIndex(img => img.imageId === imageId);
-    if (currentIndex >= availableImages.length - 1) {
-      // Reload queue for more images
-      if (selectedProjectId) {
-        if (remainingLocks.length > 0) {
-          try {
-            await releaseLocks(selectedProjectId, remainingLocks);
-          } catch (err: unknown) {
-            console.warn('Failed to release locks:', err);
-          }
-          setLockedIds([]);
-        }
-        await loadAvailableQueue(selectedProjectId);
-      }
+      return false;
+    } finally {
+      setSavingAnnotations(false);
     }
   };
 
@@ -672,9 +593,7 @@ function App() {
     async (
       imageId: string,
       payload: {
-        mode: 'click' | 'auto';
-        resourceUrl?: string;
-        points?: { x: number; y: number; label: 0 | 1 }[];
+        mode: 'auto';
         prompt?: string;
       }
     ) => {
@@ -823,7 +742,7 @@ function App() {
               onSegmentImage={handleSegmentImage}
               onNextImage={() => {}}
               onPrevImage={() => {}}
-              loading={queueLoading}
+              loading={queueLoading || savingAnnotations}
             />
           </section>
         )}

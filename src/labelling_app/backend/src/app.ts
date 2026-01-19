@@ -8,15 +8,43 @@ import { config } from "./config";
 
 const app = express();
 
-const corsOptions = config.allowedOrigins.length
-  ? { origin: config.allowedOrigins, credentials: true }
-  : { origin: true };
+const corsOptions =
+  config.allowAllOrigins || config.allowedOrigins.length === 0
+    ? { origin: true }
+    : { origin: config.allowedOrigins, credentials: true };
 
 const jsonLimitMb = Math.max(10, Math.ceil(config.maxImageMb * 1.5));
+const getGc = () =>
+  (globalThis as typeof globalThis & { gc?: () => void }).gc;
+const maybeRunGc = () => {
+  if (config.memoryGcThresholdMb <= 0) {
+    return;
+  }
+  const gc = getGc();
+  if (!gc) {
+    return;
+  }
+  const usedMb = process.memoryUsage().heapUsed / (1024 * 1024);
+  if (usedMb >= config.memoryGcThresholdMb) {
+    gc();
+  }
+};
 
 app.use(cors(corsOptions));
 app.use(express.json({ limit: `${jsonLimitMb}mb` }));
 app.use(express.urlencoded({ extended: true }));
+
+if (config.memoryGcThresholdMb > 0) {
+  app.use((req, res, next) => {
+    res.on("finish", maybeRunGc);
+    next();
+  });
+}
+
+if (config.memoryGcIntervalMs > 0) {
+  const interval = setInterval(maybeRunGc, config.memoryGcIntervalMs);
+  interval.unref?.();
+}
 
 app.use(healthRouter);
 app.use("/api", authenticate, apiRouter);

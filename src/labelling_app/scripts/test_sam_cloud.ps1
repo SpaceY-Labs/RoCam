@@ -112,23 +112,10 @@ if (-not $signedUrl) {
   exit 1
 }
 
-$prevRunSam3 = $env:RUN_SAM3_DIRECT
-$prevSam3Url = $env:SAM3_RESOURCE_URL
+& (Join-Path $PSScriptRoot "test_backend_cloud.ps1") `
+  -Mode contract `
+  -ServiceUrl $ServiceUrl `
+  -RunSegment `
+  -SegmentImageUrl $signedUrl
 
-try {
-  $env:RUN_SAM3_DIRECT = "1"
-  $env:SAM3_RESOURCE_URL = $signedUrl
-  & (Join-Path $PSScriptRoot "test_backend_cloud.ps1") -Mode contract -ServiceUrl $ServiceUrl
-  exit $LASTEXITCODE
-} finally {
-  if ($prevRunSam3) {
-    $env:RUN_SAM3_DIRECT = $prevRunSam3
-  } else {
-    Remove-Item Env:RUN_SAM3_DIRECT -ErrorAction SilentlyContinue
-  }
-  if ($prevSam3Url) {
-    $env:SAM3_RESOURCE_URL = $prevSam3Url
-  } else {
-    Remove-Item Env:SAM3_RESOURCE_URL -ErrorAction SilentlyContinue
-  }
-}
+exit $LASTEXITCODE

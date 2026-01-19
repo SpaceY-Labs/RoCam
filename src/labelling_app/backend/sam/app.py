@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import gc
 import logging
 import os
 import threading
@@ -10,7 +11,6 @@ from typing import Any, Dict, List, Optional
 import cv2
 import numpy as np
 import torch
-from pycocotools import mask as mask_utils
 from fastapi import FastAPI, HTTPException, Request
 
 try:
@@ -45,11 +45,7 @@ _device = _detect_device()
 
 
 def _resolve_model_path() -> str:
-    return (
-        os.environ.get("SAM2_MODEL_PATH")
-        or os.environ.get("SAM3_MODEL_PATH")
-        or "/app/sam/weights/sam_b.pt"
-    )
+    return os.environ.get("SAM2_MODEL_PATH") or "/app/sam/weights/sam_b.pt"
 
 
 def _load_model() -> None:
@@ -69,9 +65,26 @@ def _load_model() -> None:
         raise RuntimeError("Failed to load SAM2 model") from error
 
 
+def _cleanup_after_inference() -> None:
+    try:
+        gc.collect()
+    except Exception:
+        pass
+    if torch.cuda.is_available():
+        try:
+            torch.cuda.synchronize()
+        except Exception:
+            pass
+        try:
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
+        except Exception:
+            pass
+
+
 @app.on_event("startup")
 async def startup_event() -> None:
-    if os.environ.get("SAM2_SKIP_MODEL_LOAD") == "1" or os.environ.get("SAM3_SKIP_MODEL_LOAD") == "1":
+    if os.environ.get("SAM2_SKIP_MODEL_LOAD") == "1":
         return
     _load_model()
 
@@ -123,42 +136,17 @@ def _load_image(payload: Dict[str, Any]) -> np.ndarray:
     raise ValueError("image or imageUrl is required")
 
 
-def _mask_to_polygons(mask: np.ndarray) -> List[List[Dict[str, float]]]:
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    polygons: List[List[Dict[str, float]]] = []
-    for contour in contours:
-        if len(contour) < 3:
-            continue
-        ring = []
-        for point in contour:
-            x, y = point[0]
-            ring.append({"x": float(x), "y": float(y)})
-        polygons.append(ring)
-
-    if not polygons:
-        polygons = [[]]
-    return polygons
-
-
 def _build_mask_response(mask: np.ndarray, score: float) -> Dict[str, Any]:
     mask_uint8 = (mask > 0).astype(np.uint8)
-    polygons = _mask_to_polygons(mask_uint8)
     x, y, w, h = cv2.boundingRect(mask_uint8)
     area = int(mask_uint8.sum())
-    rle = mask_utils.encode(np.asfortranarray(mask_uint8))
-    counts = rle.get("counts")
-    if isinstance(counts, bytes):
-        counts = counts.decode("ascii")
+    mask_rows = mask_uint8.tolist()
 
     return {
-      "polygon": polygons,
+      "mask": mask_rows,
       "boundingBox": {"x": int(x), "y": int(y), "w": int(w), "h": int(h)},
       "area": area,
       "score": float(score),
-      "rle": {
-          "counts": counts,
-          "size": [int(rle["size"][0]), int(rle["size"][1])],
-      },
     }
 
 
@@ -337,3 +325,5 @@ async def predict(model_name: str, request: Request) -> Dict[str, Any]:
         except Exception as error:
             logging.exception("SAM2 request failed")
             raise HTTPException(status_code=500, detail=str(error)) from error
+        finally:
+            _cleanup_after_inference()

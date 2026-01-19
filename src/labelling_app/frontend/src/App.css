@@ -1385,6 +1385,19 @@ input[type='color'] {
   margin-top: 8px;
 }
 
+.upload-progress {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.upload-progress.error {
+  color: #e74c3c;
+}
+
 .upload-tips {
   margin-top: auto;
 }
@@ -1452,7 +1465,8 @@ input[type='color'] {
   background: #fff;
   border: 1px solid var(--border);
   border-radius: 16px;
-  min-height: 450px;
+  width: 1024px;
+  height: 1024px;
   overflow: hidden;
   cursor: crosshair;
 }
@@ -1464,7 +1478,8 @@ input[type='color'] {
 
 .canvas-wrapper img {
   display: block;
-  max-width: 100%;
+  max-width: none;
+  max-height: none;
   user-select: none;
   -webkit-user-drag: none;
 }
@@ -1483,7 +1498,7 @@ input[type='color'] {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  height: 450px;
+  height: 100%;
   color: var(--muted);
 }
 

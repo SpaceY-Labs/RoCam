@@ -8,11 +8,13 @@ def main() -> None:
     mask[2:6, 1:5] = 1
     result = _build_mask_response(mask, 0.9)
 
-    assert "polygon" in result
+    assert "mask" in result
     assert "boundingBox" in result
     assert result["boundingBox"]["w"] > 0
     assert result["boundingBox"]["h"] > 0
     assert result["area"] > 0
+    assert len(result["mask"]) == 8
+    assert len(result["mask"][0]) == 8
 
     print("OK: SAM app helper response")
 

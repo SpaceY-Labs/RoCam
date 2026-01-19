@@ -133,6 +133,89 @@ const runJsonTest = async (name, method, path, body) => {
   return { name, ok: response.ok, status: response.status, body: json };
 };
 
+const isMaskValue = (value) =>
+  value === 0 || value === 1 || value === true || value === false;
+
+const isMaskTensor = (mask) => {
+  if (!Array.isArray(mask) || mask.length === 0) {
+    return false;
+  }
+  for (const row of mask) {
+    if (!Array.isArray(row) || row.length === 0) {
+      return false;
+    }
+    for (const value of row) {
+      if (!isMaskValue(value)) {
+        return false;
+      }
+    }
+  }
+  return true;
+};
+
+const isChunkedMask = (mask) => {
+  if (!mask || typeof mask !== "object") {
+    return false;
+  }
+  const chunk = mask.maskChunk;
+  return (
+    typeof mask.maskChunkId === "string" &&
+    chunk &&
+    typeof chunk === "object" &&
+    Array.isArray(chunk.rows)
+  );
+};
+
+const getMaskList = (body) => {
+  if (!body || typeof body !== "object") {
+    return null;
+  }
+  const outputs = body.outputs;
+  if (outputs && typeof outputs === "object" && Array.isArray(outputs.masks)) {
+    return outputs.masks;
+  }
+  if (Array.isArray(body.masks)) {
+    return body.masks;
+  }
+  return null;
+};
+
+const validateMaskResponse = (body) => {
+  const masks = getMaskList(body);
+  if (!masks || masks.length === 0) {
+    return "missing masks";
+  }
+  for (const mask of masks) {
+    if (!mask || typeof mask !== "object") {
+      return "invalid mask entry";
+    }
+    if (isMaskTensor(mask.mask)) {
+      continue;
+    }
+    if (isChunkedMask(mask)) {
+      continue;
+    }
+    return "missing mask tensor or chunk";
+  }
+  return null;
+};
+
+const withMaskValidation = (result, label) => {
+  if (!result.ok) {
+    return result;
+  }
+  const error = validateMaskResponse(result.body);
+  if (error) {
+    return {
+      name: result.name,
+      ok: false,
+      status: 500,
+      body: `${label}: ${error}`,
+    };
+  }
+  return result;
+};
+
 const runHealthTest = async () => {
   const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/health`);
   const text = await response.text();
@@ -184,78 +267,21 @@ const runLockTest = async (projectId, imageId) => {
 };
 
 const runSegmentTest = async (projectId, imageId) => {
-  return runJsonTest("segment click", "POST", "/segment", {
-    projectId,
-    imageId,
-    mode: "click",
-    points: [{ x: 0.5, y: 0.5, label: 1 }],
-  });
-};
-
-const resolveSam3Resource = (projectId, imageId) => {
-  if (process.env.SAM3_RESOURCE_URL) {
-    return { resourceUrl: process.env.SAM3_RESOURCE_URL };
-  }
-  if (projectId && imageId) {
-    return { projectId, imageId };
-  }
-  return null;
-};
-
-const runSam3DirectTests = async (projectId, imageId) => {
-  const resource = resolveSam3Resource(projectId, imageId);
-  if (!resource) {
-    console.log("SKIP sam3 direct: missing SAM3_RESOURCE_URL or projectId/imageId.");
-    return [];
-  }
-
-  const startSession = await runJsonTest(
-    "sam3 start_session",
-    "POST",
-    "/segment",
-    {
-      type: "start_session",
-      ...resource,
-    }
-  );
-
-  const results = [startSession];
-  const sessionId =
-    startSession.body?.session_id ||
-    startSession.body?.sessionId ||
-    startSession.body?.session;
-
-  if (!sessionId) {
-    return results;
-  }
-
-  const promptText = process.env.SAM3_PROMPT_TEXT || "object";
-  results.push(
-    await runJsonTest("sam3 add_prompt", "POST", "/segment", {
-      type: "add_prompt",
-      session_id: sessionId,
-      frame_index: 0,
-      text: promptText,
-    })
-  );
-
-  if (process.env.RUN_SAM3_PROPAGATE === "1") {
-    results.push(
-      await runJsonTest("sam3 propagate", "POST", "/segment", {
-        type: "propagate_in_video",
-        session_id: sessionId,
-      })
-    );
-  }
-
-  results.push(
-    await runJsonTest("sam3 close_session", "POST", "/segment", {
-      type: "close_session",
-      session_id: sessionId,
-    })
-  );
-
-  return results;
+  const imageUrl = process.env.SEGMENT_IMAGE_URL;
+  const payload = imageUrl
+    ? {
+        imageUrl,
+        mode: "click",
+        points: [{ x: 0.5, y: 0.5, label: 1 }],
+      }
+    : {
+        projectId,
+        imageId,
+        mode: "click",
+        points: [{ x: 0.5, y: 0.5, label: 1 }],
+      };
+  const result = await runJsonTest("segment click", "POST", "/segment", payload);
+  return withMaskValidation(result, "segment click");
 };
 
 const results = [];
@@ -308,10 +334,6 @@ if (projectId) {
 
     if (process.env.RUN_SEGMENT === "1") {
       results.push(await runSegmentTest(projectId, imageId));
-    }
-
-    if (process.env.RUN_SAM3_DIRECT === "1") {
-      results.push(...(await runSam3DirectTests(projectId, imageId)));
     }
   }
 }
