@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import type { ImageStatus, Project } from '../types';
 import { Button, Select, Input, Card, EmptyState, TagBadge } from './ui';
 
 interface ImageUploadProps {
   project: Project | null;
-  onUpload: (file: File, meta: { status: ImageStatus; tags: string[] }, uploadId: string) => void;
+  onUpload: (file: File, meta: { status: ImageStatus; tags: string[] }) => void;
   onSelectProject: () => void;
   loading?: boolean;
 }
@@ -22,25 +22,6 @@ const STATUS_OPTIONS = [
   { value: 'labeled', label: 'Labeled' },
 ];
 
-const MAX_WS_RETRIES = 3;
-
-const buildProgressWsUrl = (uploadId: string) => {
-  const apiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-  if (!apiBase) {
-    return null;
-  }
-  try {
-    const url = new URL('/api/progress', apiBase);
-    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-    if (uploadId) {
-      url.searchParams.set('uploadId', uploadId);
-    }
-    return url.toString();
-  } catch {
-    return null;
-  }
-};
-
 export function ImageUpload({
   project,
   onUpload,
@@ -53,92 +34,6 @@ export function ImageUpload({
   const [tags, setTags] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const wsRef = useRef<WebSocket | null>(null);
-  const uploadIdRef = useRef<string | null>(null);
-  const reconnectTimerRef = useRef<number | null>(null);
-  const reconnectAttemptsRef = useRef(0);
-  const uploadInFlightRef = useRef(false);
-  const [uploadProgress, setUploadProgress] = useState<{
-    completed: number;
-    total: number;
-    status: 'idle' | 'running' | 'done' | 'error';
-    error?: string;
-  }>({ completed: 0, total: 0, status: 'idle' });
-
-  const clearReconnectTimer = () => {
-    if (reconnectTimerRef.current !== null) {
-      window.clearTimeout(reconnectTimerRef.current);
-      reconnectTimerRef.current = null;
-    }
-  };
-
-  const connectWebSocket = (uploadId: string) => {
-    const wsUrl = buildProgressWsUrl(uploadId);
-    if (!wsUrl) {
-      return;
-    }
-
-    const socket = new WebSocket(wsUrl);
-    wsRef.current = socket;
-
-    socket.onopen = () => {
-      reconnectAttemptsRef.current = 0;
-      socket.send(JSON.stringify({ type: 'subscribe', uploadId }));
-    };
-
-    socket.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data as string);
-        if (
-          message?.type === 'progress' &&
-          message.uploadId &&
-          message.uploadId === uploadIdRef.current
-        ) {
-          setUploadProgress({
-            completed: Number(message.completed) || 0,
-            total: Number(message.total) || 0,
-            status: message.status || 'running',
-            error: message.error,
-          });
-          if (message.status === 'done' || message.status === 'error') {
-            uploadInFlightRef.current = false;
-            clearReconnectTimer();
-            socket.close();
-          }
-        }
-      } catch {
-        // Ignore malformed messages
-      }
-    };
-
-    socket.onclose = () => {
-      wsRef.current = null;
-      if (!uploadInFlightRef.current) {
-        return;
-      }
-      if (reconnectAttemptsRef.current >= MAX_WS_RETRIES) {
-        return;
-      }
-      reconnectAttemptsRef.current += 1;
-      const delay = Math.min(1000 * 2 ** (reconnectAttemptsRef.current - 1), 8000);
-      clearReconnectTimer();
-      reconnectTimerRef.current = window.setTimeout(() => {
-        const currentUpload = uploadIdRef.current;
-        if (currentUpload) {
-          connectWebSocket(currentUpload);
-        }
-      }, delay);
-    };
-  };
-
-  useEffect(() => {
-    return () => {
-      uploadInFlightRef.current = false;
-      clearReconnectTimer();
-      wsRef.current?.close();
-      wsRef.current = null;
-    };
-  }, []);
 
   const isZipFile = (file: File) =>
     file.type.includes('zip') || file.name.toLowerCase().endsWith('.zip');
@@ -220,15 +115,7 @@ export function ImageUpload({
 
   const handleUpload = () => {
     if (!uploadFile) return;
-    const uploadId = crypto.randomUUID();
-    uploadIdRef.current = uploadId;
-    setUploadProgress({ completed: 0, total: 0, status: 'running' });
-    uploadInFlightRef.current = true;
-    clearReconnectTimer();
-    reconnectAttemptsRef.current = 0;
-    wsRef.current?.close();
-    connectWebSocket(uploadId);
-    onUpload(uploadFile.file, { status, tags }, uploadId);
+    onUpload(uploadFile.file, { status, tags });
 
     // Reset form
     setUploadFile(null);
@@ -244,12 +131,7 @@ export function ImageUpload({
     if (uploadFile?.preview) {
       URL.revokeObjectURL(uploadFile.preview);
     }
-    uploadInFlightRef.current = false;
-    clearReconnectTimer();
-    wsRef.current?.close();
-    wsRef.current = null;
     setUploadFile(null);
-    setUploadProgress({ completed: 0, total: 0, status: 'idle' });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -403,20 +285,6 @@ export function ImageUpload({
               >
                 Upload Image
               </Button>
-              {uploadProgress.status !== 'idle' && (
-                <div
-                  className={
-                    uploadProgress.status === 'error' ? 'upload-progress error' : 'upload-progress'
-                  }
-                >
-                  <span>
-                    {uploadProgress.status === 'error'
-                      ? 'Segmentation failed'
-                      : `Segmentation ${uploadProgress.completed}/${uploadProgress.total || '?'}`}
-                  </span>
-                  {uploadProgress.error && <span>{uploadProgress.error}</span>}
-                </div>
-              )}
             </div>
           </Card>
 

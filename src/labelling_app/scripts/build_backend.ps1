@@ -96,8 +96,6 @@ try {
       "-e", "FIREBASE_STORAGE_BUCKET=$resolvedBucket",
       "-e", "FIREBASE_DATABASE_ID=$resolvedDatabaseId",
       "-e", "REQUIRE_AUTH=false",
-      "-e", "SAM2_SKIP_MODEL_LOAD=1",
-      "-e", "SAM2_INTERNAL_PORT=9000",
       $ImageTag
     )
 

@@ -24,23 +24,15 @@ import {
   uploadImageBuffer,
 } from "../services/storage";
 import { resizeImageBuffer, TARGET_HEIGHT, TARGET_WIDTH } from "../services/image";
-import { callSam } from "../services/sam";
 import {
   ensureProjectAccess,
   getProjectImagesCollection,
   getProjectLocksCollection,
 } from "../services/projects";
 import {
-  buildMasksFromSam,
   normalizeMasksForResponse,
   serializeMasksForStorage,
 } from "../services/masks";
-import {
-  failProgress,
-  finishProgress,
-  incrementProgress,
-  initProgress,
-} from "../services/progress";
 
 const router = Router();
 const upload = multer({
@@ -66,22 +58,6 @@ const normalizeImageData = (data: FirebaseFirestore.DocumentData) =>
   ({ ...data, masks: normalizeMasksForResponse(data.masks) } as FirebaseFirestore.DocumentData);
 
 const zipMetaSchema = imageMetaSchema.pick({ status: true, tags: true });
-
-const getUploadId = (req: AuthenticatedRequest) => {
-  const uploadId = typeof req.body.uploadId === "string" ? req.body.uploadId.trim() : "";
-  return uploadId.length > 0 ? uploadId : null;
-};
-
-const getErrorMessage = (error: unknown) =>
-  error instanceof Error && error.message ? error.message : "Segmentation failed";
-
-const resolveDefaultClass = (classes: FirebaseFirestore.DocumentData["classes"]) => {
-  if (!Array.isArray(classes) || classes.length === 0) {
-    throw new HttpError(400, "VALIDATION_ERROR", "Project has no classes");
-  }
-  return classes[0];
-};
-
 const buildImageMeta = (
   meta: { fileName: string; status: string; tags?: string[] },
   fileNameOverride?: string
@@ -92,17 +68,6 @@ const buildImageMeta = (
   status: meta.status,
   tags: meta.tags || [],
 });
-
-const segmentImageBuffer = async (buffer: Buffer, labelClass: { id: string; name: string; color: string }) => {
-  const samResponse = await callSam({
-    image: buffer.toString("base64"),
-    mode: "auto",
-    prompt: labelClass.name,
-  });
-
-  const masks = buildMasksFromSam(samResponse, labelClass, "sam2_auto");
-  return serializeMasksForStorage(masks);
-};
 
 router.post(
   "/",
@@ -254,8 +219,7 @@ router.post(
     }
 
     const projectId = req.params.projectId;
-    const projectDoc = await ensureProjectAccess(projectId, user.uid);
-    const projectData = projectDoc.data();
+    await ensureProjectAccess(projectId, user.uid);
 
     const file = req.file;
     if (!file) {
@@ -270,19 +234,12 @@ router.post(
       throw new HttpError(400, "VALIDATION_ERROR", meta.error.message);
     }
 
-    const uploadId = getUploadId(req);
-    if (uploadId) {
-      initProgress(uploadId, 1);
-    }
-
     const imageId = req.body.imageId || uuidv4();
     const videoId = req.body.videoId ?? null;
     const labellerId = req.body.labellerId ?? null;
 
     try {
       const resized = await resizeImageBuffer(file.buffer);
-      const labelClass = resolveDefaultClass(projectData?.classes);
-      const masks = await segmentImageBuffer(resized.buffer, labelClass);
 
       const storagePath = buildStoragePath(projectId, imageId, meta.data.fileName);
 
@@ -293,7 +250,7 @@ router.post(
           imageId,
           projectId,
           videoId,
-          masks,
+          masks: [],
           labellerId,
           meta: buildImageMeta(meta.data),
           storagePath,
@@ -305,16 +262,8 @@ router.post(
         { merge: true }
       );
 
-      if (uploadId) {
-        incrementProgress(uploadId);
-        finishProgress(uploadId);
-      }
-
-      res.status(201).json({ imageId, masksCount: masks.length });
+      res.status(201).json({ imageId });
     } catch (error) {
-      if (uploadId) {
-        failProgress(uploadId, getErrorMessage(error));
-      }
       throw error;
     }
   })
@@ -330,8 +279,7 @@ router.post(
     }
 
     const projectId = req.params.projectId;
-    const projectDoc = await ensureProjectAccess(projectId, user.uid);
-    const projectData = projectDoc.data();
+    await ensureProjectAccess(projectId, user.uid);
 
     const file = req.file;
     if (!file) {
@@ -349,23 +297,16 @@ router.post(
       throw new HttpError(400, "VALIDATION_ERROR", meta.error.message);
     }
 
-    const uploadId = getUploadId(req);
-
     const zip = new AdmZip(file.buffer);
     const entries = zip.getEntries().filter((entry: { isDirectory: boolean }) => !entry.isDirectory);
     if (entries.length === 0) {
       throw new HttpError(400, "VALIDATION_ERROR", "Zip archive is empty");
     }
 
-    const labelClass = resolveDefaultClass(projectData?.classes);
     const prepared: Array<{
       fileName: string;
       resized: { buffer: Buffer; contentType: string };
     }> = [];
-
-    if (uploadId) {
-      initProgress(uploadId, entries.length);
-    }
 
     try {
       for (const entry of entries) {
@@ -378,9 +319,6 @@ router.post(
         prepared.push({ fileName, resized: { buffer: resized.buffer, contentType: resized.contentType } });
       }
     } catch (error) {
-      if (uploadId) {
-        failProgress(uploadId, getErrorMessage(error));
-      }
       throw error;
     }
 
@@ -389,7 +327,6 @@ router.post(
     try {
       for (const item of prepared) {
         const imageId = uuidv4();
-        const masks = await segmentImageBuffer(item.resized.buffer, labelClass);
         const storagePath = buildStoragePath(projectId, imageId, item.fileName);
 
         await uploadImageBuffer(storagePath, item.resized.buffer, item.resized.contentType);
@@ -399,7 +336,7 @@ router.post(
             imageId,
             projectId,
             videoId: null,
-            masks,
+            masks: [],
             labellerId: null,
             meta: buildImageMeta(
               {
@@ -419,15 +356,8 @@ router.post(
         );
 
         saved.push({ imageId, storagePath });
-
-        if (uploadId) {
-          incrementProgress(uploadId);
-        }
       }
     } catch (error) {
-      if (uploadId) {
-        failProgress(uploadId, getErrorMessage(error));
-      }
       await Promise.allSettled(
         saved.map(async (item) => {
           await deleteFileIfExists(item.storagePath);
@@ -435,10 +365,6 @@ router.post(
         })
       );
       throw error;
-    }
-
-    if (uploadId) {
-      finishProgress(uploadId);
     }
 
     res.status(201).json({ imageIds: saved.map((item) => item.imageId), count: saved.length });

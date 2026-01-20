@@ -1,8 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
-import type { ProjectClass } from "shared";
-
-type MaskRow = { values: number[] };
-
 const normalizeMaskValue = (value: unknown) => {
   if (typeof value === "boolean") {
     return value ? 1 : 0;
@@ -36,7 +31,7 @@ const toMaskMatrix = (mask: unknown): number[][] => {
   return [];
 };
 
-const toMaskRows = (mask: unknown): MaskRow[] => {
+const toMaskRows = (mask: unknown): { values: number[] }[] => {
   if (!Array.isArray(mask)) {
     return [];
   }
@@ -99,61 +94,6 @@ export const serializeMasksForStorage = (masks: unknown) => {
       {
         ...rest,
         ...(maskRows.length > 0 ? { mask: maskRows } : {}),
-      },
-    ];
-  });
-};
-
-export const extractSamMasks = (samResponse: unknown) => {
-  if (!samResponse || typeof samResponse !== "object") {
-    return [];
-  }
-
-  const response = samResponse as Record<string, unknown>;
-  if (Array.isArray(response.masks)) {
-    return response.masks.filter((mask) => mask && typeof mask === "object");
-  }
-
-  const outputs = response.outputs;
-  if (outputs && typeof outputs === "object") {
-    const typedOutputs = outputs as Record<string, unknown>;
-    if (Array.isArray(typedOutputs.masks)) {
-      return typedOutputs.masks.filter((mask) => mask && typeof mask === "object");
-    }
-  }
-
-  return [];
-};
-
-export const buildMasksFromSam = (
-  samResponse: unknown,
-  labelClass: ProjectClass,
-  source: "sam2_click" | "sam2_auto" | "sam2_semantic"
-) => {
-  const rawMasks = extractSamMasks(samResponse);
-  if (rawMasks.length === 0) {
-    return [];
-  }
-
-  return rawMasks.flatMap((mask, index) => {
-    const typedMask = mask as Record<string, unknown>;
-    const boundingBox =
-      typedMask.boundingBox && typeof typedMask.boundingBox === "object"
-        ? typedMask.boundingBox
-        : undefined;
-    const maskPayload = typedMask.mask;
-    if (!maskPayload && !boundingBox) {
-      return [];
-    }
-    return [
-      {
-        id: `mask_${Date.now()}_${index}_${uuidv4()}`,
-        classId: labelClass.id,
-        className: labelClass.name,
-        color: labelClass.color,
-        ...(maskPayload ? { mask: maskPayload } : {}),
-        ...(boundingBox ? { boundingBox } : {}),
-        source,
       },
     ];
   });

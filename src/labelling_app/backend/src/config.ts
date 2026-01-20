@@ -43,7 +43,6 @@ const optionalNumber = (key: string, fallback: number) => {
   return parsed;
 };
 
-const sam2InternalPort = optionalNumber("SAM2_INTERNAL_PORT", 9000);
 const maxImageMb = optionalNumber("MAX_IMAGE_MB", 50);
 const maskChunkRows = optionalNumber("MASK_CHUNK_ROWS", 256);
 const maskChunkTtlMs = optionalNumber("MASK_CHUNK_TTL_MS", 5 * 60 * 1000);
@@ -61,13 +60,6 @@ export const config = {
   firebaseProjectId: process.env.FIREBASE_PROJECT_ID,
   firebaseStorageBucket: process.env.FIREBASE_STORAGE_BUCKET,
   firebaseDatabaseId: process.env.FIREBASE_DATABASE_ID || "",
-  sam2InternalPort,
-  sam2Endpoint:
-    process.env.SAM2_ENDPOINT || `http://127.0.0.1:${sam2InternalPort}`,
-  sam2ModelName: process.env.SAM2_MODEL_NAME || "sam2",
-  sam2TimeoutMs: optionalNumber("SAM2_TIMEOUT_MS", 60000),
-  sam2RetryCount: optionalNumber("SAM2_RETRY_COUNT", 5),
-  sam2RetryDelayMs: optionalNumber("SAM2_RETRY_DELAY_MS", 2000),
   maxImageMb,
   MaxImageMb: maxImageMb,
   maskChunkRows,

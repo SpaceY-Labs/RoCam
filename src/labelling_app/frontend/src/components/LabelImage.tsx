@@ -5,9 +5,6 @@ import type {
   ProjectImage,
   BoundingBox,
   ImageMask,
-  MaskSource,
-  SegmentMask,
-  SegmentResponse,
 } from '../types';
 import { Button, Card, StatusBadge, EmptyState } from './ui';
 
@@ -25,13 +22,6 @@ interface LabelImageProps {
     boxes: BoundingBox[],
     imageSize: { width: number; height: number }
   ) => Promise<boolean>;
-  onSegmentImage: (
-    imageId: string,
-    payload: {
-      mode: 'auto';
-      prompt?: string;
-    }
-  ) => Promise<SegmentResponse>;
   onNextImage: () => void;
   onPrevImage: () => void;
   loading?: boolean;
@@ -57,13 +47,6 @@ interface LabelImageContentProps {
     boxes: BoundingBox[],
     imageSize: { width: number; height: number }
   ) => Promise<boolean>;
-  onSegmentImage: (
-    imageId: string,
-    payload: {
-      mode: 'auto';
-      prompt?: string;
-    }
-  ) => Promise<SegmentResponse>;
   onNavigate: (direction: 'prev' | 'next') => void;
   loading: boolean;
 }
@@ -75,7 +58,6 @@ export function LabelImage({
   images,
   onSelectProject,
   onSaveAnnotations,
-  onSegmentImage,
   onNextImage,
   onPrevImage,
   loading = false,
@@ -139,7 +121,6 @@ export function LabelImage({
         activeClassId={activeClassId}
         onSelectClass={setSelectedClassId}
         onSaveAnnotations={onSaveAnnotations}
-        onSegmentImage={onSegmentImage}
         onNavigate={handleNavigate}
         loading={loading}
       />
@@ -212,62 +193,6 @@ const masksToBoxes = (masks: ImageMask[] = []): BoundingBox[] =>
     ];
   });
 
-const scaleBoundsIfNormalized = (
-  bounds: { x: number; y: number; width: number; height: number },
-  imageWidth?: number,
-  imageHeight?: number
-) => {
-  if (!imageWidth || !imageHeight || imageWidth <= 1 || imageHeight <= 1) {
-    return bounds;
-  }
-
-  const maxX = bounds.x + bounds.width;
-  const maxY = bounds.y + bounds.height;
-  if (maxX <= 1 && maxY <= 1) {
-    return {
-      x: bounds.x * imageWidth,
-      y: bounds.y * imageHeight,
-      width: bounds.width * imageWidth,
-      height: bounds.height * imageHeight,
-    };
-  }
-
-  return bounds;
-};
-
-const segmentMaskToBox = (
-  mask: SegmentMask,
-  classId: string,
-  source: MaskSource,
-  imageSize?: { width: number; height: number }
-): BoundingBox | null => {
-  const bounds = mask.boundingBox
-    ? {
-        x: mask.boundingBox.x,
-        y: mask.boundingBox.y,
-        width: mask.boundingBox.w,
-        height: mask.boundingBox.h,
-      }
-    : getBoundsFromMask(mask.mask);
-
-  if (!bounds || bounds.width === 0 || bounds.height === 0) {
-    return null;
-  }
-
-  const scaledBounds = scaleBoundsIfNormalized(bounds, imageSize?.width, imageSize?.height);
-
-  return {
-    id: generateId('box'),
-    classId,
-    x: scaledBounds.x,
-    y: scaledBounds.y,
-    width: scaledBounds.width,
-    height: scaledBounds.height,
-    source,
-    mask: mask.mask,
-  };
-};
-
 const hexToRgb = (hex: string) => {
   const normalized = hex.replace('#', '');
   if (normalized.length === 3) {
@@ -317,7 +242,6 @@ function LabelImageContent({
   activeClassId,
   onSelectClass,
   onSaveAnnotations,
-  onSegmentImage,
   onNavigate,
   loading,
 }: LabelImageContentProps) {
@@ -338,8 +262,6 @@ function LabelImageContent({
     width: currentImage?.meta.width || 0,
     height: currentImage?.meta.height || 0,
   }));
-  const [segmentError, setSegmentError] = useState<string | null>(null);
-  const [segmentLoading, setSegmentLoading] = useState(false);
 
   const imageRef = useRef<HTMLImageElement>(null);
   const maskCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -464,38 +386,6 @@ function LabelImageContent({
     }
     if (ok) {
       onNavigate('next');
-    }
-  };
-
-  const handleSegmentAll = async () => {
-    if (!currentImage) {
-      return;
-    }
-    if (!activeClassId) {
-      setSegmentError('Select a class before segmenting.');
-      return;
-    }
-
-    setSegmentError(null);
-    setSegmentLoading(true);
-    try {
-      const prompt =
-        project.classes.find((cls) => cls.id === activeClassId)?.name || 'object';
-      const response = await onSegmentImage(currentImage.imageId, {
-        mode: 'auto',
-        prompt,
-      });
-      const newBoxes = (response.masks || []).flatMap((mask) => {
-        const box = segmentMaskToBox(mask, activeClassId, 'sam2_auto', imageSize);
-        return box ? [box] : [];
-      });
-      if (newBoxes.length > 0) {
-        setBoxes((prev) => [...prev, ...newBoxes]);
-      }
-    } catch (error) {
-      setSegmentError('Segmentation failed. Try again.');
-    } finally {
-      setSegmentLoading(false);
     }
   };
 
@@ -801,22 +691,6 @@ function LabelImageContent({
               </button>
             ))}
           </div>
-        </Card>
-
-        <Card variant="bordered" padding="medium" className="segmentation-card">
-          <h4>Segmentation</h4>
-          <p className="hint">Run full-image segmentation for the active class.</p>
-          <div className="segment-actions">
-            <Button
-              variant="secondary"
-              size="small"
-              onClick={handleSegmentAll}
-              disabled={segmentLoading}
-            >
-              Segment All
-            </Button>
-          </div>
-          {segmentError && <p className="segment-error">{segmentError}</p>}
         </Card>
 
         {/* Annotations List */}

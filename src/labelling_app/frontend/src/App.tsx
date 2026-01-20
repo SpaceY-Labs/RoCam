@@ -27,7 +27,6 @@ import {
   acquireLocks,
   releaseLocks,
   updateImage,
-  segmentImage,
   uploadImageToBackend,
   uploadZipToBackend,
 } from './modules/API_Helps';
@@ -469,8 +468,7 @@ function App() {
   // Handler: Upload image
   const handleUploadImage = async (
     file: File,
-    meta: { status: ImageStatus; tags: string[] },
-    uploadId: string
+    meta: { status: ImageStatus; tags: string[] }
   ) => {
     if (!selectedProjectId) {
       setError('Select a project first');
@@ -488,7 +486,7 @@ function App() {
         const zipResponse = await uploadZipToBackend(selectedProjectId, file, {
           status: meta.status,
           tags: meta.tags,
-        }, uploadId);
+        });
         showNotification(`Uploaded ${zipResponse.count} images from "${file.name}"`);
       } else {
         await uploadImageToBackend(selectedProjectId, file, {
@@ -497,7 +495,7 @@ function App() {
           height: TARGET_HEIGHT,
           status: meta.status,
           tags: meta.tags,
-        }, uploadId);
+        });
 
         showNotification(`Image "${file.name}" uploaded successfully!`);
       }
@@ -588,22 +586,6 @@ function App() {
 
     await loadAvailableQueue(selectedProjectId);
   };
-
-  const handleSegmentImage = useCallback(
-    async (
-      imageId: string,
-      payload: {
-        mode: 'auto';
-        prompt?: string;
-      }
-    ) => {
-      if (!selectedProjectId) {
-        throw new Error('Select a project first');
-      }
-      return segmentImage({ projectId: selectedProjectId, imageId, ...payload });
-    },
-    [selectedProjectId]
-  );
 
   return (
     <div className="shell">
@@ -734,15 +716,14 @@ function App() {
 
         {route === 'label' && (
           <section className="panel label-panel" style={panelStyle('0.05s')}>
-            <LabelImage
-              project={selectedProject}
-              images={availableImages}
-              onSelectProject={() => navigate('projects')}
-              onSaveAnnotations={handleSaveAnnotations}
-              onSegmentImage={handleSegmentImage}
-              onNextImage={() => {}}
-              onPrevImage={() => {}}
-              loading={queueLoading || savingAnnotations}
+        <LabelImage
+          project={selectedProject}
+          images={availableImages}
+          onSelectProject={() => navigate('projects')}
+          onSaveAnnotations={handleSaveAnnotations}
+          onNextImage={() => {}}
+          onPrevImage={() => {}}
+          loading={queueLoading || savingAnnotations}
             />
           </section>
         )}

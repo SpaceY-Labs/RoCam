@@ -64,30 +64,6 @@ export type BoundingBox = {
   h: number;
 };
 
-export type SegmentLegacyRequest = {
-  projectId: string;
-  imageId: string;
-  mode: "auto";
-  prompt?: string;
-};
-
-export type SegmentRequest = SegmentLegacyRequest;
-
-export type SegmentMask = {
-  mask: MaskTensor;
-  boundingBox: BoundingBox;
-  area: number;
-  score: number;
-};
-
-export type SegmentResponse = {
-  masks?: SegmentMask[];
-  imageId?: string;
-  masksCount?: number;
-  saved?: boolean;
-  skipped?: boolean;
-};
-
 export type LockAcquireRequest = {
   imageIds: string[];
   userId: string;

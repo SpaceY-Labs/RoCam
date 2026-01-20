@@ -32,9 +32,7 @@ $deployArgs = @(
   "--memory", "16Gi",
   "--concurrency", "1",
   "--min-instances", "0",
-  "--max-instances", "1",
-  "--gpu", "1",
-  "--gpu-type", "nvidia-l4",
+  "--max-instances", "2",
   "--set-env-vars", $envVars
 )
 

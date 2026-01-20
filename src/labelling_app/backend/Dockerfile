@@ -17,37 +17,21 @@ COPY backend backend
 RUN pnpm --filter shared build
 RUN pnpm --filter backend build
 
-FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
+FROM node:24-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
 ENV NODE_ENV=production
-
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends build-essential curl gnupg git libgl1 libglib2.0-0 \
-  && rm -rf /var/lib/apt/lists/*
-
-RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
-  && apt-get install -y --no-install-recommends nodejs \
-  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY backend/sam/requirements.txt /app/sam/requirements.txt
-RUN pip install --no-cache-dir -r /app/sam/requirements.txt
+  COPY --from=build /workspace/backend/dist ./dist
+  COPY --from=build /workspace/backend/package.json ./package.json
+  COPY --from=build /workspace/node_modules ./node_modules
+  COPY --from=build /workspace/shared/dist ./node_modules/shared/dist
+  COPY --from=build /workspace/shared/package.json ./node_modules/shared/package.json
 
-COPY --from=build /workspace/backend/dist ./dist
-COPY --from=build /workspace/backend/package.json ./package.json
-COPY --from=build /workspace/node_modules ./node_modules
-COPY --from=build /workspace/shared/dist ./node_modules/shared/dist
-COPY --from=build /workspace/shared/package.json ./node_modules/shared/package.json
+  COPY backend/scripts/start.sh /app/start.sh
+  RUN chmod +x /app/start.sh
 
-COPY backend/sam /app/sam
-COPY backend/scripts/start.sh /app/start.sh
-RUN chmod +x /app/start.sh
-
-ENV SAM2_INTERNAL_PORT=9000
-ENV SAM2_MODEL_PATH=/app/sam/weights/sam_b.pt
 
 EXPOSE 8080
 

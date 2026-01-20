@@ -37,21 +37,6 @@ export interface ImageMask {
   source: MaskSource;
 }
 
-export interface SegmentMask {
-  mask: MaskTensor;
-  boundingBox: { x: number; y: number; w: number; h: number };
-  area: number;
-  score: number;
-}
-
-export interface SegmentResponse {
-  masks?: SegmentMask[];
-  imageId?: string;
-  masksCount?: number;
-  saved?: boolean;
-  skipped?: boolean;
-}
-
 export interface ImageMeta {
   fileName: string;
   width: number;

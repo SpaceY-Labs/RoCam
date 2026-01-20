@@ -20,7 +20,6 @@
     "sharp": "^0.33.5",
     "shared": "workspace:*",
     "uuid": "^11.1.0",
-    "ws": "^8.18.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -30,7 +29,6 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^24.10.1",
     "@types/uuid": "^10.0.0",
-    "@types/ws": "^8.18.1",
     "typescript": "~5.9.3",
     "eslint": "^9.39.1"
   }
