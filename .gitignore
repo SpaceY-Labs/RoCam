@@ -390,3 +390,4 @@ authorize.ps1
 src/labelling_app/backend/build.ps1
 dist/
 src/labelling_app/frontend/.vite/deps/_metadata.json
+sample_img/

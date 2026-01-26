@@ -17,5 +17,11 @@ export const getProjectImagesCollection = (projectId: string) =>
 export const getProjectLocksCollection = (projectId: string) =>
   projectsCollection.doc(projectId).collection("locks");
 
+export const getProjectMasksCollection = (projectId: string) =>
+  projectsCollection.doc(projectId).collection("masks");
+
+export const getProjectMaskMapsCollection = (projectId: string) =>
+  projectsCollection.doc(projectId).collection("maskMaps");
+
 export const getProjectDoc = (projectId: string) =>
   projectsCollection.doc(projectId);

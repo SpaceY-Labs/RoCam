@@ -1,80 +1,231 @@
-// Core domain types for the labelling app
+// ============================================================================
+// LABEL TYPES
+// ============================================================================
 
-export interface LabelClass {
-  id: string;
+/**
+ * Label - defines a labeling category for masks
+ */
+export interface Label {
+  /** Unique identifier for the label within the project */
+  labelId: string;
+  /** Human-readable name for the label */
   name: string;
+  /** Display color for this label (hex, e.g., "#FF0000") */
   color: string;
 }
 
+/**
+ * Labels map: labelId -> Label
+ */
+export type LabelsMap = Record<string, Label>;
+
+// ============================================================================
+// MASK TYPES
+// ============================================================================
+
+/**
+ * Sparse binary mask representation
+ * Format: { "rowIndex": { "colIndex": 1 } }
+ */
+export type SparseBinaryMask = Record<string, Record<string, 1>>;
+
+/**
+ * Individual Mask entity
+ * Note: Binary mask data is stored in Cloud Storage (too large to inline)
+ */
+export interface Mask {
+  /** Unique identifier for this mask */
+  maskId: string;
+  /** Label ID this mask is assigned to (null if unlabeled) */
+  labelId: string | null;
+  /** Display color (from label, or null if unlabeled = transparent) */
+  color: string | null;
+  /** Storage path for the binary mask file in Cloud Storage */
+  storagePath: string;
+  /** Total pixel count in this mask */
+  size: number;
+  /** Mask dimensions */
+  width: number;
+  height: number;
+}
+
+/**
+ * Sparse label map: pixel position -> array of label IDs
+ * Format: { "rowIndex": { "colIndex": ["labelId1", "labelId2"] } }
+ */
+export type SparseLabelMap = Record<string, Record<string, string[]>>;
+
+/**
+ * Sparse color map: pixel position -> blended color
+ * Format: { "rowIndex": { "colIndex": "#RRGGBB" } }
+ */
+export type SparseColorMap = Record<string, Record<string, string>>;
+
+/**
+ * Mask labels mapping: maskId -> labelId (or null if unlabeled)
+ */
+export type MaskLabelsMap = Record<string, string | null>;
+
+/**
+ * MaskOverlay: 2D array where each pixel stores the INDEX of the smallest
+ * mask covering that pixel, or -1 if no mask covers it.
+ *
+ * Uses indices instead of full UUIDs to reduce payload size significantly.
+ * The maskIds array maps index -> maskId.
+ */
+export interface MaskOverlay {
+  width: number;
+  height: number;
+  /** Array of maskIds - index in this array corresponds to index in data */
+  maskIds: string[];
+  /** Flattened row-major array: data[row * width + col] = maskIndex or -1 for no mask */
+  data: number[];
+}
+
+/**
+ * MaskMap entity - links an image to all its masks
+ * Note: colorMap and maskOverlay are stored in Cloud Storage (too large)
+ */
+export interface MaskMap {
+  /** Unique identifier for this mask map */
+  maskMapId: string;
+  /** Image ID this mask map belongs to */
+  imageId: string;
+  /** Dictionary of maskId -> labelId (source of truth for labels) */
+  maskLabels: MaskLabelsMap;
+  /** Storage path for the colorMap JSON file in Cloud Storage */
+  colorMapStoragePath: string;
+  /** Storage path for the maskOverlay JSON file in Cloud Storage */
+  maskOverlayStoragePath: string;
+  /** Dictionary of maskId -> pixel count (for size info) */
+  maskSizes: Record<string, number>;
+  /** List of all mask IDs in this image */
+  maskIds: string[];
+  /** Dimensions matching the image */
+  width: number;
+  height: number;
+}
+
+// ============================================================================
+// PROJECT TYPES
+// ============================================================================
+
+/**
+ * Project entity
+ */
 export interface Project {
+  /** Unique project identifier */
   projectId: string;
+  /** Project name */
   name: string;
+  /** Project description */
   description: string | null;
-  classes: LabelClass[];
-  createdAt: string;
+  /** Labels configuration: labelId -> Label */
+  labels: LabelsMap;
+  /** List of image IDs in this project (optional in list views) */
+  imageIds?: string[];
+  /** Timestamps */
+  createdAt?: string;
+  /** Computed counts (from API) */
   imageCount?: number;
   labeledCount?: number;
   unlabeledCount?: number;
 }
 
-export interface Point {
-  x: number;
-  y: number;
+/**
+ * Form data for creating/editing a project
+ */
+export interface ProjectFormData {
+  name: string;
+  description: string;
+  labels: LabelsMap;
 }
 
-export type MaskValue = 0 | 1 | boolean;
-export type MaskTensor = MaskValue[][];
+// ============================================================================
+// IMAGE TYPES
+// ============================================================================
 
-export type MaskSource = 'sam2_click' | 'sam2_auto' | 'sam2_semantic' | 'manual';
-
-export interface ImageMask {
-  id: string;
-  classId: string;
-  className: string;
-  color: string;
-  mask?: MaskTensor;
-  boundingBox?: { x: number; y: number; w: number; h: number };
-  source: MaskSource;
-}
-
-export interface ImageMeta {
-  fileName: string;
-  width: number;
-  height: number;
-  status: ImageStatus;
-  tags: string[];
-}
-
+/** Image labeling status */
 export type ImageStatus = 'unlabeled' | 'in_progress' | 'labeled';
 
-export interface ProjectImage {
-  imageId: string;
-  projectId: string;
-  meta: ImageMeta;
-  fileUrl?: string;
-  thumbnailUrl?: string;
-  createdAt: string;
-  masks?: ImageMask[];
-}
-
-export interface BoundingBox {
-  id: string;
-  classId: string;
-  x: number;
-  y: number;
+/**
+ * Image metadata
+ */
+export interface ImageMeta {
+  /** Original filename */
+  fileName: string;
+  /** Image dimensions */
   width: number;
   height: number;
-  source?: MaskSource;
-  mask?: MaskTensor;
+  /** Labeling status */
+  status: ImageStatus;
+  /** Optional tags for organization */
+  tags?: string[];
 }
 
-export interface ImageAnnotation {
+/**
+ * Lock information
+ */
+export interface ImageLock {
+  /** User ID who holds the lock */
+  lockedBy: string;
+  /** When the lock expires (ISO string) */
+  expiresAt: string;
+}
+
+/**
+ * Project image entity
+ */
+export interface ProjectImage {
+  /** Unique image identifier */
   imageId: string;
-  boxes: BoundingBox[];
-  updatedAt: string;
+  /** Project this image belongs to */
+  projectId: string;
+  /** Reference to the MaskMap for this image (null if no masks) */
+  maskMapId?: string | null;
+  /** Whether all masks have been labeled */
+  labelComplete?: boolean;
+  /** Whether the labels have been reviewed/verified */
+  reviewed?: boolean;
+  /** Current lock state (null if not locked) */
+  lock?: ImageLock | null;
+  /** Image metadata */
+  meta: ImageMeta;
+  /** Signed URL for image file */
+  fileUrl?: string;
+  /** Signed URL for preview/thumbnail */
+  thumbnailUrl?: string;
+  /** Creation timestamp */
+  createdAt?: string;
 }
 
-// UI State types
+// ============================================================================
+// LOCK TYPES
+// ============================================================================
+
+/**
+ * Lock operation result for a single image
+ */
+export interface LockResult {
+  imageId: string;
+  locked?: boolean;
+  released?: boolean;
+  lockedBy?: string | null;
+  expiresAt?: string | null;
+  error?: string;
+}
+
+/**
+ * Lock operation response
+ */
+export interface LockResponse {
+  results: LockResult[];
+}
+
+// ============================================================================
+// UI STATE TYPES
+// ============================================================================
+
 export type RouteId = 'projects' | 'create' | 'label' | 'upload';
 
 export interface NavItem {
@@ -90,22 +241,20 @@ export interface PageMeta {
   subtitle: string;
 }
 
-// Form types
-export interface ProjectFormData {
-  name: string;
-  description: string;
-  classes: LabelClass[];
-}
+// ============================================================================
+// FORM TYPES
+// ============================================================================
 
 export interface UploadFormData {
   file: File | null;
-  width: number;
-  height: number;
   status: ImageStatus;
-  tags: string;
+  tags: string[];
 }
 
-// Component prop types
+// ============================================================================
+// COMPONENT PROP TYPES
+// ============================================================================
+
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -137,21 +286,34 @@ export interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextArea
   helperText?: string;
 }
 
-// API DTOs
+// ============================================================================
+// API RESPONSE TYPES
+// ============================================================================
+
+/**
+ * Project list item from API
+ */
 export interface ProjectApiItem {
   projectId: string;
   name: string;
   description?: string | null;
-  classes?: LabelClass[];
+  labels?: LabelsMap;
   createdAt?: string;
   imageCount?: number;
   labeledCount?: number;
+  unlabeledCount?: number;
 }
 
+/**
+ * Projects list API response
+ */
 export interface ProjectsApiResponse {
   items: ProjectApiItem[];
 }
 
+/**
+ * Image metadata from API
+ */
 export interface ProjectImageMetaApi {
   fileName?: string;
   width?: number;
@@ -160,36 +322,82 @@ export interface ProjectImageMetaApi {
   tags?: string[];
 }
 
+/**
+ * Image item from API
+ */
 export interface ProjectImageApiItem {
   imageId: string;
   projectId?: string;
+  maskMapId?: string | null;
+  labelComplete?: boolean;
+  reviewed?: boolean;
+  lock?: ImageLock | null;
   meta?: ProjectImageMetaApi;
   fileUrl?: string;
   createdAt?: string;
-  masks?: ImageMask[];
 }
 
+/**
+ * Images list API response
+ */
 export interface ProjectImagesApiResponse {
   items: ProjectImageApiItem[];
   cursor?: string | null;
   total?: number;
 }
 
-export interface LockResult {
-  imageId: string;
-  locked: boolean;
-}
-
-export interface LockResponse {
-  results: LockResult[];
-}
-
-export interface UploadImageResponse {
-  imageId: string;
-  masksCount?: number;
-}
-
+/**
+ * ZIP upload API response
+ */
 export interface UploadZipResponse {
   imageIds: string[];
   count: number;
+  masksCount: number;
+}
+
+// ============================================================================
+// MASK API TYPES
+// ============================================================================
+
+/**
+ * Request to update a mask's label
+ */
+export interface MaskUpdateRequest {
+  labelId: string | null;
+}
+
+/**
+ * Request to update multiple masks at once
+ */
+export interface MaskBatchUpdateRequest {
+  updates: Array<{
+    maskId: string;
+    labelId: string | null;
+  }>;
+}
+
+/**
+ * Mask from API
+ */
+export interface MaskApiItem {
+  maskId: string;
+  labelId: string | null;
+  color: string | null;
+  storagePath: string;
+  size: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * MaskMap from API
+ */
+export interface MaskMapApiItem {
+  maskMapId: string;
+  imageId: string;
+  maskLabels: MaskLabelsMap;
+  colorMapStoragePath: string;
+  maskIds: string[];
+  width: number;
+  height: number;
 }

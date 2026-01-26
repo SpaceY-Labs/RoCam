@@ -1,4 +1,4 @@
-import type { Project } from '../types';
+import type { Project, Label } from '../types';
 import { Card, StatCard, ClassBadge, EmptyState, Button } from './ui';
 
 interface ProjectListProps {
@@ -94,6 +94,12 @@ export function ProjectList({
   );
 }
 
+/** Helper to get array of labels from the labels map */
+const getLabelsArray = (labels: Project['labels']): Label[] => {
+  if (!labels) return [];
+  return Object.values(labels);
+};
+
 function ProjectCard({
   project,
   isSelected,
@@ -110,6 +116,8 @@ function ProjectCard({
   const progress = project.imageCount
     ? Math.round((project.labeledCount || 0) / project.imageCount * 100)
     : 0;
+
+  const labelsList = getLabelsArray(project.labels);
 
   return (
     <Card
@@ -160,16 +168,16 @@ function ProjectCard({
           <span className="progress-text">{progress}% labeled</span>
         </div>
         <div className="project-classes">
-          {project.classes.slice(0, 3).map(cls => (
+          {labelsList.slice(0, 3).map(label => (
             <span
-              key={cls.id}
+              key={label.labelId}
               className="class-dot"
-              style={{ backgroundColor: cls.color }}
-              title={cls.name}
+              style={{ backgroundColor: label.color }}
+              title={label.name}
             />
           ))}
-          {project.classes.length > 3 && (
-            <span className="class-more">+{project.classes.length - 3}</span>
+          {labelsList.length > 3 && (
+            <span className="class-more">+{labelsList.length - 3}</span>
           )}
         </div>
       </div>
@@ -182,6 +190,7 @@ function ProjectDetails({ project }: { project: Project }) {
     ? Math.round((project.labeledCount || 0) / project.imageCount * 100)
     : 0;
   const unlabeled = (project.imageCount || 0) - (project.labeledCount || 0);
+  const labelsList = getLabelsArray(project.labels);
 
   return (
     <div className="project-details">
@@ -191,7 +200,7 @@ function ProjectDetails({ project }: { project: Project }) {
           {project.description || 'No description provided.'}
         </p>
         <p className="detail-date">
-          Created {new Date(project.createdAt).toLocaleDateString('en-US', {
+          Created {new Date(project.createdAt || Date.now()).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -208,12 +217,12 @@ function ProjectDetails({ project }: { project: Project }) {
 
       <div className="detail-section">
         <h4 className="section-label">Label Classes</h4>
-        {project.classes.length === 0 ? (
-          <p className="muted">No classes defined</p>
+        {labelsList.length === 0 ? (
+          <p className="muted">No labels defined</p>
         ) : (
           <div className="classes-list">
-            {project.classes.map(cls => (
-              <ClassBadge key={cls.id} name={cls.name} color={cls.color} />
+            {labelsList.map(label => (
+              <ClassBadge key={label.labelId} name={label.name} color={label.color} />
             ))}
           </div>
         )}

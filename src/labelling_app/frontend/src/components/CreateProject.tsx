@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from 'react';
-import type { LabelClass, ProjectFormData } from '../types';
+import type { Label, LabelsMap, ProjectFormData } from '../types';
 import { Button, Input, TextArea, ColorInput, ClassBadge, Card } from './ui';
 
 // Generate unique ID
@@ -21,34 +21,41 @@ const DEFAULT_COLORS = [
 export function CreateProject({ onSubmit, onCancel, loading = false }: CreateProjectProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [classes, setClasses] = useState<LabelClass[]>([]);
-  const [newClassName, setNewClassName] = useState('');
-  const [newClassColor, setNewClassColor] = useState(DEFAULT_COLORS[0]);
-  const [errors, setErrors] = useState<{ name?: string; classes?: string }>({});
+  const [labels, setLabels] = useState<LabelsMap>({});
+  const [newLabelName, setNewLabelName] = useState('');
+  const [newLabelColor, setNewLabelColor] = useState(DEFAULT_COLORS[0]);
+  const [errors, setErrors] = useState<{ name?: string; labels?: string }>({});
 
-  const handleAddClass = () => {
-    if (!newClassName.trim()) return;
+  const labelsList = Object.values(labels);
+
+  const handleAddLabel = () => {
+    if (!newLabelName.trim()) return;
 
     // Check for duplicate names
-    if (classes.some(c => c.name.toLowerCase() === newClassName.trim().toLowerCase())) {
-      setErrors(prev => ({ ...prev, classes: 'Class name already exists' }));
+    if (labelsList.some(l => l.name.toLowerCase() === newLabelName.trim().toLowerCase())) {
+      setErrors(prev => ({ ...prev, labels: 'Label name already exists' }));
       return;
     }
 
-    const newClass: LabelClass = {
-      id: generateId('cls'),
-      name: newClassName.trim(),
-      color: newClassColor,
+    const labelId = generateId('lbl');
+    const newLabel: Label = {
+      labelId,
+      name: newLabelName.trim(),
+      color: newLabelColor,
     };
 
-    setClasses([...classes, newClass]);
-    setNewClassName('');
-    setNewClassColor(DEFAULT_COLORS[(classes.length + 1) % DEFAULT_COLORS.length]);
-    setErrors(prev => ({ ...prev, classes: undefined }));
+    setLabels(prev => ({ ...prev, [labelId]: newLabel }));
+    setNewLabelName('');
+    setNewLabelColor(DEFAULT_COLORS[(labelsList.length + 1) % DEFAULT_COLORS.length]);
+    setErrors(prev => ({ ...prev, labels: undefined }));
   };
 
-  const handleRemoveClass = (classId: string) => {
-    setClasses(classes.filter(c => c.id !== classId));
+  const handleRemoveLabel = (labelId: string) => {
+    setLabels(prev => {
+      const next = { ...prev };
+      delete next[labelId];
+      return next;
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -60,8 +67,8 @@ export function CreateProject({ onSubmit, onCancel, loading = false }: CreatePro
       newErrors.name = 'Project name is required';
     }
 
-    if (classes.length === 0) {
-      newErrors.classes = 'At least one class is required';
+    if (labelsList.length === 0) {
+      newErrors.labels = 'At least one label is required';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -72,14 +79,14 @@ export function CreateProject({ onSubmit, onCancel, loading = false }: CreatePro
     onSubmit({
       name: name.trim(),
       description: description.trim(),
-      classes,
+      labels,
     });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleAddClass();
+      handleAddLabel();
     }
   };
 
@@ -116,19 +123,19 @@ export function CreateProject({ onSubmit, onCancel, loading = false }: CreatePro
           </div>
 
           <div className="form-section">
-            <h3 className="form-section-title">Label Classes</h3>
+            <h3 className="form-section-title">Labels</h3>
             <p className="form-section-desc">
-              Define the object classes you want to label. You can add more classes later.
+              Define the labels you want to use for masks. You can add more labels later.
             </p>
 
-            {classes.length > 0 && (
+            {labelsList.length > 0 && (
               <div className="classes-preview">
-                {classes.map(cls => (
+                {labelsList.map(label => (
                   <ClassBadge
-                    key={cls.id}
-                    name={cls.name}
-                    color={cls.color}
-                    onRemove={() => handleRemoveClass(cls.id)}
+                    key={label.labelId}
+                    name={label.name}
+                    color={label.color}
+                    onRemove={() => handleRemoveLabel(label.labelId)}
                   />
                 ))}
               </div>
@@ -136,32 +143,32 @@ export function CreateProject({ onSubmit, onCancel, loading = false }: CreatePro
 
             <div className="add-class-row">
               <Input
-                placeholder="Class name (e.g., Car, Pedestrian)"
-                value={newClassName}
+                placeholder="Label name (e.g., Car, Pedestrian)"
+                value={newLabelName}
                 onChange={(e) => {
-                  setNewClassName(e.target.value);
-                  if (errors.classes) setErrors(prev => ({ ...prev, classes: undefined }));
+                  setNewLabelName(e.target.value);
+                  if (errors.labels) setErrors(prev => ({ ...prev, labels: undefined }));
                 }}
                 onKeyDown={handleKeyDown}
                 className="class-name-input"
               />
               <ColorInput
-                value={newClassColor}
-                onChange={setNewClassColor}
+                value={newLabelColor}
+                onChange={setNewLabelColor}
                 className="class-color-input"
               />
               <Button
                 type="button"
                 variant="secondary"
-                onClick={handleAddClass}
-                disabled={!newClassName.trim()}
+                onClick={handleAddLabel}
+                disabled={!newLabelName.trim()}
               >
-                Add Class
+                Add Label
               </Button>
             </div>
 
-            {errors.classes && (
-              <p className="form-error">{errors.classes}</p>
+            {errors.labels && (
+              <p className="form-error">{errors.labels}</p>
             )}
 
             <div className="color-presets">
@@ -170,9 +177,9 @@ export function CreateProject({ onSubmit, onCancel, loading = false }: CreatePro
                 <button
                   key={color}
                   type="button"
-                  className={`color-preset ${newClassColor === color ? 'active' : ''}`}
+                  className={`color-preset ${newLabelColor === color ? 'active' : ''}`}
                   style={{ backgroundColor: color }}
-                  onClick={() => setNewClassColor(color)}
+                  onClick={() => setNewLabelColor(color)}
                   aria-label={`Select color ${color}`}
                 />
               ))}
@@ -199,19 +206,19 @@ export function CreateProject({ onSubmit, onCancel, loading = false }: CreatePro
               {description || 'Project description will appear here.'}
             </div>
             <div className="preview-classes">
-              <span className="preview-label">Classes ({classes.length}):</span>
-              {classes.length === 0 ? (
-                <span className="muted">No classes added yet</span>
+              <span className="preview-label">Labels ({labelsList.length}):</span>
+              {labelsList.length === 0 ? (
+                <span className="muted">No labels added yet</span>
               ) : (
                 <div className="preview-class-list">
-                  {classes.map(cls => (
+                  {labelsList.map(label => (
                     <span
-                      key={cls.id}
+                      key={label.labelId}
                       className="preview-class"
-                      style={{ borderColor: cls.color }}
+                      style={{ borderColor: label.color }}
                     >
-                      <span className="preview-class-dot" style={{ backgroundColor: cls.color }} />
-                      {cls.name}
+                      <span className="preview-class-dot" style={{ backgroundColor: label.color }} />
+                      {label.name}
                     </span>
                   ))}
                 </div>

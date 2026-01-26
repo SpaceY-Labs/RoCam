@@ -44,8 +44,6 @@ const optionalNumber = (key: string, fallback: number) => {
 };
 
 const maxImageMb = optionalNumber("MAX_IMAGE_MB", 50);
-const maskChunkRows = optionalNumber("MASK_CHUNK_ROWS", 256);
-const maskChunkTtlMs = optionalNumber("MASK_CHUNK_TTL_MS", 5 * 60 * 1000);
 const memoryGcThresholdMb = optionalNumber("MEMORY_GC_THRESHOLD_MB", 0);
 const memoryGcIntervalMs = optionalNumber("MEMORY_GC_INTERVAL_MS", 0);
 
@@ -62,8 +60,6 @@ export const config = {
   firebaseDatabaseId: process.env.FIREBASE_DATABASE_ID || "",
   maxImageMb,
   MaxImageMb: maxImageMb,
-  maskChunkRows,
-  maskChunkTtlMs,
   memoryGcThresholdMb,
   memoryGcIntervalMs,
   requireAuth: process.env.REQUIRE_AUTH !== "false",

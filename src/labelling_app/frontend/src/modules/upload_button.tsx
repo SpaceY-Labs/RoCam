@@ -1,51 +1,45 @@
 import { useState, type ChangeEvent } from 'react';
-import { uploadImageToBackend } from './API_Helps';
+import { uploadZipToBackend } from './API_Helps';
 
-type ImageUploadButtonProps = {
+type ZipUploadButtonProps = {
   projectId: string;
   status?: 'unlabeled' | 'in_progress' | 'labeled';
   tags?: string[];
+  onUploadComplete?: (result: { imageIds: string[]; count: number; masksCount: number }) => void;
 };
 
-const ImageUploadButton = ({ projectId, status = 'unlabeled', tags = [] }: ImageUploadButtonProps) => {
+const ZipUploadButton = ({ projectId, status = 'unlabeled', tags = [], onUploadComplete }: ZipUploadButtonProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [imageUrl, setImageUrl] = useState('');
+  const [result, setResult] = useState<{ imageIds: string[]; count: number; masksCount: number } | null>(null);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      if (!selectedFile.name.toLowerCase().endsWith('.zip')) {
+        alert('Please select a ZIP file');
+        return;
+      }
+      setFile(selectedFile);
     }
   };
 
   const handleUpload = async () => {
-    if (!file) return alert("Please select a file first!");
+    if (!file) return alert("Please select a ZIP file first!");
 
     setUploading(true);
     try {
-      const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
-        const img = new Image();
-        const previewUrl = URL.createObjectURL(file);
-        img.onload = () => {
-          resolve({ width: img.width, height: img.height });
-          URL.revokeObjectURL(previewUrl);
-        };
-        img.src = previewUrl;
-      });
-
-      await uploadImageToBackend(projectId, file, {
-        fileName: file.name,
-        width: dimensions.width,
-        height: dimensions.height,
+      const uploadResult = await uploadZipToBackend(projectId, file, {
         status,
         tags,
       });
 
-      const previewUrl = URL.createObjectURL(file);
-      setImageUrl(previewUrl);
-      alert("Upload successful!");
-    } catch {
-      alert("Failed to upload image.");
+      setResult(uploadResult);
+      onUploadComplete?.(uploadResult);
+      alert(`Upload successful! ${uploadResult.count} images uploaded, ${uploadResult.masksCount} with masks.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to upload: ${message}`);
     } finally {
       setUploading(false);
     }
@@ -53,24 +47,31 @@ const ImageUploadButton = ({ projectId, status = 'unlabeled', tags = [] }: Image
 
   return (
     <div style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
-      <input type="file" onChange={handleFileChange} accept="image/*" />
-      
-      <button 
-        onClick={handleUpload} 
+      <input
+        type="file"
+        onChange={handleFileChange}
+        accept=".zip,application/zip"
+      />
+
+      <button
+        onClick={handleUpload}
         disabled={uploading || !file}
         style={{ marginLeft: '10px', cursor: uploading ? 'not-allowed' : 'pointer' }}
       >
-        {uploading ? 'Uploading...' : 'Upload to Cloud'}
+        {uploading ? 'Uploading...' : 'Upload ZIP'}
       </button>
 
-      {imageUrl && (
+      {result && (
         <div style={{ marginTop: '20px' }}>
-          <p>Uploaded Image:</p>
-          <img src={imageUrl} alt="Uploaded" style={{ maxWidth: '200px' }} />
+          <p>Upload Complete:</p>
+          <ul>
+            <li>Images: {result.count}</li>
+            <li>With masks: {result.masksCount}</li>
+          </ul>
         </div>
       )}
     </div>
   );
 };
 
-export default ImageUploadButton;
+export default ZipUploadButton;

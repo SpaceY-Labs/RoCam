@@ -95,9 +95,14 @@ if (!API_BASE_URL) {
 const apiBase = toApiBase(API_BASE_URL);
 
 let authToken = process.env.AUTH_TOKEN;
+let userId = process.env.USER_ID;
+
 if (!authToken) {
   try {
     authToken = await getFirebaseIdToken();
+    // Get the userId from the auth token
+    const auth = getAuth();
+    userId = auth.currentUser?.uid || userId;
   } catch (error) {
     console.error(
       `Missing AUTH_TOKEN and failed to fetch from Firebase Auth (${error.message}).`
@@ -109,8 +114,6 @@ if (!authToken) {
 const headers = {
   Authorization: `Bearer ${authToken}`,
 };
-
-const tests = [];
 
 const runJsonTest = async (name, method, path, body) => {
   const response = await fetch(`${apiBase}${path}`, {
@@ -133,115 +136,38 @@ const runJsonTest = async (name, method, path, body) => {
   return { name, ok: response.ok, status: response.status, body: json };
 };
 
-const isMaskValue = (value) =>
-  value === 0 || value === 1 || value === true || value === false;
-
-const isMaskTensor = (mask) => {
-  if (!Array.isArray(mask) || mask.length === 0) {
-    return false;
-  }
-  for (const row of mask) {
-    if (!Array.isArray(row) || row.length === 0) {
-      return false;
-    }
-    for (const value of row) {
-      if (!isMaskValue(value)) {
-        return false;
-      }
-    }
-  }
-  return true;
-};
-
-const isChunkedMask = (mask) => {
-  if (!mask || typeof mask !== "object") {
-    return false;
-  }
-  const chunk = mask.maskChunk;
-  return (
-    typeof mask.maskChunkId === "string" &&
-    chunk &&
-    typeof chunk === "object" &&
-    Array.isArray(chunk.rows)
-  );
-};
-
-const getMaskList = (body) => {
-  if (!body || typeof body !== "object") {
-    return null;
-  }
-  const outputs = body.outputs;
-  if (outputs && typeof outputs === "object" && Array.isArray(outputs.masks)) {
-    return outputs.masks;
-  }
-  if (Array.isArray(body.masks)) {
-    return body.masks;
-  }
-  return null;
-};
-
-const validateMaskResponse = (body) => {
-  const masks = getMaskList(body);
-  if (!masks || masks.length === 0) {
-    return "missing masks";
-  }
-  for (const mask of masks) {
-    if (!mask || typeof mask !== "object") {
-      return "invalid mask entry";
-    }
-    if (isMaskTensor(mask.mask)) {
-      continue;
-    }
-    if (isChunkedMask(mask)) {
-      continue;
-    }
-    return "missing mask tensor or chunk";
-  }
-  return null;
-};
-
-const withMaskValidation = (result, label) => {
-  if (!result.ok) {
-    return result;
-  }
-  const error = validateMaskResponse(result.body);
-  if (error) {
-    return {
-      name: result.name,
-      ok: false,
-      status: 500,
-      body: `${label}: ${error}`,
-    };
-  }
-  return result;
-};
-
 const runHealthTest = async () => {
   const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/health`);
   const text = await response.text();
   return { name: "health", ok: response.ok, status: response.status, body: text };
 };
 
-const runUploadTest = async (projectId) => {
+const runZipUploadTest = async (projectId) => {
+  // Create a minimal valid ZIP file with a single PNG image
+  // This is a minimal ZIP containing a 1x1 PNG in /image/ folder
+  const AdmZip = (await import("adm-zip")).default;
+  const zip = new AdmZip();
+
+  // Minimal 1x1 transparent PNG
   const pngBase64 =
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/WSH2ZcAAAAASUVORK5CYII=";
-  const buffer = Buffer.from(pngBase64, "base64");
-  const form = new FormData();
-  const blob = new Blob([buffer], { type: "image/png" });
+  const pngBuffer = Buffer.from(pngBase64, "base64");
 
-  form.append("imageData", blob, "sample.png");
+  zip.addFile("image/sample.png", pngBuffer);
+  const zipBuffer = zip.toBuffer();
+
+  const form = new FormData();
+  const blob = new Blob([zipBuffer], { type: "application/zip" });
+  form.append("zipData", blob, "test.zip");
   form.append(
     "meta",
     JSON.stringify({
-      fileName: "sample.png",
-      width: 1,
-      height: 1,
       status: "unlabeled",
-      tags: [],
+      tags: ["test"],
     })
   );
 
-  const response = await fetch(`${apiBase}/projects/${projectId}/images`, {
+  const response = await fetch(`${apiBase}/projects/${projectId}/images/zip`, {
     method: "POST",
     headers,
     body: form,
@@ -255,64 +181,91 @@ const runUploadTest = async (projectId) => {
     json = text;
   }
 
-  return { name: "image upload", ok: response.ok, status: response.status, body: json };
+  return { name: "zip upload", ok: response.ok, status: response.status, body: json };
 };
 
-const runLockTest = async (projectId, imageId) => {
+const runLockTest = async (projectId, imageId, testUserId) => {
   return runJsonTest("lock acquire", "POST", `/projects/${projectId}/locks`, {
     imageIds: [imageId],
-    userId: process.env.USER_ID || "",
-    durationMs: 600000,
+    userId: testUserId,
+    durationMs: 15000, // 15 seconds as per design doc
   });
 };
 
-const runSegmentTest = async (projectId, imageId) => {
-  const imageUrl = process.env.SEGMENT_IMAGE_URL;
-  const payload = imageUrl
-    ? {
-        imageUrl,
-        mode: "click",
-        points: [{ x: 0.5, y: 0.5, label: 1 }],
-      }
-    : {
-        projectId,
-        imageId,
-        mode: "click",
-        points: [{ x: 0.5, y: 0.5, label: 1 }],
-      };
-  const result = await runJsonTest("segment click", "POST", "/segment", payload);
-  return withMaskValidation(result, "segment click");
+const runLockReleaseTest = async (projectId, imageId, testUserId) => {
+  return runJsonTest("lock release", "DELETE", `/projects/${projectId}/locks`, {
+    imageIds: [imageId],
+    userId: testUserId,
+  });
 };
 
 const results = [];
 
+// Test 1: Health check
 results.push(await runHealthTest());
 
+// Test 2: Create project with new labels format
 const createProject = await runJsonTest("project create", "POST", "/projects", {
-  name: "Sample Project",
-  description: "Contract test",
-  classes: [{ id: "cls_001", name: "Object", color: "#00FF00" }],
+  name: "API Contract Test Project",
+  description: "Automated contract test",
+  labels: {
+    lbl_001: { labelId: "lbl_001", name: "Object", color: "#00FF00" },
+    lbl_002: { labelId: "lbl_002", name: "Background", color: "#FF0000" },
+  },
 });
 results.push(createProject);
 
 const projectId = createProject.body?.projectId || process.env.PROJECT_ID;
 
 if (projectId) {
-  results.push(await runJsonTest("projects list", "GET", "/projects"));
-  results.push(await runJsonTest("project get", "GET", `/projects/${projectId}`));
+  // Test 3: List projects
+  const projectsList = await runJsonTest("projects list", "GET", "/projects");
+  results.push(projectsList);
 
-  const upload = await runUploadTest(projectId);
+  // Verify labels are returned in list
+  if (projectsList.ok) {
+    const projectInList = projectsList.body?.items?.find(p => p.projectId === projectId);
+    if (projectInList && projectInList.labels) {
+      console.log("  ✓ Labels returned in project list");
+    }
+  }
+
+  // Test 4: Get single project
+  const projectGet = await runJsonTest("project get", "GET", `/projects/${projectId}`);
+  results.push(projectGet);
+
+  // Verify labels structure
+  if (projectGet.ok && projectGet.body?.labels) {
+    const labels = projectGet.body.labels;
+    if (labels.lbl_001 && labels.lbl_001.name === "Object") {
+      console.log("  ✓ Labels map structure verified");
+    }
+  }
+
+  // Test 5: ZIP upload
+  const upload = await runZipUploadTest(projectId);
   results.push(upload);
 
-  const imageId = upload.body?.imageId || process.env.IMAGE_ID;
+  const imageId = upload.body?.imageIds?.[0] || process.env.IMAGE_ID;
+
   if (imageId) {
-    results.push(
-      await runJsonTest(
-        "image get",
-        "GET",
-        `/projects/${projectId}/images/${imageId}`
-      )
+    // Test 6: Get image
+    const imageGet = await runJsonTest(
+      "image get",
+      "GET",
+      `/projects/${projectId}/images/${imageId}`
     );
+    results.push(imageGet);
+
+    // Verify new image fields
+    if (imageGet.ok) {
+      const img = imageGet.body;
+      if (img.maskMapId !== undefined && img.labelComplete !== undefined && img.reviewed !== undefined) {
+        console.log("  ✓ Image has new schema fields (maskMapId, labelComplete, reviewed)");
+      }
+    }
+
+    // Test 7: Get available images
     results.push(
       await runJsonTest(
         "images available",
@@ -320,6 +273,8 @@ if (projectId) {
         `/projects/${projectId}/images/available?limit=5&includeFileUrl=1`
       )
     );
+
+    // Test 8: List images
     results.push(
       await runJsonTest(
         "image list",
@@ -328,16 +283,70 @@ if (projectId) {
       )
     );
 
-    if (process.env.USER_ID) {
-      results.push(await runLockTest(projectId, imageId));
-    }
+    // Test 9: Get masks for image
+    const masksGet = await runJsonTest(
+      "get masks",
+      "GET",
+      `/projects/${projectId}/images/${imageId}/masks`
+    );
+    results.push(masksGet);
 
-    if (process.env.RUN_SEGMENT === "1") {
-      results.push(await runSegmentTest(projectId, imageId));
+    // Test 10: Update image
+    const imageUpdate = await runJsonTest(
+      "image update",
+      "PATCH",
+      `/projects/${projectId}/images/${imageId}`,
+      {
+        labelComplete: false,
+        reviewed: false,
+        meta: { status: "in_progress" },
+      }
+    );
+    results.push(imageUpdate);
+
+    // Test 11 & 12: Lock acquire and release (if we have a userId)
+    if (userId) {
+      const lockResult = await runLockTest(projectId, imageId, userId);
+      results.push(lockResult);
+
+      if (lockResult.ok) {
+        const releaseResult = await runLockReleaseTest(projectId, imageId, userId);
+        results.push(releaseResult);
+      }
+    } else {
+      console.log("  ⚠ Skipping lock tests (no USER_ID)");
     }
+  }
+
+  // Test 13: Update project
+  const projectUpdate = await runJsonTest(
+    "project update",
+    "PATCH",
+    `/projects/${projectId}`,
+    {
+      name: "Updated Test Project",
+      labels: {
+        lbl_001: { labelId: "lbl_001", name: "Object Updated", color: "#00FF00" },
+        lbl_002: { labelId: "lbl_002", name: "Background", color: "#FF0000" },
+        lbl_003: { labelId: "lbl_003", name: "New Label", color: "#0000FF" },
+      },
+    }
+  );
+  results.push(projectUpdate);
+
+  // Cleanup: Delete project
+  if (!process.env.KEEP_TEST_PROJECT) {
+    const deleteResult = await runJsonTest(
+      "project delete",
+      "DELETE",
+      `/projects/${projectId}`
+    );
+    results.push(deleteResult);
   }
 }
 
+// Print results
+console.log("\n=== Test Results ===\n");
 let failures = 0;
 for (const result of results) {
   if (!result.ok) {
@@ -351,6 +360,8 @@ for (const result of results) {
     console.log(`PASS ${result.name}`);
   }
 }
+
+console.log(`\n=== Summary: ${results.length - failures}/${results.length} tests passed ===\n`);
 
 if (failures > 0) {
   process.exit(1);

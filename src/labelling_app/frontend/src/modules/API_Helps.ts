@@ -2,11 +2,14 @@ import { signInAnonymously } from "firebase/auth";
 import { auth } from "../firebaseconfig";
 import type {
   LockResponse,
+  MaskApiItem,
+  MaskMapApiItem,
+  MaskOverlay,
   ProjectApiItem,
   ProjectImageApiItem,
   ProjectImagesApiResponse,
   ProjectsApiResponse,
-  UploadImageResponse,
+  SparseColorMap,
   UploadZipResponse,
 } from "../types";
 
@@ -74,7 +77,7 @@ export const listProjects = async () =>
 export const createProject = async (payload: {
   name: string;
   description?: string | null;
-  classes: { id: string; name: string; color: string }[];
+  labels: Record<string, { labelId: string; name: string; color: string }>;
 }) =>
   apiFetch("/projects", {
     method: "POST",
@@ -175,15 +178,9 @@ export const updateImage = async (
       status?: string;
       tags?: string[];
     };
-    masks?: {
-      id: string;
-      classId: string;
-      className: string;
-      color: string;
-      mask?: (0 | 1 | boolean)[][];
-      boundingBox?: { x: number; y: number; w: number; h: number };
-      source: string;
-    }[];
+    maskMapId?: string | null;
+    labelComplete?: boolean;
+    reviewed?: boolean;
     labellerId?: string | null;
   }
 ) =>
@@ -192,49 +189,6 @@ export const updateImage = async (
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-
-export const uploadImageToBackend = async (
-  projectId: string,
-  file: File,
-  meta: {
-    fileName: string;
-    width: number;
-    height: number;
-    status: string;
-    tags?: string[];
-  }
-) => {
-  const token = await getAuthToken();
-  const form = new FormData();
-  form.append("imageData", file);
-  form.append("meta", JSON.stringify(meta));
-
-  const response = await fetch(`${apiBase}/projects/${projectId}/images`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: form,
-  });
-
-  const text = await response.text();
-  let data: unknown = null;
-  try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    data = text;
-  }
-
-  if (!response.ok) {
-    const message =
-      typeof data === "object" && data && "message" in data
-        ? String((data as { message: string }).message)
-        : "Upload failed";
-    throw new Error(message);
-  }
-
-  return data as UploadImageResponse;
-};
 
 export const uploadZipToBackend = async (
   projectId: string,
@@ -275,3 +229,85 @@ export const uploadZipToBackend = async (
 
   return data as UploadZipResponse;
 };
+
+// ============================================================================
+// MASK API FUNCTIONS
+// ============================================================================
+
+/**
+ * Get masks and maskMap for an image
+ */
+export const getImageMasks = async (projectId: string, imageId: string) =>
+  apiFetch(`/projects/${projectId}/images/${imageId}/masks`, {
+    method: "GET",
+  }) as Promise<{ masks: MaskApiItem[]; maskMap: MaskMapApiItem | null }>;
+
+/**
+ * Get a specific mask map
+ */
+export const getMaskMap = async (projectId: string, maskMapId: string) =>
+  apiFetch(`/projects/${projectId}/maskmaps/${maskMapId}`, {
+    method: "GET",
+  }) as Promise<MaskMapApiItem>;
+
+/**
+ * Get colorMap from storage for a mask map
+ */
+export const getColorMap = async (projectId: string, maskMapId: string) =>
+  apiFetch(`/projects/${projectId}/maskmaps/${maskMapId}/colormap`, {
+    method: "GET",
+  }) as Promise<SparseColorMap>;
+
+/**
+ * Get maskOverlay from storage for a mask map (by maskMapId)
+ * Returns the 2D array where each pixel contains the maskId of the smallest mask
+ */
+export const getMaskOverlay = async (projectId: string, maskMapId: string) =>
+  apiFetch(`/projects/${projectId}/maskmaps/${maskMapId}/maskoverlay`, {
+    method: "GET",
+  }) as Promise<MaskOverlay | null>;
+
+/**
+ * Get maskOverlay for an image (by imageId)
+ * This is the preferred method - simpler to use since you only need the imageId
+ * Returns the 2D array where each pixel contains the maskId of the smallest mask
+ */
+export const getImageMaskOverlay = async (projectId: string, imageId: string) =>
+  apiFetch(`/projects/${projectId}/images/${imageId}/maskoverlay`, {
+    method: "GET",
+  }) as Promise<MaskOverlay | null>;
+
+/**
+ * Update a single mask's label
+ */
+export const updateMaskLabel = async (
+  projectId: string,
+  maskId: string,
+  labelId: string | null
+) =>
+  apiFetch(`/projects/${projectId}/masks/${maskId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ labelId }),
+  }) as Promise<{ maskId: string; labelId: string | null; color: string | null }>;
+
+/**
+ * Batch update multiple masks' labels
+ */
+export const batchUpdateMaskLabels = async (
+  projectId: string,
+  updates: Array<{ maskId: string; labelId: string | null }>
+) =>
+  apiFetch(`/projects/${projectId}/masks`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ updates }),
+  }) as Promise<{
+    results: Array<{
+      maskId: string;
+      success: boolean;
+      labelId?: string | null;
+      color?: string | null;
+      error?: string;
+    }>;
+  }>;

@@ -11,9 +11,7 @@ interface ImageUploadProps {
 
 interface UploadFile {
   file: File;
-  preview?: string;
-  dimensions: { width: number; height: number } | null;
-  kind: 'image' | 'zip';
+  kind: 'zip';
 }
 
 const STATUS_OPTIONS = [
@@ -38,34 +36,13 @@ export function ImageUpload({
   const isZipFile = (file: File) =>
     file.type.includes('zip') || file.name.toLowerCase().endsWith('.zip');
 
-  const processFile = useCallback(async (file: File) => {
-    const isZip = isZipFile(file);
-    if (!file.type.startsWith('image/') && !isZip) {
-      alert('Please select an image or zip file');
+  const processFile = useCallback((file: File) => {
+    if (!isZipFile(file)) {
+      alert('Please select a ZIP file');
       return;
     }
-
-    if (isZip) {
-      setUploadFile({ file, dimensions: null, kind: 'zip' });
-      return;
-    }
-
-    const preview = URL.createObjectURL(file);
-
-    // Get image dimensions
-    const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        resolve({ width: img.width, height: img.height });
-      };
-      img.onerror = () => {
-        resolve({ width: 0, height: 0 });
-      };
-      img.src = preview;
-    });
-
-    setUploadFile({ file, preview, dimensions, kind: 'image' });
-  }, [isZipFile]);
+    setUploadFile({ file, kind: 'zip' });
+  }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -128,9 +105,6 @@ export function ImageUpload({
   };
 
   const handleClear = () => {
-    if (uploadFile?.preview) {
-      URL.revokeObjectURL(uploadFile.preview);
-    }
     setUploadFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -166,24 +140,20 @@ export function ImageUpload({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*,.zip,application/zip"
+                accept=".zip,application/zip"
                 onChange={handleFileSelect}
                 className="hidden-input"
               />
 
               {uploadFile ? (
                 <div className="upload-preview">
-                  {uploadFile.kind === 'image' && uploadFile.preview ? (
-                    <img src={uploadFile.preview} alt="Preview" />
-                  ) : (
-                    <div className="dropzone-content">
-                      <div className="dropzone-icon">
-                        <UploadIcon />
-                      </div>
-                      <h3>Zip archive selected</h3>
-                      <p>{uploadFile.file.name}</p>
+                  <div className="dropzone-content">
+                    <div className="dropzone-icon">
+                      <ZipIcon />
                     </div>
-                  )}
+                    <h3>ZIP archive selected</h3>
+                    <p>{uploadFile.file.name}</p>
+                  </div>
                   <button className="preview-clear" onClick={handleClear} aria-label="Clear">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M18 6L6 18M6 6l12 12" />
@@ -195,9 +165,9 @@ export function ImageUpload({
                   <div className="dropzone-icon">
                     <UploadIcon />
                   </div>
-                  <h3>Drop image here</h3>
+                  <h3>Drop ZIP file here</h3>
                   <p>or click to browse</p>
-                  <span className="dropzone-hint">Supports JPG, PNG, WebP, ZIP</span>
+                  <span className="dropzone-hint">Supports ZIP archives containing images</span>
                 </div>
               )}
             </div>
@@ -216,12 +186,8 @@ export function ImageUpload({
                 </span>
               </div>
               <div className="file-info-item">
-                <span className="file-info-label">Dimensions</span>
-                <span className="file-info-value">
-                  {uploadFile.kind === 'zip'
-                    ? 'Zip archive'
-                    : `${uploadFile.dimensions?.width || 0} x ${uploadFile.dimensions?.height || 0}`}
-                </span>
+                <span className="file-info-label">Type</span>
+                <span className="file-info-value">ZIP archive</span>
               </div>
             </div>
           )}
@@ -230,7 +196,7 @@ export function ImageUpload({
         {/* Right: Metadata Form */}
         <div className="upload-form-section">
           <Card variant="elevated" padding="medium">
-            <h3 className="form-title">Image Metadata</h3>
+            <h3 className="form-title">Upload Metadata</h3>
             <p className="form-subtitle">
               Uploading to: <strong>{project.name}</strong>
             </p>
@@ -283,7 +249,7 @@ export function ImageUpload({
                 disabled={!uploadFile}
                 loading={loading}
               >
-                Upload Image
+                Upload ZIP
               </Button>
             </div>
           </Card>
@@ -291,9 +257,9 @@ export function ImageUpload({
           <Card variant="bordered" padding="small" className="upload-tips">
             <h4>Tips</h4>
             <ul>
+              <li>ZIP files should contain images (JPG, PNG, WebP)</li>
               <li>Use descriptive tags to organize your images</li>
               <li>Set status to "unlabeled" for new images</li>
-              <li>Batch uploads coming soon!</li>
             </ul>
           </Card>
         </div>
@@ -322,6 +288,17 @@ function FolderIcon() {
   return (
     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
       <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+    </svg>
+  );
+}
+
+function ZipIcon() {
+  return (
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+      <polyline points="14,2 14,8 20,8" />
+      <line x1="12" y1="18" x2="12" y2="12" />
+      <line x1="9" y1="15" x2="15" y2="15" />
     </svg>
   );
 }

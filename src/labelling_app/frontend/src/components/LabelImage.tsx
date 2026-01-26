@@ -1,75 +1,285 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import type { CSSProperties } from 'react';
-import type {
-  Project,
-  ProjectImage,
-  BoundingBox,
-  ImageMask,
-} from '../types';
+import type { Project, ProjectImage, SparseColorMap, MaskApiItem, MaskMapApiItem, MaskOverlay } from '../types';
 import { Button, Card, StatusBadge, EmptyState } from './ui';
+import { getImageMasks, getColorMap, getImageMaskOverlay, updateMaskLabel } from '../modules/API_Helps';
 
-// Generate unique ID
-const generateId = (prefix: string = 'id'): string => {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-};
+interface LabelPopupState {
+  maskId: string;
+  x: number;
+  y: number;
+}
 
 interface LabelImageProps {
   project: Project | null;
   images: ProjectImage[];
   onSelectProject: () => void;
-  onSaveAnnotations: (
-    imageId: string,
-    boxes: BoundingBox[],
-    imageSize: { width: number; height: number }
-  ) => Promise<boolean>;
+  onMarkLabeled: (imageId: string) => Promise<boolean>;
   onNextImage: () => void;
   onPrevImage: () => void;
   loading?: boolean;
 }
 
-interface DrawingState {
-  isDrawing: boolean;
-  startX: number;
-  startY: number;
-  currentX: number;
-  currentY: number;
-}
-
-interface LabelImageContentProps {
-  project: Project;
-  currentImage: ProjectImage | null;
-  imagesCount: number;
-  currentIndex: number;
-  activeClassId: string | null;
-  onSelectClass: (classId: string) => void;
-  onSaveAnnotations: (
-    imageId: string,
-    boxes: BoundingBox[],
-    imageSize: { width: number; height: number }
-  ) => Promise<boolean>;
-  onNavigate: (direction: 'prev' | 'next') => void;
-  loading: boolean;
-}
-
 const DISPLAY_SIZE = 1024;
+const HOVER_DELAY_MS = 1000; // 1 second delay before showing mask
+const UNLABELED_COLOR = '#3B82F6'; // Blue color for unlabeled masks
+const LABELED_OPACITY = 0.3; // 30% opacity for labeled masks
+const HIGHLIGHT_OPACITY = 1.0; // 100% opacity for highlighted mask on hover
 
 export function LabelImage({
   project,
   images,
   onSelectProject,
-  onSaveAnnotations,
+  onMarkLabeled,
   onNextImage,
   onPrevImage,
   loading = false,
 }: LabelImageProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [scale, setScale] = useState({ x: 1, y: 1 });
+  const [colorMap, setColorMap] = useState<SparseColorMap | null>(null);
+  const [masks, setMasks] = useState<MaskApiItem[]>([]);
+  const [maskMap, setMaskMap] = useState<MaskMapApiItem | null>(null);
+  const [maskOverlay, setMaskOverlay] = useState<MaskOverlay | null>(null);
+  const [maskLoading, setMaskLoading] = useState(false);
 
+  // Mask selection and labeling state
+  const [selectedMaskId, setSelectedMaskId] = useState<string | null>(null);
+  const [labelPopup, setLabelPopup] = useState<LabelPopupState | null>(null);
+  const [labelAssigning, setLabelAssigning] = useState(false);
+
+  // Hover state for mask highlighting
+  const [hoveredMaskId, setHoveredMaskId] = useState<string | null>(null);
+  const [highlightedMaskId, setHighlightedMaskId] = useState<string | null>(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const imageRef = useRef<HTMLImageElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const currentImage = images[currentIndex] || null;
+  const selectedMask = masks.find(m => m.maskId === selectedMaskId) || null;
 
-  const activeClassId = project?.classes.some((cls) => cls.id === selectedClassId)
-    ? selectedClassId
-    : project?.classes[0]?.id ?? null;
+  // Fetch masks, colorMap, and maskOverlay when image changes
+  useEffect(() => {
+    const fetchMasks = async () => {
+      if (!project || !currentImage) {
+        setColorMap(null);
+        setMasks([]);
+        setMaskMap(null);
+        setMaskOverlay(null);
+        return;
+      }
+
+      setMaskLoading(true);
+      try {
+        // Fetch masks/maskMap and maskOverlay in parallel
+        // Using the new image-based maskoverlay endpoint for simplicity
+        const [masksResult, fetchedMaskOverlay] = await Promise.all([
+          getImageMasks(project.projectId, currentImage.imageId),
+          getImageMaskOverlay(project.projectId, currentImage.imageId),
+        ]);
+
+        const { masks: fetchedMasks, maskMap: fetchedMaskMap } = masksResult;
+        setMasks(fetchedMasks);
+        setMaskMap(fetchedMaskMap);
+        setMaskOverlay(fetchedMaskOverlay);
+
+        // Fetch colorMap separately if we have a maskMap
+        if (fetchedMaskMap) {
+          const fetchedColorMap = await getColorMap(project.projectId, fetchedMaskMap.maskMapId);
+          setColorMap(fetchedColorMap);
+        } else {
+          setColorMap(null);
+        }
+      } catch (err) {
+        console.error('Failed to fetch masks:', err);
+        setColorMap(null);
+        setMasks([]);
+        setMaskMap(null);
+        setMaskOverlay(null);
+      } finally {
+        setMaskLoading(false);
+      }
+    };
+
+    fetchMasks();
+  }, [project, currentImage?.imageId]);
+
+  // Clear hover state when image changes
+  useEffect(() => {
+    setHoveredMaskId(null);
+    setHighlightedMaskId(null);
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+  }, [currentImage?.imageId]);
+
+  // Draw mask overlay on canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const img = imageRef.current;
+
+    if (!canvas || !img || !img.complete) {
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set canvas size to match image natural size
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Create image data for pixel manipulation
+    const imageData = ctx.createImageData(canvas.width, canvas.height);
+    const data = imageData.data;
+
+    // Build a map of maskId -> mask for quick lookup
+    const masksById = new Map(masks.map(m => [m.maskId, m]));
+
+    // Draw labeled masks from colorMap at 30% opacity
+    if (colorMap) {
+      for (const [rowKey, cols] of Object.entries(colorMap)) {
+        const row = parseInt(rowKey, 10);
+        if (row < 0 || row >= canvas.height) continue;
+
+        for (const [colKey, hexColor] of Object.entries(cols)) {
+          const col = parseInt(colKey, 10);
+          if (col < 0 || col >= canvas.width) continue;
+
+          // Parse hex color
+          const hex = hexColor.replace('#', '');
+          const r = parseInt(hex.substring(0, 2), 16);
+          const g = parseInt(hex.substring(2, 4), 16);
+          const b = parseInt(hex.substring(4, 6), 16);
+
+          // Set pixel with 30% opacity for labeled masks
+          const idx = (row * canvas.width + col) * 4;
+          data[idx] = r;
+          data[idx + 1] = g;
+          data[idx + 2] = b;
+          data[idx + 3] = Math.round(255 * LABELED_OPACITY);
+        }
+      }
+    }
+
+    // Draw highlighted mask at 100% opacity (on hover after 1 second)
+    if (highlightedMaskId && maskOverlay) {
+      const highlightedMask = masksById.get(highlightedMaskId);
+      const isLabeled = highlightedMask?.labelId !== null;
+
+      // Determine the color: use label color if labeled, otherwise blue
+      let r = 59, g = 130, b = 246; // Default blue
+      if (isLabeled && highlightedMask?.color) {
+        const hex = highlightedMask.color.replace('#', '');
+        r = parseInt(hex.substring(0, 2), 16);
+        g = parseInt(hex.substring(2, 4), 16);
+        b = parseInt(hex.substring(4, 6), 16);
+      }
+
+      // Find the index for the highlighted maskId
+      const highlightedIndex = maskOverlay.maskIds.indexOf(highlightedMaskId);
+
+      // Iterate through maskOverlay and highlight all pixels of this mask
+      if (highlightedIndex !== -1) {
+        for (let i = 0; i < maskOverlay.data.length; i++) {
+          if (maskOverlay.data[i] === highlightedIndex) {
+            const idx = i * 4;
+            data[idx] = r;
+            data[idx + 1] = g;
+            data[idx + 2] = b;
+            data[idx + 3] = Math.round(255 * HIGHLIGHT_OPACITY);
+          }
+        }
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }, [colorMap, maskOverlay, masks, highlightedMaskId, scale]);
+
+  // Handle mouse move on canvas for hover detection
+  const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!maskOverlay || !wrapperRef.current || !imageRef.current) return;
+
+    const rect = wrapperRef.current.getBoundingClientRect();
+
+    // Convert mouse position to image coordinates (accounting for scale)
+    const mouseX = (e.clientX - rect.left) / scale.x;
+    const mouseY = (e.clientY - rect.top) / scale.y;
+
+    // Clamp to image bounds
+    const col = Math.floor(Math.max(0, Math.min(maskOverlay.width - 1, mouseX)));
+    const row = Math.floor(Math.max(0, Math.min(maskOverlay.height - 1, mouseY)));
+
+    // Look up the mask index at this position, then convert to maskId
+    const idx = row * maskOverlay.width + col;
+    const maskIndex = maskOverlay.data[idx];
+    // Convert index to maskId (-1 means no mask)
+    const maskIdAtPosition = maskIndex >= 0 ? maskOverlay.maskIds[maskIndex] : null;
+
+    // If we moved to a different mask, reset the timer
+    if (maskIdAtPosition !== hoveredMaskId) {
+      setHoveredMaskId(maskIdAtPosition);
+
+      // Clear existing timer
+      if (hoverTimerRef.current) {
+        clearTimeout(hoverTimerRef.current);
+        hoverTimerRef.current = null;
+      }
+
+      // Clear highlight immediately when moving away
+      if (!maskIdAtPosition) {
+        setHighlightedMaskId(null);
+      } else {
+        // Start new timer for 1 second delay
+        hoverTimerRef.current = setTimeout(() => {
+          setHighlightedMaskId(maskIdAtPosition);
+        }, HOVER_DELAY_MS);
+      }
+    }
+  }, [maskOverlay, scale, hoveredMaskId]);
+
+  // Handle mouse leave on canvas
+  const handleCanvasMouseLeave = useCallback(() => {
+    setHoveredMaskId(null);
+    setHighlightedMaskId(null);
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+  }, []);
+
+  // Handle click on canvas to select mask for labeling
+  const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!maskOverlay || !wrapperRef.current) return;
+
+    const rect = wrapperRef.current.getBoundingClientRect();
+    const mouseX = (e.clientX - rect.left) / scale.x;
+    const mouseY = (e.clientY - rect.top) / scale.y;
+
+    const col = Math.floor(Math.max(0, Math.min(maskOverlay.width - 1, mouseX)));
+    const row = Math.floor(Math.max(0, Math.min(maskOverlay.height - 1, mouseY)));
+
+    // Look up the mask index at this position, then convert to maskId
+    const idx = row * maskOverlay.width + col;
+    const maskIndex = maskOverlay.data[idx];
+    // Convert index to maskId (-1 means no mask)
+    const maskIdAtPosition = maskIndex >= 0 ? maskOverlay.maskIds[maskIndex] : null;
+
+    if (maskIdAtPosition) {
+      setSelectedMaskId(maskIdAtPosition);
+
+      // Show label popup near the click
+      setLabelPopup({
+        maskId: maskIdAtPosition,
+        x: e.clientX,
+        y: e.clientY + 10,
+      });
+    }
+  }, [maskOverlay, scale]);
 
   const handleNavigate = useCallback((direction: 'prev' | 'next') => {
     setCurrentIndex((prev) => {
@@ -84,6 +294,104 @@ export function LabelImage({
       return prev;
     });
   }, [images.length, onNextImage, onPrevImage]);
+
+  const handleImageLoad = useCallback(() => {
+    if (imageRef.current) {
+      const imgWidth = imageRef.current.naturalWidth;
+      const imgHeight = imageRef.current.naturalHeight;
+
+      if (imgWidth > 0 && imgHeight > 0) {
+        setScale({
+          x: DISPLAY_SIZE / imgWidth,
+          y: DISPLAY_SIZE / imgHeight,
+        });
+      } else {
+        setScale({ x: 1, y: 1 });
+      }
+    }
+  }, []);
+
+  const handleMarkLabeled = async () => {
+    if (!currentImage) return;
+    const ok = await onMarkLabeled(currentImage.imageId);
+    if (ok) {
+      handleNavigate('next');
+    }
+  };
+
+  // Handle clicking on a mask in the sidebar list
+  const handleMaskClick = useCallback((mask: MaskApiItem, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setSelectedMaskId(mask.maskId);
+
+    // Position the popup near the click
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    setLabelPopup({
+      maskId: mask.maskId,
+      x: rect.left,
+      y: rect.bottom + 4,
+    });
+  }, []);
+
+  // Close popup when clicking outside
+  const handleClosePopup = useCallback(() => {
+    setLabelPopup(null);
+  }, []);
+
+  // Assign a label to a mask
+  const handleAssignLabel = useCallback(async (labelId: string | null) => {
+    if (!project || !labelPopup) return;
+
+    setLabelAssigning(true);
+    try {
+      const result = await updateMaskLabel(project.projectId, labelPopup.maskId, labelId);
+
+      // Update the mask in local state
+      setMasks(prev => prev.map(m =>
+        m.maskId === labelPopup.maskId
+          ? { ...m, labelId: result.labelId, color: result.color }
+          : m
+      ));
+
+      // Refetch colorMap to show updated overlay
+      if (maskMap) {
+        const updatedColorMap = await getColorMap(project.projectId, maskMap.maskMapId);
+        setColorMap(updatedColorMap);
+      }
+
+      setLabelPopup(null);
+    } catch (err) {
+      console.error('Failed to assign label:', err);
+    } finally {
+      setLabelAssigning(false);
+    }
+  }, [project, labelPopup, maskMap]);
+
+  // Clear label from a mask
+  const handleClearLabel = useCallback(() => {
+    handleAssignLabel(null);
+  }, [handleAssignLabel]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        handleNavigate('prev');
+      }
+      if (e.key === 'ArrowRight') {
+        handleNavigate('next');
+      }
+      if (e.key === 'Enter') {
+        handleMarkLabeled();
+      }
+      if (e.key === 'Escape') {
+        handleClosePopup();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleNavigate, currentImage, handleClosePopup]);
 
   if (!project) {
     return (
@@ -110,645 +418,258 @@ export function LabelImage({
     );
   }
 
+  // Get the highlighted mask info for display
+  const highlightedMask = highlightedMaskId ? masks.find(m => m.maskId === highlightedMaskId) : null;
+
   return (
     <div className="label-container">
-      <LabelImageContent
-        key={currentImage?.imageId || 'empty'}
-        project={project}
-        currentImage={currentImage}
-        imagesCount={images.length}
-        currentIndex={currentIndex}
-        activeClassId={activeClassId}
-        onSelectClass={setSelectedClassId}
-        onSaveAnnotations={onSaveAnnotations}
-        onNavigate={handleNavigate}
-        loading={loading}
-      />
-    </div>
-  );
-}
-
-const getBoundsFromMask = (mask?: ImageMask['mask']) => {
-  if (!mask || mask.length === 0) {
-    return null;
-  }
-
-  let minX = Number.POSITIVE_INFINITY;
-  let minY = Number.POSITIVE_INFINITY;
-  let maxX = Number.NEGATIVE_INFINITY;
-  let maxY = Number.NEGATIVE_INFINITY;
-
-  for (let y = 0; y < mask.length; y += 1) {
-    const row = mask[y];
-    if (!Array.isArray(row)) {
-      continue;
-    }
-    for (let x = 0; x < row.length; x += 1) {
-      if (!row[x]) {
-        continue;
-      }
-      minX = Math.min(minX, x);
-      minY = Math.min(minY, y);
-      maxX = Math.max(maxX, x);
-      maxY = Math.max(maxY, y);
-    }
-  }
-
-  if (!Number.isFinite(minX) || !Number.isFinite(minY)) {
-    return null;
-  }
-
-  return {
-    x: minX,
-    y: minY,
-    width: Math.max(0, maxX - minX + 1),
-    height: Math.max(0, maxY - minY + 1),
-  };
-};
-
-const masksToBoxes = (masks: ImageMask[] = []): BoundingBox[] =>
-  masks.flatMap((mask) => {
-    const bounds = mask.boundingBox
-      ? {
-          x: mask.boundingBox.x,
-          y: mask.boundingBox.y,
-          width: mask.boundingBox.w,
-          height: mask.boundingBox.h,
-        }
-      : getBoundsFromMask(mask.mask);
-    if (!bounds || bounds.width === 0 || bounds.height === 0) {
-      return [];
-    }
-    return [
-      {
-        id: mask.id,
-        classId: mask.classId,
-        x: bounds.x,
-        y: bounds.y,
-        width: bounds.width,
-        height: bounds.height,
-        source: mask.source,
-        mask: mask.mask,
-      },
-    ];
-  });
-
-const hexToRgb = (hex: string) => {
-  const normalized = hex.replace('#', '');
-  if (normalized.length === 3) {
-    const r = parseInt(normalized[0] + normalized[0], 16);
-    const g = parseInt(normalized[1] + normalized[1], 16);
-    const b = parseInt(normalized[2] + normalized[2], 16);
-    return { r, g, b };
-  }
-  if (normalized.length === 6) {
-    const r = parseInt(normalized.slice(0, 2), 16);
-    const g = parseInt(normalized.slice(2, 4), 16);
-    const b = parseInt(normalized.slice(4, 6), 16);
-    return { r, g, b };
-  }
-  return { r: 240, g: 93, b: 94 };
-};
-
-const rescaleBoxesIfNormalized = (
-  boxes: BoundingBox[],
-  imageSize?: { width: number; height: number }
-) => {
-  if (!imageSize?.width || !imageSize?.height) {
-    return boxes;
-  }
-
-  const maxX = Math.max(0, ...boxes.map((box) => box.x + box.width));
-  const maxY = Math.max(0, ...boxes.map((box) => box.y + box.height));
-
-  if (maxX <= 1 && maxY <= 1) {
-    return boxes.map((box) => ({
-      ...box,
-      x: box.x * imageSize.width,
-      y: box.y * imageSize.height,
-      width: box.width * imageSize.width,
-      height: box.height * imageSize.height,
-    }));
-  }
-
-  return boxes;
-};
-
-function LabelImageContent({
-  project,
-  currentImage,
-  imagesCount,
-  currentIndex,
-  activeClassId,
-  onSelectClass,
-  onSaveAnnotations,
-  onNavigate,
-  loading,
-}: LabelImageContentProps) {
-  const [boxes, setBoxes] = useState<BoundingBox[]>(() =>
-    masksToBoxes(currentImage?.masks || [])
-  );
-  const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null);
-  const [drawing, setDrawing] = useState<DrawingState>({
-    isDrawing: false,
-    startX: 0,
-    startY: 0,
-    currentX: 0,
-    currentY: 0,
-  });
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [scale, setScale] = useState({ x: 1, y: 1 });
-  const [imageSize, setImageSize] = useState(() => ({
-    width: currentImage?.meta.width || 0,
-    height: currentImage?.meta.height || 0,
-  }));
-
-  const imageRef = useRef<HTMLImageElement>(null);
-  const maskCanvasRef = useRef<HTMLCanvasElement>(null);
-
-  // Calculate scale when image loads
-  const handleImageLoad = useCallback(() => {
-    if (imageRef.current) {
-      const imgWidth = imageRef.current.naturalWidth;
-      const imgHeight = imageRef.current.naturalHeight;
-
-      if (imgWidth > 0 && imgHeight > 0) {
-        setScale({
-          x: DISPLAY_SIZE / imgWidth,
-          y: DISPLAY_SIZE / imgHeight,
-        });
-        setImageSize({ width: imgWidth, height: imgHeight });
-      } else {
-        setScale({ x: 1, y: 1 });
-      }
-    }
-    setImageLoaded(true);
-  }, []);
-
-  const getRelativeCoords = (e: React.MouseEvent): { x: number; y: number } | null => {
-    if (!imageRef.current) return null;
-
-    const rect = imageRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / scale.x;
-    const y = (e.clientY - rect.top) / scale.y;
-
-    return { x, y };
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!activeClassId || !imageLoaded) return;
-
-    const coords = getRelativeCoords(e);
-    if (!coords) return;
-
-    setDrawing({
-      isDrawing: true,
-      startX: coords.x,
-      startY: coords.y,
-      currentX: coords.x,
-      currentY: coords.y,
-    });
-    setSelectedBoxId(null);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!drawing.isDrawing) return;
-
-    const coords = getRelativeCoords(e);
-    if (!coords) return;
-
-    setDrawing(prev => ({
-      ...prev,
-      currentX: coords.x,
-      currentY: coords.y,
-    }));
-  };
-
-  const handleMouseUp = () => {
-    if (!drawing.isDrawing || !activeClassId) return;
-
-    const minX = Math.min(drawing.startX, drawing.currentX);
-    const minY = Math.min(drawing.startY, drawing.currentY);
-    const width = Math.abs(drawing.currentX - drawing.startX);
-    const height = Math.abs(drawing.currentY - drawing.startY);
-
-    // Only create box if it has minimum size
-    if (width > 10 && height > 10) {
-      const newBox: BoundingBox = {
-        id: generateId('box'),
-        classId: activeClassId,
-        x: minX,
-        y: minY,
-        width,
-        height,
-      };
-      setBoxes(prev => [...prev, newBox]);
-      setSelectedBoxId(newBox.id);
-    }
-
-    setDrawing({
-      isDrawing: false,
-      startX: 0,
-      startY: 0,
-      currentX: 0,
-      currentY: 0,
-    });
-  };
-
-  const handleDeleteBox = useCallback((boxId: string) => {
-    setBoxes(prev => prev.filter(b => b.id !== boxId));
-    setSelectedBoxId(prev => (prev === boxId ? null : prev));
-  }, []);
-
-  const handleDeleteSelected = useCallback(() => {
-    if (selectedBoxId) {
-      handleDeleteBox(selectedBoxId);
-    }
-  }, [handleDeleteBox, selectedBoxId]);
-
-  const handleClearAll = useCallback(() => {
-    setBoxes([]);
-    setSelectedBoxId(null);
-  }, []);
-
-  const handleSave = async () => {
-    if (!currentImage) {
-      return;
-    }
-    const resolvedSize = imageSize.width && imageSize.height
-      ? imageSize
-      : { width: currentImage.meta.width, height: currentImage.meta.height };
-    let ok = false;
-    try {
-      ok = await onSaveAnnotations(currentImage.imageId, boxes, resolvedSize);
-    } catch {
-      ok = false;
-    }
-    if (ok) {
-      onNavigate('next');
-    }
-  };
-
-  const getClassColor = (classId: string): string => {
-    return project.classes.find(c => c.id === classId)?.color || '#F05D5E';
-  };
-
-  const getClassName = (classId: string): string => {
-    return project.classes.find(c => c.id === classId)?.name || 'Unknown';
-  };
-
-  const drawMaskOverlay = useCallback(() => {
-    if (!maskCanvasRef.current || !imageRef.current || !imageLoaded) {
-      return;
-    }
-
-    const width = imageSize.width || imageRef.current.naturalWidth;
-    const height = imageSize.height || imageRef.current.naturalHeight;
-    if (!width || !height) {
-      return;
-    }
-
-    const canvas = maskCanvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      return;
-    }
-    ctx.imageSmoothingEnabled = false;
-
-    if (canvas.width !== width || canvas.height !== height) {
-      canvas.width = width;
-      canvas.height = height;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-    }
-
-    ctx.clearRect(0, 0, width, height);
-
-    const maskBoxes = boxes.filter((box) => box.mask);
-    if (maskBoxes.length === 0) {
-      return;
-    }
-
-    for (const box of maskBoxes) {
-      if (!box.mask) {
-        continue;
-      }
-
-      const { r, g, b } = hexToRgb(getClassColor(box.classId));
-      const alpha = 110;
-      const maskHeight = box.mask.length;
-      let maskWidth = 0;
-      for (const row of box.mask) {
-        if (Array.isArray(row)) {
-          maskWidth = Math.max(maskWidth, row.length);
-        }
-      }
-      if (!maskHeight || !maskWidth) {
-        continue;
-      }
-
-      const imageData = ctx.createImageData(maskWidth, maskHeight);
-      const data = imageData.data;
-
-      for (let y = 0; y < maskHeight; y += 1) {
-        const row = box.mask[y];
-        if (!Array.isArray(row)) {
-          continue;
-        }
-        for (let x = 0; x < maskWidth; x += 1) {
-          if (!row[x]) {
-            continue;
-          }
-          const pixelIndex = (y * maskWidth + x) * 4;
-          data[pixelIndex] = r;
-          data[pixelIndex + 1] = g;
-          data[pixelIndex + 2] = b;
-          data[pixelIndex + 3] = alpha;
-        }
-      }
-
-      if (maskWidth === width && maskHeight === height) {
-        ctx.putImageData(imageData, 0, 0);
-      } else {
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = maskWidth;
-        tempCanvas.height = maskHeight;
-      const tempCtx = tempCanvas.getContext('2d');
-      if (!tempCtx) {
-        continue;
-      }
-      tempCtx.imageSmoothingEnabled = false;
-        tempCtx.putImageData(imageData, 0, 0);
-        ctx.drawImage(tempCanvas, 0, 0, maskWidth, maskHeight, 0, 0, width, height);
-      }
-    }
-  }, [boxes, getClassColor, imageLoaded, imageSize.height, imageSize.width]);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (selectedBoxId) {
-          e.preventDefault();
-          handleDeleteSelected();
-        }
-      }
-      if (e.key === 'ArrowLeft') {
-        onNavigate('prev');
-      }
-      if (e.key === 'ArrowRight') {
-        onNavigate('next');
-      }
-      // Number keys for class selection
-      if (e.key >= '1' && e.key <= '9') {
-        const index = parseInt(e.key, 10) - 1;
-        if (project.classes[index]) {
-          onSelectClass(project.classes[index].id);
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleDeleteSelected, onNavigate, onSelectClass, project.classes, selectedBoxId]);
-
-  useEffect(() => {
-    setBoxes((prev) => rescaleBoxesIfNormalized(prev, imageSize));
-  }, [imageSize.height, imageSize.width]);
-
-  useEffect(() => {
-    drawMaskOverlay();
-  }, [drawMaskOverlay]);
-
-  const drawingBox = drawing.isDrawing ? {
-    x: Math.min(drawing.startX, drawing.currentX),
-    y: Math.min(drawing.startY, drawing.currentY),
-    width: Math.abs(drawing.currentX - drawing.startX),
-    height: Math.abs(drawing.currentY - drawing.startY),
-  } : null;
-
-  return (
-    <div className="label-layout">
-      {/* Main Canvas Area */}
-      <div className="label-canvas-section">
-        <div className="canvas-toolbar">
-          <div className="toolbar-left">
-            <Button
-              variant="ghost"
-              size="small"
-              onClick={() => onNavigate('prev')}
-              disabled={currentIndex === 0}
-            >
-              Previous
-            </Button>
-            <span className="image-counter">
-              {currentIndex + 1} / {imagesCount}
-            </span>
-            <Button
-              variant="ghost"
-              size="small"
-              onClick={() => onNavigate('next')}
-              disabled={currentIndex === imagesCount - 1}
-            >
-              Next
-            </Button>
+      <div className="label-layout">
+        {/* Main Canvas Area */}
+        <div className="label-canvas-section">
+          <div className="canvas-toolbar">
+            <div className="toolbar-left">
+              <Button
+                variant="ghost"
+                size="small"
+                onClick={() => handleNavigate('prev')}
+                disabled={currentIndex === 0}
+              >
+                Previous
+              </Button>
+              <span className="image-counter">
+                {currentIndex + 1} / {images.length}
+              </span>
+              <Button
+                variant="ghost"
+                size="small"
+                onClick={() => handleNavigate('next')}
+                disabled={currentIndex === images.length - 1}
+              >
+                Next
+              </Button>
+            </div>
+            <div className="toolbar-right">
+              {maskLoading && <span className="mask-loading">Loading masks...</span>}
+              {highlightedMask && (
+                <span className="mask-hover-info">
+                  Hovering: Mask ({highlightedMask.size.toLocaleString()}px)
+                  {highlightedMask.labelId ? ' - Labeled' : ' - Click to label'}
+                </span>
+              )}
+              <Button
+                variant="primary"
+                size="small"
+                onClick={handleMarkLabeled}
+                loading={loading}
+              >
+                Mark as Labeled
+              </Button>
+            </div>
           </div>
-          <div className="toolbar-right">
-            <Button
-              variant="ghost"
-              size="small"
-              onClick={handleDeleteSelected}
-              disabled={!selectedBoxId}
-            >
-              Delete Selected
-            </Button>
-            <Button
-              variant="ghost"
-              size="small"
-              onClick={handleClearAll}
-              disabled={boxes.length === 0}
-            >
-              Clear All
-            </Button>
-            <Button
-              variant="primary"
-              size="small"
-              onClick={handleSave}
-              loading={loading}
-            >
-              Save & Continue
-            </Button>
+
+          <div className="canvas-container">
+            {currentImage?.fileUrl ? (
+              <div
+                ref={wrapperRef}
+                className="canvas-wrapper"
+                style={{
+                  position: 'relative',
+                  transform: `scale(${scale.x}, ${scale.y})`,
+                  transformOrigin: 'top left',
+                  cursor: maskOverlay ? 'crosshair' : 'default',
+                }}
+                onMouseMove={handleCanvasMouseMove}
+                onMouseLeave={handleCanvasMouseLeave}
+                onClick={handleCanvasClick}
+              >
+                <img
+                  ref={imageRef}
+                  src={currentImage.fileUrl}
+                  alt={currentImage.meta.fileName}
+                  onLoad={handleImageLoad}
+                  draggable={false}
+                  style={{ display: 'block' }}
+                />
+                {/* Overlay canvas for mask visualization */}
+                <canvas
+                  ref={canvasRef}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    pointerEvents: 'none',
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="canvas-empty">
+                <ImageIcon />
+                <span>No image preview</span>
+              </div>
+            )}
           </div>
         </div>
 
-        <div
-          className="canvas-container"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-        >
-          {currentImage?.fileUrl ? (
-            <div className="canvas-wrapper" style={{ transform: `scale(${scale.x}, ${scale.y})`, transformOrigin: 'top left' }}>
-              <img
-                ref={imageRef}
-                src={currentImage.fileUrl}
-                alt={currentImage.meta.fileName}
-                onLoad={handleImageLoad}
-                draggable={false}
-              />
-              <canvas ref={maskCanvasRef} className="mask-overlay" />
-
-              {/* Existing boxes */}
-              {imageLoaded && boxes.filter((box) => !box.mask || box.source === 'manual').map(box => (
-                <div
-                  key={box.id}
-                  className={`annotation-box ${box.id === selectedBoxId ? 'selected' : ''}`}
-                  style={{
-                    left: box.x,
-                    top: box.y,
-                    width: box.width,
-                    height: box.height,
-                    '--box-color': getClassColor(box.classId),
-                  } as CSSProperties}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedBoxId(box.id);
-                  }}
-                >
-                  <span className="box-label">{getClassName(box.classId)}</span>
-                  <button
-                    className="box-delete"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteBox(box.id);
-                    }}
-                  >
-                    x
-                  </button>
-                </div>
-              ))}
-
-              {/* Drawing preview */}
-              {drawingBox && activeClassId && (
-                <div
-                  className="annotation-box drawing"
-                  style={{
-                    left: drawingBox.x,
-                    top: drawingBox.y,
-                    width: drawingBox.width,
-                    height: drawingBox.height,
-                    '--box-color': getClassColor(activeClassId),
-                  } as CSSProperties}
-                />
-              )}
+        {/* Right Sidebar */}
+        <div className="label-sidebar">
+          {/* Image Info */}
+          <Card variant="bordered" padding="medium" className="image-info-card">
+            <h4>Current Image</h4>
+            <div className="info-row">
+              <span className="info-label">File</span>
+              <span className="info-value">{currentImage?.meta.fileName}</span>
             </div>
-          ) : (
-            <div className="canvas-empty">
-              <ImageIcon />
-              <span>No image preview</span>
+            <div className="info-row">
+              <span className="info-label">Status</span>
+              <StatusBadge status={currentImage?.meta.status || 'unlabeled'} />
             </div>
+            <div className="info-row">
+              <span className="info-label">Dimensions</span>
+              <span className="info-value">
+                {currentImage?.meta.width} x {currentImage?.meta.height}
+              </span>
+            </div>
+          </Card>
+
+          {/* Mask Info */}
+          <Card variant="bordered" padding="medium" className="mask-info-card">
+            <h4>Masks ({masks.length})</h4>
+            <div className="info-row">
+              <span className="info-label">Labeled</span>
+              <span className="info-value">
+                {masks.filter(m => m.labelId !== null).length}
+              </span>
+            </div>
+            <div className="info-row">
+              <span className="info-label">Unlabeled</span>
+              <span className="info-value">
+                {masks.filter(m => m.labelId === null).length}
+              </span>
+            </div>
+            <p className="mask-hint">
+              Hover over image to reveal masks. Click to label.
+            </p>
+            {masks.length > 0 && (
+              <div className="masks-list">
+                {masks.map((mask, index) => {
+                  const label = mask.labelId && project.labels[mask.labelId];
+                  const isSelected = selectedMask?.maskId === mask.maskId;
+                  const isHighlighted = highlightedMaskId === mask.maskId;
+                  return (
+                    <button
+                      key={mask.maskId}
+                      className={`mask-list-item ${isSelected ? 'selected' : ''} ${isHighlighted ? 'highlighted' : ''}`}
+                      onClick={(e) => handleMaskClick(mask, e)}
+                    >
+                      <span
+                        className="mask-color-dot"
+                        style={{
+                          backgroundColor: mask.color || UNLABELED_COLOR,
+                          opacity: mask.color ? 1 : 0.5,
+                        }}
+                      />
+                      <span className="mask-name">
+                        Mask {index + 1}
+                        {label && <span className="mask-label-name"> - {label.name}</span>}
+                      </span>
+                      <span className="mask-size">{mask.size.toLocaleString()}px</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+
+          {/* Labels Legend */}
+          {project.labels && Object.keys(project.labels).length > 0 && (
+            <Card variant="bordered" padding="medium" className="labels-card">
+              <h4>Labels</h4>
+              <div className="labels-list">
+                {Object.values(project.labels).map((label) => (
+                  <div key={label.labelId} className="label-item">
+                    <span
+                      className="label-color"
+                      style={{ backgroundColor: label.color }}
+                    />
+                    <span className="label-name">{label.name}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
           )}
+
+          {/* Keyboard Shortcuts */}
+          <Card variant="bordered" padding="small" className="shortcuts-card">
+            <h4>Shortcuts</h4>
+            <div className="shortcuts-list">
+              <div className="shortcut">
+                <kbd>Enter</kbd>
+                <span>Mark as labeled</span>
+              </div>
+              <div className="shortcut">
+                <kbd>Left/Right</kbd>
+                <span>Navigate images</span>
+              </div>
+              <div className="shortcut">
+                <kbd>Esc</kbd>
+                <span>Close popup</span>
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
 
-      {/* Right Sidebar */}
-      <div className="label-sidebar">
-        {/* Image Info */}
-        <Card variant="bordered" padding="medium" className="image-info-card">
-          <h4>Current Image</h4>
-          <div className="info-row">
-            <span className="info-label">File</span>
-            <span className="info-value">{currentImage?.meta.fileName}</span>
+      {/* Label Assignment Popup */}
+      {labelPopup && project.labels && (
+        <div
+          className="label-popup"
+          style={{ left: labelPopup.x, top: labelPopup.y }}
+        >
+          <div className="label-popup-header">
+            <span>Assign Label</span>
+            <button className="label-popup-close" onClick={handleClosePopup}>
+              <CloseIcon />
+            </button>
           </div>
-          <div className="info-row">
-            <span className="info-label">Status</span>
-            <StatusBadge status={currentImage?.meta.status || 'unlabeled'} />
-          </div>
-          <div className="info-row">
-            <span className="info-label">Dimensions</span>
-            <span className="info-value">
-              {currentImage?.meta.width} x {currentImage?.meta.height}
-            </span>
-          </div>
-        </Card>
-
-        {/* Class Selection */}
-        <Card variant="bordered" padding="medium" className="class-selection-card">
-          <h4>Select Class</h4>
-          <p className="hint">Click a class, then draw on image</p>
-          <div className="class-buttons">
-            {project.classes.map((cls, index) => (
-              <button
-                key={cls.id}
-                className={`class-select-btn ${activeClassId === cls.id ? 'active' : ''}`}
-                style={{ '--class-color': cls.color } as CSSProperties}
-                onClick={() => onSelectClass(cls.id)}
-              >
-                <span className="class-dot" />
-                <span className="class-name">{cls.name}</span>
-                <span className="class-shortcut">{index + 1}</span>
-              </button>
-            ))}
-          </div>
-        </Card>
-
-        {/* Annotations List */}
-        <Card variant="bordered" padding="medium" className="annotations-card">
-          <h4>Annotations ({boxes.length})</h4>
-          {boxes.length === 0 ? (
-            <p className="muted">No annotations yet</p>
-          ) : (
-            <div className="annotations-list">
-              {boxes.map((box, index) => (
-                <div
-                  key={box.id}
-                  className={`annotation-item ${box.id === selectedBoxId ? 'selected' : ''}`}
-                  onClick={() => setSelectedBoxId(box.id)}
+          <div className="label-popup-options">
+            {Object.values(project.labels).map((label) => {
+              const isActive = selectedMask?.labelId === label.labelId;
+              return (
+                <button
+                  key={label.labelId}
+                  className={`label-popup-option ${isActive ? 'active' : ''}`}
+                  onClick={() => handleAssignLabel(label.labelId)}
+                  disabled={labelAssigning}
                 >
                   <span
-                    className="annotation-color"
-                    style={{ backgroundColor: getClassColor(box.classId) }}
+                    className="option-dot"
+                    style={{ '--option-color': label.color } as React.CSSProperties}
                   />
-                  <span className="annotation-name">
-                    {getClassName(box.classId)} #{index + 1}
-                  </span>
-                  <button
-                    className="annotation-delete"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteBox(box.id);
-                    }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M18 6L6 18M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
+                  <span className="option-name">{label.name}</span>
+                  {isActive && <CheckIcon />}
+                </button>
+              );
+            })}
+          </div>
+          {selectedMask?.labelId && (
+            <div className="label-popup-footer">
+              <button
+                className="label-popup-delete"
+                onClick={handleClearLabel}
+                disabled={labelAssigning}
+              >
+                <TrashIcon />
+                Remove Label
+              </button>
             </div>
           )}
-        </Card>
+        </div>
+      )}
 
-        {/* Keyboard Shortcuts */}
-        <Card variant="bordered" padding="small" className="shortcuts-card">
-          <h4>Shortcuts</h4>
-          <div className="shortcuts-list">
-            <div className="shortcut">
-              <kbd>1-9</kbd>
-              <span>Select class</span>
-            </div>
-            <div className="shortcut">
-              <kbd>Del</kbd>
-              <span>Delete selected</span>
-            </div>
-            <div className="shortcut">
-              <kbd>Left/Right</kbd>
-              <span>Navigate images</span>
-            </div>
-          </div>
-        </Card>
-      </div>
+      {/* Backdrop to close popup when clicking outside */}
+      {labelPopup && (
+        <div className="label-popup-backdrop" onClick={handleClosePopup} />
+      )}
     </div>
   );
 }
@@ -767,6 +688,32 @@ function ImageIcon() {
       <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
       <circle cx="8.5" cy="8.5" r="1.5" />
       <polyline points="21 15 16 10 5 21" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="option-check">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
     </svg>
   );
 }

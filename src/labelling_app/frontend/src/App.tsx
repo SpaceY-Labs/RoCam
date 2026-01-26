@@ -7,10 +7,6 @@ import type {
   ProjectImage,
   ProjectFormData,
   ImageStatus,
-  BoundingBox,
-  LabelClass,
-  ImageMask,
-  MaskSource,
 } from './types';
 import { ProjectList } from './components/ProjectList';
 import { CreateProject } from './components/CreateProject';
@@ -27,15 +23,12 @@ import {
   acquireLocks,
   releaseLocks,
   updateImage,
-  uploadImageToBackend,
   uploadZipToBackend,
 } from './modules/API_Helps';
 
 const LOCK_BATCH_SIZE = 5;
 const LOCK_DURATION_MS = 20 * 60 * 1000;
 const LOCK_REFRESH_MS = 5 * 60 * 1000;
-const TARGET_WIDTH = 1920;
-const TARGET_HEIGHT = 1080;
 
 const NAV_ITEMS: Array<{
   id: RouteId;
@@ -107,44 +100,6 @@ const getErrorMessage = (err: unknown, fallback: string) =>
 const getResponseCount = (response: { total?: number; items: unknown[] }) =>
   typeof response.total === 'number' ? response.total : response.items.length;
 
-const resolveMaskClass = (project: Project, classId?: string): LabelClass => {
-  if (classId) {
-    const match = project.classes.find((cls) => cls.id === classId);
-    if (match) {
-      return match;
-    }
-  }
-  return (
-    project.classes[0] || {
-      id: classId || 'unknown',
-      name: 'Unknown',
-      color: '#999999',
-    }
-  );
-};
-
-const buildMasksFromBoxes = (
-  boxes: BoundingBox[],
-  project: Project
-): ImageMask[] =>
-  boxes.map((box) => {
-    const cls = resolveMaskClass(project, box.classId);
-    const mask = Array.isArray(box.mask) && box.mask.length > 0 ? box.mask : undefined;
-    return {
-      id: box.id,
-      classId: cls.id,
-      className: cls.name,
-      color: cls.color,
-      ...(mask ? { mask } : {}),
-      boundingBox: {
-        x: box.x,
-        y: box.y,
-        w: box.width,
-        h: box.height,
-      },
-      source: (box.source || 'manual') as MaskSource,
-    };
-  });
 
 function App() {
   // Routing
@@ -208,7 +163,7 @@ function App() {
         projectId: item.projectId,
         name: item.name,
         description: item.description || null,
-        classes: item.classes || [],
+        labels: item.labels || {},
         createdAt: item.createdAt || new Date().toISOString(),
         imageCount: item.imageCount || 0,
         labeledCount: item.labeledCount || 0,
@@ -253,7 +208,7 @@ function App() {
         projectId: details.projectId,
         name: details.name,
         description: details.description || null,
-        classes: details.classes || [],
+        labels: details.labels || {},
         createdAt: details.createdAt || new Date().toISOString(),
         imageCount: details.imageCount || 0,
         labeledCount: details.labeledCount || 0,
@@ -295,6 +250,9 @@ function App() {
         .map((item) => ({
           imageId: item.imageId,
           projectId: projectId,
+          maskMapId: item.maskMapId || null,
+          labelComplete: item.labelComplete || false,
+          reviewed: item.reviewed || false,
           meta: {
             fileName: item.meta?.fileName || 'Unknown',
             width: item.meta?.width || 0,
@@ -304,7 +262,6 @@ function App() {
           },
           fileUrl: item.fileUrl,
           createdAt: item.createdAt || new Date().toISOString(),
-          masks: item.masks || [],
         }));
 
       setAvailableImages(lockedImages);
@@ -395,11 +352,7 @@ function App() {
       const response = await createProject({
         name: data.name,
         description: data.description || null,
-        classes: data.classes.map((cls: LabelClass) => ({
-          id: cls.id,
-          name: cls.name,
-          color: cls.color,
-        })),
+        labels: data.labels,
       });
 
       setSelectedProjectId(response.projectId);
@@ -482,23 +435,17 @@ function App() {
       const isZip =
         file.type.includes('zip') || file.name.toLowerCase().endsWith('.zip');
 
-      if (isZip) {
-        const zipResponse = await uploadZipToBackend(selectedProjectId, file, {
-          status: meta.status,
-          tags: meta.tags,
-        });
-        showNotification(`Uploaded ${zipResponse.count} images from "${file.name}"`);
-      } else {
-        await uploadImageToBackend(selectedProjectId, file, {
-          fileName: file.name,
-          width: TARGET_WIDTH,
-          height: TARGET_HEIGHT,
-          status: meta.status,
-          tags: meta.tags,
-        });
-
-        showNotification(`Image "${file.name}" uploaded successfully!`);
+      if (!isZip) {
+        setError('Only ZIP files are accepted');
+        setUploading(false);
+        return;
       }
+
+      const zipResponse = await uploadZipToBackend(selectedProjectId, file, {
+        status: meta.status,
+        tags: meta.tags,
+      });
+      showNotification(`Uploaded ${zipResponse.count} images from "${file.name}"`);
 
       // Refresh project details to update counts
       await loadProjectDetails(selectedProjectId);
@@ -514,11 +461,8 @@ function App() {
     }
   };
 
-  // Handler: Save annotations (placeholder - needs backend endpoint)
-  const handleSaveAnnotations = async (
-    imageId: string,
-    boxes: BoundingBox[]
-  ) => {
+  // Handler: Mark image as labeled
+  const handleMarkLabeled = async (imageId: string) => {
     if (!selectedProjectId || !selectedProject) {
       setError('Select a project first');
       return false;
@@ -526,12 +470,10 @@ function App() {
 
     setSavingAnnotations(true);
     try {
-      const masks = buildMasksFromBoxes(boxes, selectedProject);
       await updateImage(selectedProjectId, imageId, {
         meta: { status: 'labeled' },
-        masks,
       });
-      showNotification(`Saved ${boxes.length} annotations for image`);
+      showNotification('Image marked as labeled');
 
       let remainingLocks = lockedIds;
       if (lockedIds.includes(imageId)) {
@@ -563,7 +505,7 @@ function App() {
 
       return true;
     } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Failed to save annotations'));
+      setError(getErrorMessage(err, 'Failed to mark image as labeled'));
       return false;
     } finally {
       setSavingAnnotations(false);
@@ -720,7 +662,7 @@ function App() {
           project={selectedProject}
           images={availableImages}
           onSelectProject={() => navigate('projects')}
-          onSaveAnnotations={handleSaveAnnotations}
+          onMarkLabeled={handleMarkLabeled}
           onNextImage={() => {}}
           onPrevImage={() => {}}
           loading={queueLoading || savingAnnotations}

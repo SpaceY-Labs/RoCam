@@ -54,3 +54,164 @@ export const getSignedReadUrl = async (storagePath: string) => {
   });
   return url;
 };
+
+/**
+ * Upload a mask binary file to storage
+ */
+export const uploadMaskBuffer = async (
+  storagePath: string,
+  buffer: Buffer
+): Promise<void> => {
+  const file = bucket.file(storagePath);
+  await file.save(buffer, {
+    contentType: "application/octet-stream",
+    resumable: false,
+    validation: "md5",
+  });
+};
+
+/**
+ * Download a mask binary file from storage
+ */
+export const downloadMaskBuffer = async (storagePath: string): Promise<Buffer> => {
+  const file = bucket.file(storagePath);
+  const [exists] = await file.exists();
+  if (!exists) {
+    throw new HttpError(404, "NOT_FOUND", "Mask file not found");
+  }
+  const [buffer] = await file.download();
+  return buffer;
+};
+
+/**
+ * Build storage path for a mask file
+ */
+export const buildMaskStoragePath = (
+  projectId: string,
+  imageId: string,
+  maskId: string
+): string => {
+  return `projects/${projectId}/images/${imageId}/masks/${maskId}.bin`;
+};
+
+/**
+ * Build storage path for a colorMap file
+ */
+export const buildColorMapStoragePath = (
+  projectId: string,
+  maskMapId: string
+): string => {
+  return `projects/${projectId}/maskmaps/${maskMapId}/colormap.json`;
+};
+
+/**
+ * Upload colorMap JSON to storage
+ */
+export const uploadColorMap = async (
+  storagePath: string,
+  colorMap: Record<string, Record<string, string>>
+): Promise<void> => {
+  const file = bucket.file(storagePath);
+  const jsonData = JSON.stringify(colorMap);
+  await file.save(Buffer.from(jsonData, "utf-8"), {
+    contentType: "application/json",
+    resumable: false,
+    validation: "md5",
+  });
+};
+
+/**
+ * Download colorMap JSON from storage
+ */
+export const downloadColorMap = async (
+  storagePath: string
+): Promise<Record<string, Record<string, string>>> => {
+  const file = bucket.file(storagePath);
+  const [exists] = await file.exists();
+  if (!exists) {
+    // Return empty colorMap if file doesn't exist (initial state)
+    return {};
+  }
+  const [buffer] = await file.download();
+  return JSON.parse(buffer.toString("utf-8"));
+};
+
+// ============================================================================
+// MASK OVERLAY STORAGE
+// ============================================================================
+
+/**
+ * MaskOverlay structure for storage
+ * Uses indices instead of full UUIDs to reduce payload size
+ */
+interface MaskOverlay {
+  width: number;
+  height: number;
+  /** Array of maskIds - index in this array corresponds to index in data */
+  maskIds: string[];
+  /** Flattened row-major array: data[row * width + col] = maskIndex or -1 for no mask */
+  data: number[];
+}
+
+/**
+ * Build storage path for a maskOverlay file
+ */
+export const buildMaskOverlayStoragePath = (
+  projectId: string,
+  maskMapId: string
+): string => {
+  return `projects/${projectId}/maskmaps/${maskMapId}/maskoverlay.json`;
+};
+
+/**
+ * Upload maskOverlay JSON to storage
+ */
+export const uploadMaskOverlay = async (
+  storagePath: string,
+  maskOverlay: MaskOverlay
+): Promise<void> => {
+  console.log(`[storage] uploadMaskOverlay - path: ${storagePath}`);
+  console.log(`[storage] MaskOverlay to upload - width: ${maskOverlay.width}, height: ${maskOverlay.height}, maskIds: ${maskOverlay.maskIds?.length}, data length: ${maskOverlay.data?.length}`);
+
+  const file = bucket.file(storagePath);
+  const jsonData = JSON.stringify(maskOverlay);
+  console.log(`[storage] JSON data size: ${jsonData.length} bytes`);
+
+  await file.save(Buffer.from(jsonData, "utf-8"), {
+    contentType: "application/json",
+    resumable: false,
+    validation: "md5",
+  });
+  console.log(`[storage] uploadMaskOverlay - upload complete`);
+};
+
+/**
+ * Download maskOverlay JSON from storage
+ */
+export const downloadMaskOverlay = async (
+  storagePath: string
+): Promise<MaskOverlay | null> => {
+  console.log(`[storage] downloadMaskOverlay - path: ${storagePath}`);
+  const file = bucket.file(storagePath);
+
+  console.log(`[storage] Checking if file exists...`);
+  const [exists] = await file.exists();
+  console.log(`[storage] File exists: ${exists}`);
+
+  if (!exists) {
+    console.log(`[storage] File not found, returning null`);
+    return null;
+  }
+
+  console.log(`[storage] Downloading file...`);
+  const [buffer] = await file.download();
+  console.log(`[storage] Downloaded buffer size: ${buffer.length} bytes`);
+
+  const jsonString = buffer.toString("utf-8");
+  console.log(`[storage] JSON string length: ${jsonString.length} chars`);
+
+  const parsed = JSON.parse(jsonString);
+  console.log(`[storage] Parsed maskOverlay - width: ${parsed?.width}, height: ${parsed?.height}, maskIds: ${parsed?.maskIds?.length}, data length: ${parsed?.data?.length}`);
+
+  return parsed;
+};

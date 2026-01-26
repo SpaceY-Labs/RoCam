@@ -12,9 +12,11 @@
     "build:frontend": "pnpm --filter frontend build",
     "build:backend": "pnpm --filter backend build",
     "build:functions": "pnpm --filter functions build",
-    "build:all": "pnpm build:shared && pnpm build:frontend && pnpm build:backend && pnpm build:functions"
+    "build:all": "pnpm build:shared && pnpm build:frontend && pnpm build:backend && pnpm build:functions",
+    "test:api": "node test/labelling_api_contract_check.mjs"
   },
   "devDependencies": {
+    "adm-zip": "^0.5.12",
     "firebase": "^12.7.0"
   }
 }
