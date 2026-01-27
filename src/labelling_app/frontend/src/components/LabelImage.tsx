@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import type { Project, ProjectImage, SparseColorMap, MaskApiItem, MaskMapApiItem, MaskOverlay } from '../types';
 import { Button, Card, StatusBadge, EmptyState } from './ui';
 import { getImageMasks, getColorMap, getImageMaskOverlay, updateMaskLabel } from '../modules/API_Helps';
+import './LabelImage.css';
 
 interface LabelPopupState {
   maskId: string;

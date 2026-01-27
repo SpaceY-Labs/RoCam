@@ -1,5 +1,6 @@
 import type { Project, Label } from '../types';
 import { Card, StatCard, ClassBadge, EmptyState, Button } from './ui';
+import './ProjectList.css';
 
 interface ProjectListProps {
   projects: Project[];

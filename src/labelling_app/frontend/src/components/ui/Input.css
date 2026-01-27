@@ -1,0 +1,76 @@
+/* Form Elements */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+input,
+select,
+textarea {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 0.95rem;
+  color: var(--ink);
+  font-family: inherit;
+  transition: border 150ms ease, box-shadow 150ms ease;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 3px rgba(31, 122, 110, 0.2);
+}
+
+input[type='color'] {
+  padding: 4px;
+  height: 42px;
+  cursor: pointer;
+}
+
+.input-error input,
+.input-error select,
+.input-error textarea {
+  border-color: #e74c3c;
+}
+
+.input-error-text {
+  font-size: 0.75rem;
+  color: #e74c3c;
+}
+
+.input-helper {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.color-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-input-wrapper input[type='color'] {
+  width: 42px;
+  flex-shrink: 0;
+}
+
+.color-value {
+  font-size: 0.8rem;
+  font-family: monospace;
+  color: var(--muted);
+}
+
+.hidden-input {
+  display: none;
+}

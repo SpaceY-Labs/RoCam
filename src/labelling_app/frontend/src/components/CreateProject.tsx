@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent } from 'react';
 import type { Label, LabelsMap, ProjectFormData } from '../types';
 import { Button, Input, TextArea, ColorInput, ClassBadge, Card } from './ui';
+import './CreateProject.css';
 
 // Generate unique ID
 const generateId = (prefix: string = 'id'): string => {

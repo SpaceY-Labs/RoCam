@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Project, ProjectImage, SparseColorMap } from '../types';
 import { listImages, getColorMap } from '../modules/API_Helps';
 import { Button, Card, EmptyState, LoadingState } from './ui';
+import './PreviewGallery.css';
 
 const PER_PAGE_OPTIONS = [6, 12, 24, 48];
 const OVERLAY_ALPHA = 130;
@@ -160,8 +161,8 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
   }
 
   return (
-    <div className="preview-gallery">
-      <div className="preview-toolbar">
+    <div className="gallery">
+      <div className="gallery-toolbar">
         <div>
           <p className="eyebrow">Preview Panel</p>
           <h2>Image + Labeled Masks</h2>
@@ -169,8 +170,8 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
             {total !== null ? `${total} total images` : 'All available images'}
           </p>
         </div>
-        <div className="preview-controls">
-          <label className="preview-label">
+        <div className="gallery-controls">
+          <label className="gallery-label">
             Per page
             <select
               value={perPage}
@@ -183,11 +184,11 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
               ))}
             </select>
           </label>
-          <div className="preview-pagination">
+          <div className="gallery-pagination">
             <Button variant="ghost" onClick={handlePrev} disabled={cursorStack.length === 0}>
               Prev
             </Button>
-            <span className="preview-page">
+            <span className="gallery-page">
               Page {pageIndex}
               {pageCount ? ` of ${pageCount}` : ''}
             </span>
@@ -208,7 +209,7 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
       )}
 
       {loading && images.length > 0 && (
-        <div className="preview-loading-row">
+        <div className="gallery-loading-row">
           <div className="loading-spinner" />
           <span>Refreshing previews...</span>
         </div>
@@ -220,7 +221,7 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
           description="Upload images to start reviewing labeled masks."
         />
       ) : (
-        <div className="preview-grid">
+        <div className="gallery-grid">
           {images.map((image) => (
             <PreviewCard
               key={image.imageId}
@@ -327,9 +328,9 @@ function PreviewCard({
   }, [drawOverlay]);
 
   return (
-    <Card className="preview-card" variant="elevated" padding="small">
+    <Card className="gallery-card" variant="elevated" padding="small">
       <div
-        className="preview-thumb"
+        className="gallery-thumb"
         ref={frameRef}
         style={{
           aspectRatio:
@@ -341,27 +342,27 @@ function PreviewCard({
         {image.fileUrl ? (
           <img src={image.fileUrl} alt={image.meta.fileName} loading="lazy" />
         ) : (
-          <div className="preview-fallback">
+          <div className="gallery-fallback">
             <span>No image URL</span>
           </div>
         )}
-        <canvas ref={canvasRef} className="preview-overlay" />
+        <canvas ref={canvasRef} className="gallery-overlay" />
         {colorMap === undefined && (
-          <div className="preview-overlay-status">
+          <div className="gallery-overlay-status">
             <div className="loading-spinner" />
             <span>Loading labels...</span>
           </div>
         )}
         {colorMap !== undefined && (!colorMap || Object.keys(colorMap).length === 0) && (
-          <div className="preview-overlay-status empty">
+          <div className="gallery-overlay-status empty">
             <span>No labeled masks</span>
           </div>
         )}
       </div>
-      <div className="preview-meta">
+      <div className="gallery-meta">
         <div>
-          <p className="preview-title">{image.meta.fileName}</p>
-          <p className="preview-subtitle">{image.imageId}</p>
+          <p className="gallery-title">{image.meta.fileName}</p>
+          <p className="gallery-subtitle">{image.imageId}</p>
         </div>
         <span className={`badge badge-small badge-${image.meta.status === 'labeled' ? 'success' : 'default'}`}>
           {image.meta.status}

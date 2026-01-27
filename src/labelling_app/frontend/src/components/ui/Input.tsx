@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import type { InputProps, SelectProps, TextAreaProps } from '../../types';
+import './Input.css';
 
 export function Input({
   label,

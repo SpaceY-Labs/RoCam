@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { ImageStatus } from '../../types';
+import './Badge.css';
 
 interface BadgeProps {
   children: ReactNode;

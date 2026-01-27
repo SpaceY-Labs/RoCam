@@ -1,4 +1,5 @@
 import type { ButtonProps } from '../../types';
+import './Button.css';
 
 export function Button({
   variant = 'primary',

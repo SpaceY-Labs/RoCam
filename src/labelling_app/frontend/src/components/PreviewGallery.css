@@ -1,0 +1,145 @@
+/* Preview Gallery */
+.gallery {
+  display: grid;
+  gap: 16px;
+}
+
+.gallery-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.gallery-toolbar h2 {
+  margin: 6px 0 0;
+  font-size: 1.4rem;
+  font-family: 'Fraunces', serif;
+}
+
+.gallery-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.gallery-label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.gallery-label select {
+  min-width: 90px;
+}
+
+.gallery-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gallery-page {
+  font-size: 0.8rem;
+  color: var(--muted);
+  min-width: 88px;
+  text-align: center;
+}
+
+.gallery-loading-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.gallery-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.gallery-card {
+  display: grid;
+  gap: 12px;
+}
+
+.gallery-thumb {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--border);
+}
+
+.gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-overlay {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: multiply;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.gallery-overlay-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.gallery-overlay-status.empty {
+  background: rgba(255, 255, 255, 0.3);
+  color: rgba(71, 85, 105, 0.9);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+.gallery-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.gallery-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.gallery-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.gallery-subtitle {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}

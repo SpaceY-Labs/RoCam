@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
 import type { ModalProps } from '../../types';
+import './Modal.css';
 
 export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   const handleEscape = useCallback((e: KeyboardEvent) => {

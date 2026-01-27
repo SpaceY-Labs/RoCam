@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { CSSProperties } from 'react';
-import './App.css';
+import './styles/app-shell.css';
+import './styles/utilities.css';
 import type {
   RouteId,
   Project,

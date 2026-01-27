@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import type { ImageStatus, Project } from '../types';
 import { Button, Select, Input, Card, EmptyState, TagBadge } from './ui';
+import './ImageUpload.css';
 
 interface ImageUploadProps {
   project: Project | null;
