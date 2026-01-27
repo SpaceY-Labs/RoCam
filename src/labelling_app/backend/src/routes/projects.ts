@@ -598,6 +598,7 @@ router.get(
     const limit = Math.min(Number(req.query.limit) || 50, 500);
     const cursor = req.query.cursor ? String(req.query.cursor) : null;
     const includeTotal = String(req.query.includeTotal || "") === "1";
+    const includeFileUrl = String(req.query.includeFileUrl || "") === "1";
 
     const collection = getProjectImagesCollection(projectId);
 
@@ -649,7 +650,23 @@ router.get(
       total = countSnapshot.data().count;
     }
 
-    res.json({ items, cursor: nextCursor, total });
+    const hydratedItems = includeFileUrl
+      ? await Promise.all(
+          items.map(async (image) => {
+            if (!image?.storagePath) {
+              return image;
+            }
+            try {
+              const fileUrl = await getSignedReadUrl(image.storagePath);
+              return { ...image, fileUrl };
+            } catch {
+              return image;
+            }
+          })
+        )
+      : items;
+
+    res.json({ items: hydratedItems, cursor: nextCursor, total });
   })
 );
 

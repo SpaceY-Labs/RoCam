@@ -703,8 +703,11 @@ export const generateMaskOverlay = (
   maskIds.forEach((id, idx) => maskIdToIndex.set(id, idx));
 
   // Initialize arrays: mask index at each pixel (-1 = no mask), and current smallest size
-  const overlayData: number[] = new Array(width * height).fill(-1);
-  const sizeAtPixel: number[] = new Array(width * height).fill(Infinity);
+  const totalPixels = Math.max(0, width * height);
+  const overlayData = new Int32Array(totalPixels);
+  overlayData.fill(-1);
+  const sizeAtPixel = new Float32Array(totalPixels);
+  sizeAtPixel.fill(Number.POSITIVE_INFINITY);
 
   // Process each mask
   for (const { maskId, size, binaryMask } of masks) {
@@ -733,7 +736,7 @@ export const generateMaskOverlay = (
     width,
     height,
     maskIds,
-    data: overlayData,
+    data: Array.from(overlayData),
   };
 };
 

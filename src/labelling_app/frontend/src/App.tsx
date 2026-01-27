@@ -12,6 +12,7 @@ import { ProjectList } from './components/ProjectList';
 import { CreateProject } from './components/CreateProject';
 import { ImageUpload } from './components/ImageUpload';
 import { LabelImage } from './components/LabelImage';
+import { PreviewGallery } from './components/PreviewGallery';
 import { ConfirmModal } from './components/ui';
 import {
   listProjects,
@@ -60,6 +61,12 @@ const NAV_ITEMS: Array<{
     description: 'Add new images',
     icon: 'U',
   },
+  {
+    id: 'preview',
+    label: 'Preview',
+    description: 'Browse overlays',
+    icon: 'V',
+  },
 ];
 
 const PAGE_META: Record<RouteId, { eyebrow: string; title: string; subtitle: string }> = {
@@ -82,6 +89,11 @@ const PAGE_META: Record<RouteId, { eyebrow: string; title: string; subtitle: str
     eyebrow: 'Ingest',
     title: 'Upload Images',
     subtitle: 'Add new images to your project queue.',
+  },
+  preview: {
+    eyebrow: 'Review',
+    title: 'Preview Images',
+    subtitle: 'Scan labeled masks across the dataset.',
   },
 };
 
@@ -677,6 +689,15 @@ function App() {
               onUpload={handleUploadImage}
               onSelectProject={() => navigate('projects')}
               loading={uploading}
+            />
+          </section>
+        )}
+
+        {route === 'preview' && (
+          <section className="panel" style={panelStyle('0.05s')}>
+            <PreviewGallery
+              project={selectedProject}
+              onSelectProject={() => navigate('projects')}
             />
           </section>
         )}

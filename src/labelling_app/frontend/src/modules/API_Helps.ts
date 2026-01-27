@@ -98,6 +98,7 @@ export const listImages = async (
     status?: string;
     cursor?: string;
     includeTotal?: boolean;
+    includeFileUrl?: boolean;
   } = {}
 ) => {
   const params = new URLSearchParams();
@@ -112,6 +113,9 @@ export const listImages = async (
   }
   if (options.includeTotal) {
     params.set("includeTotal", "1");
+  }
+  if (options.includeFileUrl) {
+    params.set("includeFileUrl", "1");
   }
 
   const query = params.toString();

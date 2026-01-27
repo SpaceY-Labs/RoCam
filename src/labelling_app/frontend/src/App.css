@@ -1967,6 +1967,154 @@ input[type='color'] {
 }
 
 /* ----------------------------------------
+   Preview Gallery
+   ---------------------------------------- */
+.preview-gallery {
+  display: grid;
+  gap: 16px;
+}
+
+.preview-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.preview-toolbar h2 {
+  margin: 6px 0 0;
+  font-size: 1.4rem;
+  font-family: 'Fraunces', serif;
+}
+
+.preview-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.preview-label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.preview-label select {
+  min-width: 90px;
+}
+
+.preview-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preview-page {
+  font-size: 0.8rem;
+  color: var(--muted);
+  min-width: 88px;
+  text-align: center;
+}
+
+.preview-loading-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.preview-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.preview-card {
+  display: grid;
+  gap: 12px;
+}
+
+.preview-thumb {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--border);
+}
+
+.preview-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.preview-overlay {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: multiply;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.preview-overlay-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.preview-overlay-status.empty {
+  background: rgba(255, 255, 255, 0.3);
+  color: rgba(71, 85, 105, 0.9);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+.preview-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.preview-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.preview-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.preview-subtitle {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* ----------------------------------------
    Utility Classes
    ---------------------------------------- */
 .muted {

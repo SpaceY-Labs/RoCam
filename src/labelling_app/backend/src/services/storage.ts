@@ -1,6 +1,7 @@
 import { storage } from "../firebase";
 import { config } from "../config";
 import { HttpError } from "../middleware/error";
+import { colorMapCache, maskBufferCache, maskOverlayCache } from "./cache";
 
 const bucket = storage.bucket();
 
@@ -24,6 +25,9 @@ export const deleteFileIfExists = async (storagePath: string) => {
   if (exists) {
     await file.delete();
   }
+  colorMapCache.delete(storagePath);
+  maskOverlayCache.delete(storagePath);
+  maskBufferCache.delete(storagePath);
 };
 
 export const getFileStream = async (storagePath: string) => {
@@ -68,18 +72,24 @@ export const uploadMaskBuffer = async (
     resumable: false,
     validation: "md5",
   });
+  maskBufferCache.set(storagePath, buffer);
 };
 
 /**
  * Download a mask binary file from storage
  */
 export const downloadMaskBuffer = async (storagePath: string): Promise<Buffer> => {
+  const cached = maskBufferCache.get(storagePath);
+  if (cached) {
+    return cached;
+  }
   const file = bucket.file(storagePath);
   const [exists] = await file.exists();
   if (!exists) {
     throw new HttpError(404, "NOT_FOUND", "Mask file not found");
   }
   const [buffer] = await file.download();
+  maskBufferCache.set(storagePath, buffer);
   return buffer;
 };
 
@@ -118,6 +128,7 @@ export const uploadColorMap = async (
     resumable: false,
     validation: "md5",
   });
+  colorMapCache.set(storagePath, colorMap);
 };
 
 /**
@@ -126,6 +137,10 @@ export const uploadColorMap = async (
 export const downloadColorMap = async (
   storagePath: string
 ): Promise<Record<string, Record<string, string>>> => {
+  const cached = colorMapCache.get(storagePath);
+  if (cached) {
+    return cached;
+  }
   const file = bucket.file(storagePath);
   const [exists] = await file.exists();
   if (!exists) {
@@ -133,7 +148,9 @@ export const downloadColorMap = async (
     return {};
   }
   const [buffer] = await file.download();
-  return JSON.parse(buffer.toString("utf-8"));
+  const parsed = JSON.parse(buffer.toString("utf-8"));
+  colorMapCache.set(storagePath, parsed);
+  return parsed;
 };
 
 // ============================================================================
@@ -183,6 +200,7 @@ export const uploadMaskOverlay = async (
     validation: "md5",
   });
   console.log(`[storage] uploadMaskOverlay - upload complete`);
+  maskOverlayCache.set(storagePath, maskOverlay);
 };
 
 /**
@@ -192,6 +210,11 @@ export const downloadMaskOverlay = async (
   storagePath: string
 ): Promise<MaskOverlay | null> => {
   console.log(`[storage] downloadMaskOverlay - path: ${storagePath}`);
+  const cached = maskOverlayCache.get(storagePath);
+  if (cached) {
+    console.log(`[storage] downloadMaskOverlay - cache hit`);
+    return cached;
+  }
   const file = bucket.file(storagePath);
 
   console.log(`[storage] Checking if file exists...`);
@@ -213,5 +236,8 @@ export const downloadMaskOverlay = async (
   const parsed = JSON.parse(jsonString);
   console.log(`[storage] Parsed maskOverlay - width: ${parsed?.width}, height: ${parsed?.height}, maskIds: ${parsed?.maskIds?.length}, data length: ${parsed?.data?.length}`);
 
+  if (parsed) {
+    maskOverlayCache.set(storagePath, parsed);
+  }
   return parsed;
 };

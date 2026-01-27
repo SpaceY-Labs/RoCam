@@ -46,6 +46,12 @@ const optionalNumber = (key: string, fallback: number) => {
 const maxImageMb = optionalNumber("MAX_IMAGE_MB", 50);
 const memoryGcThresholdMb = optionalNumber("MEMORY_GC_THRESHOLD_MB", 0);
 const memoryGcIntervalMs = optionalNumber("MEMORY_GC_INTERVAL_MS", 0);
+const cacheColorMapMb = optionalNumber("CACHE_COLORMAP_MB", 32);
+const cacheMaskOverlayMb = optionalNumber("CACHE_MASK_OVERLAY_MB", 64);
+const cacheMaskBinaryMb = optionalNumber("CACHE_MASK_BINARY_MB", 64);
+const cacheColorMapTtlMs = optionalNumber("CACHE_COLORMAP_TTL_MS", 5 * 60 * 1000);
+const cacheMaskOverlayTtlMs = optionalNumber("CACHE_MASK_OVERLAY_TTL_MS", 5 * 60 * 1000);
+const cacheMaskBinaryTtlMs = optionalNumber("CACHE_MASK_BINARY_TTL_MS", 5 * 60 * 1000);
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
@@ -62,6 +68,12 @@ export const config = {
   MaxImageMb: maxImageMb,
   memoryGcThresholdMb,
   memoryGcIntervalMs,
+  cacheColorMapMb,
+  cacheMaskOverlayMb,
+  cacheMaskBinaryMb,
+  cacheColorMapTtlMs,
+  cacheMaskOverlayTtlMs,
+  cacheMaskBinaryTtlMs,
   requireAuth: process.env.REQUIRE_AUTH !== "false",
   allowedOrigins,
   allowAllOrigins,
