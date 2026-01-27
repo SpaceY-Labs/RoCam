@@ -16,6 +16,10 @@ Date of project start: September 8th 2025
 
 This project builds a software stack that interfaces with low-cost hardware for small-scale launches (200m apogee) and is scalable to support the McMaster Rocketry Team’s high-powered rockets (3km+ apogee).  
 
+<p align="center" width="100%">
+   <img width="100%" src="img/pipeline.png" alt="System Pipeline">
+</p>
+
 ---
 
 ### **Key Features**  

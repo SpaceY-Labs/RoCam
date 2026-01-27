@@ -1,3 +1,6 @@
+import os
+os.environ["GST_DEBUG_DUMP_DOT_DIR"] = "/tmp"
+
 import gi
 
 from ipc import create_rocam_ipc_client, BoundingBox
@@ -7,7 +10,7 @@ from gi.repository import GLib, Gst
 import time
 import pyds
 import sys
-import os
+
 import logging
 
 logger = logging.getLogger("cv_process")
@@ -19,10 +22,16 @@ ipc_client = None
 osd = None
 
 def bus_call(bus, message, loop):
+    global pipeline
     t = message.type
     if t == Gst.MessageType.EOS:
         sys.stdout.write("End-of-stream\n")
         loop.quit()
+    elif t == Gst.MessageType.STATE_CHANGED:
+        old, new, pending = message.parse_state_changed()
+        if message.src == pipeline and new == Gst.State.PLAYING:
+            print("Pipeline is now PLAYING")
+            Gst.debug_bin_to_dot_file(pipeline, Gst.DebugGraphDetails.ALL, "pipeline")
     elif t == Gst.MessageType.WARNING:
         err, debug = message.parse_warning()
         sys.stderr.write("Warning: %s: %s\n" % (err, debug))
@@ -104,15 +113,16 @@ def inference_stop_probe(pad, info, u_data):
         except StopIteration:
             break
 
-    if bounding_box and bounding_box.conf > 0.4:
+    if bounding_box and bounding_box.conf > 0.2:
         ipc_client.send(bounding_box)
         cx = bounding_box.left + bounding_box.width / 2.0
         cy = bounding_box.top + bounding_box.height / 2.0
 
         tx = 0.5 - cx
         ty = 0.5 - cy
+        s = max(bounding_box.width * WIDTH, bounding_box.height * HEIGHT)
         glshader.set_property('uniforms',
-                              Gst.Structure.new_from_string(f"uniforms, tx=(float){tx}, ty=(float){ty}, scale=(float)1.0"))
+                              Gst.Structure.new_from_string(f"uniforms, tx=(float){tx}, ty=(float){ty}, scale=(float){1080 / s * 0.5}"))
 
     return Gst.PadProbeReturn.OK
 
@@ -148,15 +158,15 @@ def main():
         nvdrmvideosink name=drm-sink sync=false set-mode=1
 
         t. !
-        queue !
+        queue leaky=1 !
         nvvideoconvert !
         nvjpegenc quality=70 !
-        queue leaky=1 !
+        queue !
         avimux !
         filesink location=recording.avi
 
         t. !
-        queue !
+        queue leaky=1 !
         nvvideoconvert dest-crop=0:0:{int(WIDTH/4)}:{int(HEIGHT/4)} !
         video/x-raw(memory:NVMM),width={int(WIDTH/4)},height={int(HEIGHT/4)} !
         videorate !
