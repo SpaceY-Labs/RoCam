@@ -10,7 +10,7 @@ import { ApiClient, type StatusResponse } from "./api";
 
 interface RocamContextType {
   apiClient: ApiClient | null;
-  error: Error | null;
+  statusPollingError: Error | null;
   status: StatusResponse | null;
 }
 
@@ -100,7 +100,7 @@ export function RocamProvider({ children }: RocamProviderProps) {
 
   const value: RocamContextType = {
     apiClient,
-    error,
+    statusPollingError: error,
     status,
   };
 

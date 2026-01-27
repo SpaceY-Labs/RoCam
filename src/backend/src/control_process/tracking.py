@@ -1,9 +1,8 @@
 from typing import Tuple, Optional
 import threading
-import time
 import queue
 import logging
-from gimbal import GimbalSerial
+from control_process.gimbal import GimbalSerial
 
 logger = logging.getLogger(__name__)
 

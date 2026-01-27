@@ -1,5 +1,6 @@
 import struct
 import serial
+import math
 from typing import Optional, Tuple
 from threading import Lock
 
@@ -286,6 +287,97 @@ class GimbalSerial:
         tilt = struct.unpack("<f", resp_data[0:4])[0]
         pan = struct.unpack("<f", resp_data[4:8])[0]
         return tilt, pan
+
+    def get_gps_data(self) -> Tuple[Optional[Tuple[float, float]], Optional[int]]:
+        """
+        Request current GPS data from the device.
+
+        request_id: 0x04
+        payload:    none (empty)
+        request:    [0]=CRC([1]), [1]=0x04
+
+        response (25 bytes):
+          [0..7]   float64 longitude (LE)
+          [8..15]  float64 latitude (LE)
+          [16..23] uint64  Unix timestamp in milliseconds (LE)
+          [24]     uint8   CRC-8/SMBUS over bytes [0..23]
+
+        Returns:
+          ((longitude, latitude), timestamp_ms) as (Optional[Tuple[float, float]], Optional[int]).
+          If coordinates are unknown (NaN), the first element is None.
+          If timestamp is unknown (0), the second element is None.
+
+        Raises:
+          RuntimeError on port closed, short write, timeout, or CRC mismatch.
+        """
+        if not self.ser or not self.ser.is_open:
+            raise RuntimeError("Serial port is not open")
+        resp_data = self._send_request(0x04, b"", 24)
+        longitude = struct.unpack("<d", resp_data[0:8])[0]
+        latitude = struct.unpack("<d", resp_data[8:16])[0]
+        timestamp_ms = struct.unpack("<Q", resp_data[16:24])[0]
+        
+        # Convert NaN coordinates to None
+        coords = None
+        if not (math.isnan(longitude) or math.isnan(latitude)):
+            coords = (longitude, latitude)
+        
+        # Convert zero timestamp to None
+        timestamp = None if timestamp_ms == 0 else timestamp_ms
+        
+        return coords, timestamp
+
+    def set_focal_length(self, focal_length_mm: float) -> bool:
+        """
+        Set the camera focal length.
+
+        request_id: 0x05
+        payload:    [2..5] float32 focal_length_mm (LE)
+        packet len: 6 bytes total
+        request:    [0]=CRC([1..5]), [1]=0x05, [2..5]=focal_length_mm
+        response:   1 byte containing CRC-8/SMBUS over 0 bytes (empty data) = 0x00
+
+        Args:
+          focal_length_mm: Focal length in millimeters.
+
+        Returns:
+          True on successful response (CRC(empty) = 0x00), False on error.
+
+        Raises:
+          RuntimeError if the serial port is not open, short write, timeout, or CRC mismatch.
+        """
+        if not self.ser or not self.ser.is_open:
+            raise RuntimeError("Serial port is not open")
+        try:
+            payload = struct.pack("<f", float(focal_length_mm))
+            self._send_request(0x05, payload)
+            return True
+        except RuntimeError:
+            return False
+
+    def get_focal_length(self) -> float:
+        """
+        Request current camera focal length from the device.
+
+        request_id: 0x06
+        payload:    none (empty)
+        request:    [0]=CRC([1]), [1]=0x06
+
+        response (5 bytes):
+          [0..3] float32 focal_length_mm (LE)
+          [4]    uint8  CRC-8/SMBUS over bytes [0..3]
+
+        Returns:
+          Focal length in millimeters as float.
+
+        Raises:
+          RuntimeError on port closed, short write, timeout, or CRC mismatch.
+        """
+        if not self.ser or not self.ser.is_open:
+            raise RuntimeError("Serial port is not open")
+        resp_data = self._send_request(0x06, b"", 4)
+        focal_length = struct.unpack("<f", resp_data[0:4])[0]
+        return focal_length
 
 if __name__ == "__main__":
     with GimbalSerial(port="/dev/ttyTHS1", baudrate=115200, timeout=0.5) as dev:

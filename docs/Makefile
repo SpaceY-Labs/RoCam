@@ -17,7 +17,7 @@ define COMPILE_BIBTEX
 endef
 
 # Default target: Compile all .tex files if no specific target is given
-all: $(patsubst %.tex, %.pdf, $(wildcard **/*.tex))
+all: $(patsubst %.tex, %.pdf, $(shell find . -mindepth 2 -name "*.tex"))
 
 # Rule for compiling .tex to .pdf
 %.pdf: %.tex

@@ -1,6 +1,7 @@
 // API Types
 
 export type BoundingBox = {
+  pts_s: number;
   conf: number;
   left: number;
   top: number;
@@ -10,13 +11,43 @@ export type BoundingBox = {
 
 export type StatusResponse = {
   armed: boolean;
-  tilt: number;
-  pan: number;
+  tilt: number | null;
+  pan: number | null;
   preview: string | null;
-  bbox: BoundingBox;
+  bbox: BoundingBox | null;
+};
+
+export type Recording = {
+  id: string;
+  filename: string;
+  createdAt: string;
+  durationSeconds: number;
+  sizeBytes: number;
+};
+
+export type RecordingStatusResponse = {
+  recording: Recording;
+  status: "recording" | "stopped";
+};
+
+export type RecordingListResponse = {
+  recordings: Recording[];
+};
+
+export type RecordingResponse = {
+  recording: Recording;
 };
 
 export type ApiResponse<T = Record<string, unknown>> = T;
+
+export class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
 
 /**
  * API Client for communicating with the Flask backend
@@ -35,17 +66,16 @@ export class ApiClient {
    * @throws Error if none of the base URLs are accessible
    */
   static async createAutomatic(): Promise<ApiClient> {
-    const baseUrls = ["", "http://localhost:5000", "http://100.115.14.44"];
+    const baseUrls = ["", "http://localhost:5000", "http://100.117.52.117"];
 
     for (const baseUrl of baseUrls) {
       const client = new ApiClient(baseUrl);
 
       try {
         await client.getStatus();
-        console.log(`Connected to API at ${baseUrl}`);
 
         return client;
-      } catch (error) {
+      } catch {
         // Continue to next URL if this one fails
         continue;
       }
@@ -60,36 +90,32 @@ export class ApiClient {
     return `${this.baseUrl}/preview`;
   }
 
-  /**
-   * Makes a POST request to the API
-   */
-  private async post<T>(
+  downloadRecordingUrl(recordingId: string): string {
+    return `${this.baseUrl}/api/recordings/${recordingId}/download`;
+  }
+
+  private async requestJson<T>(
+    method: "GET" | "POST" | "PATCH" | "DELETE",
     endpoint: string,
     body?: Record<string, unknown>,
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const response = await fetch(url, {
-      method: "POST",
+      method,
       headers: {
         "Content-Type": "application/json",
       },
       body: body ? JSON.stringify(body) : undefined,
     });
 
+    const data = await response.json().catch(() => ({}));
+
     if (!response.ok) {
-      throw new Error(
-        `API request failed: ${response.status} ${response.statusText}`,
-      );
+      const message = (data as { error?: string })?.error || response.statusText || "Request failed";
+      throw new ApiError(response.status, message);
     }
 
-    // Handle empty responses
-    const text = await response.text();
-
-    if (!text) {
-      return {} as T;
-    }
-
-    return JSON.parse(text) as T;
+    return data as T;
   }
 
   /**
@@ -97,7 +123,7 @@ export class ApiClient {
    * @returns Promise resolving to the status object
    */
   async getStatus(): Promise<ApiResponse<StatusResponse>> {
-    return this.post<ApiResponse<StatusResponse>>("/api/status");
+    return this.requestJson<ApiResponse<StatusResponse>>("POST", "/api/status");
   }
 
   /**
@@ -110,7 +136,7 @@ export class ApiClient {
   ): Promise<ApiResponse> {
     const body = { direction };
 
-    return this.post<ApiResponse>("/api/manual_move", body);
+    return this.requestJson<ApiResponse>("POST", "/api/manual_move", body);
   }
 
   /**
@@ -122,7 +148,7 @@ export class ApiClient {
   async manualMoveTo(tilt: number, pan: number): Promise<ApiResponse> {
     const body = { tilt, pan };
 
-    return this.post<ApiResponse>("/api/manual_move_to", body);
+    return this.requestJson<ApiResponse>("POST", "/api/manual_move_to", body);
   }
 
   /**
@@ -130,7 +156,7 @@ export class ApiClient {
    * @returns Promise resolving to an empty response
    */
   async arm(): Promise<ApiResponse> {
-    return this.post<ApiResponse>("/api/arm");
+    return this.requestJson<ApiResponse>("POST", "/api/arm");
   }
 
   /**
@@ -138,7 +164,45 @@ export class ApiClient {
    * @returns Promise resolving to an empty response
    */
   async disarm(): Promise<ApiResponse> {
-    return this.post<ApiResponse>("/api/disarm");
+    return this.requestJson<ApiResponse>("POST", "/api/disarm");
+  }
+
+  async startRecording(): Promise<ApiResponse> {
+    return this.requestJson<ApiResponse>(
+      "POST",
+      "/api/recordings/start",
+    );
+  }
+
+  async stopRecording(): Promise<ApiResponse> {
+    return this.requestJson<ApiResponse>(
+      "POST",
+      "/api/recordings/stop",
+    );
+  }
+
+  async listRecordings(): Promise<RecordingListResponse> {
+    return this.requestJson<RecordingListResponse>("GET", "/api/recordings");
+  }
+
+  async renameRecording(
+    recordingId: string,
+    newName: string,
+  ): Promise<ApiResponse> {
+    return this.requestJson<ApiResponse>(
+      "PATCH",
+      `/api/recordings/${recordingId}`,
+      {
+        new_name: newName,
+      },
+    );
+  }
+
+  async deleteRecording(recordingId: string): Promise<ApiResponse> {
+    return this.requestJson<ApiResponse>(
+      "DELETE",
+      `/api/recordings/${recordingId}`,
+    );
   }
 }
 

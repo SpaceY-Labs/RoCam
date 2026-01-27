@@ -1,8 +1,10 @@
 name: react-ci
 
 on:
-  push:
   pull_request:
+    branches: main
+    paths:
+      - "src/react-app/**"
 
 jobs:
   build:

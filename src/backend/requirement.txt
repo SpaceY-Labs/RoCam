@@ -1,4 +1,6 @@
+pip>=25.3
 flask
 flask_cors
 pyserial
 netifaces
+pygobject-stubs

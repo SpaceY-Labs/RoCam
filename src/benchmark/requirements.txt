@@ -1,0 +1,11 @@
+ultralytics
+torch
+onnx
+onnxslim
+opencv-python
+Pillow
+PyYAML
+pycocotools
+numpy
+pygobject-stubs
+

@@ -46,10 +46,11 @@
 \section{Revision History}
 
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
-  \toprule {\bf Date} & {\bf Version} & {\bf Notes}              \\
+  \toprule {\bf Date} & {\bf Version} & {\bf Notes}                         \\
   \midrule
-  Nov. 10, 2025       & Rev -1        & Initial Draft            \\
-  Nov. 16, 2025       & -             & Fix Peer Review Comments \\
+  Nov. 10, 2025       & Rev -1        & Initial Draft                       \\
+  Nov. 16, 2025       & -             & Fix Peer Review Comments            \\
+  Jan. 21, 2026       & Rev 0         & Complete module guide first version \\
   \bottomrule
 \end{tabularx}
 
@@ -94,7 +95,7 @@ This section records information for easy reference.
 
 \section{Introduction}
 
-Decomposing a system into modules awa is a commonly accepted approach to
+Decomposing a system into modules as is a commonly accepted approach to
 developing software. A module is a work assignment for a programmer or
 programming team~\citep{ParnasEtAl1984}. We advocate a decomposition based on
 the principle of information hiding~\citep{Parnas1972a}. This principle
@@ -103,7 +104,7 @@ represent likely future changes. Design for change is valuable in SC, where
 modifications are frequent, especially during initial development as the
 solution space is explored.
 
-Our design follows the rules layed out by \citet{ParnasEtAl1984}, as follows:
+Our design follows the rules laid out by \citet{ParnasEtAl1984}, as follows:
 \begin{itemize}
   \item System details that are likely to change independently should be the secrets of
         separate modules.
@@ -158,7 +159,7 @@ require changing the one module that hides the associated decision. The
 approach adapted here is called design for change.
 
 \begin{description}
-  \item[\refstepcounter{acnum} \actheacnum \label{acCV}:] The computer vision model. Frequent changes to the vision model might be required to adapt the system to new deployment envirouments.
+  \item[\refstepcounter{acnum} \actheacnum \label{acCV}:] The computer vision model. Frequent changes to the vision model might be required to adapt the system to new deployment environments.
   \item[\refstepcounter{acnum} \actheacnum \label{acUI}:] The user interface. The user interface may need to be updated based on the feedback of our customers during the field test.
 \end{description}
 
@@ -177,7 +178,7 @@ decisions will be changed.
 
 \begin{description}
   \item[\refstepcounter{ucnum} \uctheucnum \label{ucHW}:]
-        The hardware platform. The system relys hardware acceleration for running the
+        The hardware platform. The system relies hardware acceleration for running the
         computer vision model, encoding, and video output. Changing the hardware
         platform may require refactoring all the related algorithms.
   \item[\refstepcounter{ucnum} \uctheucnum \label{ucRocket}:]
@@ -192,56 +193,189 @@ decisions will be changed.
 
 \section{Module Hierarchy} \label{SecMH}
 
-This section provides an overview of the module design. Modules are summarized
-in a hierarchy decomposed by secrets in Table \ref{TblMH}. The modules listed
-below, which are leaves in the hierarchy tree, are the modules that will
-actually be implemented.
+This section provides an overview of the module design. Modules are organized
+in a hierarchy decomposed by secrets. The modules listed below represent the
+complete module hierarchy. Container modules (\mref{mJetson}, \mref{mControl},
+and \mref{mUI}) will not actually be implemented since they are not leaf
+modules.
 
 \begin{description}
   \item [\refstepcounter{mnum} \mthemnum \label{mJetson}:] Jetson Module
-  \item [\refstepcounter{mnum} \mthemnum \label{mGimbal}:] Gimbal Abstraction Module
-  \item [\refstepcounter{mnum} \mthemnum \label{mCV}:] Computer Vision Module
-  \item [\refstepcounter{mnum} \mthemnum \label{mTrack}:] Tracking Module
-  \item [\refstepcounter{mnum} \mthemnum \label{mVideo}:] Output Video Module
-  \item [\refstepcounter{mnum} \mthemnum \label{mRecord}:] Recording Module
-  \item [\refstepcounter{mnum} \mthemnum \label{mState}:] State Management Module
-  \item [\refstepcounter{mnum} \mthemnum \label{mAPI}:] API Gateway Module
+        \begin{description}
+          \item [\refstepcounter{mnum} \mthemnum \label{mCV}:] CV Process Module
+          \item [\refstepcounter{mnum} \mthemnum \label{mVideo}:] Live Video Process Module
+          \item [\refstepcounter{mnum} \mthemnum \label{mTranscode}:] Transcode Process Module
+          \item [\refstepcounter{mnum} \mthemnum \label{mStream}:] Video Stream Abstraction Module
+          \item [\refstepcounter{mnum} \mthemnum \label{mControl}:] Control Process Module
+                \begin{description}
+                  \item [\refstepcounter{mnum} \mthemnum \label{mCVManagement}:] CV Process Management Module
+                  \item [\refstepcounter{mnum} \mthemnum \label{mVideoManagement}:] Live Video Process Management Module
+                  \item [\refstepcounter{mnum} \mthemnum \label{mTranscodeManagement}:] Transcode Process Management Module
+                  \item [\refstepcounter{mnum} \mthemnum \label{mTrack}:] Tracking Module
+                  \item [\refstepcounter{mnum} \mthemnum \label{mGimbal}:] Gimbal Abstraction Module
+                  \item [\refstepcounter{mnum} \mthemnum \label{mSerial}:] Serial Abstraction Module
+                  \item [\refstepcounter{mnum} \mthemnum \label{mStatus}:] System Status Module
+                  \item [\refstepcounter{mnum} \mthemnum \label{mRecord}:] Recording Database Module
+                  \item [\refstepcounter{mnum} \mthemnum \label{mState}:] State Management Module
+                  \item [\refstepcounter{mnum} \mthemnum \label{mAPI}:] API Gateway Module
+                \end{description}
+        \end{description}
   \item [\refstepcounter{mnum} \mthemnum \label{mUI}:] UI Module
-  \item [\refstepcounter{mnum} \mthemnum \label{mPreview}:] Preview Module
-  \item [\refstepcounter{mnum} \mthemnum \label{mManual}:] Manual Control Module
-  \item [\refstepcounter{mnum} \mthemnum \label{mRecordMng}:] Recording Management Module
-  \item [\refstepcounter{mnum} \mthemnum \label{mConfig}:] Configuration Module
-  \item [\refstepcounter{mnum} \mthemnum \label{mSerial}:] Serial Abstraction Module
-  \item [\refstepcounter{mnum} \mthemnum \label{mStream}:] Video Stream Abstraction Module
+        \begin{description}
+          \item [\refstepcounter{mnum} \mthemnum \label{mPreview}:] Preview Module
+          \item [\refstepcounter{mnum} \mthemnum \label{mManual}:] Manual Control Module
+          \item [\refstepcounter{mnum} \mthemnum \label{mRecordMng}:] Recording Management Module
+          \item [\refstepcounter{mnum} \mthemnum \label{mConfig}:] Configuration Module
+        \end{description}
 \end{description}
-
-\begin{table}[h!]
-  \centering
-  \begin{tabular}{p{0.3\textwidth} p{0.6\textwidth}}
-    \toprule
-    \textbf{Level 1} & \textbf{Level 2}          \\
-    \midrule
-
-    Jetson Module    & Gimbal Abstraction Module \\ & Computer Vision Module \\  &
-    Tracking Module                              \\ & Output Video Module \\ & Recording Module \\  & State
-    Management Module                            \\ & API Gateway Module \\ & Serial Abstraction Module \\  &
-    Video Stream Abstraction Module              \\
-
-    \midrule
-
-    UI Module        & Preview Module            \\ & Manual Control Module \\  & Recording Management
-    Module                                       \\ & Configuration Module\\ \bottomrule
-
-  \end{tabular}
-  \caption{Module Hierarchy}
-  \label{TblMH}
-\end{table}
 
 \section{Connection Between Requirements and Design} \label{SecConnection}
 
-The design of the system is intended to satisfy the requirements developed in
-the SRS. In this stage, the system is decomposed into modules. The connection
-between requirements and modules is listed in Table~\ref{TblRT}.
+This design decomposes RoCam into modules that directly realize the SRS
+requirements. Tables in Section~\ref{SecTM} provide requirement-to-module
+traceability (e.g., Table~\ref{TblRT}). This section complements the tables by
+recording the main architectural decisions that map the SRS requirements to
+responsible modules and interfaces.
+
+\subsection{Design Decisions Traced to SRS Requirements}
+
+This section records key architectural decisions made to satisfy the SRS. For
+each decision, we summarize the intent, the modules responsible for the
+decision, and the traced SRS requirement identifiers.
+
+\begin{description}
+
+  \item[\textbf{DD-1: Single control surface via REST API}] \leavevmode
+        \begin{itemize}
+          \item \textbf{Decision:} All operator commands and status queries are mediated by a single
+                API Gateway. The UI does not directly access Jetson processes or hardware.
+          \item \textbf{Rationale:} A single, stable interface supports remote operation over a local
+                network and isolates UI changes from backend changes. It also provides one place to
+                enforce validation, authorization, and consistent error handling.
+          \item \textbf{Modules:} \mref{mAPI} (primary), \mref{mUI} (client), \mref{mState} (state/query source)
+          \item \textbf{SRS Trace:} SCR-3; FR-6, FR-10, FR-11, FR-12
+        \end{itemize}
+
+  \item[\textbf{DD-2: Explicit state machine with safe transitions}] \leavevmode
+        \begin{itemize}
+          \item \textbf{Decision:} System operation is modeled as explicit modes (e.g., Disarmed/Armed/Tracking/Recording),
+                with all transitions owned and validated by the State Management module.
+          \item \textbf{Rationale:} A centralized state machine prevents invalid mode combinations, makes
+                safety constraints enforceable, and provides predictable behavior for core workflows.
+                Manual override is treated as a controlled transition rather than ad-hoc interruption.
+          \item \textbf{Modules:} \mref{mState} (primary), \mref{mControl} (enforces/propagates), \mref{mAPI} (transition entry point)
+          \item \textbf{SRS Trace:} SCR-1, SCR-4; FR-4, FR-5, FR-6
+        \end{itemize}
+
+  \item[\textbf{DD-3: Validated command path for hardware safety}] \leavevmode
+        \begin{itemize}
+          \item \textbf{Decision:} All gimbal motion commands (manual or automatic) pass through a validated
+                command path before actuation (range checks, rate limiting, and state checks).
+          \item \textbf{Rationale:} Hardware actuation is safety-critical. Validation prevents invalid or unsafe
+                commands (e.g., out-of-range angles) and ensures manual control is only available in permitted
+                modes while tracking commands remain autonomous during tracking.
+          \item \textbf{Modules:} \mref{mAPI} (validation entry), \mref{mState} (mode gating), \mref{mGimbal} (actuation),
+                \mref{mManual} (manual input), \mref{mTrack} (automatic commands)
+          \item \textbf{SRS Trace:} IR-1; FR-2, FR-6, FR-7
+        \end{itemize}
+
+  \item[\textbf{DD-4: Process separation for real-time performance}] \leavevmode
+        \begin{itemize}
+          \item \textbf{Decision:} Vision/tracking, live output, and offline transcoding are separated into
+                dedicated worker processes.
+          \item \textbf{Rationale:} Separating CPU/GPU-heavy workloads prevents offline work (e.g., transcode)
+                from degrading tracking responsiveness. It also allows independent scheduling and failure isolation
+                to maintain sustained throughput for 1080p 60 fps operation and continuous output.
+          \item \textbf{Modules:} \mref{mCV}, \mref{mVideo}, \mref{mTranscode} (worker processes), \mref{mStream} (stream abstraction)
+          \item \textbf{SRS Trace:} SLR-2, SLR-3
+        \end{itemize}
+
+  \item[\textbf{DD-5: Dedicated worker supervision and recovery}] \leavevmode
+        \begin{itemize}
+          \item \textbf{Decision:} Worker lifecycles (start/stop/health monitoring/restart) are managed by explicit
+                management modules under the Control Process.
+          \item \textbf{Rationale:} Supervising workers improves robustness and observability: failures can be detected,
+                surfaced to the operator, and recovered when possible; unrecoverable faults trigger safe behavior.
+          \item \textbf{Modules:} \mref{mControl} (orchestration), \mref{mCVManagement}, \mref{mVideoManagement}, \mref{mTranscodeManagement}
+          \item \textbf{SRS Trace:} RFR-1, RFR-2
+        \end{itemize}
+
+  \item[\textbf{DD-6: Offline-first operation on local network}] \leavevmode
+        \begin{itemize}
+          \item \textbf{Decision:} RoCam operates without public internet access; all control and status exchange
+                occurs over the local network through the API.
+          \item \textbf{Rationale:} Field deployments may lack reliable internet. Offline-first design improves reliability,
+                reduces external dependencies, and aligns with the remote-operation constraint over LAN.
+          \item \textbf{Modules:} \mref{mAPI}, \mref{mUI} (LAN client), \mref{mState} (local status), \mref{mRecord} (local storage)
+          \item \textbf{SRS Trace:} RFR-3, AS-1; SCR-3
+        \end{itemize}
+
+  \item[\textbf{DD-7: Recording and recording management as a first-class workflow}] \leavevmode
+        \begin{itemize}
+          \item \textbf{Decision:} Recording is initiated from the UI and stored with metadata to support listing,
+                downloading, and deletion; transcoding is performed asynchronously from tracking.
+          \item \textbf{Rationale:} Recording is a primary operational requirement and must not degrade real-time tracking.
+                Separating recording storage/metadata from transcoding supports post-flight review while preserving real-time performance.
+          \item \textbf{Modules:} \mref{mRecordMng} (UI workflow), \mref{mRecord} (metadata/files), \mref{mCV} (capture),
+                \mref{mTranscode} (offline conversion), \mref{mAPI} (endpoints)
+          \item \textbf{SRS Trace:} FR-11, FR-12; SLR-2, SLR-3
+        \end{itemize}
+
+  \item[\textbf{DD-8: HDMI live output via stream abstraction}] \leavevmode
+        \begin{itemize}
+          \item \textbf{Decision:} The live output pipeline is treated as a required external interface and is implemented
+                through a stream abstraction module to isolate encoder/pipeline choices.
+          \item \textbf{Rationale:} Treating HDMI output as an explicit interface ensures compatibility with adjacent systems.
+                Encapsulation makes it easier to swap pipeline configurations without changing higher-level logic.
+          \item \textbf{Modules:} \mref{mStream} (abstraction), \mref{mVideo} (output process), \mref{mJetson} (platform)
+          \item \textbf{SRS Trace:} INT-1; SLR-3
+        \end{itemize}
+
+  \item[\textbf{DD-9: Auditable operator actions and system events}] \leavevmode
+        \begin{itemize}
+          \item \textbf{Decision:} Operator actions and key system events (state transitions, record start/stop,
+                file deletion/download) are logged with timestamps and relevant metadata.
+          \item \textbf{Rationale:} Audit logs support post-flight analysis, troubleshooting, and accountability.
+                Centralizing logging through state/record management ensures consistency across features.
+          \item \textbf{Modules:} \mref{mState} (state/action events), \mref{mRecord} (recording events/files), \mref{mAPI} (request context)
+          \item \textbf{SRS Trace:} AUR-1
+        \end{itemize}
+
+\end{description}
+
+\subsection{Traceability Conventions}
+
+In the traceability tables, each SRS requirement identifier (e.g., FR, SLR,
+SCR, IR, AUR, INT, RFR, PAR, AR/SR, EZ/PI/UPR/LR, EPE, RR, CR, AS) is mapped to
+the module(s) responsible for implementing and supporting that requirement.
+
+The conventions used are:
+
+\begin{itemize}
+  \item \textbf{Implementation responsibility:} A requirement is traced to the
+        \emph{leaf module(s)} that implement the required behavior. Container
+        modules (e.g., \mref{mJetson}, \mref{mControl}, \mref{mUI}) may appear
+        only when the requirement is inherently system-level or spans multiple
+        leaf modules.
+
+  \item \textbf{Primary vs.\ supporting modules:} When one module is the main
+        owner of the behavior (e.g., \mref{mState} for mode transitions), it is
+        listed first. Additional modules are included when they provide
+        essential support (e.g., UI initiation, API mediation, hardware
+        actuation, storage).
+
+  \item \textbf{Cross-cutting requirements:} Requirements that affect multiple
+        parts of the system (e.g., SCR-3 remote operation, RFR-1 error reporting,
+        auditability AUR-1) are intentionally traced to both:
+        (i) the \emph{interface modules} that expose the behavior (UI/API), and
+        (ii) the \emph{backend modules} that realize the underlying functionality.
+
+  \item \textbf{Verification intent:} Traced modules are expected to provide
+        the artifacts needed to verify the requirement (e.g., unit tests for
+        pure logic modules, integration tests for API/UI interactions, and
+        end-to-end tests for performance and operational requirements).
+
+\end{itemize}
 
 \wss{The intention of this section is to document decisions that are made
   ``between'' the requirements and the design.  To satisfy some requirements,
@@ -263,94 +397,195 @@ system or by standard programming language libraries. \emph{\progname{}} means
 the module will be implemented by the \progname{} software.
 
 Only the leaf modules in the hierarchy have to be implemented. If a dash
-(\emph{--}) is shown, this means that the module is not a leaf and will not
-have to be implemented.
+(\emph{--}) is shown,this means that the module is not a leaf and will not have
+to be implemented.
 
 \subsection{Jetson Module (\mref{mJetson})}
 
 The jetson module contains all the code that runs on the Nvidia Jetson.
 
-\subsubsection{Gimbal Abstraction Module (\mref{mGimbal})}
+\subsection{CV Process Module (\mref{mCV})}
+
+\begin{description}
+  \item[Secrets:] \leavevmode
+        \begin{itemize}
+          \item How to retrieve and process the video feed from camera
+          \item Computer vision algorithms
+          \item How to start/stop recording
+        \end{itemize}
+  \item[Services:] \leavevmode
+        \begin{itemize}
+          \item Detects rocket location from the camera feed
+          \item Record camera feed to disk
+          \item Generate preview video feed
+          \item Generate live stream video feed
+        \end{itemize}
+  \item[Implemented By:] \progname
+  \item[Type of Module:] Process
+\end{description}
+
+\subsection{Live Video Process Module (\mref{mVideo})}
+
+\begin{description}
+  \item[Secrets:] \leavevmode
+        \begin{itemize}
+          \item How to stabilize and overlay text to the live video feed
+          \item How to handle CV process crashes
+          \item How to output video to HDMI
+        \end{itemize}
+  \item[Services:] \leavevmode
+        \begin{itemize}
+          \item Stablize and overlay text to the live stream video feed
+          \item Output the live stream video feed to HDMI
+        \end{itemize}
+  \item[Implemented By:] \progname
+  \item[Type of Module:] Process
+\end{description}
+
+\subsection{Transcode Process Module (\mref{mTranscode})}
+
+\begin{description}
+  \item[Secrets:] \leavevmode
+        \begin{itemize}
+          \item How to encode recorded video to a more efficient format
+          \item How to stablize and overlay text to the recorded video
+        \end{itemize}
+  \item[Services:] Transcode a recording with optional stablization and text overlay
+  \item[Implemented By:] \progname
+  \item[Type of Module:] Process
+\end{description}
+
+\subsection{Video Stream Abstraction Module (\mref{mStream})}
+
+\begin{description}
+  \item[Secrets:] How to efficiently handle video stream data
+  \item[Services:] Video stream retrieval, routing, processing, and output.
+  \item[Implemented By:] Nvidia Deepstream SDK
+  \item[Type of Module:] Library
+\end{description}
+
+\subsection{Control Process Module (\mref{mControl})}
+
+The control process module orchestrates all the processes and manages the
+system state.
+
+\subsection{CV Process Management Module (\mref{mCVManagement})}
+
+\begin{description}
+  \item[Secrets:] \leavevmode
+        \begin{itemize}
+          \item How to start the CV process
+          \item How to communicate with the CV process
+        \end{itemize}
+  \item[Services:] Allows the Control Process Module (\mref{mControl}) to access
+        service provided by the CV Process Module (\mref{mCV})
+  \item[Implemented By:] \progname
+  \item[Type of Module:] Abstract Object
+\end{description}
+
+\subsection{Live Video Process Management Module (\mref{mVideoManagement})}
+
+\begin{description}
+  \item[Secrets:] \leavevmode
+        \begin{itemize}
+          \item How to start the Live Video process
+          \item How to communicate with the Live Video process
+        \end{itemize}
+  \item[Services:] Allows the Control Process Module (\mref{mControl}) to access
+        service provided by the Live Video Process Module (\mref{mVideo})
+  \item[Implemented By:] \progname
+  \item[Type of Module:] Abstract Object
+\end{description}
+
+\subsection{Transcode Process Management Module (\mref{mTranscodeManagement})}
+
+\begin{description}
+  \item[Secrets:] \leavevmode
+        \begin{itemize}
+          \item How to start the Transcode process
+          \item How to communicate with the Transcode process
+        \end{itemize}
+  \item[Services:] Allows the Control Process Module (\mref{mControl}) to access
+        service provided by the Transcode Process Module (\mref{mTranscode})
+  \item[Implemented By:] \progname
+  \item[Type of Module:] Abstract Object
+\end{description}
+
+\subsection{Tracking Module (\mref{mTrack})}
+
+\begin{description}
+  \item[Secrets:] The tracking algorithm
+  \item[Services:] Calculates the angle of the gimbal required to keep the rocket in
+        the frame.
+  \item[Implemented By:] \progname
+  \item[Type of Module:] Abstract Object
+\end{description}
+
+\subsection{Gimbal Abstraction Module (\mref{mGimbal})}
 
 \begin{description}
   \item[Secrets:] The communication protocol of the gimbal
-  \item[Services:] controls the gimbal and get information from the gimbal
+  \item[Services:] \leavevmode
+        \begin{itemize}
+          \item Command the gimbal to go to a specified angle
+          \item Measure the current angle of the gimbal
+        \end{itemize}
   \item[Implemented By:] \progname
+  \item[Type of Module:] Abstract Object
+\end{description}
+
+\subsection{Serial Abstraction Module (\mref{mSerial})}
+
+\begin{description}
+  \item[Secrets:] How to interface with the hardware serial ports.
+  \item[Services:] Send or receive bytes through the serial port of the hardware.
+  \item[Implemented By:] pip package pyserial
   \item[Type of Module:] Library
 \end{description}
 
-\subsubsection{Computer Vision Module (\mref{mCV})}
+\subsection{System Status Module (\mref{mStatus})}
 
 \begin{description}
-  \item[Secrets:] The computer vision algorithms
-  \item[Services:] Detects rockets from the camera feed in real time.
-  \item[Implemented By:] \progname
+  \item[Secrets:] How to retrieve various system status
+  \item[Services:] Provide various system status (e.g. GPU utilization, core
+        temperature)
+  \item[Implemented By:] pip package jetson-stats
   \item[Type of Module:] Library
 \end{description}
 
-\subsubsection{Tracking Module (\mref{mTrack})}
+\subsection{Recording Database Module (\mref{mRecord})}
 
 \begin{description}
-  \item[Secrets:] The tracking algorithms
-  \item[Services:] Calculates the angle of the gimbal to keep the rocket in the frame.
+  \item[Secrets:] How to track all the recordings and logs
+  \item[Services:] Track all the files that store recordings and logs
   \item[Implemented By:] \progname
-  \item[Type of Module:] Library
+  \item[Type of Module:] Abstract Object
 \end{description}
 
-\subsubsection{Output Video Module (\mref{mVideo})}
+\subsection{State Management Module (\mref{mState})}
 
 \begin{description}
-  \item[Secrets:] The algorithm to efficiently compose the video feed
-  \item[Services:] Outputs the video feed to the display with camera feed and
-        information overlay.
+  \item[Secrets:] \leavevmode
+        \begin{itemize}
+          \item The data structure to store the state of the system
+          \item State transition logic
+        \end{itemize}
+  \item[Services:] \leavevmode
+        \begin{itemize}
+          \item Manages the state transitions of the system
+          \item Aggregate data for the API Gateway
+        \end{itemize}
   \item[Implemented By:] \progname
-  \item[Type of Module:] Library
+  \item[Type of Module:] Abstract Object
 \end{description}
 
-\subsubsection{Recording Module (\mref{mRecord})}
-
-\begin{description}
-  \item[Secrets:] The algorithm to encode the video feed and log files/
-  \item[Services:] Records the video feed and log files to the disk.
-  \item[Implemented By:] \progname
-  \item[Type of Module:] Library
-\end{description}
-
-\subsubsection{State Management Module (\mref{mState})}
-
-\begin{description}
-  \item[Secrets:] The data structure to store the state of the system
-  \item[Services:] Manages the state transitions of the system.
-  \item[Implemented By:] \progname
-  \item[Type of Module:] Record
-\end{description}
-
-\subsubsection{API Gateway Module (\mref{mAPI})}
+\subsection{API Gateway Module (\mref{mAPI})}
 
 \begin{description}
   \item[Secrets:] The API endpoints and their corresponding logic.
   \item[Services:] Provides the API endpoints for the UI.
   \item[Implemented By:] \progname
-  \item[Type of Module:] Library
-\end{description}
-
-\subsubsection{Serial Abstraction Module (\mref{mSerial})}
-
-\begin{description}
-  \item[Secrets:] How to interface with the hardware serial ports.
-  \item[Services:] Abstracts the serial communication interface of the hardware.
-  \item[Implemented By:] pip package pyserial
-  \item[Type of Module:] Library
-\end{description}
-
-\subsubsection{Video Stream Abstraction Module (\mref{mStream})}
-
-\begin{description}
-  \item[Secrets:] How to retrieve the video stream from the hardware and efficiently
-        process and display it.
-  \item[Services:] Video stream retrieval, processing, and display.
-  \item[Implemented By:] Nvidia DeepStream SDK
-  \item[Type of Module:] SDK
+  \item[Type of Module:] Abstract Object
 \end{description}
 
 \subsection{UI Module (\mref{mUI})}
@@ -358,7 +593,7 @@ The jetson module contains all the code that runs on the Nvidia Jetson.
 The UI module contains all the code that the operator uses to interact with the
 system via the web interface.
 
-\subsubsection{Preview Module (\mref{mPreview})}
+\subsection{Preview Module (\mref{mPreview})}
 
 \begin{description}
   \item[Secrets:] How to retrieve and display the video feed from the API Gateway.
@@ -367,7 +602,7 @@ system via the web interface.
   \item[Type of Module:] Library
 \end{description}
 
-\subsubsection{Manual Control Module (\mref{mManual})}
+\subsection{Manual Control Module (\mref{mManual})}
 
 \begin{description}
   \item[Secrets:] Intuitive user interface for manual control, and how to send manual
@@ -378,7 +613,7 @@ system via the web interface.
   \item[Type of Module:] Library
 \end{description}
 
-\subsubsection{Recording Management Module (\mref{mRecordMng})}
+\subsection{Recording Management Module (\mref{mRecordMng})}
 
 \begin{description}
   \item[Secrets:] How to list, delete, and download the recorded videos and log files.
@@ -388,7 +623,7 @@ system via the web interface.
   \item[Type of Module:] Library
 \end{description}
 
-\subsubsection{Configuration Module (\mref{mConfig})}
+\subsection{Configuration Module (\mref{mConfig})}
 
 \begin{description}
   \item[Secrets:] The UI for configuring the system.
@@ -408,39 +643,25 @@ requirements and between the modules and the anticipated changes.
   \centering
   \begin{tabular}{p{0.2\textwidth} p{0.6\textwidth}}
     \toprule
-    \textbf{Req.} & \textbf{Modules}                                                                           \\
+    \textbf{Req.} & \textbf{Modules}                                                                                                                        \\
     \midrule
-    FR-1          & \mref{mJetson}, \mref{mVideo}, \mref{mCV}                                                  \\
-    FR-2          & \mref{mGimbal}, \mref{mTrack}, \mref{mManual}, \mref{mAPI}                                 \\
-    FR-3          & \mref{mCV}, \mref{mJetson}                                                                 \\
-    FR-4          & \mref{mState}, \mref{mGimbal}, \mref{mCV}                                                  \\
-    FR-5          & \mref{mState}, \mref{mCV}, \mref{mTrack}                                                   \\
-    FR-6          & \mref{mManual}, \mref{mAPI}, \mref{mGimbal}, \mref{mState}                                 \\
-    FR-7          & \mref{mTrack}, \mref{mCV}, \mref{mGimbal}, \mref{mState}                                   \\
-    FR-8          & \mref{mVideo}, \mref{mJetson}, \mref{mAPI}, \mref{mUI}, \mref{mPreview}                    \\
-    FR-9          & \mref{mVideo}, \mref{mGimbal}, \mref{mUI}, \mref{mAPI}, \mref{mPreview}                    \\
-    FR-10         & \mref{mPreview}, \mref{mUI}, \mref{mState}, \mref{mAPI}, \mref{mVideo}                     \\
-    FR-11         & \mref{mRecord}, \mref{mRecordMng}, \mref{mAPI}, \mref{mUI}, \mref{mPreview}, \mref{mVideo} \\
-    FR-12         & \mref{mRecordMng}, \mref{mAPI}, \mref{mRecord}, \mref{mUI},                                \\
+    FR-1          & \mref{mJetson}, \mref{mVideo}, \mref{mCV}, \mref{mControl}, \mref{mCVManagement}, \mref{mVideoManagement}                               \\
+    FR-2          & \mref{mGimbal}, \mref{mTrack}, \mref{mManual}, \mref{mAPI}, \mref{mControl}                                                             \\
+    FR-3          & \mref{mCV}, \mref{mJetson}, \mref{mControl}, \mref{mCVManagement}                                                                       \\
+    FR-4          & \mref{mState}, \mref{mGimbal}, \mref{mTrack}, \mref{mCV}, \mref{mControl}, \mref{mCVManagement}                                         \\
+    FR-5          & \mref{mState}, \mref{mCV}, \mref{mTrack}, \mref{mControl}                                                                               \\
+    FR-6          & \mref{mManual}, \mref{mAPI}, \mref{mGimbal}, \mref{mState}, \mref{mControl}                                                             \\
+    FR-7          & \mref{mTrack}, \mref{mCV}, \mref{mGimbal}, \mref{mState}, \mref{mControl}                                                               \\
+    FR-8          & \mref{mJetson}, \mref{mCV}, \mref{mVideo}, \mref{mControl}, \mref{mCVManagement}, \mref{mVideoManagement}                               \\
+    FR-9          & \mref{mVideo}, \mref{mGimbal}, \mref{mControl}, \mref{mVideoManagement}                                                                 \\
+    FR-10         & \mref{mPreview}, \mref{mUI}, \mref{mState}, \mref{mAPI}, \mref{mCV}, \mref{mStatus}                                                     \\
+    FR-11         & \mref{mCV}, \mref{mRecord}, \mref{mRecordMng}, \mref{mAPI}, \mref{mUI}, \mref{mControl}, \mref{mTranscode}, \mref{mTranscodeManagement} \\
+    FR-12         & \mref{mRecordMng}, \mref{mAPI}, \mref{mRecord}, \mref{mUI}, \mref{mControl}, \mref{mTranscode}, \mref{mTranscodeManagement}             \\
     \bottomrule
   \end{tabular}
   \caption{Trace Between Functional Requirements and Modules}
   \label{TblRT}
 \end{table}
-
-% M1: Jetson Module (\mref{mJetson})
-% M2: Gimbal Abstraction Module (\mref{mGimbal})
-% M3: Computer Vision Module (\mref{mCV})
-% M4: Tracking Module (\mref{mTrack})
-% M5: Output Video Module (\mref{mVideo}) 
-% M6: Recording Module (\mref{mRecord})
-% M7: State Management Module (\mref{mState})
-% M8: API Gateway Module (\mref{mAPI})
-% M9: UI Module (\mref{mUI})
-% M10: Preview Module (\mref{mPreview})
-% M11: Manual Control Module (\mref{mManual})
-% M12: Recording Management Module (\mref{mRecordMng})
-% M13: Configuration Module (\mref{mConfig})
 
 \begin{table}[H]
   \centering
@@ -465,7 +686,7 @@ requirements and between the modules and the anticipated changes.
     \midrule
     EZ-1          & \mref{mUI}                                                     \\
     EZ-2          & \mref{mUI}, \mref{mAPI}                                        \\
-    EZ-3          & \mref{mUI},  \mref{mAPI}, \mref{mConfig}                       \\
+    EZ-3          & \mref{mUI},  \mref{mAPI}, \mref{mConfig}, \mref{mStatus}       \\
     EZ-4          & \mref{mUI},  \mref{mConfig}, \mref{mAPI}, \mref{mState}        \\
     PI-1          & \mref{mUI}, \mref{mConfig}, \mref{mPreview}, \mref{mRecordMng} \\
     PI-2          & \mref{mUI}, \mref{mConfig}                                     \\
@@ -484,22 +705,22 @@ requirements and between the modules and the anticipated changes.
   \centering
   \begin{tabular}{p{0.18\textwidth} p{0.72\textwidth}}
     \toprule
-    \textbf{Req.} & \textbf{Modules}                                                                      \\
+    \textbf{Req.} & \textbf{Modules}                                                                                                   \\
     \midrule
-    SLR-1         & \mref{mJetson}, \mref{mCV}, \mref{mTrack}, \mref{mGimbal}, \mref{mState}              \\
-    SLR-2         & \mref{mJetson}, \mref{mCV}, \mref{mVideo}, \mref{mTrack}                              \\
-    SLR-3         & \mref{mVideo}, \mref{mJetson}, \mref{mAPI}                                            \\
-    SCR-1         & \mref{mUI}, \mref{mManual}, \mref{mState}, \mref{mAPI}, \mref{mGimbal}                \\
-    SCR-2         & \mref{mTrack}, \mref{mState}, \mref{mCV}, \mref{mGimbal}, \mref{mJetson}              \\
-    SCR-3         & \mref{mUI}, \mref{mAPI}, \mref{mState}, \mref{mJetson}                                \\
-    SCR-4         & \mref{mUI}, \mref{mState}, \mref{mAPI}, \mref{mGimbal}                                \\
-    PAR-1         & \mref{mTrack}, \mref{mCV}, \mref{mGimbal}, \mref{mVideo}, \mref{mAPI}, \mref{mJetson} \\
-    RFR-1         & \mref{mUI}, \mref{mAPI}, \mref{mState}                                                \\
-    RFR-2         & \mref{mState}, \mref{mTrack}, \mref{mGimbal}, \mref{mAPI}                             \\
-    RFR-3         & \mref{mJetson}, \mref{mAPI}, \mref{mUI}, \mref{mState}, \mref{mJetson}                \\
-    RFR-4         & \mref{mTrack}, \mref{mCV}, \mref{mState}, \mref{mGimbal}, \mref{mJetson}              \\
-    RFR-5         & \mref{mTrack}, \mref{mCV}, \mref{mGimbal}, \mref{mState}                              \\
-    CR-1          & \mref{mRecord}, \mref{mRecordMng}, \mref{mJetson}                                     \\
+    SLR-1         & \mref{mJetson}, \mref{mCV}, \mref{mTrack}, \mref{mGimbal}, \mref{mState}, \mref{mControl}, \mref{mCVManagement}    \\
+    SLR-2         & \mref{mJetson}, \mref{mCV}, \mref{mVideo}, \mref{mTrack}, \mref{mControl}, \mref{mCVManagement}                    \\
+    SLR-3         & \mref{mVideo}, \mref{mJetson}, \mref{mAPI}, \mref{mControl}, \mref{mVideoManagement}                               \\
+    SCR-1         & \mref{mUI}, \mref{mManual}, \mref{mState}, \mref{mAPI}, \mref{mGimbal}, \mref{mControl}                            \\
+    SCR-2         & \mref{mTrack}, \mref{mState}, \mref{mCV}, \mref{mGimbal}, \mref{mJetson}, \mref{mControl}                          \\
+    SCR-3         & \mref{mUI}, \mref{mAPI}, \mref{mState}, \mref{mJetson}, \mref{mControl}                                            \\
+    SCR-4         & \mref{mUI}, \mref{mState}, \mref{mAPI}, \mref{mGimbal}, \mref{mControl}                                            \\
+    PAR-1         & \mref{mTrack}, \mref{mCV}, \mref{mGimbal}, \mref{mVideo}, \mref{mAPI}, \mref{mJetson}, \mref{mControl}             \\
+    RFR-1         & \mref{mUI}, \mref{mAPI}, \mref{mState}, \mref{mControl}, \mref{mStatus}                                            \\
+    RFR-2         & \mref{mState}, \mref{mTrack}, \mref{mGimbal}, \mref{mAPI}, \mref{mControl}                                         \\
+    RFR-3         & \mref{mJetson}, \mref{mAPI}, \mref{mUI}, \mref{mState}, \mref{mControl}                                            \\
+    RFR-4         & \mref{mTrack}, \mref{mCV}, \mref{mState}, \mref{mGimbal}, \mref{mJetson}, \mref{mControl}                          \\
+    RFR-5         & \mref{mTrack}, \mref{mCV}, \mref{mGimbal}, \mref{mState}, \mref{mControl}                                          \\
+    CR-1          & \mref{mRecord}, \mref{mRecordMng}, \mref{mJetson}, \mref{mControl}, \mref{mTranscode}, \mref{mTranscodeManagement} \\
     \bottomrule
   \end{tabular}
   \caption{Trace Between Performance Requirements and Modules}
@@ -510,12 +731,12 @@ requirements and between the modules and the anticipated changes.
   \centering
   \begin{tabular}{p{0.18\textwidth} p{0.72\textwidth}}
     \toprule
-    \textbf{Req.} & \textbf{Modules}                                  \\
+    \textbf{Req.} & \textbf{Modules}                                                             \\
     \midrule
-    EPE-1         & \mref{mJetson}, \mref{mGimbal}                    \\
-    INT-1         & \mref{mVideo}, \mref{mJetson}                     \\
-    INT-2         & \mref{mGimbal}, \mref{mAPI}, \mref{mJetson}       \\
-    RR-1          & \mref{mRecord}, \mref{mRecordMng}, \mref{mJetson} \\
+    EPE-1         & \mref{mJetson}, \mref{mGimbal}, \mref{mStatus}                               \\
+    INT-1         & \mref{mVideo}, \mref{mJetson}, \mref{mControl}, \mref{mVideoManagement}      \\
+    INT-2         & \mref{mGimbal}, \mref{mSerial}, \mref{mAPI}, \mref{mJetson}, \mref{mControl} \\
+    RR-1          & \mref{mRecord}, \mref{mRecordMng}, \mref{mJetson}                            \\
     \bottomrule
   \end{tabular}
   \caption{Trace Between Operational and Environmental Requirements and Modules}
@@ -567,10 +788,10 @@ requirements and between the modules and the anticipated changes.
   \centering
   \begin{tabular}{p{0.25\textwidth} p{0.65\textwidth}}
     \toprule
-    \textbf{Anticipated Change} & \textbf{Modules}                                               \\
+    \textbf{Anticipated Change} & \textbf{Modules}                                            \\
     \midrule
-    \acref{acCV}                & \mref{mCV}, \mref{mJetson}                                     \\
-    \acref{acUI}                & \mref{mUI}, \mref{mPreview}, \mref{mManual}, \mref{mConfig}    \\
+    \acref{acCV}                & \mref{mCV}, \mref{mJetson}                                  \\
+    \acref{acUI}                & \mref{mUI}, \mref{mPreview}, \mref{mManual}, \mref{mConfig} \\
     \bottomrule
   \end{tabular}
   \caption{Trace Between Anticipated Changes and Modules}
@@ -581,11 +802,11 @@ requirements and between the modules and the anticipated changes.
   \centering
   \begin{tabular}{p{0.25\textwidth} p{0.65\textwidth}}
     \toprule
-    \textbf{Unlikely Change} & \textbf{Modules}                                            \\
+    \textbf{Unlikely Change} & \textbf{Modules}                                               \\
     \midrule
     \uref{ucHW}              & \mref{mJetson}, \mref{mGimbal}, \mref{mSerial}, \mref{mStream} \\
-    \uref{ucRocket}          & \mref{mTrack}, \mref{mCV}                                   \\
-    \uref{ucRemote}          & \mref{mUI}, \mref{mAPI}, \mref{mManual}                      \\
+    \uref{ucRocket}          & \mref{mTrack}, \mref{mCV}                                      \\
+    \uref{ucRemote}          & \mref{mUI}, \mref{mAPI}, \mref{mManual}                        \\
     \bottomrule
   \end{tabular}
   \caption{Trace Between Unlikely Changes and Modules}
@@ -621,31 +842,182 @@ because they use modules from the lower levels.
   \label{FigUH}
 \end{figure}
 
-%\section*{References}
-
 \section{User Interfaces}
 
-\wss{Design of user interface for software and hardware.  Attach an appendix if
-  needed. Drawings, Sketches, Figma}
+The system provides a single-page web interface for the operator. This web UI
+is the only entry point for interacting with the system, including live
+preview, state switching, manual gimbal control, and recording management.
+
+\subsection{Main Control Page}
+
+Figure~\ref{fig:ui_overview} shows the main \textit{Control} page. The left
+panel displays the live camera feed for situational awareness. The right panel
+displays the current system state (e.g., \textit{Disarmed} or \textit{Armed})
+and real-time gimbal pose telemetry, including \textit{Tilt} and \textit{Pan}
+angles. The top-right corner includes \textit{Fullscreen} for better field
+visibility and an \textit{Emergency Stop} control for safety-critical shutdown.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../../Images/rocam_ui_overview.png}
+  \caption{RoCam web interface overview (Control page).}
+  \label{fig:ui_overview}
+\end{figure}
+
+\subsection{Disarmed Mode: Manual Gimbal Control}
+
+In \textit{Disarmed} mode, the operator can manually control the gimbal using
+the on-screen directional pad (up/down/left/right). This mode is used for setup
+and calibration (e.g., aiming at the expected launch area before liftoff) and
+as a fallback when manual intervention is required. Manual control commands are
+sent to the backend through the API Gateway, which relays them to the gimbal
+control logic running on the Jetson. The UI continuously updates the displayed
+gimbal angles so the emphasizes to the operator the immediate effect of each
+command.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../../Images/rocam_ui_disarmed.png}
+  \caption{Disarmed mode with manual gimbal controls and real-time tilt/pan feedback.}
+  \label{fig:ui_disarmed}
+\end{figure}
+
+\subsection{Armed Mode: Automatic Tracking}
+
+In \textit{Armed} mode, the system runs the rocket detection and tracking
+pipeline. The Computer Vision and Tracking modules estimate the target location
+in the frame and compute the gimbal control commands to keep the rocket
+centered. The operator monitors the live preview and can transition to
+\textit{Disarmed} mode to take manual control if needed.
+
+\subsection{Recordings}
+
+The UI also provides a \textit{Recordings} section for managing recorded videos
+(and associated logs/metadata). The operator can start/stop recordings during
+operation and later list, download, or delete recordings through the Recording
+Management functions exposed by the backend API.
 
 \section{Design of Communication Protocols}
 
 \subsection{Gimbal Protocol}
 
 The Gimbal Protocol is specified at:
-\href{https://github.com/SpaceY-Labs/RoCam/blob/main/docs/Design/GimbalProtocol.pdf}{https://github.com/SpaceY-Labs/RoCam/blob/main/docs/Design/GimbalProtocol.pdf}
+\url{https://github.com/SpaceY-Labs/RoCam/blob/main/docs/Design/GimbalProtocol/GimbalProtocol.pdf}
+
+\subsection{Operator Interface API Protocol}
+
+The Operator Interface API Protocol is specified at:
+\url{https://github.com/SpaceY-Labs/RoCam/blob/main/docs/Design/EndpointsSpecification/openapi.yaml}
 
 \wss{If appropriate}
 
-\section{Timeline}
+\section{Timeline} \label{SecTimeline}
 
-\wss{Schedule of tasks and who is responsible}
+% >>> rubric-aligned preface (keep your link)
+This project tracks a module-level implementation schedule for Rev 0, including
+task ownership and lightweight verification checkpoints to build confidence in
+the integrated system. The authoritative and up-to-date plan (tasks, assignees,
+dependencies, and status) is maintained in GitHub Projects:
 
-\wss{You can point to GitHub if this information is included there}
+\medskip
+\noindent\textbf{RoCam Rev 0 Timeline (GitHub Projects):}
+\url{https://github.com/orgs/SpaceY-Labs/projects/2}
+\medskip
 
-For timeline management, we use GitHub Projects. The timeline for implementing
-each of the modules can be found at
-\href{https://github.com/orgs/SpaceY-Labs/projects/2}{https://github.com/orgs/SpaceY-Labs/projects/2}.
+% >>> IMPORTANT: the PDF still needs an in-document timeline snapshot (rubric)
+% Simple tables only (no tabularx)
+
+\subsection{Rev 0 Timeline Snapshot}
+
+\subsubsection{Phase 1: Core Interfaces and State Backbone}
+\renewcommand{\arraystretch}{1.15}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{2.6cm}|p{5.2cm}|p{6.2cm}|}
+    \hline
+    \textbf{Dates}                 & \textbf{Modules} & \textbf{Deliverables / Checks} \\
+    \hline
+    Jan 21--Jan 24                 &
+    \mref{mSerial}, \mref{mGimbal} &
+    Serial I/O wrapper + gimbal command/telemetry API (pan/tilt setpoint, readback);
+    bounds/rate checks; bench test with dummy commands.                                \\
+    \hline
+    Jan 22--Jan 26                 &
+    \mref{mState}                  &
+    Define modes + valid transitions (Disarmed/Armed/Tracking/Recording);
+    unit tests for transition validity.                                                \\
+    \hline
+    Jan 23--Jan 28                 &
+    \mref{mAPI}                    &
+    Implement core REST endpoints (status, state transitions, manual control,
+    record start/stop, recordings list/download/delete); basic contract tests
+    vs endpoint spec.                                                                  \\
+    \hline
+  \end{tabular}
+  \caption{Phase 1 schedule (snapshot). Owners and latest status are maintained in GitHub Projects.}
+  \label{TblTimelineP1}
+\end{table}
+
+\subsubsection{Phase 2: Runtime Pipelines and UI Workflows}
+\renewcommand{\arraystretch}{1.15}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{2.6cm}|p{5.2cm}|p{6.2cm}|}
+    \hline
+    \textbf{Dates}                                                     & \textbf{Modules} & \textbf{Deliverables / Checks} \\
+    \hline
+    Jan 24--Jan 30                                                     &
+    \mref{mCV}                                                         &
+    CV worker: camera ingest, detection output format, preview stream output,
+    recording start/stop hooks; smoke test on sample clip.                                                                 \\
+    \hline
+    Jan 25--Feb 01                                                     &
+    \mref{mTrack}                                                      &
+    Tracking logic: detection$\rightarrow$gimbal angles; clamp/rate limit; integrate
+    with \mref{mState} gating; offline replay test on saved detections.                                                    \\
+    \hline
+    Jan 26--Feb 02                                                     &
+    \mref{mVideo}, \mref{mStream}                                      &
+    Live output pipeline: overlay telemetry, HDMI output path, handle CV worker
+    restart signaling; sustained live output demo.                                                                         \\
+    \hline
+    Jan 27--Feb 03                                                     &
+    \mref{mRecord}, \mref{mTranscode}                                  &
+    Recording metadata DB + file indexing; transcode job (async) with optional overlay;
+    create$\rightarrow$transcode$\rightarrow$playback check.                                                               \\
+    \hline
+    Jan 24--Feb 04                                                     &
+    \mref{mPreview}, \mref{mManual}, \mref{mRecordMng}, \mref{mConfig} &
+    UI workflows: preview display, manual D-pad control with telemetry, recording
+    management (list/download/delete), basic configuration UI; end-to-end UI$\leftrightarrow$API tests.                    \\
+    \hline
+  \end{tabular}
+  \caption{Phase 2 schedule (snapshot). Owners and latest status are maintained in GitHub Projects.}
+  \label{TblTimelineP2}
+\end{table}
+
+\subsubsection{Phase 3: Orchestration, Recovery, and Integrated Demo}
+\renewcommand{\arraystretch}{1.15}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{2.6cm}|p{5.2cm}|p{6.2cm}|}
+    \hline
+    \textbf{Dates}                                                                              & \textbf{Modules} & \textbf{Deliverables / Checks} \\
+    \hline
+    Feb 02--Feb 06                                                                              &
+    \mref{mControl}, \mref{mCVManagement}, \mref{mVideoManagement}, \mref{mTranscodeManagement} &
+    Worker supervision: start/stop, health monitoring, restart, status surfaced to UI;
+    fault-injection check (kill worker$\rightarrow$recover).                                                                                        \\
+    \hline
+    Feb 05--Feb 08                                                                              &
+    System-level                                                                                &
+    Integrated demo script: Disarmed manual aim$\rightarrow$Arm$\rightarrow$Track$\rightarrow$Record$\rightarrow$Download/Review;
+    final checklist run.                                                                                                                            \\
+    \hline
+  \end{tabular}
+  \caption{Phase 3 schedule (snapshot). Owners and latest status are maintained in GitHub Projects.}
+  \label{TblTimelineP3}
+\end{table}
 
 \bibliographystyle {plainnat}
 \bibliography{../../../refs/References}

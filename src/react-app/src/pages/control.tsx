@@ -1,28 +1,56 @@
-import { useEffect } from "react";
-import { Button } from "@heroui/button";
+import { useEffect, useState } from 'react'
+import { Button } from '@heroui/button'
 import {
   IconChevronLeft,
   IconChevronRight,
   IconChevronUp,
   IconChevronDown,
   IconHome,
-} from "@tabler/icons-react";
-import { useMeasure } from "react-use";
+} from '@tabler/icons-react'
+import { useMeasure } from 'react-use'
 
-import { useRocam } from "@/network/rocamProvider";
-import DefaultLayout from "@/layouts/default";
+import { useRocam } from '@/network/rocamProvider'
+import DefaultLayout from '@/layouts/default'
 
 export default function ControlPage() {
-  const { apiClient, status, error } = useRocam();
-  const [streamContainerRef, { width, height }] = useMeasure<HTMLDivElement>();
+  const { apiClient, status, statusPollingError } = useRocam()
+  const [streamContainerRef, { width, height }] = useMeasure<HTMLDivElement>()
+
+  // added: simple UI state for start/stop buttons
+  const [isStarting, setIsStarting] = useState(false)
+  const [isStopping, setIsStopping] = useState(false)
 
   useEffect(() => {
-    if (error) {
-      console.error(error);
+    if (statusPollingError) {
+      console.error(statusPollingError)
     }
-  }, [error]);
+  }, [statusPollingError])
 
-  const bbox = status?.bbox;
+  const bbox = status?.bbox
+
+  const handleStartRecording = async () => {
+    if (!apiClient || isStarting) return
+    setIsStarting(true)
+    try {
+      await apiClient.startRecording()
+    } catch {
+      console.error('Failed to start recording')
+    } finally {
+      setIsStarting(false)
+    }
+  }
+
+  const handleStopRecording = async () => {
+    if (!apiClient || isStopping) return
+    setIsStopping(true)
+    try {
+      await apiClient.stopRecording()
+    } catch {
+      console.error('Failed to stop recording')
+    } finally {
+      setIsStopping(false)
+    }
+  }
 
   return (
     <DefaultLayout className="flex items-stretch">
@@ -32,16 +60,14 @@ export default function ControlPage() {
           className="bg-gray-100 aspect-[9/16] rounded-lg flex items-center justify-center row-span-2"
         >
           <p>Live Stream Loading.....</p>
-          <img
-            className="absolute rotate-90 rounded-lg"
-            src={
-              status?.preview
-                ? `data:image/jpeg;base64,${status.preview}`
-                : undefined
-            }
-            style={{ width: height, height: width }}
-            alt="Camera Preview"
-          />
+          {status?.preview && (
+            <img
+              alt="Camera Preview"
+              className="absolute rotate-90 rounded-lg"
+              src={`data:image/jpeg;base64,${status.preview}`}
+              style={{ width: height, height: width }}
+            />
+          )}
           <div className="absolute" style={{ width, height }}>
             {bbox && (
               <>
@@ -92,7 +118,7 @@ export default function ControlPage() {
         </div>
 
         <div className="bg-gray-100 rounded-lg p-4">
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-wrap">
             <Button
               color="danger"
               radius="sm"
@@ -109,7 +135,27 @@ export default function ControlPage() {
             >
               Disarm
             </Button>
+
+            {/* added: recording buttons */}
+            <Button
+              isDisabled={!apiClient || isStarting}
+              radius="sm"
+              variant="solid"
+              onPress={handleStartRecording}
+            >
+              {isStarting ? 'Starting...' : 'Start Recording'}
+            </Button>
+            <Button
+              color="danger"
+              isDisabled={!apiClient || isStopping}
+              radius="sm"
+              variant="bordered"
+              onPress={handleStopRecording}
+            >
+              {isStopping ? 'Stopping...' : 'Stop Recording'}
+            </Button>
           </div>
+
           <div className="grid gap-2 mt-4 grid-cols-3 grid-rows-3 w-fit">
             <div />
             <Button
@@ -118,7 +164,7 @@ export default function ControlPage() {
               radius="sm"
               size="lg"
               variant="flat"
-              onPress={() => apiClient?.manualMove("up")}
+              onPress={() => apiClient?.manualMove('up')}
             >
               <IconChevronUp />
             </Button>
@@ -129,7 +175,7 @@ export default function ControlPage() {
               radius="sm"
               size="lg"
               variant="flat"
-              onPress={() => apiClient?.manualMove("left")}
+              onPress={() => apiClient?.manualMove('left')}
             >
               <IconChevronLeft />
             </Button>
@@ -149,7 +195,7 @@ export default function ControlPage() {
               radius="sm"
               size="lg"
               variant="flat"
-              onPress={() => apiClient?.manualMove("right")}
+              onPress={() => apiClient?.manualMove('right')}
             >
               <IconChevronRight />
             </Button>
@@ -160,7 +206,7 @@ export default function ControlPage() {
               radius="sm"
               size="lg"
               variant="flat"
-              onPress={() => apiClient?.manualMove("down")}
+              onPress={() => apiClient?.manualMove('down')}
             >
               <IconChevronDown />
             </Button>
@@ -169,11 +215,11 @@ export default function ControlPage() {
         </div>
       </div>
     </DefaultLayout>
-  );
+  )
 }
 
-function formatDegrees(degrees: number | undefined) {
-  if (degrees === undefined) return "N/A";
+function formatDegrees(degrees: number | null | undefined) {
+  if (degrees === null || degrees === undefined) return 'N/A'
 
-  return `${Math.round(degrees * 10) / 10}°`;
+  return `${Math.round(degrees * 10) / 10}°`
 }

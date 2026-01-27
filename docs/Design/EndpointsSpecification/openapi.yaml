@@ -1,0 +1,304 @@
+openapi: 3.0.3
+info:
+  title: Vision Guided Tracker API
+  version: 1.0.0
+  description: |
+    API for controlling the tracker backend, querying system status, 
+    and managing video recordings for AI training datasets.
+servers:
+  - url: http://localhost:5000
+    description: Frontend development default
+  - url: http://localhost
+    description: Flask run default on port 80
+
+paths:
+  /api/status:
+    post:
+      summary: Get current system status
+      description: Returns a snapshot of the gimbal orientation, arming state, and current AI detection bounding box.
+      responses:
+        "200":
+          description: Current status snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+
+  /api/manual_move:
+    post:
+      summary: Move the gimbal in a direction
+      description: Incremental movement based on predefined step sizes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManualMoveRequest"
+      responses:
+        "200":
+          description: Command accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyResponse"
+
+  /api/manual_move_to:
+    post:
+      summary: Move the gimbal to absolute angles
+      description: Direct coordinate-based positioning for the pan and tilt axes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManualMoveToRequest"
+      responses:
+        "200":
+          description: Command accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyResponse"
+
+  /api/gimbal/home:
+    post:
+      summary: Center gimbal
+      description: Resets the gimbal to the zero-point (0,0) and recalibrates servos if necessary.
+      responses:
+        "200":
+          description: Homing sequence initiated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyResponse"
+
+  /api/arm:
+    post:
+      summary: Arm tracking
+      description: Engages the AI tracking logic and locks the gimbal onto detected targets.
+      responses:
+        "200":
+          description: System armed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyResponse"
+
+  /api/disarm:
+    post:
+      summary: Disarm tracking
+      description: Disengages AI tracking and returns the gimbal to manual control mode.
+      responses:
+        "200":
+          description: System disarmed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyResponse"
+
+  /api/recordings/start:
+    post:
+      summary: Start recording
+      description: Begins capturing the camera stream to a local MP4 file.
+      responses:
+        "200":
+          description: Recording started.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyResponse"
+
+  /api/recordings/stop:
+    post:
+      summary: Stop recording
+      description: Finalizes the current video file and updates the metadata database.
+      responses:
+        "200":
+          description: Recording stopped.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyResponse"
+
+  /api/recordings:
+    get:
+      summary: List recordings
+      description: Retrieves a list of all available video files stored on the backend.
+      responses:
+        "200":
+          description: Recordings list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordingListResponse"
+
+  /api/recordings/{recordingId}:
+    patch:
+      summary: Rename a recording
+      parameters:
+        - $ref: "#/components/parameters/RecordingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [new_name]
+              properties:
+                new_name:
+                  type: string
+      responses:
+        "200":
+          description: Recording renamed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyResponse"
+    delete:
+      summary: Delete a recording
+      parameters:
+        - $ref: "#/components/parameters/RecordingId"
+      responses:
+        "200":
+          description: Recording deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyResponse"
+
+  /api/recordings/{recordingId}/download:
+    get:
+      summary: Download recording file
+      description: Streams the raw video file (MP4) for local review or AI processing.
+      parameters:
+        - $ref: "#/components/parameters/RecordingId"
+      responses:
+        "200":
+          description: Binary video file.
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+
+components:
+  parameters:
+    RecordingId:
+      name: recordingId
+      in: path
+      required: true
+      schema:
+        type: string
+
+  schemas:
+    StatusResponse:
+      type: object
+      additionalProperties: false
+      required: [armed, tilt, pan, preview, bbox]
+      properties:
+        armed:
+          type: boolean
+        tilt:
+          type: number
+          nullable: true
+        pan:
+          type: number
+          nullable: true
+        preview:
+          type: string
+          description: Base64-encoded JPEG frame for real-time monitoring.
+          nullable: true
+        bbox:
+          $ref: "#/components/schemas/BoundingBox"
+
+    BoundingBox:
+      type: object
+      additionalProperties: false
+      required: [pts_s, conf, left, top, width, height]
+      properties:
+        pts_s:
+          type: number
+          description: Presentation timestamp in seconds.
+        conf:
+          type: number
+          description: Confidence score of the detection (0.0 to 1.0).
+        left:
+          type: number
+        top:
+          type: number
+        width:
+          type: number
+        height:
+          type: number
+      nullable: true
+
+    ManualMoveRequest:
+      type: object
+      additionalProperties: false
+      required: [direction]
+      properties:
+        direction:
+          type: string
+          enum: [up, down, left, right]
+
+    ManualMoveToRequest:
+      type: object
+      additionalProperties: false
+      required: [tilt, pan]
+      properties:
+        tilt:
+          type: number
+        pan:
+          type: number
+
+    EmptyResponse:
+      type: object
+      additionalProperties: false
+
+    Recording:
+      type: object
+      additionalProperties: false
+      required: [id, filename, createdAt, durationSeconds, sizeBytes]
+      properties:
+        id:
+          type: string
+        filename:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        durationSeconds:
+          type: number
+          minimum: 0
+        sizeBytes:
+          type: integer
+          minimum: 0
+
+    RecordingStatusResponse:
+      type: object
+      additionalProperties: false
+      required: [recording, status]
+      properties:
+        recording:
+          $ref: "#/components/schemas/Recording"
+        status:
+          type: string
+          enum: [recording, stopped]
+
+    RecordingResponse:
+      type: object
+      additionalProperties: false
+      required: [recording]
+      properties:
+        recording:
+          $ref: "#/components/schemas/Recording"
+
+    RecordingListResponse:
+      type: object
+      additionalProperties: false
+      required: [recordings]
+      properties:
+        recordings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Recording"

@@ -24,23 +24,23 @@ jobs:
             apk add make
             cd docs
             make -B
-      - name: Collect changed PDFs
+      - name: Collect all PDFs
         run: |
-          mapfile -t CHANGED_FILES < <(git diff --name-only | grep '\.pdf$' || true)
-          mkdir -p changed_pdfs_dir
-          for f in "${CHANGED_FILES[@]}"; do
+          mapfile -t ALL_PDFS < <(find . -type f -name '*.pdf' || true)
+          mkdir -p all_pdfs_dir
+          for f in "${ALL_PDFS[@]}"; do
             if [ -f "$f" ]; then
-              mkdir -p "$(dirname "changed_pdfs_dir/$f")"
-              cp "$f" "changed_pdfs_dir/$f"
+              mkdir -p "$(dirname "all_pdfs_dir/$f")"
+              cp "$f" "all_pdfs_dir/$f"
             fi
           done
-      - name: Upload changed PDFs
+      - name: Upload PDFs
         uses: actions/upload-artifact@v4
         with:
-          name: changed-pdfs
-          path: changed_pdfs_dir
+          name: all-pdfs
+          path: all_pdfs_dir
           if-no-files-found: ignore
-      - name: reset unstaged changes
+      - name: Reset unstaged changes
         run: |
           git restore .
       - uses: xu-cheng/texlive-action@v3

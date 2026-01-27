@@ -1,12 +1,8 @@
 name: firmware-ci
 
 on:
-  push:
-    branches: [ main, "pega/pcb-firmware" ]
-    paths:
-      - "src/pcb-firmware/**"
   pull_request:
-    branches: [ main ]
+    branches: main
     paths:
       - "src/pcb-firmware/**"
 
