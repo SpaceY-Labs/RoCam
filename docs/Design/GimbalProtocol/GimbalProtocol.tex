@@ -1,0 +1,620 @@
+\documentclass[12pt, titlepage]{article}
+\pdfinfoomitdate=1
+\pdftrailerid{}
+
+\usepackage{amsmath, mathtools}
+
+\usepackage[round]{natbib}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{colortbl}
+\usepackage{xr}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{xfrac}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[section]{placeins}
+\usepackage{caption}
+\usepackage{fullpage}
+\usepackage{bytefield}
+
+\hypersetup{
+bookmarks=true,     % show bookmarks bar?
+colorlinks=true,       % false: boxed links; true: colored links
+linkcolor=red,          % color of internal links (change box color with linkbordercolor)
+citecolor=blue,      % color of links to bibliography
+filecolor=magenta,  % color of file links
+urlcolor=cyan          % color of external links
+}
+
+\usepackage{array}
+
+\externaldocument{../../SRS/SRS}
+
+\input{../../Comments}
+\input{../../Common}
+
+\begin{document}
+
+\title{Gimbal Protocol Specification for \progname{}}
+
+\author{\authname}
+
+\date{January 12, 2026}
+
+\maketitle
+
+\pagenumbering{roman}
+
+\section{Revision History}
+
+\begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
+  \toprule {\bf Date} & {\bf Version} & {\bf Notes}   \\
+  \midrule
+  Jan. 12, 2026       & Rev 0         & Initial Draft \\
+  \bottomrule
+\end{tabularx}
+
+~\newpage
+
+\section{Symbols, Abbreviations and Acronyms}
+
+\begin{tabularx}{\textwidth}{p{3cm}X}
+  \toprule {\bf Term} & {\bf Definition}                                                               \\
+  \midrule
+  Host                & The controlling computer that sends commands to the gimbal                     \\
+  Gimbal              & The motorized camera mount that receives commands and executes them            \\
+  CRC                 & Cyclic Redundancy Check---a method for detecting errors in transmitted data    \\
+  LED                 & Light Emitting Diode---a small indicator light                                 \\
+  LE                  & Little-Endian---a byte ordering where the least significant byte comes first   \\
+  IEEE-754            & International standard for floating-point arithmetic                           \\
+  UART                & Universal Asynchronous Receiver-Transmitter---a serial communication interface \\
+  \bottomrule
+\end{tabularx}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\pagenumbering{arabic}
+
+\section{Introduction}
+
+This document describes the serial communication protocol used between the host
+computer and the gimbal device in \progname{}. The gimbal is a motorized mount
+that controls the orientation of a camera, allowing it to tilt (move up and
+down) and pan (move left and right).
+
+The protocol is designed to be simple, reliable, and easy to implement. It uses
+a serial connection (UART) to exchange small packets of data between the host
+and the gimbal. Each packet includes error-checking information to ensure data
+integrity.
+
+This specification is intended for developers who need to implement or
+understand the communication between the host software and the gimbal firmware.
+
+\section{Physical Layer}
+
+The protocol operates over a standard serial (UART) connection with the
+following parameters:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    \textbf{Parameter} & \textbf{Value}         \\
+    \midrule
+    Baud Rate          & 115200 bits per second \\
+    Data Bits          & 8                      \\
+    Parity             & None                   \\
+    Stop Bits          & 1                      \\
+    Flow Control       & None                   \\
+    \bottomrule
+  \end{tabular}
+  \caption{Serial Port Configuration}
+\end{table}
+
+The host computer connects to the gimbal using a serial port, typically named
+\texttt{/dev/ttyUSB0}, \texttt{/dev/ttyACM0}, or \texttt{/dev/ttyTHS1} on Linux
+systems.
+
+\section{Communication Model}
+
+\subsection{Request-Response Structure}
+
+This protocol uses a strict \textbf{request-response} communication model. This
+means:
+
+\begin{enumerate}
+  \item \textbf{All communication is initiated by the host.} The gimbal never sends data on its own---it only responds when asked.
+  \item \textbf{Every request must receive a response.} When the host sends a command, it must wait for the gimbal to reply before sending another command.
+  \item \textbf{One request, one response.} Each request from the host results in exactly one response from the gimbal.
+\end{enumerate}
+
+This model simplifies the protocol because neither side needs to handle
+unexpected incoming data. The host always knows when to expect a response, and
+the gimbal always knows that incoming data is a new command.
+
+\begin{figure}[H]
+  \centering
+  \begin{verbatim}
+    Host                          Gimbal
+      |                             |
+      |-------- Request ----------->|
+      |                             |
+      |<------- Response -----------|
+      |                             |
+      |-------- Request ----------->|
+      |                             |
+      |<------- Response -----------|
+      |                             |
+\end{verbatim}
+  \caption{Request-Response Communication Flow}
+\end{figure}
+
+\subsection{Timing}
+
+The host should wait for a response within a reasonable timeout period
+(typically 500 milliseconds). If no response is received within this time, the
+host should assume the command failed and may retry.
+
+\section{Packet Structure}
+
+All data exchanged between the host and gimbal is organized into
+\textbf{packets}. A packet is a sequence of bytes with a defined structure.
+Both request packets (from host to gimbal) and response packets (from gimbal to
+host) follow specific formats.
+
+\subsection{Byte Numbering Convention}
+
+Throughout this document, bytes within a packet are numbered starting from 0.
+For example, in a 3-byte packet:
+\begin{itemize}
+  \item Byte 0 is the first byte
+  \item Byte 1 is the second byte
+  \item Byte 2 is the third byte
+\end{itemize}
+
+When describing ranges, we use the notation \texttt{[start..end]}, which
+includes both the start and end bytes. For example, \texttt{[2..5]} means bytes
+2, 3, 4, and 5 (4 bytes total).
+
+\subsection{Request Packet Format}
+
+Request packets are sent from the host to the gimbal. Every request packet has
+the following structure:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{ccl}
+    \toprule
+    \textbf{Byte Position} & \textbf{Size} & \textbf{Description}                             \\
+    \midrule
+    0                      & 1 byte        & CRC-8 checksum (covers bytes 1 through end)      \\
+    1                      & 1 byte        & Command ID (identifies which command to execute) \\
+    2..N                   & variable      & Payload (command-specific data, may be empty)    \\
+    \bottomrule
+  \end{tabular}
+  \caption{Request Packet Structure}
+\end{table}
+
+\textbf{Key points:}
+\begin{itemize}
+  \item The minimum request packet size is 2 bytes (CRC + Command ID, with no payload).
+  \item The CRC byte is calculated over all bytes \emph{after} itself (bytes 1 through
+        the end of the packet).
+  \item Different commands have different payload sizes, including zero (no payload).
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \begin{bytefield}[bitwidth=1.5em]{24}
+    \bitheader{0-23} \\
+    \bitbox{8}{CRC} & \bitbox{8}{Command ID} & \bitbox{8}{Payload...}
+  \end{bytefield}
+  \caption{Request Packet Layout (sizes in bits, 8 bits = 1 byte)}
+\end{figure}
+
+\subsection{Response Packet Format}
+
+Response packets are sent from the gimbal to the host. Every response packet
+has the following structure:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{ccl}
+    \toprule
+    \textbf{Byte Position} & \textbf{Size} & \textbf{Description}                        \\
+    \midrule
+    0..N-1                 & variable      & Data (response-specific, may be empty)      \\
+    N                      & 1 byte        & CRC-8 checksum (covers bytes 0 through N-1) \\
+    \bottomrule
+  \end{tabular}
+  \caption{Response Packet Structure}
+\end{table}
+
+\textbf{Key points:}
+\begin{itemize}
+  \item The minimum response packet size is 1 byte (just the CRC, with no data).
+  \item The CRC byte is the \emph{last} byte and is calculated over all preceding
+        bytes.
+  \item For commands that only need to confirm success (acknowledgment), the response
+        contains 0 data bytes. In this case, the CRC is calculated over an empty
+        sequence, which always equals \texttt{0x00}.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \begin{bytefield}[bitwidth=1.5em]{24}
+    \bitheader{0-23} \\
+    \bitbox{16}{Data...} & \bitbox{8}{CRC}
+  \end{bytefield}
+  \caption{Response Packet Layout (sizes in bits, 8 bits = 1 byte)}
+\end{figure}
+
+\subsection{Acknowledgment Responses}
+
+Many commands only need to indicate success or failure. For these commands, the
+gimbal responds with a single byte: the CRC calculated over zero data bytes.
+
+Since the CRC-8/SMBUS algorithm with no input data produces \texttt{0x00}, a
+successful acknowledgment is simply:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cc}
+    \toprule
+    \textbf{Byte 0} & \textbf{Meaning}            \\
+    \midrule
+    \texttt{0x00}   & Success (CRC of empty data) \\
+    Any other value & Error                       \\
+    \bottomrule
+  \end{tabular}
+  \caption{Acknowledgment Response}
+\end{table}
+
+\section{Error Detection: CRC-8/SMBUS}
+
+To detect transmission errors (such as electrical noise corrupting data), both
+request and response packets include a \textbf{CRC} (Cyclic Redundancy Check)
+byte. This protocol uses the \textbf{CRC-8/SMBUS} algorithm.
+
+\subsection{What is a CRC?}
+
+A CRC is a small number calculated from a sequence of bytes using a
+mathematical formula. The sender calculates the CRC and includes it in the
+packet. The receiver recalculates the CRC from the received data and compares
+it to the received CRC. If they match, the data is likely correct. If they
+differ, an error occurred during transmission.
+
+\subsection{CRC-8/SMBUS Parameters}
+
+The CRC-8/SMBUS algorithm uses the following parameters:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    \textbf{Parameter} & \textbf{Value}                                    \\
+    \midrule
+    Width              & 8 bits (produces a 1-byte result)                 \\
+    Polynomial         & \texttt{0x07}                                     \\
+    Initial Value      & \texttt{0x00}                                     \\
+    Reflect Input      & No                                                \\
+    Reflect Output     & No                                                \\
+    XOR Output         & \texttt{0x00}                                     \\
+    Check Value        & \texttt{0xF4} (CRC of ASCII string ``123456789'') \\
+    \bottomrule
+  \end{tabular}
+  \caption{CRC-8/SMBUS Algorithm Parameters}
+\end{table}
+
+\subsection{CRC Calculation Example}
+
+Here is a step-by-step description of the CRC calculation:
+
+\begin{enumerate}
+  \item Start with the CRC value set to \texttt{0x00}.
+  \item For each byte in the data:
+        \begin{enumerate}
+          \item XOR the current CRC value with the byte.
+          \item For each of the 8 bits in the byte:
+                \begin{itemize}
+                  \item If the highest bit of the CRC is 1, shift the CRC left by 1 and XOR with the
+                        polynomial (\texttt{0x07}).
+                  \item Otherwise, just shift the CRC left by 1.
+                \end{itemize}
+          \item Keep only the lowest 8 bits of the result.
+        \end{enumerate}
+  \item The final CRC value is the checksum.
+\end{enumerate}
+
+\textbf{Special case:} When calculating the CRC over zero bytes (empty data), the result is \texttt{0x00} because the initial value is \texttt{0x00} and no processing occurs.
+
+\section{Data Types and Byte Order}
+
+\subsection{Integer Values}
+
+Single-byte integer values (such as Command ID or LED state) are unsigned 8-bit
+integers with values from 0 to 255.
+
+\subsection{Floating-Point Values}
+
+Floating-point numbers (such as angles) are encoded using the \textbf{IEEE-754
+  single-precision} format:
+\begin{itemize}
+  \item Size: 4 bytes (32 bits)
+  \item Byte order: \textbf{Little-endian} (least significant byte first)
+\end{itemize}
+
+\textbf{Little-endian} means that when a 4-byte floating-point number is transmitted, the byte containing the smallest part of the value is sent first. For example, the number 12.5 is stored as the bytes \texttt{0x00 0x00 0x48 0x41} in memory on a little-endian system, and transmitted in that order.
+
+\section{Command Reference}
+
+This section describes each command supported by the protocol. For each
+command, we specify:
+\begin{itemize}
+  \item The Command ID (a number identifying the command)
+  \item The request format (what the host sends)
+  \item The response format (what the gimbal replies)
+  \item The purpose of the command
+\end{itemize}
+
+\subsection{Command Summary}
+
+\begin{table}[H]
+  \centering
+  \begin{tabularx}{\textwidth}{ccX}
+    \toprule
+    \textbf{Command ID} & \textbf{Name}  & \textbf{Description}                              \\
+    \midrule
+    \texttt{0x00}       & Set ARM LED    & Turn the ARM indicator LED on or off              \\
+    \texttt{0x01}       & Set Status LED & Turn the Status indicator LED on or off           \\
+    \texttt{0x02}       & Move           & Move the gimbal to a specified tilt and pan angle \\
+    \texttt{0x03}       & Measure        & Read the current tilt and pan angles              \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Command Summary}
+\end{table}
+
+\subsection{Set ARM LED (Command ID: \texttt{0x00})}
+
+\subsubsection{Purpose}
+This command controls the ARM indicator LED on the gimbal. The ARM LED
+typically indicates whether the gimbal is armed (ready to move) or disarmed
+(safe to handle).
+
+\subsubsection{Request Format}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cccl}
+    \toprule
+    \textbf{Byte} & \textbf{Size} & \textbf{Value}                 & \textbf{Description}       \\
+    \midrule
+    0             & 1             & (calculated)                   & CRC-8 over bytes [1..2]    \\
+    1             & 1             & \texttt{0x00}                  & Command ID                 \\
+    2             & 1             & \texttt{0x00} or \texttt{0x01} & LED state: 0 = off, 1 = on \\
+    \bottomrule
+  \end{tabular}
+  \caption{Set ARM LED Request (3 bytes total)}
+\end{table}
+
+\subsubsection{Response Format}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cccl}
+    \toprule
+    \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}                \\
+    \midrule
+    0             & 1             & \texttt{0x00}  & CRC-8 over 0 bytes (acknowledgment) \\
+    \bottomrule
+  \end{tabular}
+  \caption{Set ARM LED Response (1 byte total)}
+\end{table}
+
+\subsubsection{Example}
+
+To turn the ARM LED on:
+\begin{itemize}
+  \item Payload: \texttt{0x01} (on)
+  \item Bytes to CRC: \texttt{0x00 0x01} (Command ID + payload)
+  \item CRC result: \texttt{0x07}
+  \item Complete request: \texttt{0x07 0x00 0x01}
+  \item Expected response: \texttt{0x00}
+\end{itemize}
+
+\subsection{Set Status LED (Command ID: \texttt{0x01})}
+
+\subsubsection{Purpose}
+This command controls the Status indicator LED on the gimbal. The Status LED
+can be used to indicate various system states, such as connection status or
+error conditions.
+
+\subsubsection{Request Format}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cccl}
+    \toprule
+    \textbf{Byte} & \textbf{Size} & \textbf{Value}                 & \textbf{Description}       \\
+    \midrule
+    0             & 1             & (calculated)                   & CRC-8 over bytes [1..2]    \\
+    1             & 1             & \texttt{0x01}                  & Command ID                 \\
+    2             & 1             & \texttt{0x00} or \texttt{0x01} & LED state: 0 = off, 1 = on \\
+    \bottomrule
+  \end{tabular}
+  \caption{Set Status LED Request (3 bytes total)}
+\end{table}
+
+\subsubsection{Response Format}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cccl}
+    \toprule
+    \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}                \\
+    \midrule
+    0             & 1             & \texttt{0x00}  & CRC-8 over 0 bytes (acknowledgment) \\
+    \bottomrule
+  \end{tabular}
+  \caption{Set Status LED Response (1 byte total)}
+\end{table}
+
+\subsubsection{Example}
+
+To turn the Status LED off:
+\begin{itemize}
+  \item Payload: \texttt{0x00} (off)
+  \item Bytes to CRC: \texttt{0x01 0x00} (Command ID + payload)
+  \item CRC result: \texttt{0x07}
+  \item Complete request: \texttt{0x07 0x01 0x00}
+  \item Expected response: \texttt{0x00}
+\end{itemize}
+
+\subsection{Move (Command ID: \texttt{0x02})}
+
+\subsubsection{Purpose}
+This command instructs the gimbal to move to a specified orientation. The
+orientation is given as two angles:
+\begin{itemize}
+  \item \textbf{Tilt}: The vertical angle (up/down rotation)
+  \item \textbf{Pan}: The horizontal angle (left/right rotation)
+\end{itemize}
+
+Both angles are specified in degrees as floating-point numbers.
+
+\subsubsection{Request Format}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cccl}
+    \toprule
+    \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}    \\
+    \midrule
+    0             & 1             & (calculated)   & CRC-8 over bytes [1..9] \\
+    1             & 1             & \texttt{0x02}  & Command ID              \\
+    2..5          & 4             & (float32 LE)   & Tilt angle in degrees   \\
+    6..9          & 4             & (float32 LE)   & Pan angle in degrees    \\
+    \bottomrule
+  \end{tabular}
+  \caption{Move Request (10 bytes total)}
+\end{table}
+
+\subsubsection{Response Format}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cccl}
+    \toprule
+    \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}                \\
+    \midrule
+    0             & 1             & \texttt{0x00}  & CRC-8 over 0 bytes (acknowledgment) \\
+    \bottomrule
+  \end{tabular}
+  \caption{Move Response (1 byte total)}
+\end{table}
+
+\subsubsection{Example}
+
+To move to tilt = 0.0° and pan = 0.0° (center position):
+\begin{itemize}
+  \item Tilt (0.0 as float32 LE): \texttt{0x00 0x00 0x00 0x00}
+  \item Pan (0.0 as float32 LE): \texttt{0x00 0x00 0x00 0x00}
+  \item Bytes to CRC: \texttt{0x02 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00}
+  \item CRC result: \texttt{0x0E}
+  \item Complete request: \texttt{0x0E 0x02 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00}
+  \item Expected response: \texttt{0x00}
+\end{itemize}
+
+\subsection{Measure (Command ID: \texttt{0x03})}
+
+\subsubsection{Purpose}
+This command requests the current orientation of the gimbal. The gimbal
+responds with its current tilt and pan angles in degrees.
+
+\subsubsection{Request Format}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cccl}
+    \toprule
+    \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}    \\
+    \midrule
+    0             & 1             & (calculated)   & CRC-8 over bytes [1..1] \\
+    1             & 1             & \texttt{0x03}  & Command ID              \\
+    \bottomrule
+  \end{tabular}
+  \caption{Measure Request (2 bytes total)}
+\end{table}
+
+Since there is no payload, the CRC is calculated over just the Command ID byte
+(\texttt{0x03}), which results in \texttt{0x1B}.
+
+\subsubsection{Response Format}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cccl}
+    \toprule
+    \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}          \\
+    \midrule
+    0..3          & 4             & (float32 LE)   & Current tilt angle in degrees \\
+    4..7          & 4             & (float32 LE)   & Current pan angle in degrees  \\
+    8             & 1             & (calculated)   & CRC-8 over bytes [0..7]       \\
+    \bottomrule
+  \end{tabular}
+  \caption{Measure Response (9 bytes total)}
+\end{table}
+
+\subsubsection{Example}
+
+Request to read current angles:
+\begin{itemize}
+  \item Bytes to CRC: \texttt{0x03}
+  \item CRC result: \texttt{0x1B}
+  \item Complete request: \texttt{0x1B 0x03}
+\end{itemize}
+
+Example response (tilt = 12.5°, pan = 3.25°):
+\begin{itemize}
+  \item Tilt (12.5 as float32 LE): \texttt{0x00 0x00 0x48 0x41}
+  \item Pan (3.25 as float32 LE): \texttt{0x00 0x00 0x50 0x40}
+  \item Data bytes: \texttt{0x00 0x00 0x48 0x41 0x00 0x00 0x50 0x40}
+  \item CRC over data: \texttt{0xD9}
+  \item Complete response: \texttt{0x00 0x00 0x48 0x41 0x00 0x00 0x50 0x40 0xD9}
+\end{itemize}
+
+\section{Error Handling}
+
+\subsection{CRC Mismatch}
+If the receiver calculates a CRC that does not match the received CRC byte, the
+packet should be considered corrupted. The host should:
+\begin{enumerate}
+  \item Discard the corrupted response
+  \item Optionally retry the command
+  \item Report an error if retries are exhausted
+\end{enumerate}
+
+\subsection{Timeout}
+If the host does not receive a response within the timeout period (typically
+500 ms), it should:
+\begin{enumerate}
+  \item Assume the command failed
+  \item Optionally retry the command
+  \item Report an error if retries are exhausted
+\end{enumerate}
+
+\subsection{Invalid Acknowledgment}
+For commands expecting a single-byte acknowledgment (\texttt{0x00}), any other
+value indicates an error. The host should treat this as a command failure.
+
+\end{document}

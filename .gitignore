@@ -286,8 +286,6 @@ ultralytics/
 *.pythontex
 *.pth 
 /runs
-/weights
-*.pt
 *.avi
 
 #ignore temperary latex
@@ -299,6 +297,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+node_modules/
 # Logs
 logs
 *.log
