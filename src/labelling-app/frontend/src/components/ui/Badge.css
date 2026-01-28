@@ -1,0 +1,109 @@
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-default {
+  background: var(--panel-strong);
+  color: var(--ink);
+}
+
+.badge-success {
+  background: #e0f5e9;
+  color: #1a5f36;
+}
+
+.badge-warning {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.badge-error {
+  background: #ffe7df;
+  color: #933423;
+}
+
+.badge-info {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.badge-small {
+  padding: 2px 8px;
+  font-size: 0.65rem;
+}
+
+/* Class Badges */
+.class-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  border: 1px solid var(--badge-color, var(--border));
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.class-badge-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--badge-color, var(--accent));
+  flex-shrink: 0;
+}
+
+.class-badge-name {
+  font-weight: 500;
+}
+
+.class-badge-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.class-badge-remove:hover {
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+}
+
+/* Tag Badges */
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  background: var(--panel-strong);
+  color: var(--ink);
+}
+
+.tag-badge-remove {
+  display: flex;
+  padding: 2px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.tag-badge-remove:hover {
+  color: #e74c3c;
+}

@@ -1,0 +1,58 @@
+﻿@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Sora:wght@300;400;500;600;700&display=swap");
+
+:root {
+  color-scheme: light;
+  font-family: "Sora", "Segoe UI", sans-serif;
+  background-color: #f5f9ff;
+  color: #0f172a;
+  --bg: #f5f9ff;
+  --panel: #ffffff;
+  --panel-strong: #eef4ff;
+  --ink: #0f172a;
+  --muted: #5b6b84;
+  --accent: #2563eb;
+  --accent-2: #0ea5e9;
+  --accent-3: #60a5fa;
+  --border: rgba(15, 23, 42, 0.12);
+  --shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+  --shadow-soft: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% 8%, #e8f1ff 0%, transparent 52%),
+    radial-gradient(circle at 92% 0%, #e3f5ff 0%, transparent 48%),
+    linear-gradient(180deg, #f9fbff 0%, #eef4ff 100%);
+  color: var(--ink);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+::selection {
+  background: rgba(37, 99, 235, 0.2);
+}

@@ -1,0 +1,291 @@
+================================================================================
+                        LABELLING APP - DESIGN DOCUMENT
+================================================================================
+
+================================================================================
+SECTION 1: API ENDPOINTS
+================================================================================
+
+PROJECT APIs:
+  POST   /projects              - Create project
+  GET    /projects              - List projects
+  GET    /projects/:projectId   - Get project details
+  PATCH  /projects/:projectId   - Update project metadata
+  DELETE /projects/:projectId   - Delete project
+
+IMAGE APIs:
+  POST   /projects/:projectId/images          - Create single image
+  GET    /projects/:projectId/images          - List images
+  GET    /projects/:projectId/images/:imageId - Get image (without mask data)
+  PATCH  /projects/:projectId/images/:imageId - Update image metadata
+  DELETE /projects/:projectId/images/:imageId - Delete image
+  POST   /projects/:projectId/images/zip      - Upload ZIP archive with images + masks
+
+MASK APIs:
+  GET    /projects/:projectId/maskmaps/:maskMapId/masks           - Get all masks for image
+  GET    /projects/:projectId/maskmaps/:maskMapId/masks/:maskId   - Get single mask
+  PATCH  /projects/:projectId/maskmaps/:maskMapId/masks/:maskId   - Update mask label
+  GET    /projects/:projectId/maskmaps/:maskMapId/colormap        - Get colored overlay map
+  GET    /projects/:projectId/maskmaps/:maskMapId/maskoverlay     - Get mask overlay (by maskMapId)
+  GET    /projects/:projectId/images/:imageId/maskoverlay         - Get mask overlay (by imageId)
+
+LOCK APIs:
+  POST   /projects/:projectId/locks/acquire   - Acquire lock on images
+  POST   /projects/:projectId/locks/release   - Release lock on images
+
+================================================================================
+SECTION 2: TYPE DEFINITIONS
+================================================================================
+
+------------------------------------------------------------------------------
+2.1 LABEL TYPES
+------------------------------------------------------------------------------
+
+Label {
+  labelId: string       - Unique identifier within the project
+  name: string          - Human-readable name (e.g., "Background", "Person")
+  color: string         - Hex color (e.g., "#FF0000")
+}
+
+LabelsMap = Record<string, Label>
+  - Maps labelId -> Label
+
+------------------------------------------------------------------------------
+2.2 MASK TYPES (Collection 2 - Cloud Storage + Firestore)
+------------------------------------------------------------------------------
+
+SparseBinaryMask = Record<string, Record<string, 1>>
+  - Format: { "rowIndex": { "colIndex": 1 } }
+  - Only stores pixels that are part of the mask
+  - Efficient for masks that cover small % of image
+  - Example: { "100": { "50": 1, "51": 1 }, "101": { "50": 1 } }
+
+SparseColorMap = Record<string, Record<string, string>>
+  - Format: { "rowIndex": { "colIndex": "#RRGGBB" } }
+  - Stores blended colors for labeled mask pixels
+  - Only contains pixels from labeled masks
+
+MaskLabelsMap = Record<string, string | null>
+  - Maps maskId -> labelId (or null if unlabeled)
+  - Source of truth for which label each mask has
+
+MaskDocument / Mask {
+  maskId: string        - Unique identifier (UUID)
+  labelId: string|null  - Assigned label (null = unlabeled)
+  color: string|null    - Display color from label (null = transparent)
+  storagePath: string   - Cloud Storage path for binary mask file
+  size: number          - Total pixel count in this mask
+  width: number         - Mask width in pixels
+  height: number        - Mask height in pixels
+}
+  - Binary mask data stored in Cloud Storage (exceeds Firestore 1MB limit)
+  - Firestore document contains metadata only
+
+MaskMapDocument / MaskMap {
+  maskMapId: string             - Unique identifier (UUID)
+  imageId: string               - Image this mask map belongs to
+  maskLabels: MaskLabelsMap     - Dictionary of maskId -> labelId
+  colorMapStoragePath: string   - Cloud Storage path for colorMap JSON
+  maskOverlayStoragePath: string - Cloud Storage path for maskOverlay JSON
+  maskIds: string[]             - List of all mask IDs in this image
+  maskSizes: Record<string, number> - Dictionary of maskId -> pixel count
+  width: number                 - Image width
+  height: number                - Image height
+}
+  - Links an image to all its masks
+  - colorMap and maskOverlay stored in Cloud Storage (too large for Firestore)
+
+MaskOverlay {
+  width: number         - Image width
+  height: number        - Image height
+  maskIds: string[]     - Array maps index -> maskId
+  data: number[]        - Flattened row-major array, data[row * width + col]
+                        - Value = index into maskIds array, or -1 if no mask
+}
+  - Purpose: For each pixel, stores which mask should respond to hover
+  - Algorithm: At each pixel, stores the SMALLEST mask covering that pixel
+  - Uses indices instead of UUIDs to reduce payload (~4MB vs ~37MB for 1024x1024)
+
+------------------------------------------------------------------------------
+2.3 PROJECT TYPES (Collection 1 - Firestore)
+------------------------------------------------------------------------------
+
+Project {
+  projectId: string         - Unique identifier (UUID)
+  name: string              - Project name
+  description: string|null  - Project description
+  labels: LabelsMap         - Labels configuration
+  imageIds: string[]        - List of image IDs in this project
+  ownerUid: string          - Owner user ID
+}
+
+ProjectCreateRequest {
+  name: string
+  description?: string|null
+  labels: LabelsMap
+}
+
+ProjectUpdateRequest {
+  name?: string
+  description?: string|null
+  labels?: LabelsMap
+}
+
+------------------------------------------------------------------------------
+2.4 IMAGE TYPES (Collection 1 - Firestore)
+------------------------------------------------------------------------------
+
+ImageStatus = "unlabeled" | "in_progress" | "labeled"
+
+ImageMeta {
+  fileName: string      - Original filename
+  width: number         - Image width
+  height: number        - Image height
+  status: ImageStatus   - Labeling status
+  tags?: string[]       - Optional organization tags
+}
+
+ImageLock {
+  lockedBy: string      - User ID who holds the lock
+  expiresAt: string     - When lock expires (ISO timestamp)
+}
+
+ImageRecord {
+  imageId: string           - Unique identifier (UUID)
+  projectId: string         - Parent project ID
+  maskMapId: string|null    - Reference to MaskMap (null if no masks)
+  labelComplete: boolean    - Whether all masks are labeled
+  reviewed: boolean         - Whether labels have been verified
+  lock: ImageLock|null      - Current lock state
+  meta: ImageMeta           - Image metadata
+  storagePath?: string      - Cloud Storage path for image file
+  contentType?: string      - MIME type
+  sizeBytes?: number        - File size in bytes
+}
+
+------------------------------------------------------------------------------
+2.5 LOCK TYPES
+------------------------------------------------------------------------------
+
+LockAcquireRequest {
+  imageIds: string[]    - Image IDs to lock
+  userId: string        - Requesting user
+  durationMs?: number   - Lock duration (default: 15000ms)
+}
+
+LockReleaseRequest {
+  imageIds: string[]    - Image IDs to release
+  userId: string        - Releasing user
+}
+
+LockResult {
+  imageId: string
+  locked?: boolean      - Whether lock was acquired
+  released?: boolean    - Whether lock was released
+  lockedBy?: string     - Current lock holder
+  expiresAt?: string    - When lock expires
+  error?: string        - Error code if failed
+}
+
+================================================================================
+SECTION 3: STORAGE ARCHITECTURE
+================================================================================
+
+FIRESTORE COLLECTIONS:
+  /projects/{projectId}                          - Project documents
+  /projects/{projectId}/images/{imageId}         - Image documents
+  /projects/{projectId}/maskmaps/{maskMapId}     - MaskMap documents
+  /projects/{projectId}/maskmaps/{maskMapId}/masks/{maskId} - Mask documents
+
+CLOUD STORAGE STRUCTURE:
+  /projects/{projectId}/images/{imageId}/original  - Original image file
+  /projects/{projectId}/maskmaps/{maskMapId}/masks/{maskId}.bin - Raw binary mask
+  /projects/{projectId}/maskmaps/{maskMapId}/colormap.json      - Color overlay
+  /projects/{projectId}/maskmaps/{maskMapId}/maskoverlay.json   - Mask overlay
+
+WHY CLOUD STORAGE:
+  - Firestore has 1MB document limit
+  - Binary masks can exceed this for large images
+  - ColorMap and MaskOverlay can be 4-40MB for 1024x1024 images
+
+================================================================================
+SECTION 4: UPLOAD ZIP FORMAT
+================================================================================
+
+ZIP Structure:
+  /image/            - Contains original images
+    image1.png
+    image2.jpg
+  /masks/            - Contains Feather mask files (multiple per image)
+    image1_00.feather
+    image1_01.feather
+    image2_00.feather
+
+Feather File Format:
+  - Apache Arrow Feather format
+  - Columns: mask (binary), width (int32), height (int32)
+  - compression="uncompressed" (JS arrow doesn't support compressed)
+
+Mask Naming Convention:
+  - Mask files: {imageBaseName}_{index}.feather
+  - index is 2+ digits: _00, _01, _02, etc.
+  - getMaskImageBaseName() strips the _XX suffix for matching
+
+Upload Processing:
+  1. Extract images and masks from ZIP
+  2. Match masks to images by base name
+  3. Parse Feather files into SparseBinaryMask format
+  4. Upload binary masks to Cloud Storage
+  5. Generate MaskOverlay (smallest mask per pixel)
+  6. Create Firestore documents (MaskMap, Mask, Image)
+
+================================================================================
+SECTION 5: FRONTEND BEHAVIOR
+================================================================================
+
+LOCKING MECHANISM:
+  - Frontend acquires lock every 12 seconds with 15-second duration
+  - If lock fails mid-update, throws exception and forces refresh
+  - Prevents concurrent editing conflicts
+
+LABELING UI:
+  - Hover over image: after 1 second, highlight the smallest mask at cursor
+  - Unlabeled masks: 30% transparent blue overlay
+  - Labeled masks: 30% transparent with label color
+  - Highlighted mask (hover): 100% opacity
+  - Click to select mask, then assign label
+  - ESC to deselect
+  - Can select multiple masks for batch labeling
+
+MASK OVERLAY ALGORITHM:
+  - For each pixel, store the index of the smallest mask covering it
+  - "Smallest" = fewest total pixels in the mask
+  - Allows clicking on nested/overlapping masks predictably
+  - Frontend converts index -> maskId using maskIds array
+
+================================================================================
+SECTION 6: KEY FUNCTIONS
+================================================================================
+
+generateMaskOverlay(masks, width, height) -> MaskOverlay
+  - Input: Array of { maskId, size, binaryMask }
+  - Algorithm:
+    1. Build maskId -> index map
+    2. Initialize data[] with -1 (no mask)
+    3. For each mask, iterate its pixels
+    4. If mask size < current size at pixel, update to this mask's index
+  - Returns: { width, height, maskIds, data }
+
+computeColorMap(maskLabels, masks, labels) -> SparseColorMap
+  - Input: Mask-label assignments, mask binary data, project labels
+  - Only includes labeled masks
+  - Blends colors for overlapping labeled masks
+
+parseFeatherMask(buffer, baseName, maskIndex) -> ParsedMask
+  - Parses Apache Arrow Feather format
+  - Extracts binary mask and dimensions
+  - Converts to sparse format
+
+prepareMaskFromParsed(maskId, parsedMask) -> PreparedMask
+  - Converts ParsedMask to storage format
+  - Returns Firestore document data + raw binary buffer

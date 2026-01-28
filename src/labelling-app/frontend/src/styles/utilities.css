@@ -1,0 +1,21 @@
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 0.75rem;
+}
+
+.meta-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin: 0;
+  color: var(--muted);
+}
+
+.meta-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+}

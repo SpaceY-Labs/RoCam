@@ -1,0 +1,8 @@
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+**/.pnpm-store
+**/.cache
+**/.turbo
+.git
+.gitignore
