@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import ControlPage from "./pages/control";
 
@@ -9,6 +9,7 @@ function App() {
     <Routes>
       <Route element={<ControlPage />} path="/" />
       <Route element={<RecordingsPage />} path="/recordings" />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
