@@ -56,6 +56,7 @@ class StateManagement:
         )
         self._ip_refresh_thread.start()
 
+        self._gimbal_lock = threading.Lock()
         self._last_gimbal_measure_time = 0.0
         self._last_gimbal_measure = (0.0, 0.0)
 
@@ -86,13 +87,14 @@ class StateManagement:
                 logger.error(f"Error refreshing IP addresses: {e}")
 
     def _gimbal_measure_deg_cached(self) -> tuple[float, float]:
-        now = time.perf_counter()
-        if now - self._last_gimbal_measure_time < 0.02:  # 20ms
-            return self._last_gimbal_measure
+        with self._gimbal_lock:
+            now = time.perf_counter()
+            if now - self._last_gimbal_measure_time < 0.02:  # 20ms
+                return self._last_gimbal_measure
 
-        self._last_gimbal_measure = self._gimbal.measure_deg()
-        self._last_gimbal_measure_time = now
-        return self._last_gimbal_measure
+            self._last_gimbal_measure = self._gimbal.measure_deg()
+            self._last_gimbal_measure_time = now
+            return self._last_gimbal_measure
 
     def _on_cvdata(self, data: CVData):
         self._bboxes.received_data(data)
