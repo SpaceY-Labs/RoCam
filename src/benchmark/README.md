@@ -58,4 +58,5 @@ python3 accuracy_benchmark.py \
 
 | Path                 | Base Model | mAP@0.50:0.95 | mAP@0.50 | Author  | Date    | Notes        |
 | -------------------- | ---------- | ------------- | -------- | ------- | ------- | ------------ |
+| https://drive.google.com/file/d/1AW7gZ-v0RBsLZtk08OuHOnq00pPTb0nF/view?usp=drive_link | 11s        | 0.507540      | 0.796407 | Unknown | Unknown | 0.95 model |
 | ./models/original.pt | 11s        | 0.501598      | 0.796249 | Unknown | Unknown | Oldest model |
