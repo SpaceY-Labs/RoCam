@@ -1,8 +1,9 @@
 import logging
 import time
+import threading
 from common.ipc import BoundingBox, CVData, OSDData, PreviewData
 from common.ipc_buffer import cleanup_shared_memory
-from common.utils import ip4_addresses
+from common.utils import ip4_addresses, set_scheduler_other
 from control_process.cv_process_management import CVProcessManagement
 from control_process.livestream_process_management import LivestreamProcessManagement
 from control_process.gimbal import GimbalSerial
@@ -49,8 +50,14 @@ class BoundingBoxCollection:
 
 class StateManagement:
     def __init__(self):
-        # FIXME: need to refresh periodically
         self._device_ip_addresses = ip4_addresses()
+        self._ip_refresh_thread = threading.Thread(
+            target=self._refresh_ip_addresses, daemon=True
+        )
+        self._ip_refresh_thread.start()
+
+        self._last_gimbal_measure_time = 0.0
+        self._last_gimbal_measure = (0.0, 0.0)
 
         self._armed = False
         self._last_preview_frame: PreviewData | None = None
@@ -68,6 +75,24 @@ class StateManagement:
         self._livestream_process = LivestreamProcessManagement()
         time.sleep(1)
         self._cv_process = CVProcessManagement(self._on_cvdata, self._on_preview)
+
+    def _refresh_ip_addresses(self):
+        set_scheduler_other()
+        while True:
+            time.sleep(1)
+            try:
+                self._device_ip_addresses = ip4_addresses()
+            except Exception as e:
+                logger.error(f"Error refreshing IP addresses: {e}")
+
+    def _gimbal_measure_deg_cached(self) -> tuple[float, float]:
+        now = time.perf_counter()
+        if now - self._last_gimbal_measure_time < 0.02:  # 20ms
+            return self._last_gimbal_measure
+
+        self._last_gimbal_measure = self._gimbal.measure_deg()
+        self._last_gimbal_measure_time = now
+        return self._last_gimbal_measure
 
     def _on_cvdata(self, data: CVData):
         self._bboxes.received_data(data)
@@ -95,20 +120,22 @@ class StateManagement:
                 tracking_state = "armed"
 
 
+        tilt, pan = self._gimbal_measure_deg_cached()
+
         osd_data = OSDData(
             pts_ns=data.pts_ns,
             translate_x=tx,
             translate_y=ty,
             scale=s,
             average_fps=data.fps,
-            gimbal_tilt_deg=0.0,
-            gimbal_pan_deg=0.0,
-            gimbal_focal_length_mm=0.0,
+            gimbal_tilt_deg=tilt,
+            gimbal_pan_deg=pan,
+            gimbal_focal_length_mm=24, # Hardcoded for now
             device_ip_addresses=self._device_ip_addresses,
-            timestamp_ms=0,
+            timestamp_ms=int(time.time() * 1000),
             tracking_state=tracking_state,
-            longitude=0.0,
-            latitude=0.0,
+            longitude=None,
+            latitude=None,
         )
 
         self._cv_process.send_osd_data(osd_data)
@@ -137,7 +164,7 @@ class StateManagement:
             bbox = self._bboxes.get_bbox(self._last_preview_frame.pts_ns)
 
         try:
-            tilt, pan = self._gimbal.measure_deg()
+            tilt, pan = self._gimbal_measure_deg_cached()
             return {
                 "armed": self._armed,
                 "tilt": tilt,
@@ -159,7 +186,7 @@ class StateManagement:
         if self._armed:
             return
         try:
-            current_tilt, current_pan = self._gimbal.measure_deg()
+            current_tilt, current_pan = self._gimbal_measure_deg_cached()
             delta = 10.0  # degrees per command
 
             if direction == "up":
