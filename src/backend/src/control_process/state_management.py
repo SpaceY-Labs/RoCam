@@ -56,6 +56,11 @@ class StateManagement:
         )
         self._ip_refresh_thread.start()
 
+        self._status_led_thread = threading.Thread(
+            target=self._blink_status_led, daemon=True
+        )
+        self._status_led_thread.start()
+
         self._gimbal_lock = threading.Lock()
         self._last_gimbal_measure_time = 0.0
         self._last_gimbal_measure = (0.0, 0.0)
@@ -85,6 +90,14 @@ class StateManagement:
                 self._device_ip_addresses = [ip for ip in ip4_addresses() if ip != "127.0.0.1"]
             except Exception as e:
                 logger.error(f"Error refreshing IP addresses: {e}")
+
+    def _blink_status_led(self):
+        set_scheduler_other()
+        while True:
+            time.sleep(0.5)
+            self._gimbal.status_led(True)
+            time.sleep(0.5)
+            self._gimbal.status_led(False)
 
     def _gimbal_measure_deg_cached(self) -> tuple[float, float]:
         with self._gimbal_lock:
@@ -150,11 +163,11 @@ class StateManagement:
 
     def arm(self):
         self._armed = True
-        # self._cv_pipeline.armed = True
+        self._gimbal.arm_led(True)
 
     def disarm(self):
         self._armed = False
-        # self._cv_pipeline.armed = False
+        self._gimbal.arm_led(False)
 
     def status(self):
         latest_preview_frame = None
