@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 from common.utils import set_scheduler_other, ip4_addresses
 from control_process.state_management import StateManagement
@@ -15,12 +16,12 @@ def _json_body():
 
 def run_api_gateway(state_management: StateManagement):
     set_scheduler_other()
+    logger.info(f"ipv4 addresses: {ip4_addresses()}")
 
     app = Flask(__name__)
     CORS(app)
-    FRONTEND_DIR = "../frontend"
 
-    logger.info(f"ipv4 addresses: {ip4_addresses()}")
+    FRONTEND_DIR = Path("../react-app/dist").resolve()
     if not os.path.isdir(FRONTEND_DIR):
         logger.warning(f"{FRONTEND_DIR} does not exist.")
 

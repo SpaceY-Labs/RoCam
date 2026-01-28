@@ -161,7 +161,7 @@ def onnx_to_engine(input_onnx: Path, output_engine: Path):
         pipeline_desc = f"""
             videotestsrc num-buffers=1 ! 
             video/x-raw,format=NV12,width={WIDTH},height={HEIGHT} ! 
-            nvvideoconvert ! 
+            nvvideoconvert compute-hw=1 ! 
             video/x-raw(memory:NVMM),format=NV12 ! 
             mux.sink_0
             nvstreammux name=mux width={WIDTH} height={HEIGHT} batch-size=1 ! 

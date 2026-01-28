@@ -1,6 +1,7 @@
 [property]
 gpu-id=0
 net-scale-factor=0.0039215697906911373
+scaling-compute-hw=1
 model-color-format=0
 onnx-file=./models/model.pt.onnx
 model-engine-file=model_b1_gpu0_fp16.engine

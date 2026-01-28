@@ -1,50 +1,15 @@
-# Vite & HeroUI Template
+# Frontend
 
-This is a template for creating applications using Vite and HeroUI (v2).
-
-[Try it on CodeSandbox](https://githubbox.com/heroui-inc/vite-template)
-
-## Technologies Used
-
-- [Vite](https://vitejs.dev/guide/)
-- [HeroUI](https://heroui.com)
-- [Tailwind CSS](https://tailwindcss.com)
-- [Tailwind Variants](https://tailwind-variants.org)
-- [TypeScript](https://www.typescriptlang.org)
-- [Framer Motion](https://www.framer.com/motion)
-
-## How to Use
-
-To clone the project, run the following command:
+# How to Run:
 
 ```bash
-git clone https://github.com/heroui-inc/vite-template.git
+yarn dev
 ```
 
-### Install dependencies
+# How to Deploy:
 
-You can use one of them `npm`, `yarn`, `pnpm`, `bun`, Example using `npm`:
+This command will build the frontend and put the static files in the `dist` folder. The backend will serve these files from the `dist` folder.
 
 ```bash
-npm install
+yarn build
 ```
-
-### Run the development server
-
-```bash
-npm run dev
-```
-
-### Setup pnpm (optional)
-
-If you are using `pnpm`, you need to add the following code to your `.npmrc` file:
-
-```bash
-public-hoist-pattern[]=*@heroui/*
-```
-
-After modifying the `.npmrc` file, you need to run `pnpm install` again to ensure that the dependencies are installed correctly.
-
-## License
-
-Licensed under the [MIT license](https://github.com/heroui-inc/vite-template/blob/main/LICENSE).

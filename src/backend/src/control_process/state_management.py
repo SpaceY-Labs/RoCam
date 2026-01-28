@@ -9,8 +9,7 @@ from control_process.gimbal import GimbalSerial
 from control_process.tracking import Tracking
 import base64
 
-from cv_process.main import HEIGHT, LIVE_STREAM_SHM_NAME, WIDTH
-
+from cv_process.main import LIVE_STREAM_SHM_NAME
 
 
 logger = logging.getLogger(__name__)
@@ -23,9 +22,6 @@ class BoundingBoxCollection:
         self._cv_data_list = []
 
     def received_data(self, data: CVData):
-        if not data.bounding_box:
-            return
-
         self._cv_data_list.append(data)
 
         if len(self._cv_data_list) > 10:
@@ -35,16 +31,20 @@ class BoundingBoxCollection:
         if not self._cv_data_list:
             return None
 
-        # Find the CVData with the same pts_ns
-        for cv_data in self._cv_data_list:
-            if cv_data.pts_ns == pts_ns:
-                return cv_data.bounding_box
+        # Find the latest CVData earlier than or equal to pts_ns, within 40ms
+        for cv_data in reversed(self._cv_data_list):
+            if cv_data.pts_ns <= pts_ns:
+                if pts_ns - cv_data.pts_ns < 40_000_000:  # 40ms in ns
+                    return cv_data.bounding_box
+                break
+
         return None
 
-    def get_latest_bbox(self) -> BoundingBox | None:
-        if not self._cv_data_list:
-            return None
-        return self._cv_data_list[-1].bounding_box
+    def get_latest_valid_bbox(self) -> BoundingBox | None:
+        for cv_data in reversed(self._cv_data_list):
+            if cv_data.bounding_box is not None:
+                return cv_data.bounding_box
+        return None
 
 
 class StateManagement:
@@ -56,8 +56,10 @@ class StateManagement:
         self._last_preview_frame: PreviewData | None = None
 
         self._gimbal = GimbalSerial(port="/dev/ttyTHS1", baudrate=115200, timeout=0.1)
-        self._gimbal.move_deg(0,0)
-        self._tracking = Tracking(gimbal=self._gimbal, width=1080, height=1920, k_p=0.003)
+        self._gimbal.move_deg(0, 0)
+        self._tracking = Tracking(
+            gimbal=self._gimbal, width=1080, height=1920, k_p=0.005
+        )
 
         self._bboxes = BoundingBoxCollection()
 
@@ -70,19 +72,28 @@ class StateManagement:
     def _on_cvdata(self, data: CVData):
         self._bboxes.received_data(data)
 
-        bbox = self._bboxes.get_latest_bbox()
+        tracking_state = "idle"
+        tx = 0.0
+        ty = 0.0
+        s = 1.0
 
-        if bbox:
-            cx = bbox.left + bbox.width / 2.0
-            cy = bbox.top + bbox.height / 2.0
+        if self._armed:
+            bbox = self._bboxes.get_latest_valid_bbox()
 
-            tx = 0.5 - cx
-            ty = 0.5 - cy
-            s = max(bbox.width * WIDTH, bbox.height * HEIGHT)
-        else:
-            tx = 0.0
-            ty = 0.0
-            s = 1.0
+            if bbox:
+                tracking_state = "tracking"
+                
+                # The calculation here is correct.
+                # It looks weird because the shader's order of operation.
+                cx = bbox.top + bbox.height / 2.0
+                cy = bbox.left + bbox.width / 2.0
+
+                tx = 0.5 - cx
+                ty = cy - 0.5
+                s = 0.7 / max(bbox.height, bbox.width * 9 / 16) / 16 * 9
+            else:
+                tracking_state = "armed"
+
 
         osd_data = OSDData(
             pts_ns=data.pts_ns,
@@ -95,7 +106,7 @@ class StateManagement:
             gimbal_focal_length_mm=0.0,
             device_ip_addresses=self._device_ip_addresses,
             timestamp_ms=0,
-            tracking_state="idle",
+            tracking_state=tracking_state,
             longitude=0.0,
             latitude=0.0,
         )
@@ -120,15 +131,29 @@ class StateManagement:
         latest_preview_frame = None
         bbox = None
         if self._last_preview_frame is not None:
-            latest_preview_frame = base64.b64encode(self._last_preview_frame.frame).decode("ascii")
+            latest_preview_frame = base64.b64encode(
+                self._last_preview_frame.frame
+            ).decode("ascii")
             bbox = self._bboxes.get_bbox(self._last_preview_frame.pts_ns)
 
         try:
             tilt, pan = self._gimbal.measure_deg()
-            return {"armed": self._armed, "tilt": tilt, "pan": pan, "preview": latest_preview_frame, "bbox": bbox}
+            return {
+                "armed": self._armed,
+                "tilt": tilt,
+                "pan": pan,
+                "preview": latest_preview_frame,
+                "bbox": bbox,
+            }
         except Exception as e:
             logger.error(f"Error reading status: {e}")
-            return {"armed": self._armed, "tilt": None, "pan": None, "preview": latest_preview_frame, "bbox": bbox}
+            return {
+                "armed": self._armed,
+                "tilt": None,
+                "pan": None,
+                "preview": latest_preview_frame,
+                "bbox": bbox,
+            }
 
     def manual_move(self, direction: str):
         if self._armed:

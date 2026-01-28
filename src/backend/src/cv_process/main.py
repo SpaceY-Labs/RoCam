@@ -57,7 +57,7 @@ class CVProcess:
             videorate !
             video/x-raw(memory:NVMM),width=(int){WIDTH},height=(int){HEIGHT},framerate=(fraction)60/1,format=(string)NV12 !
             
-            nvvideoconvert !
+            nvvideoconvert flip-method=2 compute-hw=1 !
             mux.sink_0 nvstreammux name=mux width=1920 height=1080 live-source=1 batch-size=1 !
             nvinfer name=infer config-file-path={os.path.dirname(__file__)}/pgie_config.txt !
             
@@ -65,27 +65,27 @@ class CVProcess:
             
             t. !
             queue max-size-buffers=3 min-threshold-buffers=2 leaky=1 !
-            nvvideoconvert !
+            nvvideoconvert compute-hw=1 !
             video/x-raw,format=RGBA !
             glupload !
             glshader name=shader !
             gldownload !
             video/x-raw,format=RGBA !
-            textoverlay name=osd valignment=top halignment=left font-desc="Sans, 12" draw-outline=0 draw-shadow=0 color=0xFFFF0000 !
+            textoverlay name=osd valignment=top halignment=left font-desc="Sans, 10" draw-outline=0 draw-shadow=0 color=0xFFFF0000 !
             video/x-raw,format=RGBA !
             queue max-size-buffers=2 leaky=1 !
             appsink name=livestream-sink emit-signals=true sync=false
 
             t. !
             queue leaky=1 max-size-buffers=30 !
-            nvvideoconvert !
+            nvvideoconvert compute-hw=1 !
             nvjpegenc quality=70 !
             queue name=recording-queue !
             fakesink name=recording-sink
 
             t. !
             queue leaky=1 max-size-buffers=1 !
-            nvvideoconvert dest-crop=0:0:{int(WIDTH / 4)}:{int(HEIGHT / 4)} !
+            nvvideoconvert compute-hw=1 dest-crop=0:0:{int(WIDTH / 4)}:{int(HEIGHT / 4)} !
             video/x-raw(memory:NVMM),width={int(WIDTH / 4)},height={int(HEIGHT / 4)} !
             videorate !
             video/x-raw(memory:NVMM),framerate=30/1 !
@@ -357,7 +357,14 @@ class CVProcess:
             logger.info("Recording stopped")
 
     def _update_osd(self, msg: OSDData):
-        self._osd.set_property("text", f"{round(msg.average_fps)}")  # pyright: ignore[reportOptionalMemberAccess]
+        status_text = ""
+        if msg.tracking_state == "tracking":
+            status_text = "Tracking"
+        elif msg.tracking_state == "armed":
+            status_text = "Armed"
+        else:
+            status_text = "Idle"
+        self._osd.set_property("text", f"{round(msg.average_fps)}\n{status_text}")  # pyright: ignore[reportOptionalMemberAccess]
         self._shader.set_property(  # pyright: ignore[reportOptionalMemberAccess]
             "uniforms",
             Gst.Structure.new_from_string(
