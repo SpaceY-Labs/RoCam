@@ -73,6 +73,9 @@ class StateManagement:
         self._bboxes.received_data(data)
 
         tracking_state = "idle"
+        tx = 0.0
+        ty = 0.0
+        s = 1.0
 
         if self._armed:
             bbox = self._bboxes.get_latest_valid_bbox()
@@ -90,10 +93,7 @@ class StateManagement:
                 s = 0.7 / max(bbox.height, bbox.width * 9 / 16) / 16 * 9
             else:
                 tracking_state = "armed"
-        else:
-            tx = 0.0
-            ty = 0.0
-            s = 1.0
+
 
         osd_data = OSDData(
             pts_ns=data.pts_ns,
