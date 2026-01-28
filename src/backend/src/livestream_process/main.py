@@ -34,7 +34,7 @@ class LivestreamProcess:
         pipeline_desc = f"""
             appsrc name=source emit-signals=True do-timestamp=True format=3 is-live=True caps=video/x-raw,format=RGBA,width={WIDTH},height={HEIGHT},framerate=60/1 ! 
             queue max-size-buffers=2 !
-            nvvideoconvert !
+            nvvideoconvert compute-hw=1 !
             nvdrmvideosink set-mode=1
         """
 
