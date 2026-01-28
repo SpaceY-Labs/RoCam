@@ -360,7 +360,7 @@ class CVProcess:
 
     def _format_time(self, timestamp_ms: int) -> str:
         dt = datetime.fromtimestamp(timestamp_ms / 1000.0)
-        return dt.strftime("%b %d %Y, %H:%M:%S:") + f"{timestamp_ms % 1000:03d}"
+        return dt.strftime("%b %d %Y, %H:%M:%S.") + f"{timestamp_ms % 1000:03d}"
 
     def _update_osd(self, msg: OSDData):
         coordinates_text = "GPS unavailable"
