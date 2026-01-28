@@ -4,6 +4,18 @@
 ./start_backend.sh
 ```
 
+# How to Change the Model:
+
+All the models for this project are stored in the `<repo-root>/src/benchmark/models` directory.
+
+To use a certain model for the backend, you need to run the following command:
+
+```bash
+cd <repo-root>/src/backend
+
+python3 ../benchmark/convert_tensorrt.py ../benchmark/models/<model-name>.pt ./src/cv_process/model.engine
+```
+
 # Ports
 
 - 80: HTTP for frontend

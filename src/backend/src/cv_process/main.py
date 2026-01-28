@@ -71,7 +71,7 @@ class CVProcess:
             glshader name=shader !
             gldownload !
             video/x-raw,format=RGBA !
-            textoverlay name=osd valignment=top halignment=left font-desc="Sans, 10" draw-outline=0 draw-shadow=0 color=0xFFFF0000 !
+            textoverlay name=osd valignment=top halignment=left line-alignment=left font-desc="Sans, 10" draw-outline=0 draw-shadow=0 color=0xFFFF0000 !
             video/x-raw,format=RGBA !
             queue max-size-buffers=2 leaky=1 !
             appsink name=livestream-sink emit-signals=true sync=false
