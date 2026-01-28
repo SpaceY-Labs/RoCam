@@ -79,6 +79,9 @@ class StateManagement:
 
             if bbox:
                 tracking_state = "tracking"
+                
+                # The calculation here is correct.
+                # It looks weird because the shader's order of operation.
                 cx = bbox.top + bbox.height / 2.0
                 cy = bbox.left + bbox.width / 2.0
 
