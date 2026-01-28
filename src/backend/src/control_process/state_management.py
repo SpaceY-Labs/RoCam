@@ -50,7 +50,7 @@ class BoundingBoxCollection:
 
 class StateManagement:
     def __init__(self):
-        self._device_ip_addresses = ip4_addresses()
+        self._device_ip_addresses = [ip for ip in ip4_addresses() if ip != "127.0.0.1"]
         self._ip_refresh_thread = threading.Thread(
             target=self._refresh_ip_addresses, daemon=True
         )
@@ -81,7 +81,7 @@ class StateManagement:
         while True:
             time.sleep(1)
             try:
-                self._device_ip_addresses = ip4_addresses()
+                self._device_ip_addresses = [ip for ip in ip4_addresses() if ip != "127.0.0.1"]
             except Exception as e:
                 logger.error(f"Error refreshing IP addresses: {e}")
 
