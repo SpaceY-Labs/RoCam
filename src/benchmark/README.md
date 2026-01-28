@@ -4,7 +4,7 @@ This directory provides tools to convert YOLO models to TensorRT engines and run
 
 ## 1. Model Conversion (`convert_tensorrt.py`)
 
-Converts a PyTorch (`.pt`) model to a TensorRT engine using DeepStream's `nvinfer` for optimal compatibility.
+Converts a PyTorch (`.pt`) model to a TensorRT engine using DeepStream's `nvinfer` for optimal compatibility. Both **YOLO11** and **YOLO26** models are supported and automatically detected based on the model metadata.
 
 ### Usage
 
@@ -56,6 +56,7 @@ python3 accuracy_benchmark.py \
 
 # Benchmark Results
 
-| Path                 | Base Model | mAP@0.50:0.95 | mAP@0.50 | Author  | Date    | Notes        |
-| -------------------- | ---------- | ------------- | -------- | ------- | ------- | ------------ |
-| ./models/original.pt | 11s        | 0.501598      | 0.796249 | Unknown | Unknown | Oldest model |
+| Path                     | Base Model | mAP@0.50:0.95 | mAP@0.50 | Author       | Date        | Notes                |
+| ------------------------ | ---------- | ------------- | -------- | ------------ | ----------- | -------------------- |
+| ./models/original.pt     | 11s        | 0.553312      | 0.884197 | Unknown      | Unknown     | Oldest model         |
+| ./models/first_yolo26.pt | 26s        | 0.579883      | 0.893774 | Xiaotian Lou | Jan 28 2026 | First YOLO26 attempt |

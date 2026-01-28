@@ -5,11 +5,14 @@ import shutil
 import sys
 import time
 import hashlib
+import types
 from pathlib import Path
 from copy import deepcopy
 
 import torch
 import torch.nn as nn
+from ultralytics import YOLO
+from ultralytics.nn.modules import C2f, Detect, v10Detect
 import ultralytics.utils
 import ultralytics.models.yolo
 import ultralytics.utils.tal as _m
@@ -19,6 +22,7 @@ import onnxslim
 from util import generate_pgie_config, ENGINE_FILE_NAME
 
 import gi
+
 gi.require_version("Gst", "1.0")
 from gi.repository import Gst, GLib
 
@@ -26,23 +30,47 @@ from gi.repository import Gst, GLib
 sys.modules["ultralytics.yolo"] = ultralytics.models.yolo
 sys.modules["ultralytics.yolo.utils"] = ultralytics.utils
 
+
+WIDTH = 1920
+HEIGHT = 1080
+CACHE_DIR = Path("/mnt/data/tensorrt_engine_cache")
+
+
 def _dist2bbox(distance, anchor_points, xywh=False, dim=-1):
     lt, rb = distance.chunk(2, dim)
     x1y1 = anchor_points - lt
     x2y2 = anchor_points + rb
     return torch.cat((x1y1, x2y2), dim)
 
+
 _m.dist2bbox.__code__ = _dist2bbox.__code__
 
-WIDTH = 1920
-HEIGHT = 1080
-CACHE_DIR = Path("/mnt/data/tensorrt_engine_cache")
+
+def forward_deepstream(self, x):
+    """
+    Forward pass replacement for YOLO26 Detect head to match DeepStream expectations.
+    """
+    x_detach = [xi.detach() for xi in x]
+    if hasattr(self, "inference"):
+        one2one = [
+            torch.cat(
+                (self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1
+            )
+            for i in range(self.nl)
+        ]
+        y = self.inference(one2one)
+    else:
+        one2one = self.forward_head(x_detach, **self.one2one)
+        y = self._inference(one2one)
+    return y
+
 
 class DeepStreamOutput(nn.Module):
     """
     Post-processing layer to format YOLO output for DeepStream's nvinfer.
     Concatenates [boxes, scores, labels] into a single output tensor.
     """
+
     def __init__(self):
         super().__init__()
 
@@ -52,6 +80,7 @@ class DeepStreamOutput(nn.Module):
         scores, labels = torch.max(x[:, :, 4:], dim=-1, keepdim=True)
         return torch.cat([boxes, scores, labels.to(boxes.dtype)], dim=-1)
 
+
 def get_file_md5(file_path: Path) -> str:
     """Computes MD5 hash of a file."""
     hash_md5 = hashlib.md5()
@@ -59,6 +88,7 @@ def get_file_md5(file_path: Path) -> str:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
+
 
 def bus_call(bus, message, loop):
     t = message.type
@@ -70,54 +100,84 @@ def bus_call(bus, message, loop):
         loop.quit()
     return True
 
-def pt_to_onnx(input_pt: Path, output_onnx: Path):
+
+def get_model_info(pt_path: Path):
     """
-    Exports a YOLO .pt model to a DeepStream-compatible ONNX model.
-    Follows logic from export_yolo11.py exactly.
+    Identifies the model type (YOLO11 vs YOLO26) from the .pt file metadata.
     """
-    img_size = (int(HEIGHT / 2), int(WIDTH / 2)) # (540, 960)
+    try:
+        from ultralytics.nn.tasks import DetectionModel
+
+        torch.serialization.add_safe_globals([DetectionModel])
+        m = torch.load(str(pt_path), map_location="cpu", weights_only=False)
+        if isinstance(m, dict) and "train_args" in m:
+            train_model = m["train_args"].get("model", "unknown")
+            if "yolo11" in train_model:
+                return "YOLO11"
+            elif "yolo26" in train_model:
+                return "YOLO26"
+        return "Unknown"
+    except Exception as e:
+        print(f"[WARN] Could not identify model info: {e}")
+        return "Unknown"
+
+
+def simplify_onnx(onnx_path: Path):
+    """Simplifies the ONNX model using onnxslim."""
+    print(f"[INFO] Simplifying ONNX model: {onnx_path}")
+    model_onnx = onnx.load(str(onnx_path))
+    model_onnx = onnxslim.slim(model_onnx)
+    onnx.save(model_onnx, str(onnx_path))
+
+
+def pt_yolo11_to_onnx(input_pt: Path, output_onnx: Path):
+    """
+    Exports a YOLO11 .pt model to a DeepStream-compatible ONNX model.
+    """
+    img_size = (int(HEIGHT / 2), int(WIDTH / 2))  # (540, 960)
     batch_size = 1
     opset_version = 17
-    device = torch.device('cpu')
+    device = torch.device("cpu")
 
-    print(f"[INFO] Loading PyTorch model: {input_pt}")
-    
-    # yolo11_export logic from export_yolo11.py
-    ckpt = torch_load(str(input_pt), map_location='cpu')
-    ckpt = (ckpt.get('ema') or ckpt['model']).to(device).float()
-    if not hasattr(ckpt, 'stride'):
-        ckpt.stride = torch.tensor([32.])
-    if hasattr(ckpt, 'names') and isinstance(ckpt.names, (list, tuple)):
+    print(f"[INFO] Loading YOLO11 model: {input_pt}")
+
+    ckpt = torch_load(str(input_pt), map_location="cpu")
+    ckpt = (ckpt.get("ema") or ckpt["model"]).to(device).float()
+    if not hasattr(ckpt, "stride"):
+        ckpt.stride = torch.tensor([32.0])
+    if hasattr(ckpt, "names") and isinstance(ckpt.names, (list, tuple)):
         ckpt.names = dict(enumerate(ckpt.names))
-    
-    model = ckpt.fuse().eval() if hasattr(ckpt, 'fuse') else ckpt.eval()
-    
+
+    model = ckpt.fuse().eval() if hasattr(ckpt, "fuse") else ckpt.eval()
+
     for m in model.modules():
-        t = type(m)
-        if hasattr(m, 'inplace'):
+        if hasattr(m, "inplace"):
             m.inplace = True
-        elif t.__name__ == 'Upsample' and not hasattr(m, 'recompute_scale_factor'):
+        elif type(m).__name__ == "Upsample" and not hasattr(
+            m, "recompute_scale_factor"
+        ):
             m.recompute_scale_factor = None
-            
+
     model = deepcopy(model).to(device)
     for p in model.parameters():
         p.requires_grad = False
     model.eval()
     model.float()
     model = model.fuse()
-    
+
     for k, m in model.named_modules():
-        if m.__class__.__name__ in ('Detect', 'RTDETRDecoder'):
+        if m.__class__.__name__ in ("Detect", "RTDETRDecoder"):
             m.dynamic = False
             m.export = True
-            m.format = 'onnx'
+            m.format = "onnx"
 
-    # Append DeepStream formatting layer
     model = nn.Sequential(model, DeepStreamOutput())
 
-    print(f"[INFO] Exporting to ONNX: {output_onnx} (Size: {img_size}, Batch: {batch_size})")
+    print(
+        f"[INFO] Exporting to ONNX: {output_onnx} (Size: {img_size}, Batch: {batch_size})"
+    )
     dummy_input = torch.zeros(batch_size, 3, *img_size).to(device)
-    
+
     torch.onnx.export(
         model,
         dummy_input,
@@ -126,14 +186,61 @@ def pt_to_onnx(input_pt: Path, output_onnx: Path):
         opset_version=opset_version,
         do_constant_folding=True,
         input_names=["input"],
-        output_names=["output"]
+        output_names=["output"],
     )
+    simplify_onnx(output_onnx)
+    print(f"[INFO] YOLO11 ONNX export complete: {output_onnx}")
 
-    print("[INFO] Simplifying ONNX model...")
-    model_onnx = onnx.load(str(output_onnx))
-    model_onnx = onnxslim.slim(model_onnx)
-    onnx.save(model_onnx, str(output_onnx))
-    print(f"[INFO] ONNX export complete: {output_onnx}")
+
+def pt_yolo26_to_onnx(input_pt: Path, output_onnx: Path):
+    """
+    Exports a YOLO26 .pt model to a DeepStream-compatible ONNX model.
+    """
+    img_size = (int(HEIGHT / 2), int(WIDTH / 2))  # (540, 960)
+    batch_size = 1
+    opset_version = 17
+    device = torch.device("cpu")
+
+    print(f"[INFO] Loading YOLO26 model: {input_pt}")
+
+    yolo_model = YOLO(str(input_pt))
+    model = deepcopy(yolo_model.model).to(device)
+    for p in model.parameters():
+        p.requires_grad = False
+    model.eval()
+    model.float()
+    model = model.fuse()
+
+    for k, m in model.named_modules():
+        if isinstance(m, (Detect, v10Detect)):
+            m.dynamic = False
+            m.export = True
+            m.format = "onnx"
+            if m.__class__.__name__ == "Detect":
+                m.forward = types.MethodType(forward_deepstream, m)
+        elif isinstance(m, C2f):
+            m.forward = m.forward_split
+
+    model = nn.Sequential(model, DeepStreamOutput())
+
+    print(
+        f"[INFO] Exporting to ONNX: {output_onnx} (Size: {img_size}, Batch: {batch_size})"
+    )
+    dummy_input = torch.zeros(batch_size, 3, *img_size).to(device)
+
+    torch.onnx.export(
+        model,
+        dummy_input,
+        str(output_onnx),
+        verbose=False,
+        opset_version=opset_version,
+        do_constant_folding=True,
+        input_names=["input"],
+        output_names=["output"],
+    )
+    simplify_onnx(output_onnx)
+    print(f"[INFO] YOLO26 ONNX export complete: {output_onnx}")
+
 
 def onnx_to_engine(input_onnx: Path, output_engine: Path):
     """
@@ -190,9 +297,10 @@ def onnx_to_engine(input_onnx: Path, output_engine: Path):
             print("[ERROR] Engine file was not generated by nvinfer.", file=sys.stderr)
             return False
     finally:
-        if 'temp_config_path' in locals() and temp_config_path.exists():
+        if "temp_config_path" in locals() and temp_config_path.exists():
             temp_config_path.unlink()
         os.chdir(orig_cwd)
+
 
 def pt_to_engine(input_pt: str, output_engine: str, rebuild: bool = False):
     """
@@ -205,6 +313,9 @@ def pt_to_engine(input_pt: str, output_engine: str, rebuild: bool = False):
         return False
 
     # 1. Check Cache
+    model_type = get_model_info(pt_path)
+    print(f"[INFO] Identified model type: {model_type}")
+
     pt_md5 = get_file_md5(pt_path)
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     cached_engine = CACHE_DIR / f"{pt_md5}.engine"
@@ -226,18 +337,26 @@ def pt_to_engine(input_pt: str, output_engine: str, rebuild: bool = False):
     # 2. Export ONNX (Temporary under /tmp)
     temp_onnx = Path("/tmp") / f"temp_{pt_md5}.onnx"
     try:
-        pt_to_onnx(pt_path, temp_onnx)
+        if model_type == "YOLO11":
+            pt_yolo11_to_onnx(pt_path, temp_onnx)
+        elif model_type == "YOLO26":
+            pt_yolo26_to_onnx(pt_path, temp_onnx)
+        else:
+            print(f"[ERROR] Unsupported model type: {model_type}", file=sys.stderr)
+            return False
 
         # 3. Build Engine
         if onnx_to_engine(temp_onnx, output_engine_path):
             # 4. Update Cache
             if cached_engine != output_engine_path:
                 shutil.copy(str(output_engine_path), str(cached_engine))
-            
+
             duration = time.time() - start_time
             size_mb = output_engine_path.stat().st_size / (1024 * 1024)
-            print(f"\n[OK] Engine successfully generated: {output_engine_path} ({size_mb:.1f} MB)")
-            print(f"[INFO] Total conversion time: {duration/60:.2f} minutes")
+            print(
+                f"\n[OK] Engine successfully generated: {output_engine_path} ({size_mb:.1f} MB)"
+            )
+            print(f"[INFO] Total conversion time: {duration / 60:.2f} minutes")
             return True
         else:
             return False
@@ -245,13 +364,18 @@ def pt_to_engine(input_pt: str, output_engine: str, rebuild: bool = False):
         if temp_onnx.exists():
             temp_onnx.unlink()
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Convert YOLO .pt to TensorRT engine with caching")
+    parser = argparse.ArgumentParser(
+        description="Convert YOLO .pt to TensorRT engine with caching"
+    )
     parser.add_argument("input_pt", help="Path to input .pt file")
     parser.add_argument("output_engine", help="Path to save the generated engine")
-    parser.add_argument("--rebuild", action="store_true", help="Force rebuild even if cache exists")
-    
+    parser.add_argument(
+        "--rebuild", action="store_true", help="Force rebuild even if cache exists"
+    )
+
     args = parser.parse_args()
-    
+
     success = pt_to_engine(args.input_pt, args.output_engine, args.rebuild)
     sys.exit(0 if success else 1)
