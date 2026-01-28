@@ -1,20 +1,29 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+/**
+ * App - Main application shell
+ * Handles routing, global state, and API orchestration
+ */
+
+import { useEffect, useState, useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import './styles/app-shell.css';
 import './styles/utilities.css';
-import type {
-  RouteId,
-  Project,
-  ProjectImage,
-  ProjectFormData,
-  ImageStatus,
-} from './types';
-import { ProjectList } from './components/ProjectList';
-import { CreateProject } from './components/CreateProject';
-import { ImageUpload } from './components/ImageUpload';
-import { LabelImage } from './components/LabelImage';
-import { PreviewGallery } from './components/PreviewGallery';
+import type { RouteId, Project, ProjectFormData, ImageStatus } from './types';
+
+// ============ Components ============
 import { ConfirmModal } from './components/ui';
+import { Sidebar, NAV_ITEMS } from './components/shared';
+import {
+  ProjectList,
+  CreateProject,
+  ImageUpload,
+  LabelImage,
+  PreviewGallery,
+} from './pages';
+
+// ============ Hooks ============
+import { useNotifications, useLockManagement } from './hooks';
+
+// ============ API ============
 import {
   listProjects,
   createProject,
@@ -22,53 +31,12 @@ import {
   listImages,
   deleteProject,
   getAvailableImages,
-  acquireLocks,
-  releaseLocks,
   updateImage,
   uploadZipToBackend,
 } from './modules/API_Helps';
 
+// ============ Constants ============
 const LOCK_BATCH_SIZE = 5;
-const LOCK_DURATION_MS = 20 * 60 * 1000;
-const LOCK_REFRESH_MS = 5 * 60 * 1000;
-
-const NAV_ITEMS: Array<{
-  id: RouteId;
-  label: string;
-  description: string;
-  icon: string;
-}> = [
-  {
-    id: 'projects',
-    label: 'Projects',
-    description: 'Browse and select',
-    icon: 'P',
-  },
-  {
-    id: 'create',
-    label: 'Create',
-    description: 'New project setup',
-    icon: 'C',
-  },
-  {
-    id: 'label',
-    label: 'Label',
-    description: 'Annotate images',
-    icon: 'L',
-  },
-  {
-    id: 'upload',
-    label: 'Upload',
-    description: 'Add new images',
-    icon: 'U',
-  },
-  {
-    id: 'preview',
-    label: 'Preview',
-    description: 'Browse overlays',
-    icon: 'V',
-  },
-];
 
 const PAGE_META: Record<RouteId, { eyebrow: string; title: string; subtitle: string }> = {
   projects: {
@@ -92,12 +60,13 @@ const PAGE_META: Record<RouteId, { eyebrow: string; title: string; subtitle: str
     subtitle: 'Add new images to your project queue.',
   },
   preview: {
-    eyebrow: 'Review',
-    title: 'Preview Images',
-    subtitle: 'Scan labeled masks across the dataset.',
+    eyebrow: 'Management',
+    title: 'Manage Images',
+    subtitle: 'Review labels, tags, and progress in-place.',
   },
 };
 
+// ============ Helpers ============
 const panelStyle = (delay: string): CSSProperties =>
   ({ '--delay': delay } as CSSProperties);
 
@@ -107,40 +76,39 @@ const getRouteFromHash = (): RouteId => {
   return match ? match.id : 'projects';
 };
 
-const getErrorMessage = (err: unknown, fallback: string) =>
-  err instanceof Error && err.message ? err.message : fallback;
-
 const getResponseCount = (response: { total?: number; items: unknown[] }) =>
   typeof response.total === 'number' ? response.total : response.items.length;
 
-
+// ============ Component ============
 function App() {
-  // Routing
+  // ============ Routing ============
   const [route, setRoute] = useState<RouteId>(() => getRouteFromHash());
 
-  // Data state
+  // ============ Data State ============
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projectDetails, setProjectDetails] = useState<Project | null>(null);
-  const [availableImages, setAvailableImages] = useState<ProjectImage[]>([]);
-  const [lockedIds, setLockedIds] = useState<string[]>([]);
+  const [availableImages, setAvailableImages] = useState<import('./types').ProjectImage[]>([]);
 
-  // UI state
+  // ============ UI State ============
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [queueLoading, setQueueLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [savingAnnotations, setSavingAnnotations] = useState(false);
   const [creatingProject, setCreatingProject] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [notification, setNotification] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
   const [switchTarget, setSwitchTarget] = useState<Project | null>(null);
 
-  const refreshTimer = useRef<number | null>(null);
+  // ============ Hooks ============
+  const { notification, error, showNotification, showError, clearNotification, clearError } =
+    useNotifications();
+  const { lockedIds, acquire, release, releaseAll, removeLock, clearLocks } = useLockManagement({
+    autoRefresh: route === 'label',
+  });
 
-  // Derived state
-  const projectFromList = projects.find(p => p.projectId === selectedProjectId) || null;
+  // ============ Derived State ============
+  const projectFromList = projects.find((p) => p.projectId === selectedProjectId) || null;
   const selectedProject = projectDetails
     ? {
         ...projectDetails,
@@ -151,25 +119,19 @@ function App() {
     : projectFromList;
   const pageMeta = PAGE_META[route];
 
-  // Navigation
+  // ============ Navigation ============
   const navigate = (id: RouteId) => {
     if (window.location.hash !== `#${id}`) {
       window.location.hash = id;
     }
     setRoute(id);
-    setError(null);
+    clearError();
   };
 
-  // Show notification
-  const showNotification = (message: string) => {
-    setNotification(message);
-    setTimeout(() => setNotification(null), 3000);
-  };
-
-  // API: Load projects list
+  // ============ API: Load Projects ============
   const refreshProjects = useCallback(async () => {
     setProjectsLoading(true);
-    setError(null);
+    clearError();
     try {
       const response = await listProjects();
       const items = (response.items || []).map((item) => ({
@@ -181,6 +143,7 @@ function App() {
         imageCount: item.imageCount || 0,
         labeledCount: item.labeledCount || 0,
       }));
+
       const itemsWithCounts = await Promise.all(
         items.map(async (item) => {
           try {
@@ -190,11 +153,10 @@ function App() {
             ]);
             const total = getResponseCount(totalResponse);
             const unlabeled = getResponseCount(unlabeledResponse);
-            const labeled = Math.max(total - unlabeled, 0);
             return {
               ...item,
               imageCount: total,
-              labeledCount: labeled,
+              labeledCount: Math.max(total - unlabeled, 0),
               unlabeledCount: unlabeled,
             };
           } catch {
@@ -204,99 +166,88 @@ function App() {
       );
 
       setProjects(itemsWithCounts);
-
       setSelectedProjectId((prev) => prev ?? itemsWithCounts[0]?.projectId ?? null);
-    } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Failed to load projects'));
+    } catch (err) {
+      showError(err, 'Failed to load projects');
     } finally {
       setProjectsLoading(false);
     }
-  }, []);
+  }, [clearError, showError]);
 
-  // API: Load project details
-  const loadProjectDetails = useCallback(async (projectId: string) => {
-    try {
-      const details = await getProject(projectId);
-      setProjectDetails({
-        projectId: details.projectId,
-        name: details.name,
-        description: details.description || null,
-        labels: details.labels || {},
-        createdAt: details.createdAt || new Date().toISOString(),
-        imageCount: details.imageCount || 0,
-        labeledCount: details.labeledCount || 0,
-      });
-    } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Failed to load project'));
-    }
-  }, []);
-
-  // API: Load available images and acquire locks
-  const loadAvailableQueue = useCallback(async (projectId: string) => {
-    setQueueLoading(true);
-    try {
-      const response = await getAvailableImages(projectId, {
-        limit: LOCK_BATCH_SIZE,
-        status: 'unlabeled',
-        includeFileUrl: true,
-      });
-
-      const items = response.items || [];
-      if (items.length === 0) {
-        setAvailableImages([]);
-        setLockedIds([]);
-        return;
+  // ============ API: Load Project Details ============
+  const loadProjectDetails = useCallback(
+    async (projectId: string) => {
+      try {
+        const details = await getProject(projectId);
+        setProjectDetails({
+          projectId: details.projectId,
+          name: details.name,
+          description: details.description || null,
+          labels: details.labels || {},
+          createdAt: details.createdAt || new Date().toISOString(),
+          imageCount: details.imageCount || 0,
+          labeledCount: details.labeledCount || 0,
+        });
+      } catch (err) {
+        showError(err, 'Failed to load project');
       }
+    },
+    [showError]
+  );
 
-      const lockResponse = await acquireLocks(
-        projectId,
-        items.map((item) => item.imageId),
-        LOCK_DURATION_MS
-      );
+  // ============ API: Load Queue ============
+  const loadAvailableQueue = useCallback(
+    async (projectId: string) => {
+      setQueueLoading(true);
+      try {
+        const response = await getAvailableImages(projectId, {
+          limit: LOCK_BATCH_SIZE,
+          status: 'unlabeled',
+          includeFileUrl: true,
+        });
 
-      const locked = (lockResponse.results || [])
-        .filter((result) => result.locked)
-        .map((result) => result.imageId);
+        const items = response.items || [];
+        if (items.length === 0) {
+          setAvailableImages([]);
+          clearLocks();
+          return;
+        }
 
-      const lockedImages: ProjectImage[] = items
-        .filter((item) => locked.includes(item.imageId))
-        .map((item) => ({
-          imageId: item.imageId,
-          projectId: projectId,
-          maskMapId: item.maskMapId || null,
-          labelComplete: item.labelComplete || false,
-          reviewed: item.reviewed || false,
-          meta: {
-            fileName: item.meta?.fileName || 'Unknown',
-            width: item.meta?.width || 0,
-            height: item.meta?.height || 0,
-            status: item.meta?.status || 'unlabeled',
-            tags: item.meta?.tags || [],
-          },
-          fileUrl: item.fileUrl,
-          createdAt: item.createdAt || new Date().toISOString(),
-        }));
+        const locked = await acquire(
+          projectId,
+          items.map((item) => item.imageId)
+        );
 
-      setAvailableImages(lockedImages);
-      setLockedIds(locked);
-    } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Failed to load images'));
-    } finally {
-      setQueueLoading(false);
-    }
-  }, []);
+        const lockedImages = items
+          .filter((item) => locked.includes(item.imageId))
+          .map((item) => ({
+            imageId: item.imageId,
+            projectId: projectId,
+            maskMapId: item.maskMapId || null,
+            labelComplete: item.labelComplete || false,
+            reviewed: item.reviewed || false,
+            meta: {
+              fileName: item.meta?.fileName || 'Unknown',
+              width: item.meta?.width || 0,
+              height: item.meta?.height || 0,
+              status: item.meta?.status || 'unlabeled',
+              tags: item.meta?.tags || [],
+            },
+            fileUrl: item.fileUrl,
+            createdAt: item.createdAt || new Date().toISOString(),
+          }));
 
-  // API: Refresh locks
-  const refreshLocks = useCallback(async () => {
-    if (!selectedProjectId || lockedIds.length === 0) {
-      return;
-    }
-    try {
-      await acquireLocks(selectedProjectId, lockedIds, LOCK_DURATION_MS);
-    } catch (err: unknown) {
-      console.error('Failed to refresh locks:', err);
-    }
-  }, [lockedIds, selectedProjectId]);
+        setAvailableImages(lockedImages);
+      } catch (err) {
+        showError(err, 'Failed to load images');
+      } finally {
+        setQueueLoading(false);
+      }
+    },
+    [acquire, clearLocks, showError]
+  );
+
+  // ============ Effects ============
 
   // Hash change listener
   useEffect(() => {
@@ -304,10 +255,7 @@ function App() {
       window.history.replaceState(null, '', '#projects');
     }
 
-    const onHashChange = () => {
-      setRoute(getRouteFromHash());
-    };
-
+    const onHashChange = () => setRoute(getRouteFromHash());
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
@@ -330,37 +278,17 @@ function App() {
   useEffect(() => {
     if (!selectedProjectId || route !== 'label') {
       setAvailableImages([]);
-      setLockedIds([]);
+      clearLocks();
       return;
     }
     loadAvailableQueue(selectedProjectId);
-  }, [loadAvailableQueue, selectedProjectId, route]);
+  }, [loadAvailableQueue, selectedProjectId, route, clearLocks]);
 
-  // Refresh locks periodically
-  useEffect(() => {
-    if (refreshTimer.current) {
-      window.clearInterval(refreshTimer.current);
-    }
+  // ============ Handlers ============
 
-    if (route !== 'label' || lockedIds.length === 0) {
-      return;
-    }
-
-    refreshTimer.current = window.setInterval(() => {
-      refreshLocks();
-    }, LOCK_REFRESH_MS);
-
-    return () => {
-      if (refreshTimer.current) {
-        window.clearInterval(refreshTimer.current);
-      }
-    };
-  }, [lockedIds, refreshLocks, route]);
-
-  // Handler: Create project
   const handleCreateProject = async (data: ProjectFormData) => {
     setCreatingProject(true);
-    setError(null);
+    clearError();
     try {
       const response = await createProject({
         name: data.name,
@@ -372,8 +300,8 @@ function App() {
       await refreshProjects();
       showNotification(`Project "${data.name}" created successfully!`);
       navigate('projects');
-    } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Failed to create project'));
+    } catch (err) {
+      showError(err, 'Failed to create project');
     } finally {
       setCreatingProject(false);
     }
@@ -384,29 +312,26 @@ function App() {
   };
 
   const handleConfirmDeleteProject = async () => {
-    if (!deleteTarget || deletingProjectId) {
-      return;
-    }
+    if (!deleteTarget || deletingProjectId) return;
 
     setDeletingProjectId(deleteTarget.projectId);
-    setError(null);
+    clearError();
 
     try {
       await deleteProject(deleteTarget.projectId);
-
-      setProjects((prev) => prev.filter((project) => project.projectId !== deleteTarget.projectId));
+      setProjects((prev) => prev.filter((p) => p.projectId !== deleteTarget.projectId));
 
       if (selectedProjectId === deleteTarget.projectId) {
         setSelectedProjectId(null);
         setProjectDetails(null);
         setAvailableImages([]);
-        setLockedIds([]);
+        clearLocks();
       }
 
       showNotification(`Project "${deleteTarget.name}" deleted successfully!`);
       setDeleteTarget(null);
-    } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Failed to delete project'));
+    } catch (err) {
+      showError(err, 'Failed to delete project');
     } finally {
       setDeletingProjectId(null);
     }
@@ -421,35 +346,27 @@ function App() {
   };
 
   const handleConfirmSwitchProject = () => {
-    if (!switchTarget) {
-      return;
-    }
+    if (!switchTarget) return;
     setProjectDetails(null);
     setAvailableImages([]);
-    setLockedIds([]);
+    clearLocks();
     setSelectedProjectId(switchTarget.projectId);
     setSwitchTarget(null);
   };
 
-  // Handler: Upload image
-  const handleUploadImage = async (
-    file: File,
-    meta: { status: ImageStatus; tags: string[] }
-  ) => {
+  const handleUploadImage = async (file: File, meta: { status: ImageStatus; tags: string[] }) => {
     if (!selectedProjectId) {
-      setError('Select a project first');
+      showError('Select a project first');
       return;
     }
 
     setUploading(true);
-    setError(null);
+    clearError();
 
     try {
-      const isZip =
-        file.type.includes('zip') || file.name.toLowerCase().endsWith('.zip');
-
+      const isZip = file.type.includes('zip') || file.name.toLowerCase().endsWith('.zip');
       if (!isZip) {
-        setError('Only ZIP files are accepted');
+        showError('Only ZIP files are accepted');
         setUploading(false);
         return;
       }
@@ -459,66 +376,55 @@ function App() {
         tags: meta.tags,
       });
       showNotification(`Uploaded ${zipResponse.count} images from "${file.name}"`);
-
-      // Refresh project details to update counts
       await loadProjectDetails(selectedProjectId);
 
-      // If on label page, reload queue
       if (route === 'label') {
         await loadAvailableQueue(selectedProjectId);
       }
-    } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Upload failed'));
+    } catch (err) {
+      showError(err, 'Upload failed');
     } finally {
       setUploading(false);
     }
   };
 
-  // Handler: Mark image as labeled
   const handleMarkLabeled = async (imageId: string) => {
     if (!selectedProjectId || !selectedProject) {
-      setError('Select a project first');
+      showError('Select a project first');
       return false;
     }
 
     setSavingAnnotations(true);
     try {
-      await updateImage(selectedProjectId, imageId, {
-        meta: { status: 'labeled' },
-      });
+      await updateImage(selectedProjectId, imageId, { meta: { status: 'labeled' } });
       showNotification('Image marked as labeled');
 
-      let remainingLocks = lockedIds;
       if (lockedIds.includes(imageId)) {
         try {
-          await releaseLocks(selectedProjectId, [imageId]);
-          remainingLocks = lockedIds.filter((id) => id !== imageId);
-          setLockedIds(remainingLocks);
-        } catch (err: unknown) {
+          await release(selectedProjectId, [imageId]);
+          removeLock(imageId);
+        } catch (err) {
           console.warn('Failed to release image lock:', err);
         }
       }
 
-      // Move to next image in queue
-      const currentIndex = availableImages.findIndex(img => img.imageId === imageId);
+      const currentIndex = availableImages.findIndex((img) => img.imageId === imageId);
       if (currentIndex >= availableImages.length - 1) {
-        // Reload queue for more images
         if (selectedProjectId) {
-          if (remainingLocks.length > 0) {
+          if (lockedIds.length > 0) {
             try {
-              await releaseLocks(selectedProjectId, remainingLocks);
-            } catch (err: unknown) {
+              await releaseAll(selectedProjectId);
+            } catch (err) {
               console.warn('Failed to release locks:', err);
             }
-            setLockedIds([]);
           }
           await loadAvailableQueue(selectedProjectId);
         }
       }
 
       return true;
-    } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Failed to mark image as labeled'));
+    } catch (err) {
+      showError(err, 'Failed to mark image as labeled');
       return false;
     } finally {
       setSavingAnnotations(false);
@@ -526,72 +432,29 @@ function App() {
   };
 
   const handleReloadQueue = async () => {
-    if (!selectedProjectId) {
-      return;
-    }
+    if (!selectedProjectId) return;
 
     if (lockedIds.length > 0) {
       try {
-        await releaseLocks(selectedProjectId, lockedIds);
-      } catch (err: unknown) {
+        await releaseAll(selectedProjectId);
+      } catch (err) {
         console.warn('Failed to release locks:', err);
       }
-      setLockedIds([]);
     }
 
     await loadAvailableQueue(selectedProjectId);
   };
 
+  // ============ Render ============
   return (
     <div className="shell">
-      {/* Sidebar Navigation */}
-      <aside className="side-nav">
-        <div className="nav-rail">
-          <div className="nav-brand">
-            <span className="brand-mark" />
-            <div className="brand-copy">
-              <span className="eyebrow">RoCam Labeler</span>
-              <span className="brand-title">Studio</span>
-            </div>
-          </div>
-
-          <nav className="nav-list">
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={route === item.id ? 'nav-link active' : 'nav-link'}
-                onClick={() => navigate(item.id)}
-                aria-label={item.label}
-              >
-                <span className="nav-icon">{item.icon}</span>
-                <span className="nav-label">
-                  <span className="nav-title">{item.label}</span>
-                  <span className="nav-subtitle">{item.description}</span>
-                </span>
-              </button>
-            ))}
-          </nav>
-
-          <div className="nav-footer">
-            <div className="active-project">
-              <p className="meta-label">Active project</p>
-              <p className="meta-value">
-                {selectedProject?.name || 'None selected'}
-              </p>
-                {selectedProject && (
-                  <p className="muted small">
-                    {selectedProject.unlabeledCount ?? selectedProject.imageCount ?? 0} unlabeled
-                  </p>
-                )}
-            </div>
-            <div className="status-row">
-              <span className={queueLoading ? 'status-dot pulse' : 'status-dot'} />
-              {queueLoading ? 'Syncing...' : 'Ready'}
-            </div>
-          </div>
-        </div>
-      </aside>
+      {/* Sidebar */}
+      <Sidebar
+        currentRoute={route}
+        selectedProject={selectedProject}
+        queueLoading={queueLoading}
+        onNavigate={navigate}
+      />
 
       {/* Main Content */}
       <main className="page">
@@ -628,7 +491,7 @@ function App() {
         {notification && (
           <div className="banner success">
             <span>{notification}</span>
-            <button className="btn btn-ghost btn-small" onClick={() => setNotification(null)}>
+            <button className="btn btn-ghost btn-small" onClick={clearNotification}>
               Dismiss
             </button>
           </div>
@@ -638,7 +501,7 @@ function App() {
         {error && (
           <div className="banner error">
             <span>{error}</span>
-            <button className="btn btn-ghost btn-small" onClick={() => setError(null)}>
+            <button className="btn btn-ghost btn-small" onClick={clearError}>
               Dismiss
             </button>
           </div>
@@ -671,14 +534,14 @@ function App() {
 
         {route === 'label' && (
           <section className="panel label-panel" style={panelStyle('0.05s')}>
-        <LabelImage
-          project={selectedProject}
-          images={availableImages}
-          onSelectProject={() => navigate('projects')}
-          onMarkLabeled={handleMarkLabeled}
-          onNextImage={() => {}}
-          onPrevImage={() => {}}
-          loading={queueLoading || savingAnnotations}
+            <LabelImage
+              project={selectedProject}
+              images={availableImages}
+              onSelectProject={() => navigate('projects')}
+              onMarkLabeled={handleMarkLabeled}
+              onNextImage={() => {}}
+              onPrevImage={() => {}}
+              loading={queueLoading || savingAnnotations}
             />
           </section>
         )}
@@ -696,14 +559,12 @@ function App() {
 
         {route === 'preview' && (
           <section className="panel" style={panelStyle('0.05s')}>
-            <PreviewGallery
-              project={selectedProject}
-              onSelectProject={() => navigate('projects')}
-            />
+            <PreviewGallery project={selectedProject} onSelectProject={() => navigate('projects')} />
           </section>
         )}
       </main>
 
+      {/* Delete Confirmation Modal */}
       <ConfirmModal
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
@@ -715,6 +576,7 @@ function App() {
         variant="danger"
       />
 
+      {/* Switch Project Confirmation Modal */}
       <ConfirmModal
         isOpen={Boolean(switchTarget)}
         onClose={() => setSwitchTarget(null)}

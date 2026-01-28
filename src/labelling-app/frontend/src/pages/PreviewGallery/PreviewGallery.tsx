@@ -1,25 +1,30 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Project, ProjectImage, SparseColorMap } from '../types';
-import { getColorMap, listImages } from '../modules/API_Helps';
-import {
-  Button,
-  Card,
-  EmptyState,
-  LoadingState,
-  Modal,
-} from './ui';
-import './PreviewGallery.css';
-import { ManagementModal } from './ManagementModal';
+/**
+ * PreviewGallery - Image management gallery page
+ * Shows paginated grid of images with management modal
+ */
 
-const PER_PAGE_OPTIONS = [6, 12, 24, 48];
-const OVERLAY_ALPHA = 130;
-interface PreviewGalleryProps {
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { Project, ProjectImage, SparseColorMap } from '../../types';
+import { getColorMap, listImages } from '../../modules/API_Helps';
+import { EmptyState, LoadingState, Modal } from '../../components/ui';
+import { ManagementModal } from '../../components/ManagementModal';
+import { Pagination, PER_PAGE_OPTIONS } from './components/Pagination';
+import { GalleryGrid } from './components/GalleryGrid';
+import './PreviewGallery.css';
+
+// ============ Types ============
+export interface PreviewGalleryProps {
+  /** Current project */
   project: Project | null;
+  /** Callback to navigate to projects */
   onSelectProject: () => void;
 }
 
+// ============ Component ============
 export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps) {
   const projectId = project?.projectId;
+
+  // ============ State ============
   const [images, setImages] = useState<ProjectImage[]>([]);
   const [colorMaps, setColorMaps] = useState<Record<string, SparseColorMap | null | undefined>>({});
   const [loading, setLoading] = useState(false);
@@ -32,8 +37,11 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
   const [activeImage, setActiveImage] = useState<ProjectImage | null>(null);
   const requestIdRef = useRef(0);
 
+  // Computed pagination
   const pageIndex = cursorStack.length + 1;
   const pageCount = total ? Math.max(1, Math.ceil(total / perPage)) : null;
+
+  // ============ Helpers ============
 
   const resetPaging = () => {
     setCursorStack([]);
@@ -42,13 +50,7 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
     setTotal(null);
   };
 
-  const openManagement = (image: ProjectImage) => {
-    setActiveImage(image);
-  };
-
-  const closeManagement = () => {
-    setActiveImage(null);
-  };
+  // ============ API Operations ============
 
   const loadPage = useCallback(
     async (cursor: string | null) => {
@@ -67,9 +69,7 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
           includeFileUrl: true,
         });
 
-        if (requestIdRef.current !== requestId) {
-          return;
-        }
+        if (requestIdRef.current !== requestId) return;
 
         const items = (response.items || []).map((item) => ({
           imageId: item.imageId,
@@ -94,6 +94,7 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
           setTotal(response.total);
         }
 
+        // Load color maps
         const overlaySeed: Record<string, SparseColorMap | null | undefined> = {};
         items.forEach((item) => {
           overlaySeed[item.imageId] = undefined;
@@ -115,15 +116,10 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
           })
         );
 
-        if (requestIdRef.current !== requestId) {
-          return;
-        }
-
+        if (requestIdRef.current !== requestId) return;
         setColorMaps({ ...overlaySeed });
       } catch (err) {
-        if (requestIdRef.current !== requestId) {
-          return;
-        }
+        if (requestIdRef.current !== requestId) return;
         setError(err instanceof Error ? err.message : 'Failed to load images');
         setImages([]);
         setColorMaps({});
@@ -137,6 +133,8 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
     [perPage, projectId]
   );
 
+  // ============ Effects ============
+
   useEffect(() => {
     if (!projectId) {
       setImages([]);
@@ -147,6 +145,8 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
     resetPaging();
     loadPage(null);
   }, [loadPage, projectId, perPage]);
+
+  // ============ Handlers ============
 
   const handleNext = () => {
     if (!nextCursor) return;
@@ -190,7 +190,9 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
         };
       };
 
-      setImages((prev) => prev.map((image) => (image.imageId === imageId ? applyUpdates(image) : image)));
+      setImages((prev) =>
+        prev.map((image) => (image.imageId === imageId ? applyUpdates(image) : image))
+      );
       setActiveImage((prev) => (prev && prev.imageId === imageId ? applyUpdates(prev) : prev));
     },
     []
@@ -199,6 +201,16 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
   const handleColorMapUpdated = useCallback((imageId: string, map: SparseColorMap | null) => {
     setColorMaps((prev) => ({ ...prev, [imageId]: map }));
   }, []);
+
+  const openManagement = (image: ProjectImage) => {
+    setActiveImage(image);
+  };
+
+  const closeManagement = () => {
+    setActiveImage(null);
+  };
+
+  // ============ Empty States ============
 
   if (!project) {
     return (
@@ -214,8 +226,10 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
     return <LoadingState message="Loading images..." />;
   }
 
+  // ============ Render ============
   return (
     <div className="gallery">
+      {/* Toolbar */}
       <div className="gallery-toolbar">
         <div>
           <p className="eyebrow">Management Panel</p>
@@ -224,35 +238,19 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
             {total !== null ? `${total} total images` : 'All available images'}
           </p>
         </div>
-        <div className="gallery-controls">
-          <label className="gallery-label">
-            Per page
-            <select
-              value={perPage}
-              onChange={(event) => setPerPage(Number(event.target.value))}
-            >
-              {PER_PAGE_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="gallery-pagination">
-            <Button variant="ghost" onClick={handlePrev} disabled={cursorStack.length === 0}>
-              Prev
-            </Button>
-            <span className="gallery-page">
-              Page {pageIndex}
-              {pageCount ? ` of ${pageCount}` : ''}
-            </span>
-            <Button variant="ghost" onClick={handleNext} disabled={!nextCursor}>
-              Next
-            </Button>
-          </div>
-        </div>
+        <Pagination
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          perPage={perPage}
+          hasPrevious={cursorStack.length > 0}
+          hasNext={Boolean(nextCursor)}
+          onPerPageChange={setPerPage}
+          onPrevious={handlePrev}
+          onNext={handleNext}
+        />
       </div>
 
+      {/* Error Banner */}
       {error && (
         <div className="banner error">
           <span>{error}</span>
@@ -262,6 +260,7 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
         </div>
       )}
 
+      {/* Loading Indicator */}
       {loading && images.length > 0 && (
         <div className="gallery-loading-row">
           <div className="loading-spinner" />
@@ -269,36 +268,17 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
         </div>
       )}
 
+      {/* Gallery Grid */}
       {images.length === 0 ? (
         <EmptyState
           title="No images found"
           description="Upload images to start managing labels and tags."
         />
       ) : (
-        <div className="gallery-grid">
-          {images.map((image) => (
-            <div
-              key={image.imageId}
-              className="gallery-card-wrapper"
-              role="button"
-              tabIndex={0}
-              onClick={() => openManagement(image)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  openManagement(image);
-                }
-              }}
-            >
-              <PreviewCard
-                image={image}
-                colorMap={colorMaps[image.imageId]}
-              />
-            </div>
-          ))}
-        </div>
+        <GalleryGrid images={images} colorMaps={colorMaps} onImageClick={openManagement} />
       )}
 
+      {/* Management Modal */}
       <Modal
         isOpen={Boolean(activeImage)}
         onClose={closeManagement}
@@ -320,153 +300,4 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
   );
 }
 
-function ImagePreview({
-  image,
-  colorMap,
-  className = '',
-}: {
-  image: ProjectImage;
-  colorMap: SparseColorMap | null | undefined;
-  className?: string;
-}) {
-  const frameRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const colorCache = useMemo(() => new Map<string, [number, number, number]>(), []);
-
-  const drawOverlay = useCallback(() => {
-    const frame = frameRef.current;
-    const canvas = canvasRef.current;
-    if (!frame || !canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const width = frame.clientWidth;
-    const height = frame.clientHeight;
-    if (width === 0 || height === 0) return;
-
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(width * dpr);
-    canvas.height = Math.floor(height * dpr);
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    ctx.clearRect(0, 0, width, height);
-
-    if (!colorMap || Object.keys(colorMap).length === 0) {
-      return;
-    }
-
-    const srcWidth = image.meta.width || width;
-    const srcHeight = image.meta.height || height;
-    if (!srcWidth || !srcHeight) return;
-
-    const imageData = ctx.createImageData(width, height);
-    const data = imageData.data;
-
-    for (const [rowKey, cols] of Object.entries(colorMap)) {
-      const row = Number(rowKey);
-      if (!Number.isFinite(row)) continue;
-      if (row < 0 || row >= srcHeight) continue;
-      const destY = Math.floor((row / srcHeight) * height);
-      const destRow = destY * width * 4;
-
-      for (const [colKey, hexColor] of Object.entries(cols)) {
-        const col = Number(colKey);
-        if (!Number.isFinite(col)) continue;
-        if (col < 0 || col >= srcWidth) continue;
-        const destX = Math.floor((col / srcWidth) * width);
-
-        const dest = destRow + destX * 4;
-        let rgb = colorCache.get(hexColor);
-        if (!rgb) {
-          const hex = hexColor.replace('#', '');
-          const r = parseInt(hex.substring(0, 2), 16);
-          const g = parseInt(hex.substring(2, 4), 16);
-          const b = parseInt(hex.substring(4, 6), 16);
-          rgb = [
-            Number.isNaN(r) ? 59 : r,
-            Number.isNaN(g) ? 130 : g,
-            Number.isNaN(b) ? 246 : b,
-          ];
-          colorCache.set(hexColor, rgb);
-        }
-
-        data[dest] = rgb[0];
-        data[dest + 1] = rgb[1];
-        data[dest + 2] = rgb[2];
-        data[dest + 3] = OVERLAY_ALPHA;
-      }
-    }
-
-    ctx.putImageData(imageData, 0, 0);
-  }, [colorCache, colorMap, image.meta.height, image.meta.width]);
-
-  useEffect(() => {
-    drawOverlay();
-  }, [drawOverlay]);
-
-  useEffect(() => {
-    const frame = frameRef.current;
-    if (!frame) return;
-    const observer = new ResizeObserver(() => drawOverlay());
-    observer.observe(frame);
-    return () => observer.disconnect();
-  }, [drawOverlay]);
-
-  return (
-    <div
-      className={`gallery-thumb ${className}`.trim()}
-      ref={frameRef}
-      style={{
-        aspectRatio:
-          image.meta.width && image.meta.height
-            ? `${image.meta.width} / ${image.meta.height}`
-            : '1 / 1',
-      }}
-    >
-      {image.fileUrl ? (
-        <img src={image.fileUrl} alt={image.meta.fileName} loading="lazy" />
-      ) : (
-        <div className="gallery-fallback">
-          <span>No image URL</span>
-        </div>
-      )}
-      <canvas ref={canvasRef} className="gallery-overlay" />
-      {colorMap === undefined && (
-        <div className="gallery-overlay-status">
-          <div className="loading-spinner" />
-          <span>Loading labels...</span>
-        </div>
-      )}
-      {colorMap !== undefined && (!colorMap || Object.keys(colorMap).length === 0) && (
-        <div className="gallery-overlay-status empty">
-          <span>No labeled masks</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function PreviewCard({
-  image,
-  colorMap,
-}: {
-  image: ProjectImage;
-  colorMap: SparseColorMap | null | undefined;
-}) {
-  return (
-    <Card className="gallery-card" variant="elevated" padding="small">
-      <ImagePreview image={image} colorMap={colorMap} />
-      <div className="gallery-meta">
-        <div>
-          <p className="gallery-title">{image.meta.fileName}</p>
-          <p className="gallery-subtitle">{image.imageId}</p>
-        </div>
-        <span className={`badge badge-small badge-${image.meta.status === 'labeled' ? 'success' : 'default'}`}>
-          {image.meta.status}
-        </span>
-      </div>
-    </Card>
-  );
-}
+export default PreviewGallery;

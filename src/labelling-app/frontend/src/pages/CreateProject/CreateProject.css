@@ -1,0 +1,191 @@
+/**
+ * CreateProject - Project creation page styles
+ */
+
+/* ============ Container ============ */
+.create-project-container {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.create-project-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ============ Form Section ============ */
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-section-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-family: 'Fraunces', serif;
+}
+
+.form-section-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ============ Labels Preview ============ */
+.classes-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  background: var(--panel-strong);
+  border-radius: 12px;
+}
+
+/* ============ Add Label Row ============ */
+.add-class-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.class-name-input {
+  flex: 1;
+}
+
+.form-error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #e74c3c;
+}
+
+/* ============ Color Presets ============ */
+.color-presets {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.preset-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.color-preset {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 150ms ease, border-color 150ms ease;
+}
+
+.color-preset:hover {
+  transform: scale(1.15);
+}
+
+.color-preset.active {
+  border-color: var(--ink);
+}
+
+/* ============ Form Actions ============ */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* ============ Preview ============ */
+.create-project-preview {
+  position: sticky;
+  top: 24px;
+}
+
+.preview-title {
+  margin: 0 0 16px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.preview-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preview-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-family: 'Fraunces', serif;
+  color: var(--ink);
+}
+
+.preview-desc {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.preview-classes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preview-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.preview-class-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.preview-class {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  border: 1px solid;
+  background: #fff;
+}
+
+.preview-class-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ============ Responsive ============ */
+@media (max-width: 1100px) {
+  .create-project-container {
+    grid-template-columns: 1fr;
+  }
+
+  .create-project-preview {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .add-class-row {
+    grid-template-columns: 1fr;
+  }
+}

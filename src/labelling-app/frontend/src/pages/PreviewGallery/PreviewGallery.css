@@ -1,9 +1,14 @@
-/* Preview Gallery */
+/**
+ * PreviewGallery - Gallery page styles
+ */
+
+/* ============ Container ============ */
 .gallery {
   display: grid;
   gap: 16px;
 }
 
+/* ============ Toolbar ============ */
 .gallery-toolbar {
   display: flex;
   justify-content: space-between;
@@ -18,6 +23,7 @@
   font-family: 'Fraunces', serif;
 }
 
+/* ============ Controls ============ */
 .gallery-controls {
   display: flex;
   align-items: center;
@@ -38,6 +44,7 @@
   min-width: 90px;
 }
 
+/* ============ Pagination ============ */
 .gallery-pagination {
   display: flex;
   align-items: center;
@@ -51,6 +58,7 @@
   text-align: center;
 }
 
+/* ============ Loading ============ */
 .gallery-loading-row {
   display: flex;
   align-items: center;
@@ -59,12 +67,14 @@
   color: var(--muted);
 }
 
+/* ============ Grid ============ */
 .gallery-grid {
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
 
+/* ============ Card Wrapper ============ */
 .gallery-card-wrapper {
   display: block;
   cursor: pointer;
@@ -81,12 +91,14 @@
   box-shadow: var(--shadow);
 }
 
+/* ============ Card ============ */
 .gallery-card {
   display: grid;
   gap: 12px;
   transition: transform 150ms ease, box-shadow 150ms ease;
 }
 
+/* ============ Thumbnail ============ */
 .gallery-thumb {
   position: relative;
   border-radius: 14px;
@@ -102,6 +114,7 @@
   display: block;
 }
 
+/* ============ Overlay ============ */
 .gallery-overlay {
   position: absolute;
   inset: 0;
@@ -142,6 +155,7 @@
   letter-spacing: 0.12em;
 }
 
+/* ============ Meta ============ */
 .gallery-meta {
   display: flex;
   justify-content: space-between;

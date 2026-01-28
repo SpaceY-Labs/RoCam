@@ -2,7 +2,7 @@ import { useEffect, useCallback } from 'react';
 import type { ModalProps } from '../../types';
 import './Modal.css';
 
-export function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, contentClassName = '' }: ModalProps) {
   const handleEscape = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       onClose();
@@ -24,7 +24,10 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`modal-content ${contentClassName}`.trim()}
+        onClick={(e) => e.stopPropagation()}
+      >
         {title && (
           <div className="modal-header">
             <h2>{title}</h2>

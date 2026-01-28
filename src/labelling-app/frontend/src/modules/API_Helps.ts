@@ -13,7 +13,9 @@ import type {
   UploadZipResponse,
 } from "../types";
 
-const apiBase = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+const rawApiBase = (import.meta.env.VITE_API_BASE_URL || "").trim();
+const apiBase = rawApiBase.replace(/\/$/, "");
+const apiRoot = apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`;
 
 const ensureAuth = async () => {
   if (!auth.currentUser) {
@@ -47,7 +49,7 @@ const apiFetch = async (path: string, options: RequestInit = {}) => {
   const headers = new Headers(options.headers || {});
   headers.set("Authorization", `Bearer ${token}`);
 
-  const response = await fetch(`${apiBase}${path}`, {
+  const response = await fetch(`${apiRoot}${path}`, {
     ...options,
     headers,
   });
@@ -207,7 +209,7 @@ export const uploadZipToBackend = async (
   form.append("zipData", file);
   form.append("meta", JSON.stringify(meta));
 
-  const response = await fetch(`${apiBase}/projects/${projectId}/images/zip`, {
+  const response = await fetch(`${apiRoot}/projects/${projectId}/images/zip`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
