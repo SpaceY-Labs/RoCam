@@ -58,5 +58,5 @@ python3 accuracy_benchmark.py \
 
 | Path                     | Base Model | mAP@0.50:0.95 | mAP@0.50 | Author       | Date        | Notes                |
 | ------------------------ | ---------- | ------------- | -------- | ------------ | ----------- | -------------------- |
-| ./models/original.pt     | 11s        | 0.501598      | 0.796249 | Unknown      | Unknown     | Oldest model         |
-| ./models/first_yolo26.pt | 26s        | 0.522366      | 0.805820 | Xiaotian Lou | Jan 28 2026 | First YOLO26 attempt |
+| ./models/original.pt     | 11s        | 0.553312      | 0.884197 | Unknown      | Unknown     | Oldest model         |
+| ./models/first_yolo26.pt | 26s        | 0.579883      | 0.893774 | Xiaotian Lou | Jan 28 2026 | First YOLO26 attempt |
