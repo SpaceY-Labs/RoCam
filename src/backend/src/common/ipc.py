@@ -59,6 +59,10 @@ class PreviewData:
 
 @dataclass
 class RecordingInfo:
+    id: str
+    name: str
+    start_time: Optional[str]
+    duration_seconds: Optional[float]
     video_path: str
     log_path: str
 
