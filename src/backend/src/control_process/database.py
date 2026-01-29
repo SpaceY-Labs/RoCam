@@ -133,7 +133,14 @@ class RecordingDatabase:
             )
             return start_time, duration_seconds
 
-        except (json.JSONDecodeError, OSError, UnicodeDecodeError, KeyError) as e:
+        except (
+            json.JSONDecodeError,
+            OSError,
+            UnicodeDecodeError,
+            KeyError,
+            TypeError,
+            ValueError,
+        ) as e:
             logger.warning(f"Error reading log boundaries for {recording_id}: {e}")
 
         return None, None
