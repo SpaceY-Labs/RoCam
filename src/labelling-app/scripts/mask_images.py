@@ -139,9 +139,24 @@ def predict_sam_masks(
             else:
                 mask_np = np.asarray(masks_data)
 
-            # Return each mask separately instead of merging them
+            # DEBUG: Log dimensions
+            print(f"[DEBUG] Original image: {width}x{height}", file=sys.stderr)
+            print(f"[DEBUG] SAM output shape: {mask_np.shape}", file=sys.stderr)
+
+            # Return each mask separately, resizing to original image dimensions
             for i in range(mask_np.shape[0]):
                 single_mask = (mask_np[i] > 0.5).astype(np.uint8)
+                mask_h, mask_w = single_mask.shape
+
+                # SAM returns masks at inference resolution - resize to match original image
+                if mask_w != width or mask_h != height:
+                    print(f"[DEBUG] Mask {i}: resizing from {mask_w}x{mask_h} to {width}x{height}", file=sys.stderr)
+                    mask_pil = Image.fromarray(single_mask * 255)
+                    mask_pil = mask_pil.resize((width, height), Image.NEAREST)
+                    single_mask = (np.array(mask_pil) > 127).astype(np.uint8)
+                else:
+                    print(f"[DEBUG] Mask {i}: dimensions match {mask_w}x{mask_h}", file=sys.stderr)
+
                 masks.append((single_mask, width, height))
 
     print(f"mask count: {len(masks)}", file=sys.stderr)

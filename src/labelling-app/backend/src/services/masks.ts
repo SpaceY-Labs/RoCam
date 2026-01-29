@@ -684,45 +684,63 @@ export const createMaskMapFromMasks = (
  * Algorithm:
  * 1. Build a maskId -> index map
  * 2. Create arrays for mask index and size at each pixel, initialized to -1/Infinity
- * 3. For each mask, iterate over its pixels
+ * 3. For each mask, iterate over its pixels (scaling coordinates if needed)
  * 4. If the mask's size is smaller than the current stored size, update both
  *
- * @param masks - Array of { maskId, size, binaryMask (sparse format) }
- * @param width - Image width
- * @param height - Image height
+ * @param masks - Array of { maskId, size, binaryMask (sparse format), srcWidth, srcHeight }
+ * @param targetWidth - Target overlay width
+ * @param targetHeight - Target overlay height
  * @returns MaskOverlay structure with indices instead of maskIds
  */
 export const generateMaskOverlay = (
-  masks: Array<{ maskId: string; size: number; binaryMask: SparseBinaryMask }>,
-  width: number,
-  height: number
+  masks: Array<{ maskId: string; size: number; binaryMask: SparseBinaryMask; srcWidth: number; srcHeight: number }>,
+  targetWidth: number,
+  targetHeight: number
 ): MaskOverlay => {
+  console.log(`[generateMaskOverlay] Starting with ${masks.length} masks, target: ${targetWidth}x${targetHeight}`);
+
   // Build maskId array and index lookup map
   const maskIds: string[] = masks.map(m => m.maskId);
   const maskIdToIndex = new Map<string, number>();
   maskIds.forEach((id, idx) => maskIdToIndex.set(id, idx));
 
   // Initialize arrays: mask index at each pixel (-1 = no mask), and current smallest size
-  const totalPixels = Math.max(0, width * height);
+  const totalPixels = Math.max(0, targetWidth * targetHeight);
   const overlayData = new Int32Array(totalPixels);
   overlayData.fill(-1);
   const sizeAtPixel = new Float32Array(totalPixels);
   sizeAtPixel.fill(Number.POSITIVE_INFINITY);
 
   // Process each mask
-  for (const { maskId, size, binaryMask } of masks) {
+  for (const { maskId, size, binaryMask, srcWidth, srcHeight } of masks) {
     const maskIndex = maskIdToIndex.get(maskId);
     if (maskIndex === undefined) continue;
 
+    // Calculate scale factors from source (mask) dimensions to target (overlay) dimensions
+    const scaleX = targetWidth / srcWidth;
+    const scaleY = targetHeight / srcHeight;
+
+    // DEBUG: Log scaling info for each mask
+    const srcPixelCount = Object.values(binaryMask).reduce((sum, cols) => sum + Object.keys(cols).length, 0);
+    console.log(`[generateMaskOverlay] Mask ${maskIndex}: src=${srcWidth}x${srcHeight}, scale=(${scaleX.toFixed(4)}, ${scaleY.toFixed(4)}), srcPixels=${srcPixelCount}`);
+
     for (const [rowKey, cols] of Object.entries(binaryMask)) {
-      const row = parseInt(rowKey, 10);
-      if (row < 0 || row >= height) continue;
+      const srcRow = parseInt(rowKey, 10);
+      if (srcRow < 0 || srcRow >= srcHeight) continue;
+
+      // Scale row to target dimensions
+      const targetRow = Math.floor(srcRow * scaleY);
+      if (targetRow < 0 || targetRow >= targetHeight) continue;
 
       for (const colKey of Object.keys(cols)) {
-        const col = parseInt(colKey, 10);
-        if (col < 0 || col >= width) continue;
+        const srcCol = parseInt(colKey, 10);
+        if (srcCol < 0 || srcCol >= srcWidth) continue;
 
-        const idx = row * width + col;
+        // Scale column to target dimensions
+        const targetCol = Math.floor(srcCol * scaleX);
+        if (targetCol < 0 || targetCol >= targetWidth) continue;
+
+        const idx = targetRow * targetWidth + targetCol;
         // If this mask is smaller than the current one at this pixel, replace it
         if (size < sizeAtPixel[idx]) {
           overlayData[idx] = maskIndex;
@@ -732,9 +750,16 @@ export const generateMaskOverlay = (
     }
   }
 
+  // DEBUG: Count non-empty pixels in overlay
+  let filledPixels = 0;
+  for (let i = 0; i < overlayData.length; i++) {
+    if (overlayData[i] >= 0) filledPixels++;
+  }
+  console.log(`[generateMaskOverlay] Complete: ${targetWidth}x${targetHeight}, totalPixels=${totalPixels}, filledPixels=${filledPixels}`);
+
   return {
-    width,
-    height,
+    width: targetWidth,
+    height: targetHeight,
     maskIds,
     data: Array.from(overlayData),
   };

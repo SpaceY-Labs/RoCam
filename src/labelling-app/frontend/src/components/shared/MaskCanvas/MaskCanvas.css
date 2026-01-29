@@ -14,7 +14,10 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  /* Use 'fill' instead of 'contain' to ensure image fills container exactly.
+     The container's aspect-ratio (set via JS) prevents distortion.
+     'contain' would cause letterboxing that misaligns with the canvas overlay. */
+  object-fit: fill;
 }
 
 .mask-canvas-overlay {

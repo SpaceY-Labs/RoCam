@@ -397,12 +397,15 @@ router.post(
 
         // Create masks and mask map if we have parsed masks
         if (item.parsedMasks && item.parsedMasks.length > 0) {
+          console.log(`[zip upload] Processing ${item.parsedMasks.length} masks for image ${item.fileName}`);
+
           // Collect mask data for overlay generation
-          const maskDataForOverlay: Array<{ maskId: string; size: number; binaryMask: SparseBinaryMask }> = [];
+          const maskDataForOverlay: Array<{ maskId: string; size: number; binaryMask: SparseBinaryMask; srcWidth: number; srcHeight: number }> = [];
           const maskSizes: Record<string, number> = {};
 
           // Create individual mask documents and upload binary to storage
           for (const parsedMask of item.parsedMasks) {
+            console.log(`[zip upload] Parsed mask: ${parsedMask.baseName}, dimensions: ${parsedMask.width}x${parsedMask.height}, maskIndex: ${parsedMask.maskIndex}`);
             const maskId = uuidv4();
             const preparedMask = prepareMaskFromParsed(maskId, parsedMask);
 
@@ -427,7 +430,13 @@ router.post(
               preparedMask.doc.width,
               preparedMask.doc.height
             );
-            maskDataForOverlay.push({ maskId, size: preparedMask.doc.size, binaryMask });
+            maskDataForOverlay.push({
+              maskId,
+              size: preparedMask.doc.size,
+              binaryMask,
+              srcWidth: preparedMask.doc.width,
+              srcHeight: preparedMask.doc.height,
+            });
           }
 
           // Create mask map with maskLabels dictionary
@@ -438,7 +447,9 @@ router.post(
           await uploadColorMap(colorMapStoragePath, {});
 
           // Generate and upload maskOverlay (2D array with smallest mask at each pixel)
+          console.log(`[zip upload] Generating overlay: target=${TARGET_WIDTH}x${TARGET_HEIGHT}, masks=${maskDataForOverlay.length}`);
           const maskOverlay = generateMaskOverlay(maskDataForOverlay, TARGET_WIDTH, TARGET_HEIGHT);
+          console.log(`[zip upload] Overlay generated: ${maskOverlay.width}x${maskOverlay.height}, dataLength=${maskOverlay.data.length}, maskIds=${maskOverlay.maskIds.length}`);
           const maskOverlayStoragePath = buildMaskOverlayStoragePath(projectId, maskMapId);
           await uploadMaskOverlay(maskOverlayStoragePath, maskOverlay);
 

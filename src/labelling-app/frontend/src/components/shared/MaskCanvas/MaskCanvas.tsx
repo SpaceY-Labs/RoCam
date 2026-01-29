@@ -95,6 +95,7 @@ export function MaskCanvas({
 }: MaskCanvasProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const lastLoggedDims = useRef<string>('');
 
   // Cache for parsed hex colors to avoid repeated parsing
   const colorCache = useMemo(() => new Map<string, [number, number, number]>(), []);
@@ -133,6 +134,33 @@ export function MaskCanvas({
 
     const srcWidth = maskOverlay?.width || imageWidth || width;
     const srcHeight = maskOverlay?.height || imageHeight || height;
+
+    // DEBUG: Log dimensions (throttled - only when dimensions change)
+    const dimsKey = `${width}x${height}-${maskOverlay?.width}x${maskOverlay?.height}-${imageWidth}x${imageHeight}`;
+    if (lastLoggedDims.current !== dimsKey) {
+      lastLoggedDims.current = dimsKey;
+      const rect = frame.getBoundingClientRect();
+      const imgElement = frame.querySelector('img');
+      const imgRect = imgElement?.getBoundingClientRect();
+      console.log('[drawOverlay] Dimensions:', {
+        frame: { clientWidth: width, clientHeight: height },
+        boundingRect: { width: rect.width, height: rect.height },
+        maskOverlay: maskOverlay ? { width: maskOverlay.width, height: maskOverlay.height, dataLength: maskOverlay.data?.length } : null,
+        imageProps: { imageWidth, imageHeight },
+        computed: { srcWidth, srcHeight },
+        dpr,
+        canvasActual: { width: canvas.width, height: canvas.height },
+        imgElement: imgElement ? {
+          naturalWidth: imgElement.naturalWidth,
+          naturalHeight: imgElement.naturalHeight,
+          clientWidth: imgElement.clientWidth,
+          clientHeight: imgElement.clientHeight,
+          boundingRect: imgRect ? { width: imgRect.width, height: imgRect.height, left: imgRect.left - rect.left, top: imgRect.top - rect.top } : null,
+        } : null,
+        aspectRatioStyle: frame.style.aspectRatio,
+      });
+    }
+
     if (!srcWidth || !srcHeight) return;
 
     const imageData = ctx.createImageData(width, height);
@@ -177,13 +205,30 @@ export function MaskCanvas({
         const overlayWidth = maskOverlay.width;
         const overlayHeight = maskOverlay.height;
 
+        let sampleLogged = false;
+        let pixelCount = 0;
         for (let i = 0; i < maskOverlay.data.length; i++) {
           if (maskOverlay.data[i] !== highlightIndex) continue;
+          pixelCount++;
 
           const srcY = Math.floor(i / overlayWidth);
           const srcX = i - srcY * overlayWidth;
           const destX = Math.floor((srcX / overlayWidth) * width);
           const destY = Math.floor((srcY / overlayHeight) * height);
+
+          // DEBUG: Log first pixel mapping for this highlight
+          if (!sampleLogged) {
+            console.log('[drawOverlay] Highlight pixel mapping sample:', {
+              maskId: highlightedMaskId,
+              highlightIndex,
+              src: { srcX, srcY, i },
+              dest: { destX, destY },
+              scale: { xScale: width / overlayWidth, yScale: height / overlayHeight },
+              overlay: { overlayWidth, overlayHeight },
+              canvas: { width, height },
+            });
+            sampleLogged = true;
+          }
 
           if (destX < 0 || destX >= width || destY < 0 || destY >= height) continue;
 
@@ -193,6 +238,7 @@ export function MaskCanvas({
           data[dest + 2] = b;
           data[dest + 3] = highlightAlpha;
         }
+        console.log('[drawOverlay] Highlight total pixels:', { maskId: highlightedMaskId, pixelCount });
       }
     }
 
@@ -249,6 +295,9 @@ export function MaskCanvas({
       const idx = row * maskOverlay.width + col;
       const maskIndex = maskOverlay.data[idx];
 
+      // DEBUG: Log click position mapping (throttled - only on actual clicks, not mouse moves)
+      // This log will show in handleClick, not handleMouseMove
+
       if (maskIndex === undefined || maskIndex < 0) return null;
       return maskOverlay.maskIds[maskIndex] ?? null;
     },
@@ -273,9 +322,28 @@ export function MaskCanvas({
     (event: React.MouseEvent<HTMLDivElement>) => {
       if (!interactive || !onClick) return;
       const maskId = getMaskAtPosition(event.clientX, event.clientY);
+
+      // DEBUG: Log click details
+      if (maskOverlay && frameRef.current) {
+        const rect = frameRef.current.getBoundingClientRect();
+        const relativeX = (event.clientX - rect.left) / rect.width;
+        const relativeY = (event.clientY - rect.top) / rect.height;
+        const col = Math.floor(relativeX * maskOverlay.width);
+        const row = Math.floor(relativeY * maskOverlay.height);
+        const idx = row * maskOverlay.width + col;
+        console.log('[handleClick] Click:', {
+          client: { x: event.clientX, y: event.clientY },
+          rect: { width: rect.width, height: rect.height },
+          relative: { x: relativeX.toFixed(4), y: relativeY.toFixed(4) },
+          maskCoords: { col, row, idx },
+          overlay: { width: maskOverlay.width, height: maskOverlay.height },
+          result: { maskId, maskIndex: maskOverlay.data[idx] },
+        });
+      }
+
       onClick(maskId, event);
     },
-    [interactive, onClick, getMaskAtPosition]
+    [interactive, onClick, getMaskAtPosition, maskOverlay]
   );
 
   // ============ Render ============
