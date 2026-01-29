@@ -281,7 +281,7 @@ def main() -> None:
 
     threshold = max(0, min(255, args.threshold))
 
-    source_dir = Path(r"C:\Year4\4G06\project-folder\vision-guided-tracker\src\labelling_app\sample_img")
+    source_dir = Path(r"C:\Personal-Project\vision-guided-tracker\src\cv\data\MOT20\MOT20\sample_img")
 
     if not source_dir.is_dir():
         raise SystemExit("Source must be a directory containing images.")
