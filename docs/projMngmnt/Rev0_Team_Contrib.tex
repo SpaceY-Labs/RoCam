@@ -7,7 +7,7 @@
 
 \usepackage{booktabs}
 
-\title{Team Contributions: Rev0\\\progname}
+\title{Team Contributions: Rev 0\\\progname}
 
 \author{\authname}
 
@@ -28,7 +28,7 @@ Demo. The time period of interest is the time between the PoC demo and the Rev
 
 \includegraphics[width=0.5\linewidth]{../../img/prototype.png}
 
-We will present the proof-of-concept demonstration according to the plan in the
+We will present the Rev 0 demonstration according to the plan in the
 Development Plan document. One of the team members will be in charge of the
 demonstration.
 
@@ -93,8 +93,7 @@ demonstration.
   \href{https://calendar.google.com/calendar/u/0/embed?src=rnboqiaki1k2la7rpu3bn0um58@group.calendar.google.com&ctz=America/Toronto}
   {Google calendar} for the capstone course.}
 
-\wss{NOTE: There will be approximately 13 lectures between the start of class
-  and the POC demos}
+\wss{NOTE: There will be approximately 1 lecture between the POC and Rev0 demos}
 
 \begin{table}[H]
   \centering
@@ -189,12 +188,14 @@ training scripts and experiment summaries will be upstreamed in subsequent PRs.
 \noindent\textit{Notes.}
 \begin{itemize}
   \item \textbf{Counting rule:} “Authored (O+C)” counts issues opened by a member (open or closed). “Assigned (C only)” counts issues where the member was the assignee at closure.
-  \item \textbf{Role-based workflow:} During the POC period, Jianqing Liu (project manager, “Pega”) centrally opened, assigned, and closed most issues based on team decisions captured in meeting notes; hence his “Authored” count is higher.
+  \item \textbf{Role-based workflow:} During the rev 0 period, Jianqing Liu (project manager, “Pega”) centrally opened, assigned, and closed most issues based on team decisions captured in meeting notes; hence his “Authored” count is higher.
   \item \textbf{Credit vs.\ logistics:} Centralized opening/closing is administrative. Actual implementation credit is reflected in commits, PRs, and code reviews; an issue can have multiple contributors beyond the final assignee.
   \item \textbf{Assignment semantics:} Ownership may change during an issue’s lifetime; we attribute “Assigned (C only)” to the final assignee at closure to represent delivery responsibility.
 \end{itemize}
 
 \section{CICD}
+
+\wss{Say how CICD is used in your project}
 
 We use GitHub Actions with four workflows that cover documentation, firmware,
 and the operator UI.
@@ -219,7 +220,7 @@ with \texttt{npm ci}; a lightweight \texttt{ci:smoke} runs on every change.
 Unit tests and production build currently run in \emph{best-effort} mode
 (non-blocking), and any build artifacts are uploaded when present.
 
-By POC close, we will deliver substantially deeper, React-focused UI tests
+By rev 0 close, we will deliver substantially deeper, React-focused UI tests
 (components, hooks, interactions) if we finish full stack intergration.
 \begin{itemize}
   \item \textbf{Component tests} with React Testing Library + Jest/Vitest: role-based queries (no test-ids), user interactions via \texttt{@testing-library/user-event}, keyboard/focus flows, and accessibility checks with \texttt{jest-axe}.
@@ -249,7 +250,7 @@ By POC close, we will deliver substantially deeper, React-focused UI tests
   \item \textbf{Underperformance trigger:} if a member underdelivers for $>$3 weeks, initiate pairing/guardrails and, if needed, escalate to TA/instructor.
 \end{itemize}
 
-\subsection*{Violations Observed During the POC Period}
+\subsection*{Violations Observed During the rev 0 Period}
 None observed. All members met the charter triggers: weekly meetings were held
 with advance notice for any conflicts; PRs referenced issues and passed CI;
 review comments were addressed within the 7-day SLA; documentation built
