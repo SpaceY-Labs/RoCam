@@ -197,8 +197,8 @@ training scripts and experiment summaries will be upstreamed in subsequent PRs.
 
 \wss{Say how CICD is used in your project}
 
-We use GitHub Actions with four workflows that cover documentation, firmware,
-and the operator UI.
+We use GitHub Actions with five workflows that cover documentation, firmware,
+backend, and the operator UI.
 
 \paragraph{build-tex (push to \texttt{main}, \texttt{docs/**}, or manual)}
 Compiles LaTeX with TeX~Live~2025 on Ubuntu and commits the built PDFs back to the repository.
@@ -213,6 +213,9 @@ This keeps the documentation reproducible and consistently formatted.
 \paragraph{firmware-ci (push/PR under \texttt{src/pcb-firmware/**})}
 Builds the embedded firmware with Cargo on Ubuntu and uploads the resulting binary as an artifact.
 The job also enforces Rust source formatting via \texttt{cargo fmt --check}.
+
+\paragraph{backend-ci (pull requests touching \texttt{src/backend/**})}
+Runs backend lint checks on Ubuntu using Python~3.10 with pip dependency caching. The workflow installs dependencies from \texttt{src/backend/requirement.txt} (excluding any pinned \texttt{pip} line) and performs a basic syntax check via \texttt{python -m compileall -q .} in \texttt{src/backend}. This helps catch Python syntax errors early before merging.
 
 \paragraph{react-ci (push/PR for the React app)}
 Builds and smoke-tests the operator UI on Node~20. Dependencies are installed
