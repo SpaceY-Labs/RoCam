@@ -1,7 +1,16 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # Navigate to the same directory as this script
 cd "$(dirname "$0")"
+
+# Cleanup function that runs when the script exits (including Ctrl+C)
+cleanup() {
+    echo "Running cleanup..."
+    python3 src/main.py cleanup
+}
+
+# Trap EXIT to ensure cleanup always runs
+trap cleanup EXIT
 
 # Remove power limit
 sudo nvpmodel -m 2

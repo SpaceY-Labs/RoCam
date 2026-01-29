@@ -49,8 +49,8 @@ class OSDData:
     device_ip_addresses: list[str]
     timestamp_ms: int
     tracking_state: Literal["idle", "armed", "tracking"]
-    longitude: float
-    latitude: float
+    longitude: float | None
+    latitude: float | None
 
 @dataclass
 class PreviewData:

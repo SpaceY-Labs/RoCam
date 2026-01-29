@@ -1,6 +1,8 @@
 import os
 import time
 import json
+import textwrap
+from datetime import datetime
 import pyds
 import threading
 from dataclasses import asdict
@@ -71,7 +73,7 @@ class CVProcess:
             glshader name=shader !
             gldownload !
             video/x-raw,format=RGBA !
-            textoverlay name=osd valignment=top halignment=left font-desc="Sans, 10" draw-outline=0 draw-shadow=0 color=0xFFFF0000 !
+            textoverlay name=osd valignment=bottom halignment=left line-alignment=left font-desc="JetBrains Mono NL, 6" draw-outline=0 draw-shadow=1 color=0xFFFFFFFF !
             video/x-raw,format=RGBA !
             queue max-size-buffers=2 leaky=1 !
             appsink name=livestream-sink emit-signals=true sync=false
@@ -356,15 +358,25 @@ class CVProcess:
 
             logger.info("Recording stopped")
 
+    def _format_time(self, timestamp_ms: int) -> str:
+        dt = datetime.fromtimestamp(timestamp_ms / 1000.0)
+        return dt.strftime("%b %d %Y, %H:%M:%S.") + f"{timestamp_ms % 1000:03d}"
+
     def _update_osd(self, msg: OSDData):
-        status_text = ""
-        if msg.tracking_state == "tracking":
-            status_text = "Tracking"
-        elif msg.tracking_state == "armed":
-            status_text = "Armed"
-        else:
-            status_text = "Idle"
-        self._osd.set_property("text", f"{round(msg.average_fps)}\n{status_text}")  # pyright: ignore[reportOptionalMemberAccess]
+        coordinates_text = "GPS unavailable"
+        if msg.longitude is not None and msg.latitude is not None:
+            coordinates_text = f"GPS: {msg.longitude:.6f}, {msg.latitude:.6f}"
+
+        osd_text = textwrap.dedent(f"""
+            Precision Tracking by RoCam
+            Tilt: {msg.gimbal_tilt_deg:.2f}° Pan: {msg.gimbal_pan_deg:.2f}°
+            {msg.gimbal_focal_length_mm:.0f}mm physical + {msg.scale:.1f}x digital
+            {self._format_time(msg.timestamp_ms)}
+            {coordinates_text}
+            {", ".join(msg.device_ip_addresses)}
+        """).strip()
+
+        self._osd.set_property("text", osd_text)  # pyright: ignore[reportOptionalMemberAccess]
         self._shader.set_property(  # pyright: ignore[reportOptionalMemberAccess]
             "uniforms",
             Gst.Structure.new_from_string(

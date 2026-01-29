@@ -2,8 +2,20 @@ import os
 import logging
 import sys
 
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
+
+def cleanup():
+    from control_process.gimbal import GimbalSerial
+
+    logger.info("Cleaning up.....")
+    gimbal = GimbalSerial(port="/dev/ttyTHS1", baudrate=115200, timeout=0.1)
+    gimbal.move_deg(0, 0)
+    gimbal.arm_led(False)
+    gimbal.status_led(False)
+    gimbal.close()
+
 
 if __name__ == "__main__":
     # Change to project root (one level up from src/)
@@ -29,6 +41,8 @@ if __name__ == "__main__":
     elif sys.argv[1] == "transcode":
         logger.info("Starting transcode process.....")
         pass
+    elif sys.argv[1] == "cleanup":
+        cleanup()
     else:
         logger.warning("Unknown command")
         sys.exit(1)
