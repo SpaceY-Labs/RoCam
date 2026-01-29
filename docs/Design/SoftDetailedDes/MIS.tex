@@ -3582,85 +3582,86 @@ the graduate attribute of Problem Analysis and Design.
 
         \end{itemize}
 
+  \item Reflection on implementing the other group's module:
 
-    \item Reflection on implementing the other group's module:
+        The other group's capstone vision is an AI voice-powered computer for people
+        with disabilities. We were assigned to implement the \textit{User Interface
+          Panel (M9)} module. Their idea was open-ended in a good way, which gave us a
+        lot of space to code and translate their concept into a concrete UI.
 
-    The other group's capstone vision is an AI voice-powered computer for people with
-    disabilities. We were assigned to implement the \textit{User Interface Panel (M9)}
-    module. Their idea was open-ended in a good way, which gave us a lot of space to code
-    and translate their concept into a concrete UI.
-
-    \textbf{what went well:}
-    \begin{itemize}
-    \item The vision and requirements left room for design decisions, so we could propose a clean,
-            user-friendly UI and deliver working screens quickly.
-    \item We kept the UI modular (components + typed state), so it is easy to extend and connect
-            to real backend endpoints later.
-    \item We documented assumptions and integration needs directly in the PR, making handoff clearer.
-    \end{itemize}
-
-    \textbf{Challenges we faced:}
-    \begin{itemize}
-    \item The scope of M9 was hard to define because many UI actions depend on backend APIs.
-    \item We found limited UI documentation and no clear API specification or existing code to
-            integrate with, so we had to use placeholders and mock behaviour.
-    \item Without an agreed API contract, some UI flows (e.g., confirmations, error states, progress)
-            could only be implemented as best-effort defaults.
-    \end{itemize}
-
-    \textbf{How the other team can improve in the future:}
-    \begin{itemize}
-    \item Publish a minimal API contract early (endpoints, request/response examples, error codes),
-            even if the backend is not finished.
-    \item Define UI module boundaries explicitly (what is in M9 vs. backend vs. voice/agent logic),
-            and include acceptance criteria for key user flows.
-    \item Add a short ``integration checklist'' (auth, data shape, loading/error states) so another
-            team can implement UI without guessing.
-    \end{itemize}
-
-    \textbf{What we learned:}
-    \begin{itemize}
-    \item Clear module definition and early interface documentation are essential for parallel work.
-    \item When dependencies are missing, a good fallback is to build a UI skeleton with clean
-            placeholders, typed interfaces, and obvious extension points.
-    \item Writing down assumptions and integration needs in the PR helps reduce ambiguity and makes
-            future integration faster.
-    \end{itemize}
-
-    Below are the frontend files we implemented for the other team (PRs: \url{https://github.com/gkpodder/Capstone/pulls}):
-
+        \textbf{what went well:}
         \begin{itemize}
-        \item \texttt{src/frontend/my-electron-app/}
-        \begin{itemize}
-            \item \textbf{Core app (\texttt{src/})}
-            \begin{itemize}
-            \item \texttt{App.tsx}, \texttt{main.tsx}
-            \item \texttt{types.ts}, \texttt{constants.ts}
-            \item \texttt{App.css}, \texttt{index.css}
-            \item \texttt{assets/react.svg}
-            \end{itemize}
-
-            \item \textbf{API mock (\texttt{src/api/})}
-            \begin{itemize}
-            \item \texttt{API.js}, \texttt{API.d.ts}
-            \end{itemize}
-
-            \item \textbf{UI components (\texttt{src/components/})}
-            \begin{itemize}
-            \item \texttt{TopBar.tsx}, \texttt{CommandPanel.tsx}, \texttt{TranscriptPanel.tsx}
-            \item \texttt{ApprovalCard.tsx}, \texttt{ActionRow.tsx}
-            \end{itemize}
-
-            \item \textbf{Project config}
-            \begin{itemize}
-            \item \texttt{index.html}, \texttt{package.json}, \texttt{package-lock.json}
-            \item \texttt{vite.config.ts}, \texttt{eslint.config.js}
-            \item \texttt{tsconfig.json}, \texttt{tsconfig.app.json}, \texttt{tsconfig.node.json}
-            \end{itemize}
-        \end{itemize}
+          \item The vision and requirements left room for design decisions, so we could propose
+                a clean, user-friendly UI and deliver working screens quickly.
+          \item We kept the UI modular (components + typed state), so it is easy to extend and
+                connect to real backend endpoints later.
+          \item We documented assumptions and integration needs directly in the PR, making
+                handoff clearer.
         \end{itemize}
 
+        \textbf{Challenges we faced:}
+        \begin{itemize}
+          \item The scope of M9 was hard to define because many UI actions depend on backend
+                APIs.
+          \item We found limited UI documentation and no clear API specification or existing
+                code to integrate with, so we had to use placeholders and mock behaviour.
+          \item Without an agreed API contract, some UI flows (e.g., confirmations, error
+                states, progress) could only be implemented as best-effort defaults.
+        \end{itemize}
 
+        \textbf{How the other team can improve in the future:}
+        \begin{itemize}
+          \item Publish a minimal API contract early (endpoints, request/response examples,
+                error codes), even if the backend is not finished.
+          \item Define UI module boundaries explicitly (what is in M9 vs. backend vs.
+                voice/agent logic), and include acceptance criteria for key user flows.
+          \item Add a short ``integration checklist'' (auth, data shape, loading/error states)
+                so another team can implement UI without guessing.
+        \end{itemize}
+
+        \textbf{What we learned:}
+        \begin{itemize}
+          \item Clear module definition and early interface documentation are essential for
+                parallel work.
+          \item When dependencies are missing, a good fallback is to build a UI skeleton with
+                clean placeholders, typed interfaces, and obvious extension points.
+          \item Writing down assumptions and integration needs in the PR helps reduce ambiguity
+                and makes future integration faster.
+        \end{itemize}
+
+        Below are the frontend files we implemented for the other team (PRs:
+        \url{https://github.com/gkpodder/Capstone/pulls}):
+
+        \begin{itemize}
+          \item \texttt{src/frontend/my-electron-app/}
+                \begin{itemize}
+                  \item \textbf{Core app (\texttt{src/})}
+                        \begin{itemize}
+                          \item \texttt{App.tsx}, \texttt{main.tsx}
+                          \item \texttt{types.ts}, \texttt{constants.ts}
+                          \item \texttt{App.css}, \texttt{index.css}
+                          \item \texttt{assets/react.svg}
+                        \end{itemize}
+
+                  \item \textbf{API mock (\texttt{src/api/})}
+                        \begin{itemize}
+                          \item \texttt{API.js}, \texttt{API.d.ts}
+                        \end{itemize}
+
+                  \item \textbf{UI components (\texttt{src/components/})}
+                        \begin{itemize}
+                          \item \texttt{TopBar.tsx}, \texttt{CommandPanel.tsx}, \texttt{TranscriptPanel.tsx}
+                          \item \texttt{ApprovalCard.tsx}, \texttt{ActionRow.tsx}
+                        \end{itemize}
+
+                  \item \textbf{Project config}
+                        \begin{itemize}
+                          \item \texttt{index.html}, \texttt{package.json}, \texttt{package-lock.json}
+                          \item \texttt{vite.config.ts}, \texttt{eslint.config.js}
+                          \item \texttt{tsconfig.json}, \texttt{tsconfig.app.json}, \texttt{tsconfig.node.json}
+                        \end{itemize}
+                \end{itemize}
+        \end{itemize}
 
 \end{enumerate}
 
