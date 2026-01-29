@@ -1,6 +1,7 @@
 import logging
 import time
 import threading
+from control_process.database import RecordingDatabase
 from common.ipc import BoundingBox, CVData, OSDData, PreviewData
 from common.ipc_buffer import cleanup_shared_memory
 from common.utils import ip4_addresses, set_scheduler_other
@@ -60,6 +61,9 @@ class StateManagement:
             target=self._blink_status_led, daemon=True
         )
         self._status_led_thread.start()
+
+        self.database = RecordingDatabase(base_path="/mnt/data/data")
+        self._in_progress_recording_id = None
 
         self._gimbal_lock = threading.Lock()
         self._last_gimbal_measure_time = 0.0
@@ -186,6 +190,7 @@ class StateManagement:
                 "pan": pan,
                 "preview": latest_preview_frame,
                 "bbox": bbox,
+                "is_recording": self._in_progress_recording_id is not None,
             }
         except Exception as e:
             logger.error(f"Error reading status: {e}")
@@ -195,6 +200,7 @@ class StateManagement:
                 "pan": None,
                 "preview": latest_preview_frame,
                 "bbox": bbox,
+                "is_recording": self._in_progress_recording_id is not None,
             }
 
     def manual_move(self, direction: str):
@@ -233,3 +239,12 @@ class StateManagement:
             self._gimbal.move_deg(new_tilt, new_pan)
         except Exception as e:
             logger.error(f"Error in manual_move_to: {e}")
+    
+    def start_recording(self):
+        recording_info = self.database.allocate_recording()
+        self._cv_process.start_recording(recording_info)
+        self._in_progress_recording_id = recording_info.id
+    
+    def stop_recording(self):
+        self._cv_process.stop_recording()
+        self._in_progress_recording_id = None
