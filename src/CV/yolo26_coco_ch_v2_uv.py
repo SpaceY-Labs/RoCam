@@ -150,10 +150,10 @@ args = dict(
     hsv_h=0.015, hsv_s=0.6, hsv_v=0.4,
 
     # ---- 几何增强（收敛一些，避免把小火箭“增强没了”）----
-    degrees=30,         # 原 180 太激进
-    flipud=0.0,         # 原 0.5 先关掉（上下翻转可能不符合真实分布）
+    degrees=180,         # 原 180 太激进
+    flipud=0.5,         # 原 0.5 先关掉（上下翻转可能不符合真实分布）
     fliplr=0.5,
-    shear=2.0,          # 原 10 太大
+    shear=5.0,          # 原 10 太大
     perspective=0.0002, # 原 0.0005
     translate=0.05,     # 原 0.1
     scale=0.3,          # 原 0.6（过大会更常把目标缩小/出框）
@@ -163,7 +163,7 @@ args = dict(
     mixup=0.10,         # 原 0.05 稍微加一点
     cutmix=0.10,        # ✅ 更适合 detect（copy_paste 对 detect 不一定生效）
     copy_paste=0.0,     # 保留键但置 0，避免误以为 detect 生效
-    close_mosaic=40,    # 原 150 关太早（你总共 420 epoch）
+    close_mosaic=80,    # 原 150 关太早（你总共 420 epoch）
 )
 
 def attach_albumentations_if_available(train_args: dict):
