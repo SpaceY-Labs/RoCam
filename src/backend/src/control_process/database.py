@@ -219,7 +219,7 @@ class RecordingDatabase:
 
     def list_all_recordings(self) -> list[RecordingInfo]:
         """
-        Lists all valid recordings in the base_path.
+        Lists all valid recordings in the base_path, sorted by newest to oldest.
         """
         if not os.path.exists(self._base_path):
             return []
@@ -232,6 +232,12 @@ class RecordingDatabase:
                     info = self.get_recording_by_id(entry.name)
                     if info:
                         recordings.append(info)
+            # Sort by start_timestamp_ms descending (newest first)
+            # None values (in-progress recordings) are treated as newest
+            recordings.sort(
+                key=lambda r: r.start_timestamp_ms if r.start_timestamp_ms is not None else float('inf'),
+                reverse=True
+            )
             return recordings
         except Exception as e:
             logger.error(f"Error listing recordings: {e}")
