@@ -1,6 +1,7 @@
 import logging
 import time
 import threading
+from control_process.database import RecordingDatabase
 from common.ipc import BoundingBox, CVData, OSDData, PreviewData
 from common.ipc_buffer import cleanup_shared_memory
 from common.utils import ip4_addresses, set_scheduler_other
@@ -61,6 +62,9 @@ class StateManagement:
         )
         self._status_led_thread.start()
 
+        self.database = RecordingDatabase(base_path="/mnt/data/data")
+        self._in_progress_recording_id = None
+
         self._gimbal_lock = threading.Lock()
         self._last_gimbal_measure_time = 0.0
         self._last_gimbal_measure = (0.0, 0.0)
@@ -80,14 +84,20 @@ class StateManagement:
         # Need to start live stream process before cv process, due to nvidia driver bug
         self._livestream_process = LivestreamProcessManagement()
         time.sleep(1)
-        self._cv_process = CVProcessManagement(self._on_cvdata, self._on_preview)
+        self._cv_process = CVProcessManagement(
+            self._on_cvdata,
+            self._on_preview,
+            process_restart_callback=self._on_cv_process_restart_during_recording,
+        )
 
     def _refresh_ip_addresses(self):
         set_scheduler_other()
         while True:
             time.sleep(1)
             try:
-                self._device_ip_addresses = [ip for ip in ip4_addresses() if ip != "127.0.0.1"]
+                self._device_ip_addresses = [
+                    ip for ip in ip4_addresses() if ip != "127.0.0.1"
+                ]
             except Exception as e:
                 logger.error(f"Error refreshing IP addresses: {e}")
 
@@ -122,7 +132,7 @@ class StateManagement:
 
             if bbox:
                 tracking_state = "tracking"
-                
+
                 # The calculation here is correct.
                 # It looks weird because the shader's order of operation.
                 cx = bbox.top + bbox.height / 2.0
@@ -134,7 +144,6 @@ class StateManagement:
             else:
                 tracking_state = "armed"
 
-
         tilt, pan = self._gimbal_measure_deg_cached()
 
         osd_data = OSDData(
@@ -145,7 +154,7 @@ class StateManagement:
             average_fps=data.fps,
             gimbal_tilt_deg=tilt,
             gimbal_pan_deg=pan,
-            gimbal_focal_length_mm=24, # Hardcoded for now
+            gimbal_focal_length_mm=24,  # Hardcoded for now
             device_ip_addresses=self._device_ip_addresses,
             timestamp_ms=int(time.time() * 1000),
             tracking_state=tracking_state,
@@ -186,6 +195,7 @@ class StateManagement:
                 "pan": pan,
                 "preview": latest_preview_frame,
                 "bbox": bbox,
+                "is_recording": self._in_progress_recording_id is not None,
             }
         except Exception as e:
             logger.error(f"Error reading status: {e}")
@@ -195,6 +205,7 @@ class StateManagement:
                 "pan": None,
                 "preview": latest_preview_frame,
                 "bbox": bbox,
+                "is_recording": self._in_progress_recording_id is not None,
             }
 
     def manual_move(self, direction: str):
@@ -233,3 +244,23 @@ class StateManagement:
             self._gimbal.move_deg(new_tilt, new_pan)
         except Exception as e:
             logger.error(f"Error in manual_move_to: {e}")
+
+    def start_recording(self):
+        recording_info = self.database.allocate_recording()
+        self._cv_process.start_recording(recording_info)
+        self._in_progress_recording_id = recording_info.id
+
+    def stop_recording(self):
+        self._cv_process.stop_recording()
+        self._in_progress_recording_id = None
+
+    def _on_cv_process_restart_during_recording(self):
+        """Callback when CV process restarts during an active recording."""
+        if self._in_progress_recording_id is not None:
+            logger.info(
+                f"CV process restarted during recording {self._in_progress_recording_id}, re-allocating new recording"
+            )
+            # Re-allocate a new recording and start it
+            recording_info = self.database.allocate_recording()
+            self._cv_process.start_recording(recording_info)
+            self._in_progress_recording_id = recording_info.id

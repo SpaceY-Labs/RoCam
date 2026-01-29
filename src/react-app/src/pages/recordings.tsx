@@ -61,7 +61,7 @@ export default function RecordingsPage() {
 
   const handleDelete = async (r: Recording) => {
     if (!apiClient) return
-    if (!confirm(`Delete "${r.filename}"? This cannot be undone.`)) return
+    if (!confirm(`Delete "${r.name}"? This cannot be undone.`)) return
 
     try {
       await apiClient.deleteRecording(r.id)
@@ -120,26 +120,26 @@ function RecordingItem({
   onRename,
   onDelete,
 }: RecordingItemProps) {
-  const [filenameDraft, setFilenameDraft] = useState(r.filename)
+  const [filenameDraft, setFilenameDraft] = useState(r.name)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
   // Keep draft in sync if r.filename changes externally
   useEffect(() => {
-    setFilenameDraft(r.filename)
-  }, [r.filename])
+    setFilenameDraft(r.name)
+  }, [r.name])
 
   const handleSave = async () => {
     const trimmed = filenameDraft.trim()
-    if (!trimmed || trimmed === r.filename || isSaving) {
-      setFilenameDraft(r.filename) // Reset if empty or unchanged
+    if (!trimmed || trimmed === r.name || isSaving) {
+      setFilenameDraft(r.name) // Reset if empty or unchanged
       return
     }
     setIsSaving(true)
     try {
       await onRename(r.id, trimmed)
     } catch {
-      setFilenameDraft(r.filename) // Revert on error
+      setFilenameDraft(r.name) // Revert on error
     } finally {
       setIsSaving(false)
     }
@@ -173,7 +173,7 @@ function RecordingItem({
                 ;(e.target as HTMLInputElement).blur()
               }
               if (e.key === 'Escape') {
-                setFilenameDraft(r.filename)
+                setFilenameDraft(r.name)
                 ;(e.target as HTMLInputElement).blur()
               }
             }}
@@ -182,15 +182,15 @@ function RecordingItem({
           <div className="flex items-center text-xs text-gray-500 mt-2">
             <div className="flex items-center gap-1 w-38">
               <IconCalendarEvent size={14} />
-              {formatDate(r.createdAt)}
+              {formatDate(r.start_timestamp_ms)}
             </div>
             <div className="flex items-center gap-1 w-16">
               <IconClockHour3 size={14} />
-              {formatDuration(r.durationSeconds)}
+              {formatDuration(r.duration_ms)}
             </div>
             <div className="flex items-center gap-1">
               <IconDeviceSdCard size={14} />
-              {formatBytes(r.sizeBytes)}
+              {formatBytes(r.size_bytes)}
             </div>
           </div>
         </div>
@@ -233,9 +233,10 @@ function RecordingItem({
  * UTILS
  */
 
-function formatDate(iso: string) {
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return iso
+function formatDate(timestampMs: number | null) {
+  if (timestampMs === null || !Number.isFinite(timestampMs)) return '--'
+  const d = new Date(timestampMs)
+  if (isNaN(d.getTime())) return '--'
   return d.toLocaleString(undefined, {
     year: 'numeric',
     month: 'numeric',
@@ -245,8 +246,9 @@ function formatDate(iso: string) {
   })
 }
 
-function formatDuration(seconds: number) {
-  if (!Number.isFinite(seconds) || seconds < 0) return '--:--'
+function formatDuration(durationMs: number | null) {
+  if (durationMs === null || !Number.isFinite(durationMs) || durationMs < 0) return '--:--'
+  const seconds = Math.floor(durationMs / 1000)
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`

@@ -54,37 +54,19 @@ def run_api_gateway(state_management: StateManagement):
         state_management.disarm()
         return jsonify({})
 
-    # -------------------------
-    # Recordings endpoints (MOCK IMPLEMENTATION)
-    # -------------------------
-    MOCK_RECORDINGS = [
-        {
-            "id": "mock-1",
-            "filename": "sample_001.mp4",
-            "createdAt": "2026-01-26T10:00:00Z",
-            "durationSeconds": 12.3,
-            "sizeBytes": 15000000,
-        },
-        {
-            "id": "mock-2",
-            "filename": "sample_002.mp4",
-            "createdAt": "2026-01-26T09:00:00Z",
-            "durationSeconds": 45.0,
-            "sizeBytes": 52000000,
-        },
-    ]
-
     @app.post("/api/recordings/start")
     def recordings_start():
+        state_management.start_recording()
         return jsonify({}), 200
 
     @app.post("/api/recordings/stop")
     def recordings_stop():
+        state_management.stop_recording()
         return jsonify({}), 200
 
     @app.get("/api/recordings")
     def recordings_list():
-        return jsonify({"recordings": MOCK_RECORDINGS}), 200
+        return jsonify({"recordings": state_management.database.list_all_recordings()}), 200
 
     @app.patch("/api/recordings/<recordingId>")
     def recordings_rename(recordingId: str):
@@ -94,14 +76,13 @@ def run_api_gateway(state_management: StateManagement):
         if not isinstance(new_name, str):
             return jsonify({"error": "Missing new_name"}), 400
 
-        rec = next((r for r in MOCK_RECORDINGS if r["id"] == recordingId), None)
-        if rec:
-            rec["filename"] = new_name
-            return jsonify({}), 200
-        return jsonify({"error": "Recording not found"}), 404
+        state_management.database.rename_recording(recordingId, new_name)
+        
+        return jsonify({}), 200
 
     @app.delete("/api/recordings/<recordingId>")
     def recordings_delete(recordingId: str):
+        state_management.database.delete_recording(recordingId)
         return jsonify({}), 200
 
     @app.get("/api/recordings/<recordingId>/download")

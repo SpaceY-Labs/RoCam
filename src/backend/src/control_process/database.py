@@ -39,13 +39,15 @@ class RecordingDatabase:
         with open(meta_path, "w") as f:
             json.dump({"name": name}, f)
 
+        video_path = os.path.join(recording_dir, "video.avi")
         return RecordingInfo(
             id=recording_id,
             name=name,
-            start_time=None,
-            duration_seconds=None,
-            video_path=os.path.join(recording_dir, "video.avi"),
+            start_timestamp_ms=None,
+            duration_ms=None,
+            video_path=video_path,
             log_path=os.path.join(recording_dir, "log.txt"),
+            size_bytes=0,
         )
 
     def _validate_id(self, recording_id: str):
@@ -59,11 +61,24 @@ class RecordingDatabase:
         ):
             raise ValueError(f"Invalid recording ID: {recording_id}")
 
+    def _get_size_bytes(self, video_path: str) -> int:
+        """
+        Gets the size of the video file in bytes.
+        Returns 0 if the file doesn't exist.
+        """
+        if os.path.exists(video_path):
+            try:
+                return os.path.getsize(video_path)
+            except OSError as e:
+                logger.warning(f"Error getting size for {video_path}: {e}")
+                return 0
+        return 0
+
     def _get_log_summary(
         self, recording_id: str
-    ) -> tuple[Optional[str], Optional[float]]:
+    ) -> tuple[Optional[int], Optional[int]]:
         """
-        Efficiently gets start_time and duration by reading only the first and last line of the log.
+        Efficiently gets start_timestamp_ms and duration_ms by reading only the first and last line of the log.
         """
         log_path = os.path.join(self._base_path, recording_id, "log.txt")
         if not os.path.exists(log_path) or os.path.getsize(log_path) == 0:
@@ -125,13 +140,9 @@ class RecordingDatabase:
                     if last_ts_ms is None:
                         last_ts_ms = first_ts_ms
 
-            start_time = datetime.fromtimestamp(first_ts_ms / 1000.0).strftime(
-                "%Y-%m-%d %H:%M:%S"
-            )
-            duration_seconds = (
-                (last_ts_ms - first_ts_ms) / 1000.0 if last_ts_ms is not None else 0.0
-            )
-            return start_time, duration_seconds
+            start_timestamp_ms = first_ts_ms
+            duration_ms = (last_ts_ms - first_ts_ms) if last_ts_ms is not None else None
+            return start_timestamp_ms, duration_ms
 
         except (
             json.JSONDecodeError,
@@ -190,15 +201,17 @@ class RecordingDatabase:
             with open(meta_path, "r") as f:
                 meta = json.load(f)
 
-            start_time, duration_seconds = self._get_log_summary(recording_id)
+            start_timestamp_ms, duration_ms = self._get_log_summary(recording_id)
+            size_bytes = self._get_size_bytes(video_path)
 
             return RecordingInfo(
                 id=recording_id,
                 name=meta.get("name", ""),
-                start_time=start_time,
-                duration_seconds=duration_seconds,
+                start_timestamp_ms=start_timestamp_ms,
+                duration_ms=duration_ms,
                 video_path=video_path,
                 log_path=log_path,
+                size_bytes=size_bytes,
             )
         except Exception as e:
             logger.error(f"Error getting recording {recording_id}: {e}")
@@ -206,7 +219,7 @@ class RecordingDatabase:
 
     def list_all_recordings(self) -> list[RecordingInfo]:
         """
-        Lists all valid recordings in the base_path.
+        Lists all valid recordings in the base_path, sorted by newest to oldest.
         """
         if not os.path.exists(self._base_path):
             return []
@@ -219,6 +232,12 @@ class RecordingDatabase:
                     info = self.get_recording_by_id(entry.name)
                     if info:
                         recordings.append(info)
+            # Sort by start_timestamp_ms descending (newest first)
+            # None values (in-progress recordings) are treated as newest
+            recordings.sort(
+                key=lambda r: r.start_timestamp_ms if r.start_timestamp_ms is not None else float('inf'),
+                reverse=True
+            )
             return recordings
         except Exception as e:
             logger.error(f"Error listing recordings: {e}")

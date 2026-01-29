@@ -19,10 +19,10 @@ export type StatusResponse = {
 
 export type Recording = {
   id: string;
-  filename: string;
-  createdAt: string;
-  durationSeconds: number;
-  sizeBytes: number;
+  name: string;
+  start_timestamp_ms: number | null;
+  duration_ms: number | null;
+  size_bytes: number;
 };
 
 export type RecordingStatusResponse = {
