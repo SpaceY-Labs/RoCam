@@ -158,12 +158,7 @@ demonstration.
   \end{tabular}
 \end{table}
 
-\noindent\textit{Notes.} Commit counts reflect merges to the \texttt{main} branch only. During the POC period, Shike Chen and Xiaotian Lou focused on model R\&D and large-scale training/ablation (e.g., DINO and YOLO variants). Much of this work involved exploratory code, training scripts, and logs that reside in experimental/backup branches and on the university H100 “Grace” cluster rather than the repository’s \texttt{main}; as a result, their commit totals under-represent effort. We trained YOLO weights for $>30$ hours and accumulated substantial debugging/tuning experience across software, hardware, and environment layers.
-
-We therefore interpret the raw commit distribution with caution. When
-accounting for model R\&D and training conducted outside \texttt{main}, the
-overall contribution across team members is roughly balanced. Reproducible
-training scripts and experiment summaries will be upstreamed in subsequent PRs.
+\noindent\textit{Notes.} Commit counts reflect merges to the \texttt{main} branch only. During the Rev 0 window, Xiaotian Lou focused primarily on model training and on developing a Jetson-based TensorRT benchmarking pipeline, and Shike Chen focused primarily on the labeling application. Much of this work was device-centric (on-target iterations, data/tooling validation, and benchmark runs) and lived in experimental branches, local device workspaces, or separate work-in-progress changes that were not yet ready to merge into \texttt{main}. As a result, their \texttt{main}-branch commit totals under-represent the effort invested. Integration-ready components and summaries will be upstreamed through PRs as the implementations stabilize.
 
 \section{Issue Tracker}
 
@@ -188,7 +183,7 @@ training scripts and experiment summaries will be upstreamed in subsequent PRs.
 \noindent\textit{Notes.}
 \begin{itemize}
   \item \textbf{Counting rule:} “Authored (O+C)” counts issues opened by a member (open or closed). “Assigned (C only)” counts issues where the member was the assignee at closure.
-  \item \textbf{Role-based workflow:} During the rev 0 period, Jianqing Liu (project manager, “Pega”) centrally opened, assigned, and closed most issues based on team decisions captured in meeting notes; hence his “Authored” count is higher.
+  \item \textbf{Role-based workflow:} During the Rev 0 period, Jianqing Liu (project manager, “Pega”) centrally opened, assigned, and closed most issues based on team decisions captured in meeting notes; hence his “Authored” count is higher.
   \item \textbf{Credit vs.\ logistics:} Centralized opening/closing is administrative. Actual implementation credit is reflected in commits, PRs, and code reviews; an issue can have multiple contributors beyond the final assignee.
   \item \textbf{Assignment semantics:} Ownership may change during an issue’s lifetime; we attribute “Assigned (C only)” to the final assignee at closure to represent delivery responsibility.
 \end{itemize}
@@ -223,7 +218,7 @@ with \texttt{npm ci}; a lightweight \texttt{ci:smoke} runs on every change.
 Unit tests and production build currently run in \emph{best-effort} mode
 (non-blocking), and any build artifacts are uploaded when present.
 
-By rev 0 close, we will deliver substantially deeper, React-focused UI tests
+By Rev 0 close, we will deliver substantially deeper, React-focused UI tests
 (components, hooks, interactions) if we finish full stack intergration.
 \begin{itemize}
   \item \textbf{Component tests} with React Testing Library + Jest/Vitest: role-based queries (no test-ids), user interactions via \texttt{@testing-library/user-event}, keyboard/focus flows, and accessibility checks with \texttt{jest-axe}.
@@ -249,11 +244,11 @@ By rev 0 close, we will deliver substantially deeper, React-focused UI tests
   \item \textbf{PR/issue hygiene:} every task has a GitHub issue with an owner and estimate; all code changes go through PRs that reference an issue; no direct pushes to \texttt{main}.
   \item \textbf{Review SLA \& CI gates:} at least one reviewer approval; address review comments within 7 days (unless a different SLA is agreed); CI must be green (docs build, firmware build, UI smoke).
   \item \textbf{Documentation standards:} LaTeX compiles reproducibly on CI; PDFs are published on \texttt{main}; \texttt{latexindent} enforces consistent formatting on PRs.
-  \item \textbf{Runtime KPIs (demo readiness):} track end-to-end latency (p50/p95), FPS, target re-acquisition time, crash-free session rate, and UI task success; for the POC demo we target $\sim$100--500\,ms latency, $\geq$15\,FPS, and $\leq$2\,s re-acquisition.
+  \item \textbf{Runtime KPIs (demo readiness):} track end-to-end latency (p50/p95), FPS, target re-acquisition time, crash-free session rate, and UI task success; for the PoC demo we target $\sim$100--500\,ms latency, $\geq$15\,FPS, and $\leq$2\,s re-acquisition.
   \item \textbf{Underperformance trigger:} if a member underdelivers for $>$3 weeks, initiate pairing/guardrails and, if needed, escalate to TA/instructor.
 \end{itemize}
 
-\subsection*{Violations Observed During the rev 0 Period}
+\subsection*{Violations Observed During the Rev 0 Period}
 None observed. All members met the charter triggers: weekly meetings were held
 with advance notice for any conflicts; PRs referenced issues and passed CI;
 review comments were addressed within the 7-day SLA; documentation built
