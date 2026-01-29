@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["MKL_THREADING_LAYER"] = "GNU"
 os.environ["OMP_NUM_THREADS"] = "16"
@@ -131,7 +131,7 @@ args = dict(
     batch=batch,
     epochs=420,
     cache='disk',
-    device="0,1,2,3",
+    device="0",
     workers=8,
     amp=True,
 
