@@ -3584,23 +3584,54 @@ the graduate attribute of Problem Analysis and Design.
 
 
     \item Reflection on implementing the other group's module:\\
-        The other group's capstone vision is an AI voice-powered computer for
-        people with disabilities. Our team is fascinated by their vision because this
-        is our top backup project. The module our team was assigned to implement was the
-        entire UI of the AI voice-powered computer. Our team was confused at first
-        because the entire UI is not traditionally considered to be a module. We began
-        by searching through relevant documentation about the UI requirements and API
-        specifications or code. Unfortunately, we found only minimal UI documentation
-        and no API documentation or code implementation. Despite the lack of
-        information, our team decided to move forward and implement a UI to the best of
-        our ability based on the existing requirements documents. After the feature was
-        done, we opened a PR and left a comment outlining the lack of documentation
-        during our implementation. At the time of writing this reflection, the other group
-        is unresponsive to our comments. Overall, we understood the importance of clear
-        documentation and module definition when working on a collaborative project, since
-        it is difficult to implement a feature that is not properly specified and when
-        communication is ineffective. We also learned that it is important to consider
-        module size to properly distribute workloads.
+        The other group's capstone vision is an AI voice-powered computer for people with
+        disabilities. We were assigned to implement the \textit{User Interface Panel (M9)}
+        module. Their idea was open-ended in a good way, which gave us a lot of space to code
+        and translate their concept into a concrete UI.
+
+        When we started, it was hard to tell the exact scope of M9 because many UI actions
+        depend on backend APIs. We checked their documents, but we only found limited UI
+        details and no clear API specification or existing code to connect to. Because of
+        time constraints, we implemented a reasonable UI based on the requirements we had and
+        made the API calls a clean placeholder so it can be connected later. We also opened a
+        PR and left notes on what endpoints and behaviours would be needed for full
+        integration. This reminded us that clear module boundaries and early API contracts
+        make collaboration much easier.
+
+        Below are the frontend files we implemented for the other team (PRs: \url{https://github.com/gkpodder/Capstone/pulls}):
+
+        \begin{itemize}
+        \item \texttt{src/frontend/my-electron-app/}
+        \begin{itemize}
+            \item \textbf{Core app (\texttt{src/})}
+            \begin{itemize}
+            \item \texttt{App.tsx}, \texttt{main.tsx}
+            \item \texttt{types.ts}, \texttt{constants.ts}
+            \item \texttt{App.css}, \texttt{index.css}
+            \item \texttt{assets/react.svg}
+            \end{itemize}
+
+            \item \textbf{API mock (\texttt{src/api/})}
+            \begin{itemize}
+            \item \texttt{API.js}, \texttt{API.d.ts}
+            \end{itemize}
+
+            \item \textbf{UI components (\texttt{src/components/})}
+            \begin{itemize}
+            \item \texttt{TopBar.tsx}, \texttt{CommandPanel.tsx}, \texttt{TranscriptPanel.tsx}
+            \item \texttt{ApprovalCard.tsx}, \texttt{ActionRow.tsx}
+            \end{itemize}
+
+            \item \textbf{Project config}
+            \begin{itemize}
+            \item \texttt{index.html}, \texttt{package.json}, \texttt{package-lock.json}
+            \item \texttt{vite.config.ts}, \texttt{eslint.config.js}
+            \item \texttt{tsconfig.json}, \texttt{tsconfig.app.json}, \texttt{tsconfig.node.json}
+            \end{itemize}
+        \end{itemize}
+        \end{itemize}
+
+
 
 \end{enumerate}
 
