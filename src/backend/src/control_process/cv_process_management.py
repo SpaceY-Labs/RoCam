@@ -2,7 +2,14 @@ from multiprocessing.connection import Connection
 import logging
 from cv_process.main import CV_SOCKET_PATH
 import threading
-from common.ipc import OSDData, PreviewData, RecordingInfo, StopRecording, create_rocam_ipc_server, CVData
+from common.ipc import (
+    OSDData,
+    PreviewData,
+    RecordingInfo,
+    StopRecording,
+    create_rocam_ipc_server,
+    CVData,
+)
 from common.watchdog import Watchdog
 import subprocess
 
@@ -11,10 +18,11 @@ logger = logging.getLogger(__name__)
 
 class CVProcessManagement:
     # will return after the cv process is up and fully running
-    def __init__(self, cvdata_callback, preview_callback):
+    def __init__(self, cvdata_callback, preview_callback, process_restart_callback):
         self._conn: Connection | None = None
         self._cvdata_callback = cvdata_callback
         self._preview_callback = preview_callback
+        self._process_restart_callback = process_restart_callback
 
         self._ipc_server = create_rocam_ipc_server(CV_SOCKET_PATH)
         self._current_process: subprocess.Popen | None = None
@@ -35,6 +43,8 @@ class CVProcessManagement:
 
             logger.info("Waiting for CV process to initialize.....")
             self._conn = self._ipc_server.accept()
+
+            self._process_restart_callback()
 
             threading.Thread(target=self._recv_loop, daemon=True).start()
 
@@ -57,8 +67,10 @@ class CVProcessManagement:
                 if isinstance(data, CVData):
                     if not self._first_cvdata_received:
                         self._first_cvdata_received = True
-                        logger.info("First CVData received, starting timeout monitoring")
-                    
+                        logger.info(
+                            "First CVData received, starting timeout monitoring"
+                        )
+
                     self._watchdog.refresh()
                     self._cvdata_callback(data)
                 elif isinstance(data, PreviewData):

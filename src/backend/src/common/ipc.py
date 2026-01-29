@@ -59,8 +59,13 @@ class PreviewData:
 
 @dataclass
 class RecordingInfo:
+    id: str
+    name: str
+    start_timestamp_ms: Optional[int]
+    duration_ms: Optional[int]
     video_path: str
     log_path: str
+    size_bytes: int
 
 @dataclass
 class StopRecording:
