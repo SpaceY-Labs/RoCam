@@ -6,6 +6,7 @@ uniform sampler2D tex;
 uniform float tx;
 uniform float ty;
 uniform float scale;
+uniform int step_size;
 
 // this shader performs these operations in order:
 // 1. translate by (tx, ty)
@@ -13,7 +14,6 @@ uniform float scale;
 // 3. scale by s around center
 void main() {
     float pixel_size_x = 1.0 / 1920.0;
-    float pixel_size_y = 1.0 / 1080.0;
     float cw = 9.0 / 16.0;
     float bw = (1.0 - cw) * 0.5;
     float ch = 16.0 / 9.0;
@@ -38,7 +38,7 @@ void main() {
 
         vec4 accum = vec4(0.0);
         float count = 0.0;
-        for (int i = -50; i <= 50; i += 5) {
+        for (int i = -50; i <= 50; i += step_size) {
             float sampleX = x0 + float(i) * pixel_size_x / scale;
 
             vec2 src;

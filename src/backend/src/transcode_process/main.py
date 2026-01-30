@@ -27,6 +27,8 @@ class TranscodeProcess:
         destination_path: str,
     ):
         self._mode = mode
+        self._step_size = 1 if mode == "download-stabilized" else 5
+
         self._osd_data_list = self._read_log(log_path)
         self._osd_data_pointer = 0
 
@@ -92,13 +94,15 @@ class TranscodeProcess:
         self._shader.set_property(
             "fragment",
             open(
-                os.path.join(os.path.dirname(__file__), "shader.frag")
+                os.path.join(
+                    os.path.dirname(__file__), "..", "cv_process", "shader.frag"
+                )
             ).read(),
         )
         self._shader.set_property(
             "uniforms",
             Gst.Structure.new_from_string(
-                "uniforms, tx=(float)0.0, ty=(float)0.0, scale=(float)1.0"
+                f"uniforms, tx=(float)0.0, ty=(float)0.0, scale=(float)1.0, step_size=(int){self._step_size}"
             ),
         )
 
@@ -163,7 +167,7 @@ class TranscodeProcess:
         elif self._mode == "download-stabilized":
             self._osd_data_pointer += 1
 
-        update_osd(self._osd, self._shader, osd_data)
+        update_osd(self._osd, self._shader, osd_data, step_size=self._step_size)
 
         return Gst.PadProbeReturn.OK
 

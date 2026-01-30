@@ -1,6 +1,8 @@
+import fcntl
 import logging
 import os
 from pathlib import Path
+import select
 import subprocess
 import time
 
@@ -107,87 +109,6 @@ def run_api_gateway(
         state_management.database.delete_recording(recordingId)
         return jsonify({}), 200
 
-    def _create_named_pipe(recording_id: str):
-        """Create a unique named pipe and return its path."""
-        pipe_name = f"rocam-transcode-{recording_id}-{time.time_ns()}.pipe"
-        pipe_path = os.path.join("/tmp", pipe_name)
-
-        os.mkfifo(pipe_path)
-        return pipe_path
-
-    def _cleanup_pipe(pipe_path: str):
-        """Remove the named pipe."""
-        try:
-            if os.path.exists(pipe_path):
-                os.unlink(pipe_path)
-        except OSError:
-            pass
-
-    def _stream_from_transcode_process(mode: TranscodeMode, recording: RecordingInfo):
-        pipe_path = _create_named_pipe(recording.id)
-        logger.info(f"Created pipe: {pipe_path}")
-
-        process = None
-        pipe_fd = None
-
-        try:
-            # Start the pipeline subprocess via main.py
-            process = subprocess.Popen(
-                [
-                    "python3",
-                    "src/main.py",
-                    mode,
-                    recording.video_path,
-                    recording.log_path,
-                    pipe_path,
-                ],
-            )
-
-            # Open pipe for reading (this blocks until writer opens it)
-            pipe_fd = os.open(pipe_path, os.O_RDONLY)
-            logger.info("Pipe opened, streaming...")
-
-            bytes_read = 0
-            while True:
-                # Read chunks from the pipe
-                chunk = os.read(pipe_fd, 65536)  # 64KB chunks
-                if not chunk:
-                    # EOF - pipeline finished
-                    logger.info(f"EOF from pipe. Total bytes read: {bytes_read}")
-                    break
-                bytes_read += len(chunk)
-                yield chunk
-
-        except GeneratorExit:
-            logger.info("Browser disconnected!")
-            raise
-        except Exception as e:
-            logger.error(f"Unknown transcoding error: {e}")
-            raise
-        finally:
-            # Clean up
-            logger.info("Cleaning up transcode process...")
-
-            # Close the pipe (this will cause the pipeline to get BrokenPipeError)
-            if pipe_fd is not None:
-                try:
-                    os.close(pipe_fd)
-                except:
-                    pass
-
-            # Wait for process to finish (with timeout)
-            if process is not None:
-                try:
-                    process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    logger.warning("Transcode process didn't exit, killing...")
-                    process.kill()
-                    process.wait()
-
-            # Remove the named pipe
-            _cleanup_pipe(pipe_path)
-            logger.info("Transcode cleanup complete.")
-
     @app.get("/api/recordings/<recordingId>/preview-stabilized")
     def preview_stabilized(recordingId: str):
         recording = state_management.database.get_recording_by_id(recordingId)
@@ -233,3 +154,127 @@ def run_api_gateway(
             return send_from_directory(FRONTEND_DIR, "index.html")
 
     app.run(host="0.0.0.0", port=80, debug=False)
+
+
+def _create_named_pipe(recording_id: str):
+    """Create a unique named pipe and return its path."""
+    pipe_name = f"rocam-transcode-{recording_id}-{time.time_ns()}.pipe"
+    pipe_path = os.path.join("/tmp", pipe_name)
+
+    os.mkfifo(pipe_path)
+    return pipe_path
+
+
+def _cleanup_pipe(pipe_path: str):
+    """Remove the named pipe."""
+    try:
+        if os.path.exists(pipe_path):
+            os.unlink(pipe_path)
+    except OSError:
+        pass
+
+
+def _stream_from_transcode_process(mode: TranscodeMode, recording: RecordingInfo):
+    pipe_path = _create_named_pipe(recording.id)
+    logger.info(f"Created pipe: {pipe_path}")
+
+    process = None
+    pipe_fd = None
+
+    try:
+        # Start the pipeline subprocess via main.py
+        process = subprocess.Popen(
+            [
+                "python3",
+                "src/main.py",
+                mode,
+                recording.video_path,
+                recording.log_path,
+                pipe_path,
+            ],
+        )
+
+        # Open pipe for reading in non-blocking mode
+        pipe_fd = os.open(pipe_path, os.O_RDONLY | os.O_NONBLOCK)
+        logger.info("Pipe opened (non-blocking), waiting for writer...")
+
+        # Wait for pipe to become readable with timeout (30 seconds)
+        # Also monitor process to detect early failures
+        timeout_seconds = 30
+        start_time = time.time()
+        pipe_ready = False
+
+        while not pipe_ready:
+            # Check if process has already failed
+            return_code = process.poll()
+            if return_code is not None:
+                # Process exited before opening pipe
+                error_msg = f"Transcode process exited with code {return_code} before opening pipe"
+                logger.error(error_msg)
+                raise RuntimeError(error_msg)
+
+            # Check if pipe is readable using select
+            try:
+                ready, _, _ = select.select([pipe_fd], [], [], 0.1)
+                if ready:
+                    pipe_ready = True
+                    logger.info("Pipe writer connected, streaming...")
+                    break
+            except OSError as e:
+                # Pipe might have been closed or is invalid
+                error_msg = f"Error waiting for pipe: {e}"
+                logger.error(error_msg)
+                raise RuntimeError(error_msg) from e
+
+            # Check timeout
+            elapsed = time.time() - start_time
+            if elapsed >= timeout_seconds:
+                error_msg = f"Timeout waiting for transcode process to open pipe after {timeout_seconds}s"
+                logger.error(error_msg)
+                raise TimeoutError(error_msg)
+
+        # Switch to blocking mode for actual reading
+        # Get current flags and remove NONBLOCK
+        flags = fcntl.fcntl(pipe_fd, fcntl.F_GETFL)
+        fcntl.fcntl(pipe_fd, fcntl.F_SETFL, flags & ~os.O_NONBLOCK)
+
+        bytes_read = 0
+        while True:
+            # Read chunks from the pipe
+            chunk = os.read(pipe_fd, 65536)  # 64KB chunks
+            if not chunk:
+                # EOF - pipeline finished
+                logger.info(f"EOF from pipe. Total bytes read: {bytes_read}")
+                break
+            bytes_read += len(chunk)
+            yield chunk
+
+    except GeneratorExit:
+        logger.info("Browser disconnected!")
+        raise
+    except Exception as e:
+        logger.error(f"Unknown transcoding error: {e}")
+        raise
+    finally:
+        # Clean up
+        logger.info("Cleaning up transcode process...")
+
+        # Close the pipe (this will cause the pipeline to get BrokenPipeError)
+        if pipe_fd is not None:
+            try:
+                os.close(pipe_fd)
+            except OSError:
+                pass
+
+        # Wait for process to finish (with timeout)
+        if process is not None:
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                logger.warning("Transcode process didn't exit, killing...")
+                process.kill()
+                process.wait()
+
+        # Remove the named pipe
+        _cleanup_pipe(pipe_path)
+        logger.info("Transcode cleanup complete.")

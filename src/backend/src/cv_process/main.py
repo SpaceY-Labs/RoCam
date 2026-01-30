@@ -125,7 +125,7 @@ class CVProcess:
         self._shader.set_property(
             "uniforms",
             Gst.Structure.new_from_string(
-                "uniforms, tx=(float)0.0, ty=(float)0.0, scale=(float)1.0"
+                "uniforms, tx=(float)0.0, ty=(float)0.0, scale=(float)1.0, step_size=(int)5"
             ),
         )
 
@@ -373,7 +373,7 @@ class CVProcess:
                 break
 
         if matching_osd:
-            update_osd(self._osd, self._shader, matching_osd)
+            update_osd(self._osd, self._shader, matching_osd, step_size=5)
         else:
             logger.warning(f"No OSDData found for pts_ns={pts_ns}")
 
@@ -428,7 +428,7 @@ def _format_time(timestamp_ms: int) -> str:
     return dt.strftime("%b %d %Y, %H:%M:%S.") + f"{timestamp_ms % 1000:03d}"
 
 
-def update_osd(osd: Gst.Element | None, shader: Gst.Element | None, msg: OSDData):
+def update_osd(osd: Gst.Element | None, shader: Gst.Element | None, msg: OSDData, step_size: int):
     coordinates_text = "GPS unavailable"
     if msg.longitude is not None and msg.latitude is not None:
         coordinates_text = f"GPS: {msg.longitude:.6f}, {msg.latitude:.6f}"
@@ -446,7 +446,7 @@ def update_osd(osd: Gst.Element | None, shader: Gst.Element | None, msg: OSDData
     shader.set_property(  # pyright: ignore[reportOptionalMemberAccess]
         "uniforms",
         Gst.Structure.new_from_string(
-            f"uniforms, tx=(float){msg.translate_x}, ty=(float){msg.translate_y}, scale=(float){msg.scale}"
+            f"uniforms, tx=(float){msg.translate_x}, ty=(float){msg.translate_y}, scale=(float){msg.scale}, step_size=(int){step_size}"
         ),
     )
 
