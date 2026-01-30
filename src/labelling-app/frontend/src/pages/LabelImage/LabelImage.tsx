@@ -3,7 +3,7 @@
  * Displays image with mask overlays for labeling
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Project, ProjectImage, SparseColorMap, MaskApiItem, MaskMapApiItem, MaskOverlay } from '../../types';
 import { Button, EmptyState } from '../../components/ui';
 import { MaskCanvas, useMaskHover } from '../../components/shared/MaskCanvas';
@@ -13,9 +13,6 @@ import { ImageNavigator } from './components/ImageNavigator';
 import { MaskSidebar } from './components/MaskSidebar';
 import { FolderIcon, ImageIcon } from './components/Icons';
 import './LabelImage.css';
-
-// ============ Constants ============
-const DISPLAY_SIZE = 1024;
 
 // ============ Types ============
 export interface LabelImageProps {
@@ -47,7 +44,6 @@ export function LabelImage({
 }: LabelImageProps) {
   // ============ State ============
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [scale, setScale] = useState({ x: 1, y: 1 });
   const [colorMap, setColorMap] = useState<SparseColorMap | null>(null);
   const [masks, setMasks] = useState<MaskApiItem[]>([]);
   const [maskMap, setMaskMap] = useState<MaskMapApiItem | null>(null);
@@ -58,10 +54,6 @@ export function LabelImage({
   const [selectedMaskId, setSelectedMaskId] = useState<string | null>(null);
   const [labelPopup, setLabelPopup] = useState<LabelPopupPosition | null>(null);
   const [labelAssigning, setLabelAssigning] = useState(false);
-
-  // Refs
-  const imageRef = useRef<HTMLImageElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
 
   // Derived state
   const currentImage = images[currentIndex] || null;
@@ -162,22 +154,6 @@ export function LabelImage({
     },
     [images.length, onNextImage, onPrevImage]
   );
-
-  const handleImageLoad = useCallback(() => {
-    if (imageRef.current) {
-      const imgWidth = imageRef.current.naturalWidth;
-      const imgHeight = imageRef.current.naturalHeight;
-
-      if (imgWidth > 0 && imgHeight > 0) {
-        setScale({
-          x: DISPLAY_SIZE / imgWidth,
-          y: DISPLAY_SIZE / imgHeight,
-        });
-      } else {
-        setScale({ x: 1, y: 1 });
-      }
-    }
-  }, []);
 
   const handleMarkLabeled = async () => {
     if (!currentImage) return;
@@ -305,42 +281,32 @@ export function LabelImage({
             </div>
           </div>
 
-          {/* Canvas */}
-          <div className="canvas-container">
+          {/* Canvas - single MaskCanvas (image + mask composite) */}
+          <div
+            className="canvas-container"
+            style={
+              currentImage?.meta?.width && currentImage?.meta?.height
+                ? { aspectRatio: `${currentImage.meta.width} / ${currentImage.meta.height}` }
+                : undefined
+            }
+          >
             {currentImage?.fileUrl ? (
-              <div
-                ref={wrapperRef}
-                className="canvas-wrapper"
-                style={{
-                  transform: `scale(${scale.x}, ${scale.y})`,
-                  transformOrigin: 'top left',
-                }}
-              >
-                <img
-                  ref={imageRef}
-                  src={currentImage.fileUrl}
-                  alt={currentImage.meta.fileName}
-                  onLoad={handleImageLoad}
-                  draggable={false}
-                  style={{ display: 'block' }}
-                />
-                <MaskCanvas
-                  imageUrl={currentImage.fileUrl}
-                  imageAlt={currentImage.meta.fileName}
-                  imageWidth={currentImage.meta.width}
-                  imageHeight={currentImage.meta.height}
-                  colorMap={colorMap}
-                  maskOverlay={maskOverlay}
-                  highlightedMaskId={highlightedMaskId}
-                  highlightColor={highlightedMask?.color}
-                  interactive
-                  onMouseMove={handleCanvasMouseMove}
-                  onMouseLeave={handleMouseLeave}
-                  onClick={handleCanvasClick}
-                  maskLoading={maskLoading}
-                  className="label-canvas-overlay"
-                />
-              </div>
+              <MaskCanvas
+                imageUrl={currentImage.fileUrl}
+                imageAlt={currentImage.meta.fileName}
+                imageWidth={currentImage.meta.width}
+                imageHeight={currentImage.meta.height}
+                colorMap={colorMap}
+                maskOverlay={maskOverlay}
+                highlightedMaskId={highlightedMaskId}
+                highlightColor={highlightedMask?.color}
+                interactive
+                onMouseMove={handleCanvasMouseMove}
+                onMouseLeave={handleMouseLeave}
+                onClick={handleCanvasClick}
+                maskLoading={maskLoading}
+                className="label-canvas-overlay"
+              />
             ) : (
               <div className="canvas-empty">
                 <ImageIcon />

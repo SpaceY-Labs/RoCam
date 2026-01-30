@@ -1,16 +1,23 @@
 /**
  * MaskCanvas - Shared canvas component for rendering mask overlays
+ * Uses a single composite buffer (image + mask) and one canvas. No separate image layer.
  * Used by LabelImage, ManagementModal, and PreviewGallery
  */
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MaskOverlay, SparseColorMap } from '../../../types';
+import type { CompositeBuffer } from '../../../types/compositeBuffer';
+import {
+  createCompositeBuffer,
+  fillImageIntoBuffer,
+  applyMaskToBuffer,
+  renderBufferToCanvas,
+} from '../../../utils/compositeBuffer';
 import './MaskCanvas.css';
 
 // ============ Constants ============
 const DEFAULT_OVERLAY_ALPHA = 130;
 const DEFAULT_HIGHLIGHT_ALPHA = 255;
-const DEFAULT_UNLABELED_COLOR = '#3B82F6';
 
 // ============ Types ============
 export interface MaskCanvasProps {
@@ -51,28 +58,6 @@ export interface MaskCanvasProps {
   statusContent?: React.ReactNode;
 }
 
-// ============ Helpers ============
-
-/**
- * Parse hex color string to RGB tuple
- */
-const parseHexColor = (
-  hexColor: string,
-  fallback: [number, number, number] = [59, 130, 246]
-): [number, number, number] => {
-  const hex = hexColor.replace('#', '');
-  if (hex.length < 6) return fallback;
-
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-
-  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) {
-    return fallback;
-  }
-  return [r, g, b];
-};
-
 // ============ Component ============
 export function MaskCanvas({
   imageUrl,
@@ -95,209 +80,108 @@ export function MaskCanvas({
 }: MaskCanvasProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const lastLoggedDims = useRef<string>('');
+  const imageRef = useRef<HTMLImageElement>(null);
+  const bufferRef = useRef<CompositeBuffer | null>(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Cache for parsed hex colors to avoid repeated parsing
-  const colorCache = useMemo(() => new Map<string, [number, number, number]>(), []);
-
-  // ============ Canvas Drawing ============
-
-  /**
-   * Draw the mask overlay on the canvas
-   */
-  const drawOverlay = useCallback(() => {
-    const frame = frameRef.current;
+  const redraw = useCallback(() => {
+    const buffer = bufferRef.current;
     const canvas = canvasRef.current;
-    if (!frame || !canvas) return;
+    const frame = frameRef.current;
+    if (!buffer || !canvas || !frame) return;
+    const w = frame.clientWidth;
+    const h = frame.clientHeight;
+    if (w <= 0 || h <= 0) return;
+    renderBufferToCanvas(buffer, canvas, w, h);
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
+  }, []);
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+  // Build or update composite buffer when image loads or mask data changes
+  useEffect(() => {
+    const img = imageRef.current;
+    if (!img || !img.complete) return;
 
-    const width = frame.clientWidth;
-    const height = frame.clientHeight;
-    if (width === 0 || height === 0) return;
+    const nw = img.naturalWidth;
+    const nh = img.naturalHeight;
+    if (nw === 0 || nh === 0) return;
 
-    // Handle high DPI displays
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(width * dpr);
-    canvas.height = Math.floor(height * dpr);
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    ctx.clearRect(0, 0, width, height);
-
-    const hasColorMap = Boolean(colorMap && Object.keys(colorMap).length > 0);
-    const hasHighlight = Boolean(highlightedMaskId && maskOverlay);
-
-    if (!hasColorMap && !hasHighlight) return;
-
-    const srcWidth = maskOverlay?.width || imageWidth || width;
-    const srcHeight = maskOverlay?.height || imageHeight || height;
-
-    // DEBUG: Log dimensions (throttled - only when dimensions change)
-    const dimsKey = `${width}x${height}-${maskOverlay?.width}x${maskOverlay?.height}-${imageWidth}x${imageHeight}`;
-    if (lastLoggedDims.current !== dimsKey) {
-      lastLoggedDims.current = dimsKey;
-      const rect = frame.getBoundingClientRect();
-      const imgElement = frame.querySelector('img');
-      const imgRect = imgElement?.getBoundingClientRect();
-      console.log('[drawOverlay] Dimensions:', {
-        frame: { clientWidth: width, clientHeight: height },
-        boundingRect: { width: rect.width, height: rect.height },
-        maskOverlay: maskOverlay ? { width: maskOverlay.width, height: maskOverlay.height, dataLength: maskOverlay.data?.length } : null,
-        imageProps: { imageWidth, imageHeight },
-        computed: { srcWidth, srcHeight },
-        dpr,
-        canvasActual: { width: canvas.width, height: canvas.height },
-        imgElement: imgElement ? {
-          naturalWidth: imgElement.naturalWidth,
-          naturalHeight: imgElement.naturalHeight,
-          clientWidth: imgElement.clientWidth,
-          clientHeight: imgElement.clientHeight,
-          boundingRect: imgRect ? { width: imgRect.width, height: imgRect.height, left: imgRect.left - rect.left, top: imgRect.top - rect.top } : null,
-        } : null,
-        aspectRatioStyle: frame.style.aspectRatio,
-      });
+    let buffer = bufferRef.current;
+    if (!buffer || buffer.width !== nw || buffer.height !== nh) {
+      buffer = createCompositeBuffer(nw, nh);
+      bufferRef.current = buffer;
+      fillImageIntoBuffer(buffer, img);
+    } else if (!imageLoaded) {
+      fillImageIntoBuffer(buffer, img);
     }
 
-    if (!srcWidth || !srcHeight) return;
+    applyMaskToBuffer(buffer, {
+      maskOverlay: maskOverlay ?? null,
+      colorMap,
+      highlightedMaskId: highlightedMaskId ?? null,
+      highlightColor: highlightColor ?? null,
+      overlayAlpha,
+      highlightAlpha,
+    });
 
-    const imageData = ctx.createImageData(width, height);
-    const data = imageData.data;
-
-    // Draw labeled masks from colorMap
-    if (hasColorMap && colorMap) {
-      for (const [rowKey, cols] of Object.entries(colorMap)) {
-        const row = Number(rowKey);
-        if (!Number.isFinite(row) || row < 0 || row >= srcHeight) continue;
-
-        const destY = Math.floor((row / srcHeight) * height);
-        const destRow = destY * width * 4;
-
-        for (const [colKey, hexColor] of Object.entries(cols)) {
-          const col = Number(colKey);
-          if (!Number.isFinite(col) || col < 0 || col >= srcWidth) continue;
-
-          const destX = Math.floor((col / srcWidth) * width);
-          const dest = destRow + destX * 4;
-
-          let rgb = colorCache.get(hexColor);
-          if (!rgb) {
-            rgb = parseHexColor(hexColor);
-            colorCache.set(hexColor, rgb);
-          }
-
-          data[dest] = rgb[0];
-          data[dest + 1] = rgb[1];
-          data[dest + 2] = rgb[2];
-          data[dest + 3] = overlayAlpha;
-        }
-      }
-    }
-
-    // Draw highlighted mask at full opacity
-    if (hasHighlight && maskOverlay && highlightedMaskId) {
-      const highlightIndex = maskOverlay.maskIds.indexOf(highlightedMaskId);
-      if (highlightIndex >= 0) {
-        const color = highlightColor || DEFAULT_UNLABELED_COLOR;
-        const [r, g, b] = parseHexColor(color);
-        const overlayWidth = maskOverlay.width;
-        const overlayHeight = maskOverlay.height;
-
-        let sampleLogged = false;
-        let pixelCount = 0;
-        for (let i = 0; i < maskOverlay.data.length; i++) {
-          if (maskOverlay.data[i] !== highlightIndex) continue;
-          pixelCount++;
-
-          const srcY = Math.floor(i / overlayWidth);
-          const srcX = i - srcY * overlayWidth;
-          const destX = Math.floor((srcX / overlayWidth) * width);
-          const destY = Math.floor((srcY / overlayHeight) * height);
-
-          // DEBUG: Log first pixel mapping for this highlight
-          if (!sampleLogged) {
-            console.log('[drawOverlay] Highlight pixel mapping sample:', {
-              maskId: highlightedMaskId,
-              highlightIndex,
-              src: { srcX, srcY, i },
-              dest: { destX, destY },
-              scale: { xScale: width / overlayWidth, yScale: height / overlayHeight },
-              overlay: { overlayWidth, overlayHeight },
-              canvas: { width, height },
-            });
-            sampleLogged = true;
-          }
-
-          if (destX < 0 || destX >= width || destY < 0 || destY >= height) continue;
-
-          const dest = (destY * width + destX) * 4;
-          data[dest] = r;
-          data[dest + 1] = g;
-          data[dest + 2] = b;
-          data[dest + 3] = highlightAlpha;
-        }
-        console.log('[drawOverlay] Highlight total pixels:', { maskId: highlightedMaskId, pixelCount });
-      }
-    }
-
-    ctx.putImageData(imageData, 0, 0);
+    setImageLoaded(true);
+    redraw();
   }, [
+    imageLoaded,
+    imageUrl,
     colorMap,
-    colorCache,
-    highlightAlpha,
-    highlightColor,
-    highlightedMaskId,
-    imageHeight,
-    imageWidth,
     maskOverlay,
+    highlightedMaskId,
+    highlightColor,
     overlayAlpha,
+    highlightAlpha,
+    redraw,
   ]);
 
-  // Redraw when dependencies change
-  useEffect(() => {
-    drawOverlay();
-  }, [drawOverlay]);
+  // Image onLoad: trigger buffer build
+  const handleImageLoad = useCallback(() => {
+    const img = imageRef.current;
+    if (!img) return;
+    const nw = img.naturalWidth;
+    const nh = img.naturalHeight;
+    if (nw === 0 || nh === 0) return;
+    const buffer = createCompositeBuffer(nw, nh);
+    bufferRef.current = buffer;
+    fillImageIntoBuffer(buffer, img);
+    setImageLoaded(true);
+  }, []);
 
-  // Handle resize
+  // When imageUrl changes, reset so we rebuild on new image load
+  useEffect(() => {
+    if (!imageUrl) {
+      bufferRef.current = null;
+      setImageLoaded(false);
+    }
+  }, [imageUrl]);
+
+  // Redraw when frame size changes
   useEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;
-
-    const observer = new ResizeObserver(() => drawOverlay());
+    const observer = new ResizeObserver(redraw);
     observer.observe(frame);
     return () => observer.disconnect();
-  }, [drawOverlay]);
+  }, [redraw]);
 
   // ============ Mouse Handlers ============
-
-  /**
-   * Get mask ID at a given screen position
-   */
   const getMaskAtPosition = useCallback(
     (clientX: number, clientY: number): string | null => {
       if (!maskOverlay || !frameRef.current) return null;
-
       const rect = frameRef.current.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return null;
       if (maskOverlay.width === 0 || maskOverlay.height === 0) return null;
-
       const relativeX = (clientX - rect.left) / rect.width;
       const relativeY = (clientY - rect.top) / rect.height;
-
-      if (relativeX < 0 || relativeX > 1 || relativeY < 0 || relativeY > 1) {
-        return null;
-      }
-
+      if (relativeX < 0 || relativeX > 1 || relativeY < 0 || relativeY > 1) return null;
       const col = Math.floor(relativeX * maskOverlay.width);
       const row = Math.floor(relativeY * maskOverlay.height);
       const idx = row * maskOverlay.width + col;
       const maskIndex = maskOverlay.data[idx];
-
-      // DEBUG: Log click position mapping (throttled - only on actual clicks, not mouse moves)
-      // This log will show in handleClick, not handleMouseMove
-
       if (maskIndex === undefined || maskIndex < 0) return null;
       return maskOverlay.maskIds[maskIndex] ?? null;
     },
@@ -322,35 +206,14 @@ export function MaskCanvas({
     (event: React.MouseEvent<HTMLDivElement>) => {
       if (!interactive || !onClick) return;
       const maskId = getMaskAtPosition(event.clientX, event.clientY);
-
-      // DEBUG: Log click details
-      if (maskOverlay && frameRef.current) {
-        const rect = frameRef.current.getBoundingClientRect();
-        const relativeX = (event.clientX - rect.left) / rect.width;
-        const relativeY = (event.clientY - rect.top) / rect.height;
-        const col = Math.floor(relativeX * maskOverlay.width);
-        const row = Math.floor(relativeY * maskOverlay.height);
-        const idx = row * maskOverlay.width + col;
-        console.log('[handleClick] Click:', {
-          client: { x: event.clientX, y: event.clientY },
-          rect: { width: rect.width, height: rect.height },
-          relative: { x: relativeX.toFixed(4), y: relativeY.toFixed(4) },
-          maskCoords: { col, row, idx },
-          overlay: { width: maskOverlay.width, height: maskOverlay.height },
-          result: { maskId, maskIndex: maskOverlay.data[idx] },
-        });
-      }
-
       onClick(maskId, event);
     },
-    [interactive, onClick, getMaskAtPosition, maskOverlay]
+    [interactive, onClick, getMaskAtPosition]
   );
 
   // ============ Render ============
-
-  const aspectRatio = imageWidth && imageHeight
-    ? `${imageWidth} / ${imageHeight}`
-    : '1 / 1';
+  const aspectRatio =
+    imageWidth && imageHeight ? `${imageWidth} / ${imageHeight}` : '1 / 1';
 
   return (
     <div
@@ -366,10 +229,12 @@ export function MaskCanvas({
     >
       {imageUrl ? (
         <img
+          ref={imageRef}
           src={imageUrl}
           alt={imageAlt}
           loading="lazy"
-          className="mask-canvas-image"
+          className="mask-canvas-image mask-canvas-image-hidden"
+          onLoad={handleImageLoad}
         />
       ) : (
         <div className="mask-canvas-fallback">
@@ -377,7 +242,7 @@ export function MaskCanvas({
         </div>
       )}
 
-      <canvas ref={canvasRef} className="mask-canvas-overlay" />
+      <canvas ref={canvasRef} className="mask-canvas-overlay mask-canvas-overlay-single" />
 
       {maskLoading && (
         <div className="mask-canvas-status">
