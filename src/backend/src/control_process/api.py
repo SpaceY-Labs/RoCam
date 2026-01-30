@@ -134,7 +134,7 @@ def run_api_gateway(
             # Start the pipeline subprocess via main.py
             process = subprocess.Popen(
                 [
-                    "python",
+                    "python3",
                     "src/main.py",
                     mode,
                     recording.video_path,
