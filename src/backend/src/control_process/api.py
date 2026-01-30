@@ -4,10 +4,13 @@ from pathlib import Path
 import subprocess
 import time
 
+from pathvalidate import sanitize_filename
 from common.ipc import RecordingInfo
 from common.utils import set_scheduler_other, ip4_addresses
 from control_process.state_management import StateManagement
-from control_process.state_management_recording_management_only import StateManagementRecordingManagementOnly
+from control_process.state_management_recording_management_only import (
+    StateManagementRecordingManagementOnly,
+)
 from flask import (
     Flask,
     Response,
@@ -24,11 +27,14 @@ from transcode_process.main import TranscodeMode
 logger = logging.getLogger(__name__)
 logging.getLogger("werkzeug").setLevel(logging.WARN)
 
+
 def _json_body():
     return request.get_json(silent=True) or {}
 
 
-def run_api_gateway(state_management: StateManagement | StateManagementRecordingManagementOnly):
+def run_api_gateway(
+    state_management: StateManagement | StateManagementRecordingManagementOnly,
+):
     set_scheduler_other()
     logger.info(f"ipv4 addresses: {ip4_addresses()}")
 
@@ -183,7 +189,7 @@ def run_api_gateway(state_management: StateManagement | StateManagementRecording
             logger.info("Transcode cleanup complete.")
 
     @app.get("/api/recordings/<recordingId>/preview-stabilized")
-    def recordings_download(recordingId: str):
+    def preview_stabilized(recordingId: str):
         recording = state_management.database.get_recording_by_id(recordingId)
         if not recording:
             return jsonify({"error": "Recording not found"}), 404
@@ -196,6 +202,24 @@ def run_api_gateway(state_management: StateManagement | StateManagementRecording
         return Response(
             stream_with_context(
                 _stream_from_transcode_process("preview-stabilized", recording)
+            ),
+            headers=headers,
+        )
+
+    @app.get("/api/recordings/<recordingId>/download-stabilized")
+    def download_stabilized(recordingId: str):
+        recording = state_management.database.get_recording_by_id(recordingId)
+        if not recording:
+            return jsonify({"error": "Recording not found"}), 404
+
+        sanitized_name = sanitize_filename(recording.name, platform="universal")
+        headers = {
+            "Content-Type": "video/webm",
+            "Content-Disposition": f'attachment; filename="{sanitized_name}.webm"',
+        }
+        return Response(
+            stream_with_context(
+                _stream_from_transcode_process("download-stabilized", recording)
             ),
             headers=headers,
         )

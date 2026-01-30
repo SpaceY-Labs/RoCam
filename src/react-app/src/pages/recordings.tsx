@@ -2,7 +2,6 @@ import type { Recording, ApiClient } from '@/network/api'
 
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@heroui/button'
-import { Link } from '@heroui/link'
 import { Spinner } from '@heroui/spinner'
 import { Input } from '@heroui/input'
 import {
@@ -18,12 +17,7 @@ import {
 import DefaultLayout from '@/layouts/default'
 import { useRocam } from '@/network/rocamProvider'
 
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-} from '@heroui/modal'
+import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/modal'
 
 export default function RecordingsPage() {
   const { apiClient } = useRocam()
@@ -230,10 +224,8 @@ function RecordingItem({
             Preview
           </Button>
           <Button
-            as={Link}
+            as={'a'}
             href={apiClient.downloadStablizedUrl(r.id)}
-            rel="noreferrer"
-            target="_blank"
             radius="sm"
             size="sm"
             variant="bordered"

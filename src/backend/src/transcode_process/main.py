@@ -26,6 +26,7 @@ class TranscodeProcess:
         log_path: str,
         destination_path: str,
     ):
+        self._mode = mode
         self._osd_data_list = self._read_log(log_path)
         self._osd_data_pointer = 0
 
@@ -38,8 +39,7 @@ class TranscodeProcess:
             queue !
             jpegdec !
             video/x-raw,format=RGB !
-            videorate !
-            video/x-raw,framerate=30/1 !
+            {"videorate ! video/x-raw,framerate=30/1 !" if mode == "preview-stabilized" else ""}
             videoconvert !
             video/x-raw,format=RGBA !
 
@@ -53,17 +53,34 @@ class TranscodeProcess:
             queue !
             textoverlay name=osd valignment=top halignment=left line-alignment=left font-desc="JetBrains Mono NL, 6" draw-outline=0 draw-shadow=1 color=0xFFFFFFFF !
             video/x-raw,format=I420 !
-
-            videoscale method=0 !
-            video/x-raw,width=854,height=480 !
-
-            queue !
-            vp8enc target-bitrate=1000000 cpu-used=16 deadline=1 threads=6 !
-
-            queue !
-            webmmux streamable=true !
-            filesink location={destination_path}
+            
         """
+
+        if mode == "preview-stabilized":
+            pipeline_desc = f"""
+                {pipeline_desc}
+
+                videoscale method=0 !
+                video/x-raw,width=854,height=480 !
+
+                queue !
+                vp8enc target-bitrate=1000000 cpu-used=16 deadline=1 threads=6 !
+
+                queue !
+                webmmux streamable=true !
+                filesink location={destination_path}
+            """
+        elif mode == "download-stabilized":
+            pipeline_desc = f"""
+                {pipeline_desc}
+                
+                queue !
+                vp8enc target-bitrate=8000000 cpu-used=8 deadline=1 threads=6 keyframe-max-dist=120 !
+                
+                queue !
+                matroskamux streamable=true min-cluster-duration=0 max-cluster-duration=1000000000 writing-app=RoCam !
+                filesink buffer-mode=unbuffered location={destination_path}
+            """
 
         self._pipeline: Gst.Element = Gst.parse_launch(pipeline_desc)
 
@@ -75,7 +92,7 @@ class TranscodeProcess:
         self._shader.set_property(
             "fragment",
             open(
-                os.path.join(os.path.dirname(__file__), "../cv_process/shader.frag")
+                os.path.join(os.path.dirname(__file__), "shader.frag")
             ).read(),
         )
         self._shader.set_property(
@@ -141,7 +158,10 @@ class TranscodeProcess:
             logger.warning("OSD data is shorter than the video, using the last one")
         else:
             osd_data = self._osd_data_list[self._osd_data_pointer]
-        self._osd_data_pointer += 2
+        if self._mode == "preview-stabilized":
+            self._osd_data_pointer += 2
+        elif self._mode == "download-stabilized":
+            self._osd_data_pointer += 1
 
         update_osd(self._osd, self._shader, osd_data)
 
