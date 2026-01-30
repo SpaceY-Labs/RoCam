@@ -1,6 +1,6 @@
 import type { Recording, ApiClient } from '@/network/api'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@heroui/button'
 import { Link } from '@heroui/link'
 import { Spinner } from '@heroui/spinner'
@@ -10,17 +10,29 @@ import {
   IconClockHour3,
   IconDeviceSdCard,
   IconDownload,
+  IconPlayerPause,
+  IconPlayerPlay,
   IconTrash,
 } from '@tabler/icons-react'
 
 import DefaultLayout from '@/layouts/default'
 import { useRocam } from '@/network/rocamProvider'
 
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+} from '@heroui/modal'
+
 export default function RecordingsPage() {
   const { apiClient } = useRocam()
 
   const [recordings, setRecordings] = useState<Recording[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedRecording, setSelectedRecording] = useState<Recording | null>(
+    null
+  )
 
   async function loadRecordings() {
     if (!apiClient) return
@@ -72,6 +84,10 @@ export default function RecordingsPage() {
     }
   }
 
+  const handlePreview = (r: Recording) => {
+    setSelectedRecording(r)
+  }
+
   return (
     <DefaultLayout>
       <section className="flex flex-col">
@@ -93,12 +109,18 @@ export default function RecordingsPage() {
                 apiClient={apiClient!}
                 recording={r}
                 onDelete={handleDelete}
+                onPreview={handlePreview}
                 onRename={handleRename}
               />
             ))
           )}
         </div>
       </section>
+
+      <PreviewModal
+        recording={selectedRecording}
+        onClose={() => setSelectedRecording(null)}
+      />
     </DefaultLayout>
   )
 }
@@ -112,6 +134,7 @@ interface RecordingItemProps {
   apiClient: ApiClient
   onRename: (id: string, newName: string) => Promise<void>
   onDelete: (r: Recording) => Promise<void>
+  onPreview: (r: Recording) => void
 }
 
 function RecordingItem({
@@ -119,6 +142,7 @@ function RecordingItem({
   apiClient,
   onRename,
   onDelete,
+  onPreview,
 }: RecordingItemProps) {
   const [filenameDraft, setFilenameDraft] = useState(r.name)
   const [isSaving, setIsSaving] = useState(false)
@@ -197,8 +221,17 @@ function RecordingItem({
 
         <div className="flex items-center gap-2 flex-wrap justify-end">
           <Button
+            radius="sm"
+            size="sm"
+            variant="bordered"
+            startContent={<IconPlayerPlay size={20} strokeWidth={1.5} />}
+            onPress={() => onPreview(r)}
+          >
+            Preview
+          </Button>
+          <Button
             as={Link}
-            href={apiClient.downloadRecordingUrl(r.id)}
+            href={apiClient.downloadStablizedUrl(r.id)}
             rel="noreferrer"
             target="_blank"
             radius="sm"
@@ -229,6 +262,112 @@ function RecordingItem({
   )
 }
 
+interface PreviewModalProps {
+  recording: Recording | null
+  onClose: () => void
+}
+
+function PreviewModal({ recording, onClose }: PreviewModalProps) {
+  const { apiClient } = useRocam()
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [isWaiting, setIsWaiting] = useState(true)
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  // Reset states when recording changes
+  useEffect(() => {
+    if (recording) {
+      setCurrentTime(0)
+      setIsWaiting(true)
+      setIsPlaying(false)
+    }
+  }, [recording])
+
+  const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    setCurrentTime(e.currentTarget.currentTime)
+  }
+
+  const handlePlayPause = () => {
+    if (!videoRef.current) return
+
+    if (isPlaying) {
+      videoRef.current.pause()
+      setIsPlaying(false)
+    } else {
+      videoRef.current.play()
+      setIsPlaying(true)
+    }
+  }
+
+  const handlePlaying = () => {
+    setIsWaiting(false)
+    setIsPlaying(true)
+  }
+
+  const handlePause = () => {
+    setIsPlaying(false)
+  }
+
+  const formatSeconds = (s: number) => {
+    const mins = Math.floor(s / 60)
+    const secs = Math.floor(s % 60)
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
+  return (
+    <Modal isOpen={!!recording} size="5xl" onClose={onClose}>
+      <ModalContent>
+        {() => (
+          <>
+            <ModalHeader className="flex flex-col">
+              Preview {recording?.name}
+            </ModalHeader>
+            <ModalBody>
+              {recording && apiClient && (
+                <div className="relative group mb-4">
+                  {isWaiting && (
+                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-white rounded-lg">
+                      <Spinner />
+                    </div>
+                  )}
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    className="w-full rounded-lg aspect-video bg-white"
+                    src={apiClient.previewStablizedUrl(recording.id)}
+                    onPlaying={handlePlaying}
+                    onPause={handlePause}
+                    onTimeUpdate={handleTimeUpdate}
+                    onWaiting={() => setIsWaiting(true)}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                  <Button
+                    isIconOnly
+                    className="absolute bottom-4 left-4 bg-white/75 text-black"
+                    radius="sm"
+                    onPress={handlePlayPause}
+                  >
+                    {isPlaying ? (
+                      <IconPlayerPause size={24} strokeWidth={1.5} />
+                    ) : (
+                      <IconPlayerPlay size={24} strokeWidth={1.5} />
+                    )}
+                  </Button>
+                  <div className="absolute text-lg bottom-4 right-4 bg-white/75 text-black px-3 py-2 rounded-md text-sm font-mono pointer-events-none">
+                    {formatSeconds(currentTime)} /{' '}
+                    {formatDuration(recording.duration_ms)}
+                  </div>
+                </div>
+              )}
+            </ModalBody>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
+  )
+}
+
 /**
  * UTILS
  */
@@ -247,7 +386,8 @@ function formatDate(timestampMs: number | null) {
 }
 
 function formatDuration(durationMs: number | null) {
-  if (durationMs === null || !Number.isFinite(durationMs) || durationMs < 0) return '--:--'
+  if (durationMs === null || !Number.isFinite(durationMs) || durationMs < 0)
+    return '--:--'
   const seconds = Math.floor(durationMs / 1000)
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)

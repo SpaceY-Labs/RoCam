@@ -28,4 +28,4 @@ sudo chmod 777 /dev/ttyTHS1
 sudo setcap 'cap_net_bind_service,cap_sys_nice=+eip' /usr/bin/python3.10
 
 # Start backend
-python3 src/main.py
+python3 src/main.py "$@"

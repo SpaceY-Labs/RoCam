@@ -86,12 +86,12 @@ export class ApiClient {
     );
   }
 
-  previewUrl(): string {
-    return `${this.baseUrl}/preview`;
+  previewStablizedUrl(recordingId: string): string {
+    return `${this.baseUrl}/api/recordings/${recordingId}/preview-stabilized`;
   }
 
-  downloadRecordingUrl(recordingId: string): string {
-    return `${this.baseUrl}/api/recordings/${recordingId}/download`;
+  downloadStablizedUrl(recordingId: string): string {
+    return `${this.baseUrl}/api/recordings/${recordingId}/download-stabilized`;
   }
 
   private async requestJson<T>(
