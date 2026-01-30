@@ -73,7 +73,7 @@ class CVProcess:
             glshader name=shader !
             gldownload !
             video/x-raw,format=RGBA !
-            textoverlay name=osd valignment=bottom halignment=left line-alignment=left font-desc="JetBrains Mono NL, 6" draw-outline=0 draw-shadow=1 color=0xFFFFFFFF !
+            textoverlay name=osd valignment=top halignment=left line-alignment=left font-desc="JetBrains Mono NL, 6" draw-outline=0 draw-shadow=1 color=0xFFFFFFFF !
             video/x-raw,format=RGBA !
             queue max-size-buffers=2 leaky=1 !
             appsink name=livestream-sink emit-signals=true sync=false
@@ -358,32 +358,6 @@ class CVProcess:
 
             logger.info("Recording stopped")
 
-    def _format_time(self, timestamp_ms: int) -> str:
-        dt = datetime.fromtimestamp(timestamp_ms / 1000.0)
-        return dt.strftime("%b %d %Y, %H:%M:%S.") + f"{timestamp_ms % 1000:03d}"
-
-    def _update_osd(self, msg: OSDData):
-        coordinates_text = "GPS unavailable"
-        if msg.longitude is not None and msg.latitude is not None:
-            coordinates_text = f"GPS: {msg.longitude:.6f}, {msg.latitude:.6f}"
-
-        osd_text = textwrap.dedent(f"""
-            Precision Tracking by RoCam
-            Tilt: {msg.gimbal_tilt_deg:.2f}° Pan: {msg.gimbal_pan_deg:.2f}°
-            {msg.gimbal_focal_length_mm:.0f}mm physical + {msg.scale:.1f}x digital
-            {self._format_time(msg.timestamp_ms)}
-            {coordinates_text}
-            {", ".join(msg.device_ip_addresses)}
-        """).strip()
-
-        self._osd.set_property("text", osd_text)  # pyright: ignore[reportOptionalMemberAccess]
-        self._shader.set_property(  # pyright: ignore[reportOptionalMemberAccess]
-            "uniforms",
-            Gst.Structure.new_from_string(
-                f"uniforms, tx=(float){msg.translate_x}, ty=(float){msg.translate_y}, scale=(float){msg.scale}"
-            ),
-        )
-
     def _shader_probe(self, pad, info, u_data):
         gst_buffer = info.get_buffer()
         if not gst_buffer:
@@ -399,7 +373,7 @@ class CVProcess:
                 break
 
         if matching_osd:
-            self._update_osd(matching_osd)
+            update_osd(self._osd, self._shader, matching_osd)
         else:
             logger.warning(f"No OSDData found for pts_ns={pts_ns}")
 
@@ -448,6 +422,33 @@ class CVProcess:
                 self._log_file = None
             loop.quit()
         return True
+
+def _format_time(timestamp_ms: int) -> str:
+    dt = datetime.fromtimestamp(timestamp_ms / 1000.0)
+    return dt.strftime("%b %d %Y, %H:%M:%S.") + f"{timestamp_ms % 1000:03d}"
+
+
+def update_osd(osd: Gst.Element | None, shader: Gst.Element | None, msg: OSDData):
+    coordinates_text = "GPS unavailable"
+    if msg.longitude is not None and msg.latitude is not None:
+        coordinates_text = f"GPS: {msg.longitude:.6f}, {msg.latitude:.6f}"
+
+    osd_text = textwrap.dedent(f"""
+        Precision Tracking by RoCam
+        Tilt: {msg.gimbal_tilt_deg:.2f}° Pan: {msg.gimbal_pan_deg:.2f}°
+        {msg.gimbal_focal_length_mm:.0f}mm physical + {msg.scale:.1f}x digital
+        {_format_time(msg.timestamp_ms)}
+        {coordinates_text}
+        {", ".join(msg.device_ip_addresses)}
+    """).strip()
+
+    osd.set_property("text", osd_text)  # pyright: ignore[reportOptionalMemberAccess]
+    shader.set_property(  # pyright: ignore[reportOptionalMemberAccess]
+        "uniforms",
+        Gst.Structure.new_from_string(
+            f"uniforms, tx=(float){msg.translate_x}, ty=(float){msg.translate_y}, scale=(float){msg.scale}"
+        ),
+    )
 
 
 def run_cv_process():

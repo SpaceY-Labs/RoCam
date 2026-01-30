@@ -280,8 +280,26 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
       setCurrentTime(0)
       setIsWaiting(true)
       setIsPlaying(false)
+    } else {
+      // Cancel video loading when recording is null (modal closed)
+      if (videoRef.current) {
+        videoRef.current.pause()
+        videoRef.current.src = ''
+        videoRef.current.load() // This cancels any ongoing network requests
+      }
     }
   }, [recording])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.pause()
+        videoRef.current.src = ''
+        videoRef.current.load()
+      }
+    }
+  }, [])
 
   const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     setCurrentTime(e.currentTarget.currentTime)
@@ -326,7 +344,7 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
               {recording && apiClient && (
                 <div className="relative group mb-4">
                   {isWaiting && (
-                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-white rounded-lg">
+                    <div className="absolute inset-0 flex items-center justify-center z-10">
                       <Spinner />
                     </div>
                   )}
