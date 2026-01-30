@@ -299,3 +299,4 @@ __pycache__/
 
 node_modules/
 .claude/
+.cursor/worktrees.json

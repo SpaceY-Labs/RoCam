@@ -1,18 +1,43 @@
 /* Label Image Component */
 .label-container {
   min-height: 500px;
+  padding: 16px;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .label-container {
+    padding: 8px;
+  }
 }
 
 .label-layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: 20px;
+  max-width: 100%;
+  height: calc(100vh - 100px);
+}
+
+@media (max-width: 1400px) {
+  .label-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .label-sidebar {
+    max-width: 600px;
+    margin: 0 auto;
+  }
 }
 
 .label-canvas-section {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
 }
 
 .canvas-toolbar {
@@ -22,6 +47,22 @@
   padding: 8px 12px;
   background: var(--panel-strong);
   border-radius: 12px;
+  width: 100%;
+  max-width: min(calc(100vh - 200px), 900px);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .canvas-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .toolbar-left,
+  .toolbar-right {
+    justify-content: center;
+  }
 }
 
 .toolbar-left,
@@ -42,21 +83,32 @@
   background: #fff;
   border: 1px solid var(--border);
   border-radius: 16px;
-  width: 1024px;
-  height: 1024px;
+  width: 100%;
+  max-width: min(calc(100vh - 200px), 900px);
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   cursor: crosshair;
+  margin: 0 auto;
+  /* Prevent pinch zoom and other touch interactions */
+  touch-action: none;
+  /* Disable browser zoom via mouse wheel on this element */
+  overscroll-behavior: contain;
 }
 
 .canvas-wrapper {
   position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 .canvas-wrapper img {
   display: block;
-  max-width: none;
-  max-height: none;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   user-select: none;
   -webkit-user-drag: none;
 }
@@ -134,6 +186,26 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-y: auto;
+  max-height: calc(100vh - 100px);
+  padding-right: 4px;
+}
+
+.label-sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.label-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.label-sidebar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.label-sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
 }
 
 .image-info-card h4,
@@ -541,10 +613,4 @@
   font-size: 0.8rem;
   color: var(--muted);
   margin-right: 12px;
-}
-
-@media (max-width: 1100px) {
-  .label-layout {
-    grid-template-columns: 1fr;
-  }
 }

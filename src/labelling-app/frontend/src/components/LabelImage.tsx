@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import type { Project, ProjectImage, SparseColorMap, MaskApiItem, MaskMapApiItem, MaskOverlay } from '../types';
 import { Button, Card, StatusBadge, EmptyState } from './ui';
 import { getImageMasks, getColorMap, getImageMaskOverlay, updateMaskLabel } from '../modules/API_Helps';
+import { InteractiveMapCanvas } from './InteractiveMapCanvas';
 import './LabelImage.css';
 
 interface LabelPopupState {
@@ -20,11 +21,8 @@ interface LabelImageProps {
   loading?: boolean;
 }
 
-const DISPLAY_SIZE = 1024;
 const HOVER_DELAY_MS = 1000; // 1 second delay before showing mask
 const UNLABELED_COLOR = '#3B82F6'; // Blue color for unlabeled masks
-const LABELED_OPACITY = 0.3; // 30% opacity for labeled masks
-const HIGHLIGHT_OPACITY = 1.0; // 100% opacity for highlighted mask on hover
 
 export function LabelImage({
   project,
@@ -36,7 +34,6 @@ export function LabelImage({
   loading = false,
 }: LabelImageProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [scale, setScale] = useState({ x: 1, y: 1 });
   const [colorMap, setColorMap] = useState<SparseColorMap | null>(null);
   const [masks, setMasks] = useState<MaskApiItem[]>([]);
   const [maskMap, setMaskMap] = useState<MaskMapApiItem | null>(null);
@@ -53,9 +50,6 @@ export function LabelImage({
   const [highlightedMaskId, setHighlightedMaskId] = useState<string | null>(null);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const imageRef = useRef<HTMLImageElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
   const currentImage = images[currentIndex] || null;
   const selectedMask = masks.find(m => m.maskId === selectedMaskId) || null;
 
@@ -115,172 +109,33 @@ export function LabelImage({
     }
   }, [currentImage?.imageId]);
 
-  // Draw mask overlay on canvas
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const img = imageRef.current;
+  const handleMaskHover = useCallback((maskId: string | null) => {
+    if (maskId === hoveredMaskId) return;
 
-    if (!canvas || !img || !img.complete) {
-      return;
-    }
+    setHoveredMaskId(maskId);
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Set canvas size to match image natural size
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Create image data for pixel manipulation
-    const imageData = ctx.createImageData(canvas.width, canvas.height);
-    const data = imageData.data;
-
-    // Build a map of maskId -> mask for quick lookup
-    const masksById = new Map(masks.map(m => [m.maskId, m]));
-
-    // Draw labeled masks from colorMap at 30% opacity
-    if (colorMap) {
-      for (const [rowKey, cols] of Object.entries(colorMap)) {
-        const row = parseInt(rowKey, 10);
-        if (row < 0 || row >= canvas.height) continue;
-
-        for (const [colKey, hexColor] of Object.entries(cols)) {
-          const col = parseInt(colKey, 10);
-          if (col < 0 || col >= canvas.width) continue;
-
-          // Parse hex color
-          const hex = hexColor.replace('#', '');
-          const r = parseInt(hex.substring(0, 2), 16);
-          const g = parseInt(hex.substring(2, 4), 16);
-          const b = parseInt(hex.substring(4, 6), 16);
-
-          // Set pixel with 30% opacity for labeled masks
-          const idx = (row * canvas.width + col) * 4;
-          data[idx] = r;
-          data[idx + 1] = g;
-          data[idx + 2] = b;
-          data[idx + 3] = Math.round(255 * LABELED_OPACITY);
-        }
-      }
-    }
-
-    // Draw highlighted mask at 100% opacity (on hover after 1 second)
-    if (highlightedMaskId && maskOverlay) {
-      const highlightedMask = masksById.get(highlightedMaskId);
-      const isLabeled = highlightedMask?.labelId !== null;
-
-      // Determine the color: use label color if labeled, otherwise blue
-      let r = 59, g = 130, b = 246; // Default blue
-      if (isLabeled && highlightedMask?.color) {
-        const hex = highlightedMask.color.replace('#', '');
-        r = parseInt(hex.substring(0, 2), 16);
-        g = parseInt(hex.substring(2, 4), 16);
-        b = parseInt(hex.substring(4, 6), 16);
-      }
-
-      // Find the index for the highlighted maskId
-      const highlightedIndex = maskOverlay.maskIds.indexOf(highlightedMaskId);
-
-      // Iterate through maskOverlay and highlight all pixels of this mask
-      if (highlightedIndex !== -1) {
-        for (let i = 0; i < maskOverlay.data.length; i++) {
-          if (maskOverlay.data[i] === highlightedIndex) {
-            const idx = i * 4;
-            data[idx] = r;
-            data[idx + 1] = g;
-            data[idx + 2] = b;
-            data[idx + 3] = Math.round(255 * HIGHLIGHT_OPACITY);
-          }
-        }
-      }
-    }
-
-    ctx.putImageData(imageData, 0, 0);
-  }, [colorMap, maskOverlay, masks, highlightedMaskId, scale]);
-
-  // Handle mouse move on canvas for hover detection
-  const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!maskOverlay || !wrapperRef.current || !imageRef.current) return;
-
-    const rect = wrapperRef.current.getBoundingClientRect();
-
-    // Convert mouse position to image coordinates (accounting for scale)
-    const mouseX = (e.clientX - rect.left) / scale.x;
-    const mouseY = (e.clientY - rect.top) / scale.y;
-
-    // Clamp to image bounds
-    const col = Math.floor(Math.max(0, Math.min(maskOverlay.width - 1, mouseX)));
-    const row = Math.floor(Math.max(0, Math.min(maskOverlay.height - 1, mouseY)));
-
-    // Look up the mask index at this position, then convert to maskId
-    const idx = row * maskOverlay.width + col;
-    const maskIndex = maskOverlay.data[idx];
-    // Convert index to maskId (-1 means no mask)
-    const maskIdAtPosition = maskIndex >= 0 ? maskOverlay.maskIds[maskIndex] : null;
-
-    // If we moved to a different mask, reset the timer
-    if (maskIdAtPosition !== hoveredMaskId) {
-      setHoveredMaskId(maskIdAtPosition);
-
-      // Clear existing timer
-      if (hoverTimerRef.current) {
-        clearTimeout(hoverTimerRef.current);
-        hoverTimerRef.current = null;
-      }
-
-      // Clear highlight immediately when moving away
-      if (!maskIdAtPosition) {
-        setHighlightedMaskId(null);
-      } else {
-        // Start new timer for 1 second delay
-        hoverTimerRef.current = setTimeout(() => {
-          setHighlightedMaskId(maskIdAtPosition);
-        }, HOVER_DELAY_MS);
-      }
-    }
-  }, [maskOverlay, scale, hoveredMaskId]);
-
-  // Handle mouse leave on canvas
-  const handleCanvasMouseLeave = useCallback(() => {
-    setHoveredMaskId(null);
-    setHighlightedMaskId(null);
     if (hoverTimerRef.current) {
       clearTimeout(hoverTimerRef.current);
       hoverTimerRef.current = null;
     }
-  }, []);
 
-  // Handle click on canvas to select mask for labeling
-  const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!maskOverlay || !wrapperRef.current) return;
-
-    const rect = wrapperRef.current.getBoundingClientRect();
-    const mouseX = (e.clientX - rect.left) / scale.x;
-    const mouseY = (e.clientY - rect.top) / scale.y;
-
-    const col = Math.floor(Math.max(0, Math.min(maskOverlay.width - 1, mouseX)));
-    const row = Math.floor(Math.max(0, Math.min(maskOverlay.height - 1, mouseY)));
-
-    // Look up the mask index at this position, then convert to maskId
-    const idx = row * maskOverlay.width + col;
-    const maskIndex = maskOverlay.data[idx];
-    // Convert index to maskId (-1 means no mask)
-    const maskIdAtPosition = maskIndex >= 0 ? maskOverlay.maskIds[maskIndex] : null;
-
-    if (maskIdAtPosition) {
-      setSelectedMaskId(maskIdAtPosition);
-
-      // Show label popup near the click
-      setLabelPopup({
-        maskId: maskIdAtPosition,
-        x: e.clientX,
-        y: e.clientY + 10,
-      });
+    if (!maskId) {
+      setHighlightedMaskId(null);
+    } else {
+      hoverTimerRef.current = setTimeout(() => {
+        setHighlightedMaskId(maskId);
+      }, HOVER_DELAY_MS);
     }
-  }, [maskOverlay, scale]);
+  }, [hoveredMaskId]);
+
+  const handleMaskClick = useCallback((maskId: string, clientX: number, clientY: number) => {
+    setSelectedMaskId(maskId);
+    setLabelPopup({
+      maskId,
+      x: clientX,
+      y: clientY + 10,
+    });
+  }, []);
 
   const handleNavigate = useCallback((direction: 'prev' | 'next') => {
     setCurrentIndex((prev) => {
@@ -296,22 +151,6 @@ export function LabelImage({
     });
   }, [images.length, onNextImage, onPrevImage]);
 
-  const handleImageLoad = useCallback(() => {
-    if (imageRef.current) {
-      const imgWidth = imageRef.current.naturalWidth;
-      const imgHeight = imageRef.current.naturalHeight;
-
-      if (imgWidth > 0 && imgHeight > 0) {
-        setScale({
-          x: DISPLAY_SIZE / imgWidth,
-          y: DISPLAY_SIZE / imgHeight,
-        });
-      } else {
-        setScale({ x: 1, y: 1 });
-      }
-    }
-  }, []);
-
   const handleMarkLabeled = async () => {
     if (!currentImage) return;
     const ok = await onMarkLabeled(currentImage.imageId);
@@ -321,7 +160,7 @@ export function LabelImage({
   };
 
   // Handle clicking on a mask in the sidebar list
-  const handleMaskClick = useCallback((mask: MaskApiItem, event: React.MouseEvent) => {
+  const handleMaskListItemClick = useCallback((mask: MaskApiItem, event: React.MouseEvent) => {
     event.stopPropagation();
     setSelectedMaskId(mask.maskId);
 
@@ -470,38 +309,17 @@ export function LabelImage({
 
           <div className="canvas-container">
             {currentImage?.fileUrl ? (
-              <div
-                ref={wrapperRef}
+              <InteractiveMapCanvas
+                imageUrl={currentImage.fileUrl}
+                colorMap={colorMap}
+                maskOverlay={maskOverlay}
+                highlightedMaskId={highlightedMaskId}
+                masks={masks}
+                onMaskHover={handleMaskHover}
+                onMaskClick={handleMaskClick}
                 className="canvas-wrapper"
-                style={{
-                  position: 'relative',
-                  transform: `scale(${scale.x}, ${scale.y})`,
-                  transformOrigin: 'top left',
-                  cursor: maskOverlay ? 'crosshair' : 'default',
-                }}
-                onMouseMove={handleCanvasMouseMove}
-                onMouseLeave={handleCanvasMouseLeave}
-                onClick={handleCanvasClick}
-              >
-                <img
-                  ref={imageRef}
-                  src={currentImage.fileUrl}
-                  alt={currentImage.meta.fileName}
-                  onLoad={handleImageLoad}
-                  draggable={false}
-                  style={{ display: 'block' }}
-                />
-                {/* Overlay canvas for mask visualization */}
-                <canvas
-                  ref={canvasRef}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    pointerEvents: 'none',
-                  }}
-                />
-              </div>
+                imageAlt={currentImage.meta.fileName}
+              />
             ) : (
               <div className="canvas-empty">
                 <ImageIcon />
@@ -560,7 +378,7 @@ export function LabelImage({
                     <button
                       key={mask.maskId}
                       className={`mask-list-item ${isSelected ? 'selected' : ''} ${isHighlighted ? 'highlighted' : ''}`}
-                      onClick={(e) => handleMaskClick(mask, e)}
+                      onClick={(e) => handleMaskListItemClick(mask, e)}
                     >
                       <span
                         className="mask-color-dot"
