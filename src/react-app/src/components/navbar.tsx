@@ -1,19 +1,19 @@
-import { NavLink } from "react-router-dom";
+import { NavLink } from 'react-router-dom'
 import {
   Navbar as HeroUINavbar,
   NavbarContent,
   NavbarItem,
-} from "@heroui/navbar";
-import { link as linkStyles } from "@heroui/theme";
-import clsx from "clsx";
-import { Button } from "@heroui/button";
-import { IconCancel, IconMaximize, IconMaximizeOff } from "@tabler/icons-react";
+} from '@heroui/navbar'
+import { link as linkStyles } from '@heroui/theme'
+import clsx from 'clsx'
+import { Button } from '@heroui/button'
+import { IconCancel, IconMaximize, IconMaximizeOff } from '@tabler/icons-react'
 
 export const Navbar = () => {
   return (
     <HeroUINavbar
       classNames={{
-        wrapper: "px-4",
+        wrapper: 'px-4',
       }}
       maxWidth="full"
     >
@@ -25,11 +25,11 @@ export const Navbar = () => {
             <NavLink
               className={({ isActive }: { isActive: boolean }) =>
                 clsx(
-                  linkStyles({ color: "foreground" }),
-                  isActive ? "font-bold" : "text-gray-500",
+                  linkStyles({ color: 'foreground' }),
+                  isActive ? 'font-bold' : 'text-gray-500'
                 )
               }
-              to={"/"}
+              to={'/'}
             >
               Control
             </NavLink>
@@ -38,11 +38,11 @@ export const Navbar = () => {
             <NavLink
               className={({ isActive }: { isActive: boolean }) =>
                 clsx(
-                  linkStyles({ color: "foreground" }),
-                  isActive ? "font-bold" : "text-gray-500",
+                  linkStyles({ color: 'foreground' }),
+                  isActive ? 'font-bold' : 'text-gray-500'
                 )
               }
-              to={"/recordings"}
+              to={'/recordings'}
             >
               Recordings
             </NavLink>
@@ -58,13 +58,13 @@ export const Navbar = () => {
           variant="bordered"
           onPress={() => {
             if (document.fullscreenElement) {
-              document.exitFullscreen();
+              document.exitFullscreen()
             } else {
-              document.documentElement.requestFullscreen();
+              document.documentElement.requestFullscreen()
             }
           }}
         >
-          {document.fullscreenElement ? "Exit Fullscreen" : "Fullscreen"}
+          {document.fullscreenElement ? 'Exit Fullscreen' : 'Fullscreen'}
         </Button>
         <Button
           color="danger"
@@ -72,12 +72,12 @@ export const Navbar = () => {
           startContent={<IconCancel />}
           variant="bordered"
           onPress={() => {
-            alert("Not implemented");
+            alert('Not implemented')
           }}
         >
           Emergency Stop
         </Button>
       </NavbarContent>
     </HeroUINavbar>
-  );
-};
+  )
+}

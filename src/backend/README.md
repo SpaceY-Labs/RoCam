@@ -1,7 +1,11 @@
 # How to Run:
 
 ```bash
+# Start the full backend
 ./start_backend.sh
+
+# Start the backend with only recording management (rename, delete, download)
+./start_backend.sh recording-management
 ```
 
 # How to Change the Model:

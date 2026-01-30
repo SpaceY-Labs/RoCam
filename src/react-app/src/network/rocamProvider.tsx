@@ -4,109 +4,107 @@ import {
   useEffect,
   useState,
   type ReactNode,
-} from "react";
+} from 'react'
 
-import { ApiClient, type StatusResponse } from "./api";
+import { ApiClient, type StatusResponse } from './api'
 
 interface RocamContextType {
-  apiClient: ApiClient | null;
-  statusPollingError: Error | null;
-  status: StatusResponse | null;
+  apiClient: ApiClient | null
+  statusPollingError: Error | null
+  status: StatusResponse | null
 }
 
-const RocamContext = createContext<RocamContextType | undefined>(undefined);
+const RocamContext = createContext<RocamContextType | undefined>(undefined)
 
 interface RocamProviderProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 export function RocamProvider({ children }: RocamProviderProps) {
-  const [apiClient, setApiClient] = useState<ApiClient | null>(null);
-  const [error, setError] = useState<Error | null>(null);
-  const [status, setStatus] = useState<StatusResponse | null>(null);
+  const [apiClient, setApiClient] = useState<ApiClient | null>(null)
+  const [error, setError] = useState<Error | null>(null)
+  const [status, setStatus] = useState<StatusResponse | null>(null)
 
   // Initialize API client
   useEffect(() => {
-    let isMounted = true;
+    let isMounted = true
 
     async function initializeApiClient() {
       try {
-        setError(null);
-        const client = await ApiClient.createAutomatic();
+        setError(null)
+        const client = await ApiClient.createAutomatic()
 
         if (isMounted) {
-          setApiClient(client);
+          setApiClient(client)
         }
       } catch (err) {
         if (isMounted) {
-          setError(err instanceof Error ? err : new Error(String(err)));
+          setError(err instanceof Error ? err : new Error(String(err)))
         }
       }
     }
 
-    initializeApiClient();
+    initializeApiClient()
 
     return () => {
-      isMounted = false;
-    };
-  }, []);
+      isMounted = false
+    }
+  }, [])
 
   // Poll status at 30Hz (or slower if limited by network)
   useEffect(() => {
-    if (!apiClient) return;
+    if (!apiClient) return
 
-    let isMounted = true;
-    let timeoutId: number | null = null;
-    const targetInterval = 1000 / 30; // 15Hz
+    let isMounted = true
+    let timeoutId: number | null = null
+    const targetInterval = 1000 / 30 // 15Hz
 
     async function pollStatus() {
-      if (!isMounted || !apiClient) return;
+      if (!isMounted || !apiClient) return
 
-      const startTime = Date.now();
+      const startTime = Date.now()
 
       try {
-        const statusData = await apiClient.getStatus();
+        const statusData = await apiClient.getStatus()
 
         if (isMounted) {
-          setStatus(statusData);
-          setError(null);
+          setStatus(statusData)
+          setError(null)
         }
       } catch (err) {
         if (isMounted) {
-          setError(err instanceof Error ? err : new Error(String(err)));
+          setError(err instanceof Error ? err : new Error(String(err)))
         }
       }
 
-      if (!isMounted) return;
+      if (!isMounted) return
 
       // Calculate delay: wait for target interval, but account for request time
       // This ensures we poll at 30Hz when network is fast, or slower if network is slow
-      const elapsed = Date.now() - startTime;
-      const delay = Math.max(0, targetInterval - elapsed);
+      const elapsed = Date.now() - startTime
+      const delay = Math.max(0, targetInterval - elapsed)
 
-      timeoutId = window.setTimeout(pollStatus, delay);
+      timeoutId = window.setTimeout(pollStatus, delay)
     }
 
     // Start polling
-    pollStatus();
+    pollStatus()
 
     return () => {
-      isMounted = false;
+      isMounted = false
       if (timeoutId !== null) {
-        clearTimeout(timeoutId);
+        clearTimeout(timeoutId)
       }
-    };
-  }, [apiClient]);
+    }
+  }, [apiClient])
 
   const value: RocamContextType = {
     apiClient,
     statusPollingError: error,
     status,
-  };
+  }
 
-  return (
-    <RocamContext.Provider value={value}>{children}</RocamContext.Provider>
-  );
+  return <RocamContext.Provider value={value}>{children}</RocamContext.Provider>
 }
 
 /**
@@ -115,11 +113,11 @@ export function RocamProvider({ children }: RocamProviderProps) {
  * @throws Error if used outside of RocamProvider
  */
 export function useRocam() {
-  const context = useContext(RocamContext);
+  const context = useContext(RocamContext)
 
   if (context === undefined) {
-    throw new Error("useRocam must be used within a RocamProvider");
+    throw new Error('useRocam must be used within a RocamProvider')
   }
 
-  return context;
+  return context
 }

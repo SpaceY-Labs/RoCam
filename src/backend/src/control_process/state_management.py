@@ -48,6 +48,7 @@ class BoundingBoxCollection:
                 return cv_data.bounding_box
         return None
 
+RECORDING_DATABASE_BASE_PATH = "/mnt/data/data"
 
 class StateManagement:
     def __init__(self):
@@ -62,7 +63,7 @@ class StateManagement:
         )
         self._status_led_thread.start()
 
-        self.database = RecordingDatabase(base_path="/mnt/data/data")
+        self.database = RecordingDatabase(base_path=RECORDING_DATABASE_BASE_PATH)
         self._in_progress_recording_id = None
 
         self._gimbal_lock = threading.Lock()

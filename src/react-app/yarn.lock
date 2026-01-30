@@ -520,6 +520,14 @@
     "@heroui/system" "2.4.23"
     "@heroui/use-measure" "2.1.8"
 
+"@heroui/framer-utils@2.1.26":
+  version "2.1.26"
+  resolved "https://registry.yarnpkg.com/@heroui/framer-utils/-/framer-utils-2.1.26.tgz#cf4cba12f2c1157617ce8b965164c098aa4e1769"
+  integrity sha512-0QsIgNBmMNcvGRBDEt4OeD0fUUXGz+1RxXGsZzyYmeaEWCtQniv2CjGKqtp9Fj3ih9HwTwsfTR6lnnP54i6AyQ==
+  dependencies:
+    "@heroui/system" "2.4.26"
+    "@heroui/use-measure" "2.1.8"
+
 "@heroui/input@2.4.28":
   version "2.4.28"
   resolved "https://registry.yarnpkg.com/@heroui/input/-/input-2.4.28.tgz#54c9cbf0946d23bc2c65372b8e7e9f0b41a64cdc"
@@ -575,6 +583,26 @@
     "@react-stately/tree" "3.9.3"
     "@react-types/menu" "3.10.5"
     "@react-types/shared" "3.32.1"
+
+"@heroui/modal@2.2.27":
+  version "2.2.27"
+  resolved "https://registry.yarnpkg.com/@heroui/modal/-/modal-2.2.27.tgz#51b3247c671235070cd8e99d3de2770688ece504"
+  integrity sha512-3RSjg0+g1uPDoO0EpKDpaEcGnuYHW0xUQeyY52tDQjbJyZ3f1mAmTFCtEUKMLPjg9OXD9INUn9Gor0ytR5PV0g==
+  dependencies:
+    "@heroui/dom-animation" "2.1.10"
+    "@heroui/framer-utils" "2.1.26"
+    "@heroui/react-utils" "2.1.14"
+    "@heroui/shared-icons" "2.1.10"
+    "@heroui/shared-utils" "2.1.12"
+    "@heroui/use-aria-button" "2.2.21"
+    "@heroui/use-aria-modal-overlay" "2.2.20"
+    "@heroui/use-disclosure" "2.2.18"
+    "@heroui/use-draggable" "2.1.19"
+    "@heroui/use-viewport-size" "2.0.1"
+    "@react-aria/dialog" "3.5.32"
+    "@react-aria/focus" "3.21.3"
+    "@react-aria/overlays" "3.31.0"
+    "@react-stately/overlays" "3.6.21"
 
 "@heroui/navbar@2.2.25":
   version "2.2.25"
@@ -689,6 +717,13 @@
     "@react-types/shared" "3.32.1"
     clsx "^1.2.1"
 
+"@heroui/system-rsc@2.3.22":
+  version "2.3.22"
+  resolved "https://registry.yarnpkg.com/@heroui/system-rsc/-/system-rsc-2.3.22.tgz#d9fa36db3feccb83f21719057d01b89a906b73d4"
+  integrity sha512-fOEn1iaGglphKMUz6B72jHlvj1tBYGe1nMCw7iXVttfWOihvZ89lIi2rHmN2EmfluuWR+HMsoL6lOzQTnIns2Q==
+  dependencies:
+    "@react-types/shared" "3.32.1"
+
 "@heroui/system@2.4.23":
   version "2.4.23"
   resolved "https://registry.yarnpkg.com/@heroui/system/-/system-2.4.23.tgz#7e1960ce4565b6f785e520b10b007ed8823fc05b"
@@ -699,6 +734,17 @@
     "@react-aria/i18n" "3.12.13"
     "@react-aria/overlays" "3.30.0"
     "@react-aria/utils" "3.31.0"
+
+"@heroui/system@2.4.26":
+  version "2.4.26"
+  resolved "https://registry.yarnpkg.com/@heroui/system/-/system-2.4.26.tgz#40b74f06e553f8fad4e11d5564b482d41eba483e"
+  integrity sha512-XqcsMmygWKcJYaviexO+FnZQBt2bd8z1vKIegRPsOmZytJXO/xJavbcwcuKP8A2Csk7fwYQANVx8qtN/r/wFOg==
+  dependencies:
+    "@heroui/react-utils" "2.1.14"
+    "@heroui/system-rsc" "2.3.22"
+    "@react-aria/i18n" "3.12.14"
+    "@react-aria/overlays" "3.31.0"
+    "@react-aria/utils" "3.32.0"
 
 "@heroui/theme@2.4.23":
   version "2.4.23"
@@ -743,6 +789,17 @@
     "@react-types/button" "3.14.1"
     "@react-types/shared" "3.32.1"
 
+"@heroui/use-aria-button@2.2.21":
+  version "2.2.21"
+  resolved "https://registry.yarnpkg.com/@heroui/use-aria-button/-/use-aria-button-2.2.21.tgz#75e82c0dea7aa91e6fa6d53b865180ca0de72e1a"
+  integrity sha512-8Lhjt1xoDpjhqvEbFC21NEgU89p7Z+MAzrDyoF1eYUn/w4ahhBgcQStP6WicLfx50tOE10WDpPBq72tah/O+ww==
+  dependencies:
+    "@react-aria/focus" "3.21.3"
+    "@react-aria/interactions" "3.26.0"
+    "@react-aria/utils" "3.32.0"
+    "@react-types/button" "3.14.1"
+    "@react-types/shared" "3.32.1"
+
 "@heroui/use-aria-link@2.2.21":
   version "2.2.21"
   resolved "https://registry.yarnpkg.com/@heroui/use-aria-link/-/use-aria-link-2.2.21.tgz#5ae6fbe71d0a189b70d87a0d3766f8b8fc198950"
@@ -754,6 +811,16 @@
     "@react-types/link" "3.6.5"
     "@react-types/shared" "3.32.1"
 
+"@heroui/use-aria-modal-overlay@2.2.20":
+  version "2.2.20"
+  resolved "https://registry.yarnpkg.com/@heroui/use-aria-modal-overlay/-/use-aria-modal-overlay-2.2.20.tgz#d51cb1aefe43c8722175e06f29d48e9f20028b6c"
+  integrity sha512-AIYfpnpiRVJm3InKlroGqQSZ1hjBI0Y5oMhMrXuQqrySsMKzMye3zMcEBWf8dEho1l+/U0dgNIUJFbkEFsOc8w==
+  dependencies:
+    "@heroui/use-aria-overlay" "2.0.5"
+    "@react-aria/overlays" "3.31.0"
+    "@react-aria/utils" "3.32.0"
+    "@react-stately/overlays" "3.6.21"
+
 "@heroui/use-aria-overlay@2.0.4":
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/@heroui/use-aria-overlay/-/use-aria-overlay-2.0.4.tgz#35d20f52aec44271c8d1114a39eaeb2f26ac3630"
@@ -764,10 +831,43 @@
     "@react-aria/overlays" "3.30.0"
     "@react-types/shared" "3.32.1"
 
+"@heroui/use-aria-overlay@2.0.5":
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/@heroui/use-aria-overlay/-/use-aria-overlay-2.0.5.tgz#ec4bf56e0732e4505f0d418321c5bba455b53355"
+  integrity sha512-2g1HxRoDzGAqIkW7s09WEXg+SAWslh+ZkIuixNAqsA60FHSAzQtGCNpbE2yFeMrukhbmRfS8t3hT2JVZVAXG7w==
+  dependencies:
+    "@react-aria/focus" "3.21.3"
+    "@react-aria/interactions" "3.26.0"
+    "@react-aria/overlays" "3.31.0"
+    "@react-types/shared" "3.32.1"
+
+"@heroui/use-callback-ref@2.1.8":
+  version "2.1.8"
+  resolved "https://registry.yarnpkg.com/@heroui/use-callback-ref/-/use-callback-ref-2.1.8.tgz#c586a609949b7bb2e358f4458998dfc242e0fc84"
+  integrity sha512-D1JDo9YyFAprYpLID97xxQvf86NvyWLay30BeVVZT9kWmar6O9MbCRc7ACi7Ngko60beonj6+amTWkTm7QuY/Q==
+  dependencies:
+    "@heroui/use-safe-layout-effect" "2.1.8"
+
 "@heroui/use-clipboard@2.1.9":
   version "2.1.9"
   resolved "https://registry.yarnpkg.com/@heroui/use-clipboard/-/use-clipboard-2.1.9.tgz#09654698b929560f8dd68d2d87cfaa37ffa0ea55"
   integrity sha512-lkBq5RpXHiPvk1BXKJG8gMM0f7jRMIGnxAXDjAUzZyXKBuWLoM+XlaUWmZHtmkkjVFMX1L4vzA+vxi9rZbenEQ==
+
+"@heroui/use-disclosure@2.2.18":
+  version "2.2.18"
+  resolved "https://registry.yarnpkg.com/@heroui/use-disclosure/-/use-disclosure-2.2.18.tgz#61e31129f4e4837050919294fada61dd0b77dac7"
+  integrity sha512-aR/4oITXOyt8uze9EdfL/b2j8pg75dc92Q8FfoT17MibD6nKI1VmQDA+9CAtUwuKq6rSrEGqc14muO3GYpTH4g==
+  dependencies:
+    "@heroui/use-callback-ref" "2.1.8"
+    "@react-aria/utils" "3.32.0"
+    "@react-stately/utils" "3.11.0"
+
+"@heroui/use-draggable@2.1.19":
+  version "2.1.19"
+  resolved "https://registry.yarnpkg.com/@heroui/use-draggable/-/use-draggable-2.1.19.tgz#345d59d218528459cb63cc5f030a233b1c0237c6"
+  integrity sha512-pk0Oe4QLcjr1gndcuvq+8z6eoM+v3lvbmEDxbsEjeST9AwykfmT/60X+xrPFtCkfYldYXk1UxBPiGwrFs0lscQ==
+  dependencies:
+    "@react-aria/interactions" "3.26.0"
 
 "@heroui/use-is-mobile@2.2.12":
   version "2.2.12"
@@ -801,6 +901,11 @@
   resolved "https://registry.yarnpkg.com/@heroui/use-theme/-/use-theme-2.1.10.tgz#1bbb763437dbcda69c222cdc8c6b710e03fe7727"
   integrity sha512-JM9Y56bzHMU0rEz1K86Tnli2oRqQY3/NYNOHXbVXQtP+ZB2eabm9Cbl15bPZzSskpEsD5oKnbccFV4dCYhenmw==
 
+"@heroui/use-viewport-size@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@heroui/use-viewport-size/-/use-viewport-size-2.0.1.tgz#3a2a5029b33b11bf6f4c7eb96b7580996f08b860"
+  integrity sha512-blv8BEB/QdLePLWODPRzRS2eELJ2eyHbdOIADbL0KcfLzOUEg9EiuVk90hcSUDAFqYiJ3YZ5Z0up8sdPcR8Y7g==
+
 "@humanfs/core@^0.19.1":
   version "0.19.1"
   resolved "https://registry.yarnpkg.com/@humanfs/core/-/core-0.19.1.tgz#17c55ca7d426733fe3c561906b8173c336b40a77"
@@ -828,6 +933,13 @@
   version "3.10.0"
   resolved "https://registry.yarnpkg.com/@internationalized/date/-/date-3.10.0.tgz#056db64a4facdf48c6937ad498a882a8151d640a"
   integrity sha512-oxDR/NTEJ1k+UFVQElaNIk65E/Z83HK1z1WI3lQyhTtnNg4R5oVXaPzK3jcpKG8UHKDVuDQHzn+wsxSz8RP3aw==
+  dependencies:
+    "@swc/helpers" "^0.5.0"
+
+"@internationalized/date@^3.10.1":
+  version "3.10.1"
+  resolved "https://registry.yarnpkg.com/@internationalized/date/-/date-3.10.1.tgz#ca63817feadeffe97f710289b00af229cd8af15c"
+  integrity sha512-oJrXtQiAXLvT9clCf1K4kxp3eKsQhIaZqxEyowkBcsvZDdZkbWrVmnGknxs5flTD0VGsxrxKgBCZty1EzoiMzA==
   dependencies:
     "@swc/helpers" "^0.5.0"
 
@@ -954,6 +1066,18 @@
     "@react-types/shared" "^3.32.1"
     "@swc/helpers" "^0.5.0"
 
+"@react-aria/dialog@3.5.32":
+  version "3.5.32"
+  resolved "https://registry.yarnpkg.com/@react-aria/dialog/-/dialog-3.5.32.tgz#3013a8550192f3c37f8550d428ea5dacf21f0039"
+  integrity sha512-2puMjsJS2FtB8LiFuQDAdBSU4dt3lqdJn4FWt/8GL6l91RZBqp2Dnm5Obuee6rV2duNJZcSAUWsQZ/S1iW8Y2g==
+  dependencies:
+    "@react-aria/interactions" "^3.26.0"
+    "@react-aria/overlays" "^3.31.0"
+    "@react-aria/utils" "^3.32.0"
+    "@react-types/dialog" "^3.5.22"
+    "@react-types/shared" "^3.32.1"
+    "@swc/helpers" "^0.5.0"
+
 "@react-aria/focus@3.21.2", "@react-aria/focus@^3.21.2":
   version "3.21.2"
   resolved "https://registry.yarnpkg.com/@react-aria/focus/-/focus-3.21.2.tgz#3ce90450c3ee69f11c0647b4717c26d10941231c"
@@ -961,6 +1085,17 @@
   dependencies:
     "@react-aria/interactions" "^3.25.6"
     "@react-aria/utils" "^3.31.0"
+    "@react-types/shared" "^3.32.1"
+    "@swc/helpers" "^0.5.0"
+    clsx "^2.0.0"
+
+"@react-aria/focus@3.21.3", "@react-aria/focus@^3.21.3":
+  version "3.21.3"
+  resolved "https://registry.yarnpkg.com/@react-aria/focus/-/focus-3.21.3.tgz#bdcdfc45735c785de5ba54cc907e531926dcc4c5"
+  integrity sha512-FsquWvjSCwC2/sBk4b+OqJyONETUIXQ2vM0YdPAuC+QFQh2DT6TIBo6dOZVSezlhudDla69xFBd6JvCFq1AbUw==
+  dependencies:
+    "@react-aria/interactions" "^3.26.0"
+    "@react-aria/utils" "^3.32.0"
     "@react-types/shared" "^3.32.1"
     "@swc/helpers" "^0.5.0"
     clsx "^2.0.0"
@@ -990,6 +1125,20 @@
     "@react-types/shared" "^3.32.1"
     "@swc/helpers" "^0.5.0"
 
+"@react-aria/i18n@3.12.14", "@react-aria/i18n@^3.12.14":
+  version "3.12.14"
+  resolved "https://registry.yarnpkg.com/@react-aria/i18n/-/i18n-3.12.14.tgz#3c6d797dafc5d1d7b5c5dcda99883bee7e6fa81c"
+  integrity sha512-zYvs1FlLamFD49uneX3i5mPHrAsB3OjVpSWApTcPw8ydxOaphQDp/Q1aqrbcxlrQCcxZdXWHuvLlbkNR4+8jzw==
+  dependencies:
+    "@internationalized/date" "^3.10.1"
+    "@internationalized/message" "^3.1.8"
+    "@internationalized/number" "^3.6.5"
+    "@internationalized/string" "^3.2.7"
+    "@react-aria/ssr" "^3.9.10"
+    "@react-aria/utils" "^3.32.0"
+    "@react-types/shared" "^3.32.1"
+    "@swc/helpers" "^0.5.0"
+
 "@react-aria/interactions@3.25.6", "@react-aria/interactions@^3.25.6":
   version "3.25.6"
   resolved "https://registry.yarnpkg.com/@react-aria/interactions/-/interactions-3.25.6.tgz#6fdf287337c5e4285045c35cf94b2ec8ae3b3a49"
@@ -997,6 +1146,17 @@
   dependencies:
     "@react-aria/ssr" "^3.9.10"
     "@react-aria/utils" "^3.31.0"
+    "@react-stately/flags" "^3.1.2"
+    "@react-types/shared" "^3.32.1"
+    "@swc/helpers" "^0.5.0"
+
+"@react-aria/interactions@3.26.0", "@react-aria/interactions@^3.26.0":
+  version "3.26.0"
+  resolved "https://registry.yarnpkg.com/@react-aria/interactions/-/interactions-3.26.0.tgz#5c0538499fe2a8e02f15e37787ffba27996076b4"
+  integrity sha512-AAEcHiltjfbmP1i9iaVw34Mb7kbkiHpYdqieWufldh4aplWgsF11YQZOfaCJW4QoR2ML4Zzoa9nfFwLXA52R7Q==
+  dependencies:
+    "@react-aria/ssr" "^3.9.10"
+    "@react-aria/utils" "^3.32.0"
     "@react-stately/flags" "^3.1.2"
     "@react-types/shared" "^3.32.1"
     "@swc/helpers" "^0.5.0"
@@ -1042,6 +1202,23 @@
     "@react-aria/utils" "^3.31.0"
     "@react-aria/visually-hidden" "^3.8.28"
     "@react-stately/overlays" "^3.6.20"
+    "@react-types/button" "^3.14.1"
+    "@react-types/overlays" "^3.9.2"
+    "@react-types/shared" "^3.32.1"
+    "@swc/helpers" "^0.5.0"
+
+"@react-aria/overlays@3.31.0", "@react-aria/overlays@^3.31.0":
+  version "3.31.0"
+  resolved "https://registry.yarnpkg.com/@react-aria/overlays/-/overlays-3.31.0.tgz#f62769e5aa63362b7389deb698b05fbea83c38e9"
+  integrity sha512-Vq41X1s8XheGIhGbbuqRJslJEX08qmMVX//dwuBaFX9T18mMR04tumKOMxp8Lz+vqwdGLvjNUYDMcgolL+AMjw==
+  dependencies:
+    "@react-aria/focus" "^3.21.3"
+    "@react-aria/i18n" "^3.12.14"
+    "@react-aria/interactions" "^3.26.0"
+    "@react-aria/ssr" "^3.9.10"
+    "@react-aria/utils" "^3.32.0"
+    "@react-aria/visually-hidden" "^3.8.29"
+    "@react-stately/overlays" "^3.6.21"
     "@react-types/button" "^3.14.1"
     "@react-types/overlays" "^3.9.2"
     "@react-types/shared" "^3.32.1"
@@ -1140,6 +1317,18 @@
     "@swc/helpers" "^0.5.0"
     clsx "^2.0.0"
 
+"@react-aria/utils@3.32.0", "@react-aria/utils@^3.32.0":
+  version "3.32.0"
+  resolved "https://registry.yarnpkg.com/@react-aria/utils/-/utils-3.32.0.tgz#ebc2d715dd3814145f0e7c722797fdb20e308e7f"
+  integrity sha512-/7Rud06+HVBIlTwmwmJa2W8xVtgxgzm0+kLbuFooZRzKDON6hhozS1dOMR/YLMxyJOaYOTpImcP4vRR9gL1hEg==
+  dependencies:
+    "@react-aria/ssr" "^3.9.10"
+    "@react-stately/flags" "^3.1.2"
+    "@react-stately/utils" "^3.11.0"
+    "@react-types/shared" "^3.32.1"
+    "@swc/helpers" "^0.5.0"
+    clsx "^2.0.0"
+
 "@react-aria/visually-hidden@3.8.28", "@react-aria/visually-hidden@^3.8.28":
   version "3.8.28"
   resolved "https://registry.yarnpkg.com/@react-aria/visually-hidden/-/visually-hidden-3.8.28.tgz#61fc99c2d2662e7347abe25a421d138a3a81db46"
@@ -1147,6 +1336,16 @@
   dependencies:
     "@react-aria/interactions" "^3.25.6"
     "@react-aria/utils" "^3.31.0"
+    "@react-types/shared" "^3.32.1"
+    "@swc/helpers" "^0.5.0"
+
+"@react-aria/visually-hidden@^3.8.29":
+  version "3.8.29"
+  resolved "https://registry.yarnpkg.com/@react-aria/visually-hidden/-/visually-hidden-3.8.29.tgz#9acc4b171b914c3f0c20f92215e2be01a1873526"
+  integrity sha512-1joCP+MHBLd+YA6Gb08nMFfDBhOF0Kh1gR1SA8zoxEB5RMfQEEkufIB8k0GGwvHGSCK3gFyO8UAVsD0+rRYEyg==
+  dependencies:
+    "@react-aria/interactions" "^3.26.0"
+    "@react-aria/utils" "^3.32.0"
     "@react-types/shared" "^3.32.1"
     "@swc/helpers" "^0.5.0"
 
@@ -1189,6 +1388,15 @@
   integrity sha512-YAIe+uI8GUXX8F/0Pzr53YeC5c/bjqbzDFlV8NKfdlCPa6+Jp4B/IlYVjIooBj9+94QvbQdjylegvYWK/iPwlg==
   dependencies:
     "@react-stately/utils" "^3.10.8"
+    "@react-types/overlays" "^3.9.2"
+    "@swc/helpers" "^0.5.0"
+
+"@react-stately/overlays@3.6.21", "@react-stately/overlays@^3.6.21":
+  version "3.6.21"
+  resolved "https://registry.yarnpkg.com/@react-stately/overlays/-/overlays-3.6.21.tgz#01e73a13e828da187acb9312c8b1a85474a46737"
+  integrity sha512-7f25H1PS2g+SNvuWPEW30pSGqYNHxesCP4w+1RcV/XV1oQI7oP5Ji2WfI0QsJEFc9wP/ZO1pyjHNKpfLI3O88g==
+  dependencies:
+    "@react-stately/utils" "^3.11.0"
     "@react-types/overlays" "^3.9.2"
     "@swc/helpers" "^0.5.0"
 
@@ -1236,6 +1444,13 @@
   version "3.10.8"
   resolved "https://registry.yarnpkg.com/@react-stately/utils/-/utils-3.10.8.tgz#fdb9d172f7bbc2d083e69190f5ef0edfa4b4392f"
   integrity sha512-SN3/h7SzRsusVQjQ4v10LaVsDc81jyyR0DD5HnsQitm/I5WDpaSr2nRHtyloPFU48jlql1XX/S04T2DLQM7Y3g==
+  dependencies:
+    "@swc/helpers" "^0.5.0"
+
+"@react-stately/utils@3.11.0", "@react-stately/utils@^3.11.0":
+  version "3.11.0"
+  resolved "https://registry.yarnpkg.com/@react-stately/utils/-/utils-3.11.0.tgz#95a05d9633f4614ca89f630622566e7e5709d79e"
+  integrity sha512-8LZpYowJ9eZmmYLpudbo/eclIRnbhWIJZ994ncmlKlouNzKohtM8qTC6B1w1pwUbiwGdUoyzLuQbeaIor5Dvcw==
   dependencies:
     "@swc/helpers" "^0.5.0"
 

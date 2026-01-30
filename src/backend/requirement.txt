@@ -4,3 +4,4 @@ flask_cors
 pyserial
 netifaces
 pygobject-stubs
+pathvalidate

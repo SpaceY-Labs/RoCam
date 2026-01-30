@@ -4,8 +4,6 @@ import logging
 from common.ipc_buffer import IPCBufferReceiver
 from common.utils import run_pipeline_and_wait_for_start, set_scheduler_fifo
 
-import gi
-
 from cv_process.main import (
     HEIGHT,
     LIVE_STREAM_FRAME_SIZE,
@@ -13,6 +11,8 @@ from cv_process.main import (
     LIVE_STREAM_SHM_NAME,
     WIDTH,
 )
+
+import gi
 
 gi.require_version("Gst", "1.0")
 os.environ["GST_DEBUG_DUMP_DOT_DIR"] = "./"

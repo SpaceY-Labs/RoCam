@@ -156,27 +156,7 @@ class RecordingDatabase:
 
         return None, None
 
-    def read_log_by_id(self, recording_id: str) -> Optional[list[OSDData]]:
-        """
-        Reads and parses the log file for the given recording_id.
-        """
-        self._validate_id(recording_id)
-        log_path = os.path.join(self._base_path, recording_id, "log.txt")
-        if not os.path.exists(log_path):
-            return None
-
-        logs = []
-        with open(log_path, "r") as f:
-            for line in f:
-                if not line.strip():
-                    continue
-                try:
-                    data = json.loads(line)
-                    logs.append(OSDData(**data))
-                except (json.JSONDecodeError, TypeError) as e:
-                    logger.warning(f"Failed to parse log line in {recording_id}: {e}")
-                    continue
-        return logs
+    
 
     def get_recording_by_id(self, recording_id: str) -> Optional[RecordingInfo]:
         """
