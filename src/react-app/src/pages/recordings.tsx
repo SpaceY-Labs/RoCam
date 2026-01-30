@@ -13,11 +13,10 @@ import {
   IconPlayerPlay,
   IconTrash,
 } from '@tabler/icons-react'
+import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/modal'
 
 import DefaultLayout from '@/layouts/default'
 import { useRocam } from '@/network/rocamProvider'
-
-import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/modal'
 
 export default function RecordingsPage() {
   const { apiClient } = useRocam()
@@ -149,8 +148,10 @@ function RecordingItem({
 
   const handleSave = async () => {
     const trimmed = filenameDraft.trim()
+
     if (!trimmed || trimmed === r.name || isSaving) {
       setFilenameDraft(r.name) // Reset if empty or unchanged
+
       return
     }
     setIsSaving(true)
@@ -181,10 +182,9 @@ function RecordingItem({
         <div className="flex-1 min-w-0">
           <Input
             className="w-96"
-            size="sm"
             disabled={isSaving}
+            size="sm"
             value={filenameDraft}
-            onValueChange={setFilenameDraft}
             onBlur={handleSave}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -195,6 +195,7 @@ function RecordingItem({
                 ;(e.target as HTMLInputElement).blur()
               }
             }}
+            onValueChange={setFilenameDraft}
           />
 
           <div className="flex items-center text-xs text-gray-500 mt-2">
@@ -217,8 +218,8 @@ function RecordingItem({
           <Button
             radius="sm"
             size="sm"
-            variant="bordered"
             startContent={<IconPlayerPlay size={20} strokeWidth={1.5} />}
+            variant="bordered"
             onPress={() => onPreview(r)}
           >
             Preview
@@ -228,23 +229,23 @@ function RecordingItem({
             href={apiClient.downloadStablizedUrl(r.id)}
             radius="sm"
             size="sm"
-            variant="bordered"
             startContent={<IconDownload size={20} strokeWidth={1.5} />}
+            variant="bordered"
           >
             Download
           </Button>
 
           <Button
             color="danger"
+            isDisabled={isDeleting}
+            isLoading={isDeleting}
+            radius="sm"
+            size="sm"
             startContent={
               isDeleting ? undefined : <IconTrash size={20} strokeWidth={1.5} />
             }
-            isDisabled={isDeleting}
-            radius="sm"
-            size="sm"
             variant="bordered"
             onPress={handleDelete}
-            isLoading={isDeleting}
           >
             Delete
           </Button>
@@ -321,6 +322,7 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
   const formatSeconds = (s: number) => {
     const mins = Math.floor(s / 60)
     const secs = Math.floor(s % 60)
+
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
@@ -345,11 +347,12 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
                     autoPlay
                     className="w-full rounded-lg aspect-video bg-white"
                     src={apiClient.previewStablizedUrl(recording.id)}
-                    onPlaying={handlePlaying}
                     onPause={handlePause}
+                    onPlaying={handlePlaying}
                     onTimeUpdate={handleTimeUpdate}
                     onWaiting={() => setIsWaiting(true)}
                   >
+                    <track kind="captions" />
                     Your browser does not support the video tag.
                   </video>
                   <Button
@@ -385,7 +388,9 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
 function formatDate(timestampMs: number | null) {
   if (timestampMs === null || !Number.isFinite(timestampMs)) return '--'
   const d = new Date(timestampMs)
+
   if (isNaN(d.getTime())) return '--'
+
   return d.toLocaleString(undefined, {
     year: 'numeric',
     month: 'numeric',
@@ -401,6 +406,7 @@ function formatDuration(durationMs: number | null) {
   const seconds = Math.floor(durationMs / 1000)
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)
+
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
@@ -409,9 +415,11 @@ function formatBytes(bytes: number) {
   const units = ['B', 'KB', 'MB', 'GB']
   let b = bytes
   let i = 0
+
   while (b >= 1024 && i < units.length - 1) {
     b /= 1024
     i++
   }
+
   return `${b.toFixed(i === 0 ? 0 : 1)} ${units[i]}`
 }
