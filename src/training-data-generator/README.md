@@ -59,7 +59,7 @@ uv run draw-bboxes --color red --width 3
 ### Options (generate-data)
 
 - `--count N`: Number of images to generate (default: 10).
-- `--out-dir DIR`: Output directory for generated images (default: `./out`).
+- `--out-dir DIR`: Output directory for generated images (default: `./out`). Images are saved as JPEG (`.jpg`).
 - `--hdri-dir DIR`: Directory containing `.hdr` or `.exr` background images (default: `./assets/hdri`).
 - `--samples N`: Render samples per pixel. Higher means less noise but slower (default: 32).
 - `--seed N`: Random seed for reproducibility.

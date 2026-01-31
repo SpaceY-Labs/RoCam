@@ -55,7 +55,10 @@ def draw_bboxes_on_image(
             draw.rectangle([left, top, right, bottom], outline=color, width=width)
             drawn = True
 
-    img.save(out_path)
+    if out_path.suffix.lower() in {".jpg", ".jpeg"}:
+        img.save(out_path, quality=90)
+    else:
+        img.save(out_path)
     return drawn
 
 
