@@ -5,10 +5,12 @@ description = "Synthetic HDRI-lit cube image generator"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "pillow>=10.0.0",
 ]
 
 [project.scripts]
 generate-data = "training_data_generator.cli:main"
+draw-bboxes = "training_data_generator.draw_bboxes:main"
 
 [build-system]
 requires = ["hatchling"]

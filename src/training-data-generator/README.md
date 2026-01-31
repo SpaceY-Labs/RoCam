@@ -36,7 +36,27 @@ uv run generate-data --hdri-dir /path/to/hdris
 uv run generate-data --count 50 --samples 128 --seed 42
 ```
 
-### Options
+### Draw bounding boxes on generated images
+
+To visualize YOLO-style labels, draw bounding boxes on the output images:
+
+```bash
+# Default: read ./out, write ./out_bbox
+uv run draw-bboxes
+
+# Custom directories
+uv run draw-bboxes --input-dir ./out --output-dir ./my_bbox
+
+# Custom line color and width
+uv run draw-bboxes --color red --width 3
+```
+
+- `--input-dir DIR`: Directory containing images and matching `.txt` labels (default: `./out`).
+- `--output-dir DIR`: Where to save images with boxes (default: `{input_dir}_bbox`).
+- `--color COLOR`: Outline color name or hex (default: `lime`).
+- `--width N`: Line width in pixels (default: 2).
+
+### Options (generate-data)
 
 - `--count N`: Number of images to generate (default: 10).
 - `--out-dir DIR`: Output directory for generated images (default: `./out`).
