@@ -17,12 +17,14 @@ def main():
     # parent.parent.parent -> training-data-generator (root with pyproject.toml)
     project_root = package_dir.parent.parent
     default_hdri_dir = project_root / "assets" / "hdri"
+    default_texture_dir = project_root / "assets" / "rocket_texture"
     default_out_dir = project_root / "out"
     blender_script = package_dir / "blender" / "generate.py"
 
     parser.add_argument("--count", type=int, default=10, help="Number of images to generate")
     parser.add_argument("--out-dir", type=str, default=str(default_out_dir), help="Output directory")
     parser.add_argument("--hdri-dir", type=str, default=str(default_hdri_dir), help="Directory containing HDRI files")
+    parser.add_argument("--texture-dir", type=str, default=str(default_texture_dir), help="Directory containing rocket textures")
     parser.add_argument("--seed", type=int, default=None, help="Random seed")
     parser.add_argument("--samples", type=int, default=32, help="Render samples (higher = better quality, slower)")
     parser.add_argument("--blender-app-id", type=str, default="org.blender.Blender", help="Flatpak App ID for Blender")
@@ -33,11 +35,15 @@ def main():
     # (though --filesystem=host handles most, absolute is safer)
     out_dir_abs = Path(args.out_dir).resolve()
     hdri_dir_abs = Path(args.hdri_dir).resolve()
+    texture_dir_abs = Path(args.texture_dir).resolve()
     script_abs = blender_script.resolve()
 
     if not hdri_dir_abs.exists():
         print(f"Error: HDRI directory not found at {hdri_dir_abs}")
         sys.exit(1)
+
+    if not texture_dir_abs.exists():
+        print(f"Warning: Texture directory not found at {texture_dir_abs}")
 
     if not script_abs.exists():
         print(f"Error: Blender script not found at {script_abs}")
@@ -47,6 +53,7 @@ def main():
     os.makedirs(out_dir_abs, exist_ok=True)
     print(f"Output directory: {out_dir_abs}")
     print(f"HDRI directory: {hdri_dir_abs}")
+    print(f"Texture directory: {texture_dir_abs}")
 
     # Check for flatpak
     if not shutil.which("flatpak"):
@@ -66,6 +73,7 @@ def main():
         "--count", str(args.count),
         "--out-dir", str(out_dir_abs),
         "--hdri-dir", str(hdri_dir_abs),
+        "--texture-dir", str(texture_dir_abs),
         "--samples", str(args.samples)
     ]
 

@@ -33,17 +33,30 @@ def create_fin_mesh(name, span, root_chord, tip_chord, sweep):
     
     return mesh
 
-def create_rocket(body_radius=0.15, body_height=0.8, nose_height=0.3, 
+def unwrap_object(obj):
+    """Unwrap UVs for an object."""
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.uv.smart_project(angle_limit=66.0, island_margin=0.02)
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+def create_rocket(texture_image=None, body_radius=0.15, body_height=0.8, nose_height=0.3, 
                   num_fins=3, fin_span=0.2, fin_root_chord=0.2, fin_tip_chord=0.1, fin_sweep=0.1):
     """Create a rocket model with specific dimensions."""
     # Material
-    mat = bpy.data.materials.get("RocketMat")
-    if mat is None:
-        mat = bpy.data.materials.new(name="RocketMat")
-        mat.use_nodes = True
-        bsdf = mat.node_tree.nodes["Principled BSDF"]
+    mat = bpy.data.materials.new(name="RocketMat")
+    # mat.use_nodes = True # Deprecated in 4.0+
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+    
+    if texture_image:
+        tex_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
+        tex_node.image = texture_image
+        mat.node_tree.links.new(tex_node.outputs['Color'], bsdf.inputs['Base Color'])
+    else:
         bsdf.inputs['Base Color'].default_value = (0.5, 0.5, 0.5, 1) # Gray
-        bsdf.inputs['Roughness'].default_value = 0.5
+        
+    bsdf.inputs['Roughness'].default_value = 0.5
 
     # Body Tube (Cylinder)
     bpy.ops.mesh.primitive_cylinder_add(
@@ -86,36 +99,7 @@ def create_rocket(body_radius=0.15, body_height=0.8, nose_height=0.3,
         
         fin.data.materials.append(mat)
         
-        # Rotate 90 deg on X (vertical) is NOT needed because we defined it in X-Z plane directly?
-        # Wait, create_fin_mesh defined it in X-Z plane where Z is up.
-        # But we want the fin to stick out radially.
-        # If we rotate by 'angle' around Z, the X axis points radially out.
-        # So we just need to rotate by 'angle' around Z.
-        
-        # However, create_fin_mesh uses Z for the vertical dimension of the fin.
-        # If we just rotate around Z, the fin will be vertical.
-        # That's what we want.
-        
         fin.rotation_euler = (0, 0, angle)
-        
-        # Position
-        # The fin root is at (0,0,0) in local coords.
-        # We want to shift it out by body_radius.
-        # And shift it down to the bottom of the rocket.
-        
-        # Local shift in X (radial)
-        # Local shift in Z (vertical)
-        
-        # We can set location directly
-        # X shift: body_radius * cos(angle)
-        # Y shift: body_radius * sin(angle)
-        # Z shift: -body_height/2 + (some offset to align bottom of fin)
-        
-        # Let's align the bottom of the fin (Root TE) with the bottom of the rocket.
-        # Root TE is at z = -root_chord in local coords.
-        # Bottom of rocket is at z = -body_height/2.
-        # So we want local z=-root_chord to map to world z=-body_height/2.
-        # So origin (local z=0) should be at world z = -body_height/2 + root_chord.
         
         fin_z_loc = -(body_height / 2) + fin_root_chord
         
@@ -126,12 +110,24 @@ def create_rocket(body_radius=0.15, body_height=0.8, nose_height=0.3,
         fin.parent = body
         fin.matrix_parent_inverse = body.matrix_world.inverted()
         
+    # Unwrap UVs for everything to ensure texture shows up
+    unwrap_object(body)
+    unwrap_object(nose)
+    for child in body.children:
+        unwrap_object(child)
+        
     return body
 
 def delete_rocket(rocket):
     """Delete the rocket and its children."""
     if rocket is None:
         return
+    
+    # Remove material
+    if rocket.data and rocket.data.materials:
+        mat = rocket.data.materials[0]
+        bpy.data.materials.remove(mat, do_unlink=True)
+        
     # Collect children
     children = [child for child in rocket.children]
     for child in children:
@@ -163,10 +159,14 @@ def setup_scene(resolution_x=1280, resolution_y=720, samples=128):
     scene.render.image_settings.file_format = 'PNG'
     scene.cycles.samples = samples
     
+    # Enable motion blur
+    scene.render.use_motion_blur = True
+    scene.render.motion_blur_shutter = 0.5
+    
     # World settings (for HDRI)
     world = bpy.data.worlds.new("World")
     scene.world = world
-    world.use_nodes = True
+    # world.use_nodes = True # Deprecated in 4.0+
     
     # Create Camera
     bpy.ops.object.camera_add()
@@ -259,6 +259,7 @@ def main():
     parser.add_argument("--count", type=int, default=1)
     parser.add_argument("--out-dir", required=True)
     parser.add_argument("--hdri-dir", required=True)
+    parser.add_argument("--texture-dir", required=False, help="Directory containing rocket textures")
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--samples", type=int, default=32)
     args = parser.parse_args(argv)
@@ -284,10 +285,40 @@ def main():
         print(f"No HDRI files found in {args.hdri_dir}", file=sys.stderr)
         sys.exit(1)
 
+    # Get Texture files
+    texture_files = []
+    if args.texture_dir and os.path.exists(args.texture_dir):
+        texture_files = [
+            os.path.join(args.texture_dir, f)
+            for f in os.listdir(args.texture_dir)
+            if f.lower().endswith(('.png', '.jpg', '.jpeg'))
+        ]
+        if not texture_files:
+            print(f"No texture files found in {args.texture_dir}, using default gray.", file=sys.stderr)
+    elif args.texture_dir:
+        print(f"Texture directory not found: {args.texture_dir}, using default gray.", file=sys.stderr)
+
     # Setup
     reset_scene()
+    
+    # Set default interpolation to linear to avoid curve editing issues
+    # This must be done on the user preferences, but since we are in background mode,
+    # we can try to set it, or just handle keyframes differently.
+    # However, accessing preferences in background mode can be tricky if they are not initialized.
+    # But usually it works.
+    bpy.context.preferences.edit.keyframe_new_interpolation_type = 'LINEAR'
+    
     camera, world = setup_scene(samples=args.samples)
     
+    # Load textures into Blender data once to avoid reloading
+    loaded_textures = []
+    for tex_path in texture_files:
+        try:
+            img = bpy.data.images.load(tex_path)
+            loaded_textures.append(img)
+        except Exception as e:
+            print(f"Failed to load texture: {tex_path}. Error: {e}")
+
     # Loop
     print(f"Starting generation of {args.count} images...")
     for i in range(args.count):
@@ -300,7 +331,7 @@ def main():
         # Body Radius: 0.05 - 0.3m
         # Nose Height: 0.2 - 0.8m
         # Fin parameters
-        body_h = random.uniform(1.0, 5.0)
+        body_h = random.uniform(0.5, 2.5)
         body_r = random.uniform(0.05, 0.3)
         nose_h = random.uniform(0.2, 0.8)
         
@@ -314,7 +345,11 @@ def main():
         if fin_tip_chord > fin_root_chord:
             fin_tip_chord = fin_root_chord * random.uniform(0.5, 1.0)
             
+        # Pick random texture if available
+        tex_image = random.choice(loaded_textures) if loaded_textures else None
+            
         rocket = create_rocket(
+            texture_image=tex_image,
             body_radius=body_r,
             body_height=body_h,
             nose_height=nose_h,
@@ -324,6 +359,34 @@ def main():
             fin_tip_chord=fin_tip_chord,
             fin_sweep=fin_sweep
         )
+        
+        # Randomize rocket rotation (-45 to 45 degrees on each axis)
+        rot_x = math.radians(random.uniform(-45, 45))
+        rot_y = math.radians(random.uniform(-45, 45))
+        rot_z = math.radians(random.uniform(-45, 45))
+        rocket.rotation_euler = (rot_x, rot_y, rot_z)
+        
+        # Add motion blur (animate movement in direction of nose)
+        # Calculate forward vector (local Z axis transformed by rotation)
+        # Rocket is built along Z, so local forward is (0,0,1)
+        # We need to apply the rotation matrix to this vector
+        rot_mat = rocket.rotation_euler.to_matrix()
+        forward_vec = rot_mat @ Vector((0, 0, 1))
+        
+        # Random speed (distance per frame)
+        speed = random.uniform(0.0, 1.5)
+        velocity = forward_vec * speed
+        
+        # Animate location
+        # Frame 0: -velocity
+        # Frame 2: +velocity
+        # Frame 1 (render): (0,0,0) - interpolated
+        
+        rocket.location = -velocity
+        rocket.keyframe_insert(data_path="location", frame=0)
+        
+        rocket.location = velocity
+        rocket.keyframe_insert(data_path="location", frame=2)
         
         # Randomize camera
         randomize_camera(camera)
