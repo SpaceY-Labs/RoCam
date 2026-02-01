@@ -30,6 +30,15 @@ msgstr "Armed"
 msgid "Camera Preview"
 msgstr "Camera Preview"
 
+#: src/components/ConfigurationMenu.tsx:61
+#: src/components/ConfigurationMenu.tsx:72
+msgid "Change metrics"
+msgstr "Change metrics"
+
+#: src/components/ConfigurationMenu.tsx:39
+msgid "Configuration"
+msgstr "Configuration"
+
 #: src/components/navbar.tsx:37
 msgid "Control"
 msgstr "Control"
@@ -62,6 +71,10 @@ msgstr "Exit Fullscreen"
 msgid "Fullscreen"
 msgstr "Fullscreen"
 
+#: src/components/ConfigurationMenu.tsx:54
+msgid "Language"
+msgstr "Language"
+
 #: src/pages/control.tsx:66
 msgid "Live Stream Loading....."
 msgstr "Live Stream Loading....."
@@ -73,6 +86,10 @@ msgstr "Loading recordings..."
 #: src/pages/recordings.tsx:104
 msgid "No recordings yet. Start one from the Control page."
 msgstr "No recordings yet. Start one from the Control page."
+
+#: src/components/ConfigurationMenu.tsx:76
+msgid "Not implemented"
+msgstr "Not implemented"
 
 #: src/pages/control.tsx:118
 msgid "PAN"
@@ -109,6 +126,10 @@ msgstr "Stopping..."
 #: src/pages/control.tsx:113
 msgid "TILT"
 msgstr "TILT"
+
+#: src/components/ConfigurationMenu.tsx:59
+msgid "Units"
+msgstr "Units"
 
 #: src/pages/recordings.tsx:365
 msgid "Your browser does not support the video tag."

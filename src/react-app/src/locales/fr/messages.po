@@ -16,7 +16,7 @@ msgstr ""
 #. js-lingui-explicit-id
 #: src/pages/recordings.tsx:75
 msgid "Delete \"{name}\"? This cannot be undone."
-msgstr ""
+msgstr "Supprimer \"{name}\" ? Cette action est irréversible."
 
 #: src/pages/control.tsx:132
 msgid "Arm"
@@ -29,6 +29,15 @@ msgstr "Armé"
 #: src/pages/control.tsx:69
 msgid "Camera Preview"
 msgstr "Aperçu de la caméra"
+
+#: src/components/ConfigurationMenu.tsx:61
+#: src/components/ConfigurationMenu.tsx:72
+msgid "Change metrics"
+msgstr "Changer les unités"
+
+#: src/components/ConfigurationMenu.tsx:39
+msgid "Configuration"
+msgstr "Configuration"
 
 #: src/components/navbar.tsx:37
 msgid "Control"
@@ -62,6 +71,10 @@ msgstr "Quitter le plein écran"
 msgid "Fullscreen"
 msgstr "Plein écran"
 
+#: src/components/ConfigurationMenu.tsx:54
+msgid "Language"
+msgstr "Langue"
+
 #: src/pages/control.tsx:66
 msgid "Live Stream Loading....."
 msgstr "Chargement du flux en direct....."
@@ -73,6 +86,10 @@ msgstr "Chargement des enregistrements..."
 #: src/pages/recordings.tsx:104
 msgid "No recordings yet. Start one from the Control page."
 msgstr "Aucun enregistrement pour l'instant. Démarrez-en un depuis la page Contrôle."
+
+#: src/components/ConfigurationMenu.tsx:76
+msgid "Not implemented"
+msgstr "Non implémenté"
 
 #: src/pages/control.tsx:118
 msgid "PAN"
@@ -109,6 +126,10 @@ msgstr "Arrêt..."
 #: src/pages/control.tsx:113
 msgid "TILT"
 msgstr "INCLINAISON"
+
+#: src/components/ConfigurationMenu.tsx:59
+msgid "Units"
+msgstr "Unités"
 
 #: src/pages/recordings.tsx:365
 msgid "Your browser does not support the video tag."

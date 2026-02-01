@@ -10,7 +10,7 @@ import { Button } from '@heroui/button'
 import { IconCancel, IconMaximize, IconMaximizeOff } from '@tabler/icons-react'
 import { Trans } from '@lingui/react/macro'
 
-import { LanguageSelector } from './LanguageSelector'
+import { ConfigurationMenu } from './ConfigurationMenu'
 
 export const Navbar = () => {
   return (
@@ -53,7 +53,7 @@ export const Navbar = () => {
         </div>
       </NavbarContent>
       <NavbarContent justify="end">
-        <LanguageSelector />
+        <ConfigurationMenu />
         <Button
           radius="sm"
           startContent={
