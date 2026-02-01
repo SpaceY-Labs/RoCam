@@ -14,11 +14,15 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/modal'
+import { Trans } from '@lingui/react/macro'
+import { msg } from '@lingui/core/macro'
+import { useLingui } from '@lingui/react'
 
 import DefaultLayout from '@/layouts/default'
 import { useRocam } from '@/network/rocamProvider'
 
 export default function RecordingsPage() {
+  const { i18n } = useLingui()
   const { apiClient } = useRocam()
 
   const [recordings, setRecordings] = useState<Recording[]>([])
@@ -66,7 +70,12 @@ export default function RecordingsPage() {
 
   const handleDelete = async (r: Recording) => {
     if (!apiClient) return
-    if (!confirm(`Delete "${r.name}"? This cannot be undone.`)) return
+    if (
+      !confirm(
+        i18n._('Delete "{name}"? This cannot be undone.', { name: r.name })
+      )
+    )
+      return
 
     try {
       await apiClient.deleteRecording(r.id)
@@ -87,12 +96,12 @@ export default function RecordingsPage() {
         <div className="divide-y divide-gray-200 px-4">
           {isLoading ? (
             <div className="flex justify-center py-12">
-              <Spinner label="Loading recordings..." />
+              <Spinner label={i18n._(msg`Loading recordings...`)} />
             </div>
           ) : recordings.length === 0 ? (
             <div className="flex justify-center py-12">
               <p className="text-sm text-gray-500">
-                No recordings yet. Start one from the Control page.
+                <Trans>No recordings yet. Start one from the Control page.</Trans>
               </p>
             </div>
           ) : (
@@ -222,7 +231,7 @@ function RecordingItem({
             variant="bordered"
             onPress={() => onPreview(r)}
           >
-            Preview
+            <Trans>Preview</Trans>
           </Button>
           <Button
             as={'a'}
@@ -232,7 +241,7 @@ function RecordingItem({
             startContent={<IconDownload size={20} strokeWidth={1.5} />}
             variant="bordered"
           >
-            Download
+            <Trans>Download</Trans>
           </Button>
 
           <Button
@@ -247,7 +256,7 @@ function RecordingItem({
             variant="bordered"
             onPress={handleDelete}
           >
-            Delete
+            <Trans>Delete</Trans>
           </Button>
         </div>
       </div>
@@ -353,7 +362,7 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
                     onWaiting={() => setIsWaiting(true)}
                   >
                     <track kind="captions" />
-                    Your browser does not support the video tag.
+                    <Trans>Your browser does not support the video tag.</Trans>
                   </video>
                   <Button
                     isIconOnly

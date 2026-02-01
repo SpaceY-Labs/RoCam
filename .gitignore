@@ -300,3 +300,4 @@ __pycache__/
 node_modules/
 
 .cursor/
+*.mjs

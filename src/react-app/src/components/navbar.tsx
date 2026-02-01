@@ -8,6 +8,9 @@ import { link as linkStyles } from '@heroui/theme'
 import clsx from 'clsx'
 import { Button } from '@heroui/button'
 import { IconCancel, IconMaximize, IconMaximizeOff } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
+
+import { LanguageSelector } from './LanguageSelector'
 
 export const Navbar = () => {
   return (
@@ -31,7 +34,7 @@ export const Navbar = () => {
               }
               to={'/'}
             >
-              Control
+              <Trans>Control</Trans>
             </NavLink>
           </NavbarItem>
           <NavbarItem>
@@ -44,12 +47,13 @@ export const Navbar = () => {
               }
               to={'/recordings'}
             >
-              Recordings
+              <Trans>Recordings</Trans>
             </NavLink>
           </NavbarItem>
         </div>
       </NavbarContent>
       <NavbarContent justify="end">
+        <LanguageSelector />
         <Button
           radius="sm"
           startContent={
@@ -64,7 +68,11 @@ export const Navbar = () => {
             }
           }}
         >
-          {document.fullscreenElement ? 'Exit Fullscreen' : 'Fullscreen'}
+          {document.fullscreenElement ? (
+            <Trans>Exit Fullscreen</Trans>
+          ) : (
+            <Trans>Fullscreen</Trans>
+          )}
         </Button>
         <Button
           color="danger"
@@ -75,7 +83,7 @@ export const Navbar = () => {
             alert('Not implemented')
           }}
         >
-          Emergency Stop
+          <Trans>Emergency Stop</Trans>
         </Button>
       </NavbarContent>
     </HeroUINavbar>

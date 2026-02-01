@@ -1,0 +1,115 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-02-01 13:45-0500\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#. js-lingui-explicit-id
+#: src/pages/recordings.tsx:75
+msgid "Delete \"{name}\"? This cannot be undone."
+msgstr "Delete \"{name}\"? This cannot be undone."
+
+#: src/pages/control.tsx:132
+msgid "Arm"
+msgstr "Arm"
+
+#: src/pages/control.tsx:105
+msgid "Armed"
+msgstr "Armed"
+
+#: src/pages/control.tsx:69
+msgid "Camera Preview"
+msgstr "Camera Preview"
+
+#: src/components/navbar.tsx:37
+msgid "Control"
+msgstr "Control"
+
+#: src/pages/recordings.tsx:259
+msgid "Delete"
+msgstr "Delete"
+
+#: src/pages/control.tsx:140
+msgid "Disarm"
+msgstr "Disarm"
+
+#: src/pages/control.tsx:107
+msgid "Disarmed"
+msgstr "Disarmed"
+
+#: src/pages/recordings.tsx:244
+msgid "Download"
+msgstr "Download"
+
+#: src/components/navbar.tsx:86
+msgid "Emergency Stop"
+msgstr "Emergency Stop"
+
+#: src/components/navbar.tsx:72
+msgid "Exit Fullscreen"
+msgstr "Exit Fullscreen"
+
+#: src/components/navbar.tsx:74
+msgid "Fullscreen"
+msgstr "Fullscreen"
+
+#: src/pages/control.tsx:66
+msgid "Live Stream Loading....."
+msgstr "Live Stream Loading....."
+
+#: src/pages/recordings.tsx:99
+msgid "Loading recordings..."
+msgstr "Loading recordings..."
+
+#: src/pages/recordings.tsx:104
+msgid "No recordings yet. Start one from the Control page."
+msgstr "No recordings yet. Start one from the Control page."
+
+#: src/pages/control.tsx:118
+msgid "PAN"
+msgstr "PAN"
+
+#: src/pages/recordings.tsx:234
+msgid "Preview"
+msgstr "Preview"
+
+#: src/components/navbar.tsx:50
+msgid "Recordings"
+msgstr "Recordings"
+
+#: src/pages/control.tsx:150
+msgid "Start Recording"
+msgstr "Start Recording"
+
+#: src/pages/control.tsx:150
+msgid "Starting..."
+msgstr "Starting..."
+
+#: src/pages/control.tsx:103
+msgid "Status:"
+msgstr "Status:"
+
+#: src/pages/control.tsx:159
+msgid "Stop Recording"
+msgstr "Stop Recording"
+
+#: src/pages/control.tsx:159
+msgid "Stopping..."
+msgstr "Stopping..."
+
+#: src/pages/control.tsx:113
+msgid "TILT"
+msgstr "TILT"
+
+#: src/pages/recordings.tsx:365
+msgid "Your browser does not support the video tag."
+msgstr "Your browser does not support the video tag."
