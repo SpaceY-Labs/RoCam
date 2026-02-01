@@ -305,6 +305,7 @@ Empty structure with no fields.
     gpu\_utilization            & float                             & GPU utilization percentage (0.0 to 100.0)                       \\
     cpu\_utilization            & float                             & CPU utilization percentage (0.0 to 100.0)                       \\
     core\_temperature\_celsius  & float                             & Core temperature in Celsius                                     \\
+    system\_power\_w             & float                             & System power draw in watts                                      \\
     memory\_usage\_bytes        & \{used: int, total: int\}         & Memory usage in bytes                                           \\
     disk\_usage\_bytes          & \{used: int, total: int\}         & Disk usage in bytes                                             \\
     in\_progress\_recording\_id & str $|$ null                      & ID of the recording currently in progress, null if no recording \\
@@ -2229,6 +2230,7 @@ This module does not have any environment variables.
           \item cpu\_utilization: From \texttt{system\_status.get\_cpu\_utilization()}.
           \item core\_temperature\_celsius: From
                 \texttt{system\_status.get\_core\_temperature\_celsius()}.
+          \item system\_power\_w: From \texttt{system\_status.get\_system\_power\_w()}.
           \item memory\_usage\_bytes: From \texttt{system\_status.get\_memory\_usage\_bytes()}.
           \item disk\_usage\_bytes: From \texttt{recording\_db.space\_usage\_bytes()}.
           \item in\_progress\_recording\_id: \texttt{in\_progress\_recording\_id}.

@@ -13,6 +13,7 @@ class SystemStatusMonitor:
         self._cpu_utilization: Optional[float] = None
         self._gpu_utilization: Optional[float] = None
         self._core_temperature_celsius: Optional[float] = None
+        self._system_power_w: Optional[float] = None
         self._prev_cpu_total: Optional[int] = None
         self._prev_cpu_idle: Optional[int] = None
         self._has_proc_stat = os.path.isfile("/proc/stat")
@@ -38,10 +39,18 @@ class SystemStatusMonitor:
         with self._lock:
             return self._core_temperature_celsius
 
+    def get_system_power_w(self) -> Optional[float]:
+        with self._lock:
+            return self._system_power_w
+
     def _run(self):
         while not self._stop_event.is_set():
+            tegrastats_metrics = None
+            if self._has_tegrastats:
+                tegrastats_metrics = _read_tegrastats_metrics()
             self._update_cpu_utilization()
-            self._update_gpu_utilization()
+            self._update_gpu_utilization(tegrastats_metrics)
+            self._update_system_power_w(tegrastats_metrics)
             self._update_core_temperature_celsius()
             self._stop_event.wait(self._interval)
 
@@ -70,17 +79,33 @@ class SystemStatusMonitor:
         with self._lock:
             self._cpu_utilization = usage
 
-    def _update_gpu_utilization(self):
+    def _update_gpu_utilization(
+        self, tegrastats_metrics: Optional[tuple[Optional[float], Optional[float]]] = None
+    ):
         usage: Optional[float] = None
 
         if self._has_nvidia_smi:
             usage = _read_nvidia_smi()
 
-        if usage is None and self._has_tegrastats:
-            usage = _read_tegrastats()
+        if usage is None and tegrastats_metrics is not None:
+            usage = tegrastats_metrics[0]
 
         with self._lock:
             self._gpu_utilization = usage
+
+    def _update_system_power_w(
+        self, tegrastats_metrics: Optional[tuple[Optional[float], Optional[float]]] = None
+    ):
+        power_w: Optional[float] = None
+
+        if self._has_nvidia_smi:
+            power_w = _read_nvidia_smi_power_w()
+
+        if power_w is None and tegrastats_metrics is not None:
+            power_w = tegrastats_metrics[1]
+
+        with self._lock:
+            self._system_power_w = power_w
 
     def _update_core_temperature_celsius(self):
         if not self._has_thermal_zones:
@@ -197,13 +222,17 @@ def _read_nvidia_smi() -> Optional[float]:
         return None
 
 
-def _read_tegrastats() -> Optional[float]:
+def _read_nvidia_smi_power_w() -> Optional[float]:
     try:
         result = subprocess.run(
-            ["tegrastats", "--interval", "1000", "--count", "1"],
+            [
+                "nvidia-smi",
+                "--query-gpu=power.draw",
+                "--format=csv,noheader,nounits",
+            ],
             capture_output=True,
             text=True,
-            timeout=2.0,
+            timeout=1.5,
         )
     except (OSError, subprocess.TimeoutExpired):
         return None
@@ -212,12 +241,65 @@ def _read_tegrastats() -> Optional[float]:
         return None
 
     lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
-    for line in reversed(lines):
-        match = re.search(r"GR3D_FREQ\s+(\d+)%", line)
-        if match:
-            try:
-                return float(match.group(1))
-            except ValueError:
-                return None
+    if not lines:
+        return None
 
+    try:
+        return float(lines[0])
+    except ValueError:
+        return None
+
+
+def _read_tegrastats_metrics() -> tuple[Optional[float], Optional[float]]:
+    try:
+        result = subprocess.run(
+            ["tegrastats", "--interval", "1000", "--count", "1"],
+            capture_output=True,
+            text=True,
+            timeout=2.0,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None, None
+
+    if result.returncode != 0:
+        return None, None
+
+    lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    gpu_utilization: Optional[float] = None
+    system_power_w: Optional[float] = None
+
+    for line in reversed(lines):
+        if gpu_utilization is None:
+            match = re.search(r"GR3D_FREQ\s+(\d+)%", line)
+            if match:
+                try:
+                    gpu_utilization = float(match.group(1))
+                except ValueError:
+                    gpu_utilization = None
+
+        if system_power_w is None:
+            system_power_w = _parse_tegrastats_power_w(line)
+
+        if gpu_utilization is not None and system_power_w is not None:
+            break
+
+    return gpu_utilization, system_power_w
+
+
+def _parse_tegrastats_power_w(line: str) -> Optional[float]:
+    matches = re.findall(r"(POM_5V_IN|VDD_IN)\s+(\d+)(?:mW)?(?:/\d+)?", line)
+    if not matches:
+        return None
+
+    values_mw = []
+    for _, value in matches:
+        try:
+            values_mw.append(float(value))
+        except ValueError:
+            continue
+
+    if not values_mw:
+        return None
+
+    return max(values_mw) / 1000.0
     return None

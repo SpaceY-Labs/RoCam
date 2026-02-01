@@ -190,6 +190,7 @@ class StateManagement:
         cpu_utilization = self._system_status.get_cpu_utilization()
         gpu_utilization = self._system_status.get_gpu_utilization()
         core_temperature_celsius = self._system_status.get_core_temperature_celsius()
+        system_power_w = self._system_status.get_system_power_w()
         disk_usage_bytes = None
         recording_duration_left_ms = None
         try:
@@ -223,6 +224,7 @@ class StateManagement:
                 "cpu_utilization": cpu_utilization,
                 "gpu_utilization": gpu_utilization,
                 "core_temperature_celsius": core_temperature_celsius,
+                "system_power_w": system_power_w,
                 "disk_usage_bytes": disk_usage_bytes,
                 "recording_duration_left_ms": recording_duration_left_ms,
                 "is_recording": self._in_progress_recording_id is not None,
@@ -239,6 +241,7 @@ class StateManagement:
                 "cpu_utilization": cpu_utilization,
                 "gpu_utilization": gpu_utilization,
                 "core_temperature_celsius": core_temperature_celsius,
+                "system_power_w": system_power_w,
                 "disk_usage_bytes": disk_usage_bytes,
                 "recording_duration_left_ms": recording_duration_left_ms,
                 "is_recording": self._in_progress_recording_id is not None,

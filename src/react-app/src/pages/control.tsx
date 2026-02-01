@@ -140,6 +140,12 @@ export default function ControlPage() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500 font-mono">
+                POWER
+              </p>
+              <p className="w-24">{formatPower(status?.system_power_w)}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500 font-mono">
                 REC LEFT
               </p>
               <p className="w-24">
@@ -315,4 +321,10 @@ function formatDuration(durationMs: number | null | undefined) {
   }
 
   return `${seconds}s`
+}
+
+function formatPower(value: number | null | undefined) {
+  if (value === null || value === undefined) return 'N/A'
+
+  return `${Math.round(value * 10) / 10}W`
 }

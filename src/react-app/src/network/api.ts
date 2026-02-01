@@ -24,6 +24,7 @@ export type StatusResponse = {
   cpu_utilization: number | null
   gpu_utilization: number | null
   core_temperature_celsius: number | null
+  system_power_w: number | null
   disk_usage_bytes: DiskUsageBytes | null
   recording_duration_left_ms: number | null
 }

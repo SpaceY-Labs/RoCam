@@ -39,6 +39,7 @@ class StateManagementRecordingManagementOnly:
             "cpu_utilization": None,
             "gpu_utilization": None,
             "core_temperature_celsius": None,
+            "system_power_w": None,
             "disk_usage_bytes": disk_usage_bytes,
             "recording_duration_left_ms": recording_duration_left_ms,
             "is_recording": False,
