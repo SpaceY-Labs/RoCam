@@ -9,6 +9,11 @@ export type BoundingBox = {
   height: number
 }
 
+export type DiskUsageBytes = {
+  used: number
+  total: number
+}
+
 export type StatusResponse = {
   armed: boolean
   tilt: number | null
@@ -19,6 +24,8 @@ export type StatusResponse = {
   cpu_utilization: number | null
   gpu_utilization: number | null
   core_temperature_celsius: number | null
+  disk_usage_bytes: DiskUsageBytes | null
+  recording_duration_left_ms: number | null
 }
 
 export type Recording = {

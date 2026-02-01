@@ -132,6 +132,20 @@ export default function ControlPage() {
                 {formatTemperature(status?.core_temperature_celsius)}
               </p>
             </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500 font-mono">
+                STORAGE
+              </p>
+              <p className="w-24">{formatStorageLeft(status?.disk_usage_bytes)}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500 font-mono">
+                REC LEFT
+              </p>
+              <p className="w-24">
+                {formatDuration(status?.recording_duration_left_ms)}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -258,4 +272,47 @@ function formatTemperature(value: number | null | undefined) {
   if (value === null || value === undefined) return 'N/A'
 
   return `${Math.round(value * 10) / 10}°C`
+}
+
+function formatStorageLeft(
+  diskUsage: { used: number; total: number } | null | undefined
+) {
+  if (!diskUsage) return 'N/A'
+
+  const freeBytes = Math.max(0, diskUsage.total - diskUsage.used)
+  return formatBytes(freeBytes)
+}
+
+function formatBytes(bytes: number) {
+  if (!Number.isFinite(bytes)) return 'N/A'
+
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let value = Math.max(0, bytes)
+  let unitIndex = 0
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024
+    unitIndex += 1
+  }
+
+  return `${Math.round(value * 10) / 10}${units[unitIndex]}`
+}
+
+function formatDuration(durationMs: number | null | undefined) {
+  if (durationMs === null || durationMs === undefined) return 'N/A'
+
+  const totalSeconds = Math.max(0, Math.floor(durationMs / 1000))
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`
+  }
+
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}s`
+  }
+
+  return `${seconds}s`
 }

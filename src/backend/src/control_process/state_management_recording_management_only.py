@@ -16,6 +16,19 @@ class StateManagementRecordingManagementOnly:
         pass
 
     def status(self):
+        disk_usage_bytes = None
+        recording_duration_left_ms = None
+        try:
+            disk_used, disk_total = self.database.space_usage_bytes()
+            disk_usage_bytes = {"used": disk_used, "total": disk_total}
+            bytes_per_second = self.database.estimate_recording_bytes_per_second()
+            if bytes_per_second is not None and bytes_per_second > 0:
+                free_bytes = max(0, disk_total - disk_used)
+                recording_duration_left_ms = int(
+                    free_bytes / bytes_per_second * 1000
+                )
+        except Exception as e:
+            logger.error(f"Error reading disk usage: {e}")
         return {
             "armed": False,
             "tilt": 0,
@@ -26,6 +39,8 @@ class StateManagementRecordingManagementOnly:
             "cpu_utilization": None,
             "gpu_utilization": None,
             "core_temperature_celsius": None,
+            "disk_usage_bytes": disk_usage_bytes,
+            "recording_duration_left_ms": recording_duration_left_ms,
             "is_recording": False,
         }
 

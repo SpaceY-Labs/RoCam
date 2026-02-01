@@ -190,6 +190,19 @@ class StateManagement:
         cpu_utilization = self._system_status.get_cpu_utilization()
         gpu_utilization = self._system_status.get_gpu_utilization()
         core_temperature_celsius = self._system_status.get_core_temperature_celsius()
+        disk_usage_bytes = None
+        recording_duration_left_ms = None
+        try:
+            disk_used, disk_total = self.database.space_usage_bytes()
+            disk_usage_bytes = {"used": disk_used, "total": disk_total}
+            bytes_per_second = self.database.estimate_recording_bytes_per_second()
+            if bytes_per_second is not None and bytes_per_second > 0:
+                free_bytes = max(0, disk_total - disk_used)
+                recording_duration_left_ms = int(
+                    free_bytes / bytes_per_second * 1000
+                )
+        except Exception as e:
+            logger.error(f"Error reading disk usage: {e}")
         if self._last_cv_data is not None:
             average_fps = self._last_cv_data.fps
         if self._last_preview_frame is not None:
@@ -210,6 +223,8 @@ class StateManagement:
                 "cpu_utilization": cpu_utilization,
                 "gpu_utilization": gpu_utilization,
                 "core_temperature_celsius": core_temperature_celsius,
+                "disk_usage_bytes": disk_usage_bytes,
+                "recording_duration_left_ms": recording_duration_left_ms,
                 "is_recording": self._in_progress_recording_id is not None,
             }
         except Exception as e:
@@ -224,6 +239,8 @@ class StateManagement:
                 "cpu_utilization": cpu_utilization,
                 "gpu_utilization": gpu_utilization,
                 "core_temperature_celsius": core_temperature_celsius,
+                "disk_usage_bytes": disk_usage_bytes,
+                "recording_duration_left_ms": recording_duration_left_ms,
                 "is_recording": self._in_progress_recording_id is not None,
             }
 

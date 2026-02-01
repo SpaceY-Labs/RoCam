@@ -3,6 +3,7 @@ import json
 import uuid
 import shutil
 import logging
+import time
 from datetime import datetime
 from typing import Optional
 from common.ipc import RecordingInfo, OSDData
@@ -24,6 +25,8 @@ class RecordingDatabase:
         self._base_path = os.path.abspath(base_path)
         if not os.path.exists(self._base_path):
             os.makedirs(self._base_path, exist_ok=True)
+        self._recording_rate_cache_value: Optional[float] = None
+        self._recording_rate_cache_time = 0.0
 
     def allocate_recording(self) -> RecordingInfo:
         """
@@ -257,3 +260,35 @@ class RecordingDatabase:
         """
         usage = shutil.disk_usage(self._base_path)
         return (usage.used, usage.total)
+
+    def estimate_recording_bytes_per_second(
+        self, cache_ttl_s: float = 5.0
+    ) -> Optional[float]:
+        """
+        Estimates bytes per second from recent recordings.
+        Uses a cached value to avoid expensive scans on every call.
+        """
+        now = time.time()
+        if now - self._recording_rate_cache_time < cache_ttl_s:
+            return self._recording_rate_cache_value
+
+        rate: Optional[float] = None
+        recordings = self.list_all_recordings()
+        for recording in recordings:
+            if (
+                recording.duration_ms is None
+                or recording.duration_ms <= 0
+                or recording.size_bytes <= 0
+            ):
+                continue
+
+            duration_s = recording.duration_ms / 1000.0
+            if duration_s <= 0:
+                continue
+
+            rate = recording.size_bytes / duration_s
+            break
+
+        self._recording_rate_cache_value = rate
+        self._recording_rate_cache_time = now
+        return rate
