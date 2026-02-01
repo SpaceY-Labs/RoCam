@@ -4,6 +4,7 @@ import threading
 from control_process.database import RecordingDatabase
 from common.ipc import BoundingBox, CVData, OSDData, PreviewData
 from common.ipc_buffer import cleanup_shared_memory
+from common.system_status import SystemStatusMonitor
 from common.utils import ip4_addresses, set_scheduler_other
 from control_process.cv_process_management import CVProcessManagement
 from control_process.livestream_process_management import LivestreamProcessManagement
@@ -72,6 +73,8 @@ class StateManagement:
 
         self._armed = False
         self._last_preview_frame: PreviewData | None = None
+        self._last_cv_data: CVData | None = None
+        self._system_status = SystemStatusMonitor()
 
         self._gimbal = GimbalSerial(port="/dev/ttyTHS1", baudrate=115200, timeout=0.1)
         self._gimbal.move_deg(0, 0)
@@ -121,6 +124,7 @@ class StateManagement:
             return self._last_gimbal_measure
 
     def _on_cvdata(self, data: CVData):
+        self._last_cv_data = data
         self._bboxes.received_data(data)
 
         tracking_state = "idle"
@@ -182,6 +186,11 @@ class StateManagement:
     def status(self):
         latest_preview_frame = None
         bbox = None
+        average_fps = None
+        cpu_utilization = self._system_status.get_cpu_utilization()
+        gpu_utilization = self._system_status.get_gpu_utilization()
+        if self._last_cv_data is not None:
+            average_fps = self._last_cv_data.fps
         if self._last_preview_frame is not None:
             latest_preview_frame = base64.b64encode(
                 self._last_preview_frame.frame
@@ -196,6 +205,9 @@ class StateManagement:
                 "pan": pan,
                 "preview": latest_preview_frame,
                 "bbox": bbox,
+                "average_fps": average_fps,
+                "cpu_utilization": cpu_utilization,
+                "gpu_utilization": gpu_utilization,
                 "is_recording": self._in_progress_recording_id is not None,
             }
         except Exception as e:
@@ -206,6 +218,9 @@ class StateManagement:
                 "pan": None,
                 "preview": latest_preview_frame,
                 "bbox": bbox,
+                "average_fps": average_fps,
+                "cpu_utilization": cpu_utilization,
+                "gpu_utilization": gpu_utilization,
                 "is_recording": self._in_progress_recording_id is not None,
             }
 

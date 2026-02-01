@@ -22,6 +22,9 @@ class StateManagementRecordingManagementOnly:
             "pan": 0,
             "preview": None,
             "bbox": None,
+            "average_fps": None,
+            "cpu_utilization": None,
+            "gpu_utilization": None,
             "is_recording": False,
         }
 

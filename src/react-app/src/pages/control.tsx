@@ -103,7 +103,7 @@ export default function ControlPage() {
               <span>Disarmed</span>
             )}
           </p>
-          <div className="flex gap-4 font-mono mt-4">
+          <div className="flex gap-4 font-mono mt-4 flex-wrap">
             <div>
               <p className="text-sm font-medium text-gray-500 font-mono">
                 TILT
@@ -113,6 +113,18 @@ export default function ControlPage() {
             <div>
               <p className="text-sm font-medium text-gray-500 font-mono">PAN</p>
               <p className="w-16">{formatDegrees(status?.pan)}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500 font-mono">FPS</p>
+              <p className="w-16">{formatFps(status?.average_fps)}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500 font-mono">CPU</p>
+              <p className="w-16">{formatPercent(status?.cpu_utilization)}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500 font-mono">GPU</p>
+              <p className="w-16">{formatPercent(status?.gpu_utilization)}</p>
             </div>
           </div>
         </div>
@@ -222,4 +234,16 @@ function formatDegrees(degrees: number | null | undefined) {
   if (degrees === null || degrees === undefined) return 'N/A'
 
   return `${Math.round(degrees * 10) / 10}°`
+}
+
+function formatFps(fps: number | null | undefined) {
+  if (fps === null || fps === undefined) return 'N/A'
+
+  return `${Math.round(fps * 10) / 10}`
+}
+
+function formatPercent(value: number | null | undefined) {
+  if (value === null || value === undefined) return 'N/A'
+
+  return `${Math.round(value * 10) / 10}%`
 }

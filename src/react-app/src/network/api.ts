@@ -15,6 +15,9 @@ export type StatusResponse = {
   pan: number | null
   preview: string | null
   bbox: BoundingBox | null
+  average_fps: number | null
+  cpu_utilization: number | null
+  gpu_utilization: number | null
 }
 
 export type Recording = {
