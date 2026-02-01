@@ -189,6 +189,7 @@ class StateManagement:
         average_fps = None
         cpu_utilization = self._system_status.get_cpu_utilization()
         gpu_utilization = self._system_status.get_gpu_utilization()
+        core_temperature_celsius = self._system_status.get_core_temperature_celsius()
         if self._last_cv_data is not None:
             average_fps = self._last_cv_data.fps
         if self._last_preview_frame is not None:
@@ -208,6 +209,7 @@ class StateManagement:
                 "average_fps": average_fps,
                 "cpu_utilization": cpu_utilization,
                 "gpu_utilization": gpu_utilization,
+                "core_temperature_celsius": core_temperature_celsius,
                 "is_recording": self._in_progress_recording_id is not None,
             }
         except Exception as e:
@@ -221,6 +223,7 @@ class StateManagement:
                 "average_fps": average_fps,
                 "cpu_utilization": cpu_utilization,
                 "gpu_utilization": gpu_utilization,
+                "core_temperature_celsius": core_temperature_celsius,
                 "is_recording": self._in_progress_recording_id is not None,
             }
 

@@ -126,6 +126,12 @@ export default function ControlPage() {
               <p className="text-sm font-medium text-gray-500 font-mono">GPU</p>
               <p className="w-16">{formatPercent(status?.gpu_utilization)}</p>
             </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500 font-mono">TEMP</p>
+              <p className="w-16">
+                {formatTemperature(status?.core_temperature_celsius)}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -246,4 +252,10 @@ function formatPercent(value: number | null | undefined) {
   if (value === null || value === undefined) return 'N/A'
 
   return `${Math.round(value * 10) / 10}%`
+}
+
+function formatTemperature(value: number | null | undefined) {
+  if (value === null || value === undefined) return 'N/A'
+
+  return `${Math.round(value * 10) / 10}°C`
 }

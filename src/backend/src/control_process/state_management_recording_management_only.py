@@ -25,6 +25,7 @@ class StateManagementRecordingManagementOnly:
             "average_fps": None,
             "cpu_utilization": None,
             "gpu_utilization": None,
+            "core_temperature_celsius": None,
             "is_recording": False,
         }
 

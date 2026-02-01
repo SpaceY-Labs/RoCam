@@ -18,6 +18,7 @@ export type StatusResponse = {
   average_fps: number | null
   cpu_utilization: number | null
   gpu_utilization: number | null
+  core_temperature_celsius: number | null
 }
 
 export type Recording = {

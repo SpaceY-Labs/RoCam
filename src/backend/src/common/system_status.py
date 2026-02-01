@@ -12,11 +12,13 @@ class SystemStatusMonitor:
         self._lock = threading.Lock()
         self._cpu_utilization: Optional[float] = None
         self._gpu_utilization: Optional[float] = None
+        self._core_temperature_celsius: Optional[float] = None
         self._prev_cpu_total: Optional[int] = None
         self._prev_cpu_idle: Optional[int] = None
         self._has_proc_stat = os.path.isfile("/proc/stat")
         self._has_nvidia_smi = shutil.which("nvidia-smi") is not None
         self._has_tegrastats = shutil.which("tegrastats") is not None
+        self._has_thermal_zones = os.path.isdir("/sys/class/thermal")
         self._stop_event = threading.Event()
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
@@ -32,10 +34,15 @@ class SystemStatusMonitor:
         with self._lock:
             return self._gpu_utilization
 
+    def get_core_temperature_celsius(self) -> Optional[float]:
+        with self._lock:
+            return self._core_temperature_celsius
+
     def _run(self):
         while not self._stop_event.is_set():
             self._update_cpu_utilization()
             self._update_gpu_utilization()
+            self._update_core_temperature_celsius()
             self._stop_event.wait(self._interval)
 
     def _update_cpu_utilization(self):
@@ -75,6 +82,16 @@ class SystemStatusMonitor:
         with self._lock:
             self._gpu_utilization = usage
 
+    def _update_core_temperature_celsius(self):
+        if not self._has_thermal_zones:
+            with self._lock:
+                self._core_temperature_celsius = None
+            return
+
+        temperature = _read_core_temperature_celsius()
+        with self._lock:
+            self._core_temperature_celsius = temperature
+
 
 def _read_proc_stat() -> Optional[Tuple[int, int]]:
     try:
@@ -98,6 +115,58 @@ def _read_proc_stat() -> Optional[Tuple[int, int]]:
     idle = values[3] + (values[4] if len(values) > 4 else 0)
     total = sum(values)
     return total, idle
+
+
+def _read_core_temperature_celsius() -> Optional[float]:
+    zones = _read_thermal_zones()
+    if not zones:
+        return None
+
+    preferred = [
+        temp for name, temp in zones if any(key in name for key in ("cpu", "core", "soc"))
+    ]
+    if preferred:
+        return max(preferred)
+
+    return max(temp for _, temp in zones)
+
+
+def _read_thermal_zones() -> list[tuple[str, float]]:
+    zones_path = "/sys/class/thermal"
+    results: list[tuple[str, float]] = []
+    try:
+        entries = os.listdir(zones_path)
+    except OSError:
+        return results
+
+    for entry in entries:
+        if not entry.startswith("thermal_zone"):
+            continue
+
+        type_path = os.path.join(zones_path, entry, "type")
+        temp_path = os.path.join(zones_path, entry, "temp")
+
+        try:
+            with open(type_path, "r") as type_handle:
+                zone_type = type_handle.read().strip().lower()
+        except OSError:
+            zone_type = entry.lower()
+
+        try:
+            with open(temp_path, "r") as temp_handle:
+                raw = temp_handle.read().strip()
+                if not raw:
+                    continue
+                value = float(raw)
+        except (OSError, ValueError):
+            continue
+
+        if value > 1000:
+            value = value / 1000.0
+
+        results.append((zone_type, value))
+
+    return results
 
 
 def _read_nvidia_smi() -> Optional[float]:
