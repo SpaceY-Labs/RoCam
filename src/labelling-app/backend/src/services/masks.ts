@@ -1,4 +1,4 @@
-import { tableFromIPC } from "apache-arrow";
+import { tableFromArrays, tableFromIPC, tableToIPC } from "apache-arrow";
 
 /**
  * Sparse 2D mask data: { rowIndex: { colIndex: maskIndices[] } }
@@ -310,6 +310,24 @@ export const parseFeatherMask = (
     console.error(`Error parsing feather mask ${baseName}:`, error);
     return null;
   }
+};
+
+/**
+ * Serialize a mask (raw binary + dimensions) to Feather format for ZIP export.
+ * Produces the same layout as upload: columns "mask" (binary), "width", "height" (int32).
+ */
+export const serializeMaskToFeather = (
+  buffer: Buffer,
+  width: number,
+  height: number
+): Buffer => {
+  const table = tableFromArrays({
+    mask: [new Uint8Array(buffer)],
+    width: [width],
+    height: [height],
+  });
+  const ipc = tableToIPC(table, "file");
+  return Buffer.from(ipc);
 };
 
 /**

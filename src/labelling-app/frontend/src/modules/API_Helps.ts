@@ -236,6 +236,53 @@ export const uploadZipToBackend = async (
   return data as UploadZipResponse;
 };
 
+/**
+ * Download project images and masks as a ZIP (same format as upload).
+ * Triggers a file download in the browser.
+ */
+export const downloadProjectZip = async (
+  projectId: string,
+  options?: { limit?: number; status?: string; ids?: string[] }
+): Promise<void> => {
+  const token = await getAuthToken();
+  const params = new URLSearchParams();
+  if (options?.limit != null) params.set("limit", String(options.limit));
+  if (options?.status) params.set("status", options.status);
+  if (options?.ids?.length) params.set("ids", options.ids.join(","));
+  const query = params.toString();
+  const url = `${apiRoot}/projects/${projectId}/images/zip${query ? `?${query}` : ""}`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    let message = "Download failed";
+    try {
+      const data = text ? JSON.parse(text) : null;
+      if (data && typeof data === "object" && "message" in data) {
+        message = String((data as { message: string }).message);
+      }
+    } catch {
+      if (text) message = text;
+    }
+    throw new Error(message);
+  }
+
+  const blob = await response.blob();
+  const disposition = response.headers.get("Content-Disposition");
+  const match = disposition?.match(/filename="?([^";\n]+)"?/);
+  const filename = match?.[1] ?? `project-${projectId}-export.zip`;
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
 // ============================================================================
 // MASK API FUNCTIONS
 // ============================================================================

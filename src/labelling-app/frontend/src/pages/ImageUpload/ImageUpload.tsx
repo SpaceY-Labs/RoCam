@@ -6,6 +6,7 @@
 import { useState, useRef } from 'react';
 import type { ImageStatus, Project } from '../../types';
 import { Button, Select, Card, EmptyState } from '../../components/ui';
+import { downloadProjectZip } from '../../modules/API_Helps';
 import { DropZone, type UploadFile } from './components/DropZone';
 import { FileInfo } from './components/FileInfo';
 import { TagManager } from './components/TagManager';
@@ -44,6 +45,8 @@ export function ImageUpload({
   const [status, setStatus] = useState<ImageStatus>('unlabeled');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
+  const [downloadLoading, setDownloadLoading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ============ Handlers ============
@@ -97,6 +100,19 @@ export function ImageUpload({
     setTagInput('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDownloadZip = async () => {
+    if (!project?.projectId) return;
+    setDownloadLoading(true);
+    setDownloadError(null);
+    try {
+      await downloadProjectZip(project.projectId, { limit: 100 });
+    } catch (err) {
+      setDownloadError(err instanceof Error ? err.message : 'Download failed');
+    } finally {
+      setDownloadLoading(false);
     }
   };
 
@@ -169,7 +185,20 @@ export function ImageUpload({
               >
                 Upload ZIP
               </Button>
+              <Button
+                variant="secondary"
+                onClick={handleDownloadZip}
+                disabled={downloadLoading}
+                loading={downloadLoading}
+              >
+                Download ZIP
+              </Button>
             </div>
+            {downloadError && (
+              <p className="upload-error" role="alert">
+                {downloadError}
+              </p>
+            )}
           </Card>
 
           <UploadTips />

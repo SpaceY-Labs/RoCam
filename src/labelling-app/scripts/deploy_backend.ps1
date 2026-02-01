@@ -9,7 +9,8 @@ param(
   [string]$Sam2ModelName = "sam2",
   [int]$Sam2TimeoutMs = 180000,
   [int]$Sam2RetryCount = 60,
-  [int]$Sam2RetryDelayMs = 2000
+  [int]$Sam2RetryDelayMs = 2000,
+  [int]$RequestTimeoutSec = 600
 )
 
 $root = Resolve-Path (Join-Path $PSScriptRoot "..")
@@ -120,6 +121,7 @@ gcloud run deploy $ServiceName `
   --concurrency 1 `
   --min-instances 0 `
   --max-instances 1 `
+  --timeout $RequestTimeoutSec `
   --gpu 1 `
   --gpu-type nvidia-tesla-t4 `
   --set-env-vars $envVars

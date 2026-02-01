@@ -13,10 +13,24 @@ param(
   [string]$TestContainerName = "backend-test",
   [string]$FirebaseProjectId = "",
   [string]$StorageBucket = "",
-  [string]$DatabaseId = ""
+  [string]$DatabaseId = "",
+  [int]$HealthCheckTimeoutSec = 5,
+  [int]$SmokeTestTimeoutSec = 10
 )
 
 $root = Resolve-Path (Join-Path $PSScriptRoot "..")
+
+# Use UTF-8 for console and child processes (e.g. gcloud/Python) to avoid OSError 22 on Windows cp1252
+$prevOutputEncoding = [Console]::OutputEncoding
+$prevPythonEncoding = $env:PYTHONIOENCODING
+$prevPythonUtf8 = $env:PYTHONUTF8
+try {
+  [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+  $env:PYTHONIOENCODING = "utf-8"
+  $env:PYTHONUTF8 = "1"
+} catch {
+  # Ignore if console encoding cannot be changed
+}
 
 $remoteImage = if ($ImageTag -match "gcr.io|docker.pkg.dev") {
   $ImageTag
@@ -114,7 +128,7 @@ try {
       }
 
       try {
-        Invoke-RestMethod -Method Get -Uri $healthUrl -TimeoutSec 5 | Out-Null
+        Invoke-RestMethod -Method Get -Uri $healthUrl -TimeoutSec $HealthCheckTimeoutSec | Out-Null
         $ready = $true
         break
       } catch {
@@ -130,7 +144,7 @@ try {
       throw "Backend container did not become healthy at $healthUrl (running=$runningState, exit=$exitCode)."
     }
 
-    & (Join-Path $PSScriptRoot "test_backend.ps1") -WorkspaceRoot $root -Mode $TestMode -ApiBaseUrl "http://localhost:$TestPort"
+    & (Join-Path $PSScriptRoot "test_backend.ps1") -WorkspaceRoot $root -Mode $TestMode -ApiBaseUrl "http://localhost:$TestPort" -SmokeTestTimeoutSec $SmokeTestTimeoutSec
     if ($LASTEXITCODE -ne 0) {
       throw "Backend tests failed."
     }
@@ -141,31 +155,22 @@ try {
   if ($ImageTag -ne $remoteImage) {
     docker tag $ImageTag $remoteImage
   }
-  $prevOutputEncoding = [Console]::OutputEncoding
-  $prevPythonEncoding = $env:PYTHONIOENCODING
-  $prevPythonUtf8 = $env:PYTHONUTF8
-  try {
-    [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
-    $env:PYTHONIOENCODING = "utf-8"
-    $env:PYTHONUTF8 = "1"
-    gcloud auth configure-docker "$Region-docker.pkg.dev" --quiet
-    docker push $remoteImage
-  } finally {
-    [Console]::OutputEncoding = $prevOutputEncoding
-    if ($prevPythonEncoding) {
-      $env:PYTHONIOENCODING = $prevPythonEncoding
-    } else {
-      Remove-Item Env:PYTHONIOENCODING -ErrorAction SilentlyContinue
-    }
-    if ($prevPythonUtf8) {
-      $env:PYTHONUTF8 = $prevPythonUtf8
-    } else {
-      Remove-Item Env:PYTHONUTF8 -ErrorAction SilentlyContinue
-    }
-  }
+  gcloud auth configure-docker "$Region-docker.pkg.dev" --quiet
+  docker push $remoteImage
 } finally {
   if ($RunDockerTest) {
     docker rm -f $TestContainerName 2>$null | Out-Null
+  }
+  [Console]::OutputEncoding = $prevOutputEncoding
+  if ($null -ne $prevPythonEncoding) {
+    $env:PYTHONIOENCODING = $prevPythonEncoding
+  } else {
+    Remove-Item Env:PYTHONIOENCODING -ErrorAction SilentlyContinue
+  }
+  if ($null -ne $prevPythonUtf8) {
+    $env:PYTHONUTF8 = $prevPythonUtf8
+  } else {
+    Remove-Item Env:PYTHONUTF8 -ErrorAction SilentlyContinue
   }
   Pop-Location
 }

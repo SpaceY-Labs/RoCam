@@ -97,7 +97,7 @@ export function LabelImage({
     };
 
     fetchMasks();
-  }, [project, currentImage?.imageId]);
+  }, [project, currentImage, currentImage?.imageId]);
 
   // Clear hover state when image changes
   useEffect(() => {
@@ -151,13 +151,13 @@ export function LabelImage({
     });
   }, [images.length, onNextImage, onPrevImage]);
 
-  const handleMarkLabeled = async () => {
+  const handleMarkLabeled = useCallback(async () => {
     if (!currentImage) return;
     const ok = await onMarkLabeled(currentImage.imageId);
     if (ok) {
       handleNavigate('next');
     }
-  };
+  }, [currentImage, onMarkLabeled, handleNavigate]);
 
   // Handle clicking on a mask in the sidebar list
   const handleMaskListItemClick = useCallback((mask: MaskApiItem, event: React.MouseEvent) => {
@@ -231,7 +231,7 @@ export function LabelImage({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleNavigate, currentImage, handleClosePopup]);
+  }, [handleNavigate, currentImage, handleClosePopup, handleMarkLabeled]);
 
   if (!project) {
     return (

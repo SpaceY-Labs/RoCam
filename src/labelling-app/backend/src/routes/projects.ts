@@ -44,6 +44,7 @@ import {
   computeColorMap,
   rawBinaryToSparseMask,
   generateMaskOverlay,
+  serializeMaskToFeather,
 } from "../services/masks";
 import {
   uploadMaskBuffer,
@@ -529,6 +530,181 @@ router.post(
       count: saved.length,
       masksCount,
     });
+  })
+);
+
+// ============================================================================
+// ZIP DOWNLOAD ROUTE (same format as upload)
+// ============================================================================
+
+const ZIP_EXPORT_MAX_IMAGES = 100;
+
+const streamToBuffer = (stream: NodeJS.ReadableStream): Promise<Buffer> =>
+  new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    stream.on("data", (chunk: Buffer) => chunks.push(chunk));
+    stream.on("end", () => resolve(Buffer.concat(chunks)));
+    stream.on("error", reject);
+  });
+
+router.get(
+  "/:projectId/images/zip",
+  asyncHandler(async (req: AuthenticatedRequest, res) => {
+    const user = req.user;
+    if (!user) {
+      throw new HttpError(401, "UNAUTHORIZED", "Missing auth context");
+    }
+
+    const projectId = req.params.projectId;
+    await ensureProjectAccess(projectId, user.uid);
+
+    const ids = req.query.ids ? String(req.query.ids).split(",") : null;
+    const status = req.query.status ? String(req.query.status) : null;
+    const limit = Math.min(
+      Number(req.query.limit) || 50,
+      ZIP_EXPORT_MAX_IMAGES
+    );
+    const cursor = req.query.cursor ? String(req.query.cursor) : null;
+
+    const collection = getProjectImagesCollection(projectId);
+    let items: FirebaseFirestore.DocumentData[];
+
+    if (ids && ids.length > 0) {
+      const chunks: string[][] = [];
+      for (let i = 0; i < ids.length; i += 10) {
+        chunks.push(ids.slice(i, i + 10));
+      }
+      const results = await Promise.all(
+        chunks.map((chunk) => collection.where("imageId", "in", chunk).get())
+      );
+      items = results.flatMap((snapshot) =>
+        snapshot.docs.map((doc) => normalizeImageData(doc.data()))
+      ).slice(0, ZIP_EXPORT_MAX_IMAGES);
+    } else {
+      let query: FirebaseFirestore.Query = collection.orderBy(
+        "createdAt",
+        "desc"
+      );
+      if (status) {
+        query = query.where("meta.status", "==", status);
+      }
+      if (cursor) {
+        const cursorDoc = await collection.doc(cursor).get();
+        if (cursorDoc.exists) {
+          query = query.startAfter(cursorDoc);
+        }
+      }
+      const snapshot = await query.limit(limit).get();
+      items = snapshot.docs.map((doc) =>
+        normalizeImageData(doc.data())
+      );
+    }
+
+    const idsDesc = ids && ids.length > 0 ? String(ids.length) : "query";
+    console.log(
+      `[images/zip] Start projectId=${projectId} limit=${limit} status=${status ?? "any"} ids=${idsDesc} imageCount=${items.length}`
+    );
+
+    const zip = new AdmZip();
+    let imagesAdded = 0;
+    let masksAdded = 0;
+    const total = items.length;
+
+    for (let imageIndex = 0; imageIndex < items.length; imageIndex++) {
+      const image = items[imageIndex];
+      const storagePath = image?.storagePath as string | undefined;
+      const fileName = (image?.meta as { fileName?: string } | undefined)
+        ?.fileName as string | undefined;
+      const imageId = image?.imageId as string | undefined;
+
+      if (!storagePath || !fileName) {
+        continue;
+      }
+
+      const current = imageIndex + 1;
+      console.log(
+        `[images/zip] Image ${current}/${total} imageId=${imageId ?? "?"} fileName=${fileName}`
+      );
+
+      const fileStream = await getFileStream(storagePath);
+      const imageBuffer = await streamToBuffer(fileStream);
+      zip.addFile(`image/${fileName}`, imageBuffer);
+      imagesAdded += 1;
+      console.log(`[images/zip] Added image/${fileName}`);
+
+      const maskMapId = image?.maskMapId as string | undefined;
+      if (!maskMapId) {
+        continue;
+      }
+
+      const maskMapDoc = await getProjectMaskMapsCollection(projectId)
+        .doc(maskMapId)
+        .get();
+      if (!maskMapDoc.exists) {
+        continue;
+      }
+      const maskMapData = maskMapDoc.data();
+      const maskIds = (maskMapData?.maskIds as string[] | undefined) || [];
+      const baseName = getBaseName(fileName);
+      console.log(
+        `[images/zip] Image ${fileName} masks=${maskIds.length}`
+      );
+
+      let masksAddedForImage = 0;
+      for (let i = 0; i < maskIds.length; i++) {
+        const maskId = maskIds[i];
+        const maskDoc = await getProjectMasksCollection(projectId)
+          .doc(maskId)
+          .get();
+        if (!maskDoc.exists) {
+          continue;
+        }
+        const maskData = maskDoc.data();
+        const maskStoragePath = maskData?.storagePath as string | undefined;
+        const width = (maskData?.width as number) ?? 0;
+        const height = (maskData?.height as number) ?? 0;
+        if (!maskStoragePath) {
+          continue;
+        }
+        try {
+          const binaryBuffer = await downloadMaskBuffer(maskStoragePath);
+          const featherBuffer = serializeMaskToFeather(
+            binaryBuffer,
+            width,
+            height
+          );
+          const indexPadded = String(i).padStart(2, "0");
+          zip.addFile(
+            `masks/${baseName}_${indexPadded}.feather`,
+            featherBuffer
+          );
+          masksAddedForImage += 1;
+          masksAdded += 1;
+        } catch (err) {
+          console.error(
+            `[images/zip] Mask download or serialize failed (projectId=${projectId}, imageId=${image?.imageId}, maskId=${maskId}):`,
+            err instanceof Error ? err.message : err
+          );
+        }
+      }
+      if (maskIds.length > 0) {
+        console.log(
+          `[images/zip] Image ${fileName} added ${masksAddedForImage} masks`
+        );
+      }
+    }
+
+    const zipBuffer = zip.toBuffer();
+    console.log(
+      `[images/zip] Done projectId=${projectId} imagesAdded=${imagesAdded} masksAdded=${masksAdded} zipSizeBytes=${zipBuffer.length}`
+    );
+
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="project-${projectId}-export.zip"`
+    );
+    res.send(zipBuffer);
   })
 );
 

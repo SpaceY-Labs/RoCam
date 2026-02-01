@@ -124,7 +124,7 @@ export function MaskCanvas({
       highlightAlpha,
     });
 
-    setImageLoaded(true);
+    queueMicrotask(() => setImageLoaded(true));
     redraw();
   }, [
     imageLoaded,
@@ -155,7 +155,7 @@ export function MaskCanvas({
   useEffect(() => {
     if (!imageUrl) {
       bufferRef.current = null;
-      setImageLoaded(false);
+      queueMicrotask(() => setImageLoaded(false));
     }
   }, [imageUrl]);
 

@@ -4,7 +4,8 @@ param(
   [string]$Mode = "contract",
   [string]$ApiBaseUrl = "",
   [switch]$RunSegment,
-  [string]$SegmentImageUrl = ""
+  [string]$SegmentImageUrl = "",
+  [int]$SmokeTestTimeoutSec = 10
 )
 
 if ($Mode -eq "smoke") {
@@ -14,7 +15,7 @@ if ($Mode -eq "smoke") {
 
   $healthUrl = ($ApiBaseUrl.TrimEnd("/")) + "/health"
   try {
-    $response = Invoke-RestMethod -Method Get -Uri $healthUrl -TimeoutSec 10
+    $response = Invoke-RestMethod -Method Get -Uri $healthUrl -TimeoutSec $SmokeTestTimeoutSec
   } catch {
     Write-Error "Backend smoke test failed at $healthUrl. $_"
     exit 1

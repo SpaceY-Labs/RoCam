@@ -23,6 +23,13 @@
   font-family: 'Fraunces', serif;
 }
 
+.gallery-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 /* ============ Controls ============ */
 .gallery-controls {
   display: flex;

@@ -3,7 +3,7 @@
  * Shows thumbnail with mask overlay and metadata
  */
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { ProjectImage, SparseColorMap } from '../../../types';
 import { Card } from '../../../components/ui';
 
@@ -31,9 +31,10 @@ function ImagePreview({
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const colorCache = useMemo(() => new Map<string, [number, number, number]>(), []);
+  const colorCacheRef = useRef(new Map<string, [number, number, number]>());
 
   const drawOverlay = useCallback(() => {
+    const colorCache = colorCacheRef.current;
     const frame = frameRef.current;
     const canvas = canvasRef.current;
     if (!frame || !canvas) return;
@@ -100,7 +101,7 @@ function ImagePreview({
     }
 
     ctx.putImageData(imageData, 0, 0);
-  }, [colorCache, colorMap, image.meta.height, image.meta.width]);
+  }, [colorMap, image.meta.height, image.meta.width]);
 
   useEffect(() => {
     drawOverlay();

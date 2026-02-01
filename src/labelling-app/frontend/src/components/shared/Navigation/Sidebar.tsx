@@ -3,56 +3,10 @@
  * Provides navigation between app routes and displays active project info
  */
 
-import type { RouteId, Project, NavItem } from '../../../types';
+import { NAV_ITEMS } from './navItems';
+import type { SidebarProps } from './navItems';
 import './Sidebar.css';
 
-// ============ Constants ============
-export const NAV_ITEMS: NavItem[] = [
-  {
-    id: 'projects',
-    label: 'Projects',
-    description: 'Browse and select',
-    icon: 'P',
-  },
-  {
-    id: 'create',
-    label: 'Create',
-    description: 'New project setup',
-    icon: 'C',
-  },
-  {
-    id: 'label',
-    label: 'Label',
-    description: 'Annotate images',
-    icon: 'L',
-  },
-  {
-    id: 'upload',
-    label: 'Upload',
-    description: 'Add new images',
-    icon: 'U',
-  },
-  {
-    id: 'preview',
-    label: 'Manage',
-    description: 'Review + update',
-    icon: 'M',
-  },
-];
-
-// ============ Types ============
-export interface SidebarProps {
-  /** Current active route */
-  currentRoute: RouteId;
-  /** Currently selected project */
-  selectedProject: Project | null;
-  /** Whether the queue is loading */
-  queueLoading?: boolean;
-  /** Callback when a nav item is clicked */
-  onNavigate: (route: RouteId) => void;
-}
-
-// ============ Component ============
 export function Sidebar({
   currentRoute,
   selectedProject,

@@ -3,28 +3,9 @@
  * Shows file name, size, and type
  */
 
-// ============ Types ============
-export interface FileInfoProps {
-  /** File name */
-  fileName: string;
-  /** File size in bytes */
-  fileSize: number;
-  /** File type description */
-  fileType: string;
-}
+import type { FileInfoProps } from './fileInfoUtils';
+import { formatFileSize } from './fileInfoUtils';
 
-// ============ Helpers ============
-
-/**
- * Format file size for display
- */
-export function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-// ============ Component ============
 export function FileInfo({ fileName, fileSize, fileType }: FileInfoProps) {
   return (
     <div className="file-info">

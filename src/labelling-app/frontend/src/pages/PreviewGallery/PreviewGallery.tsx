@@ -5,10 +5,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Project, ProjectImage, SparseColorMap } from '../../types';
-import { getColorMap, listImages } from '../../modules/API_Helps';
-import { EmptyState, LoadingState, Modal } from '../../components/ui';
+import { getColorMap, listImages, downloadProjectZip } from '../../modules/API_Helps';
+import { Button, EmptyState, LoadingState, Modal } from '../../components/ui';
 import { ManagementModal } from '../../components/ManagementModal';
-import { Pagination, PER_PAGE_OPTIONS } from './components/Pagination';
+import { Pagination } from './components/Pagination';
+import { PER_PAGE_OPTIONS } from './components/paginationConstants';
 import { GalleryGrid } from './components/GalleryGrid';
 import './PreviewGallery.css';
 
@@ -35,6 +36,7 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
   const [cursorParam, setCursorParam] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [activeImage, setActiveImage] = useState<ProjectImage | null>(null);
+  const [downloadLoading, setDownloadLoading] = useState(false);
   const requestIdRef = useRef(0);
 
   // Computed pagination
@@ -210,6 +212,19 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
     setActiveImage(null);
   };
 
+  const handleDownloadZip = async () => {
+    if (!projectId) return;
+    setDownloadLoading(true);
+    setError(null);
+    try {
+      await downloadProjectZip(projectId, { limit: 100 });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Download failed');
+    } finally {
+      setDownloadLoading(false);
+    }
+  };
+
   // ============ Empty States ============
 
   if (!project) {
@@ -238,16 +253,26 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
             {total !== null ? `${total} total images` : 'All available images'}
           </p>
         </div>
-        <Pagination
-          pageIndex={pageIndex}
-          pageCount={pageCount}
-          perPage={perPage}
-          hasPrevious={cursorStack.length > 0}
-          hasNext={Boolean(nextCursor)}
-          onPerPageChange={setPerPage}
-          onPrevious={handlePrev}
-          onNext={handleNext}
-        />
+        <div className="gallery-toolbar-actions">
+          <Pagination
+            pageIndex={pageIndex}
+            pageCount={pageCount}
+            perPage={perPage}
+            hasPrevious={cursorStack.length > 0}
+            hasNext={Boolean(nextCursor)}
+            onPerPageChange={setPerPage}
+            onPrevious={handlePrev}
+            onNext={handleNext}
+          />
+          <Button
+            variant="secondary"
+            onClick={handleDownloadZip}
+            disabled={downloadLoading || (total !== null && total === 0)}
+            loading={downloadLoading}
+          >
+            Download ZIP
+          </Button>
+        </div>
       </div>
 
       {/* Error Banner */}

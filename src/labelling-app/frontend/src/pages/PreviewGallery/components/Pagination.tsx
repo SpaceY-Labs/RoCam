@@ -4,31 +4,9 @@
  */
 
 import { Button } from '../../../components/ui';
+import { PER_PAGE_OPTIONS } from './paginationConstants';
+import type { PaginationProps } from './paginationConstants';
 
-// ============ Constants ============
-export const PER_PAGE_OPTIONS = [6, 12, 24, 48];
-
-// ============ Types ============
-export interface PaginationProps {
-  /** Current page index (1-based) */
-  pageIndex: number;
-  /** Total page count (null if unknown) */
-  pageCount: number | null;
-  /** Items per page */
-  perPage: number;
-  /** Whether previous page exists */
-  hasPrevious: boolean;
-  /** Whether next page exists */
-  hasNext: boolean;
-  /** Callback when per-page changes */
-  onPerPageChange: (perPage: number) => void;
-  /** Callback when previous is clicked */
-  onPrevious: () => void;
-  /** Callback when next is clicked */
-  onNext: () => void;
-}
-
-// ============ Component ============
 export function Pagination({
   pageIndex,
   pageCount,

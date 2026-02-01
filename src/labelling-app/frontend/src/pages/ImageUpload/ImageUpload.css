@@ -201,6 +201,15 @@
 /* ============ Upload Actions ============ */
 .upload-actions {
   margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.upload-error {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: var(--danger, #b91c1c);
 }
 
 .upload-progress {

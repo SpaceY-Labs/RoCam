@@ -118,9 +118,9 @@ export function applyMaskToBuffer(buffer: CompositeBuffer, options: ApplyMaskOpt
     const overlay = maskOverlay;
     const mask = masksById.get(highlightedMaskId);
     const isLabeled = mask?.labelId != null;
-    let r = UNLABELED_RGB[0];
-    let g = UNLABELED_RGB[1];
-    let b = UNLABELED_RGB[2];
+    let r: number = UNLABELED_RGB[0];
+    let g: number = UNLABELED_RGB[1];
+    let b: number = UNLABELED_RGB[2];
     if (isLabeled && mask?.color) {
       [r, g, b] = parseHex(mask.color);
     } else if (highlightColor) {
@@ -129,7 +129,6 @@ export function applyMaskToBuffer(buffer: CompositeBuffer, options: ApplyMaskOpt
     const highlightIndex = overlay.maskIds.indexOf(highlightedMaskId);
     if (highlightIndex >= 0) {
       const ow = overlay.width;
-      const oh = overlay.height;
       for (let i = 0; i < overlay.data.length; i++) {
         if (overlay.data[i] !== highlightIndex) continue;
         const row = Math.floor(i / ow);

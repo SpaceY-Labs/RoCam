@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Project, ProjectImage, SparseColorMap } from '../types';
 import { listImages, getColorMap } from '../modules/API_Helps';
 import { Button, Card, EmptyState, LoadingState } from './ui';
@@ -244,9 +244,10 @@ function PreviewCard({
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const colorCache = useMemo(() => new Map<string, [number, number, number]>(), []);
+  const colorCacheRef = useRef(new Map<string, [number, number, number]>());
 
   const drawOverlay = useCallback(() => {
+    const colorCache = colorCacheRef.current;
     const frame = frameRef.current;
     const canvas = canvasRef.current;
     if (!frame || !canvas) return;
@@ -325,7 +326,7 @@ function PreviewCard({
     }
 
     ctx.putImageData(imageData, 0, 0);
-  }, [colorCache, colorMap, image.meta.height, image.meta.width]);
+  }, [colorMap, image.meta.height, image.meta.width]);
 
   useEffect(() => {
     drawOverlay();

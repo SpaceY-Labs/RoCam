@@ -201,11 +201,13 @@ function ProjectDetails({ project }: { project: Project }) {
           {project.description || 'No description provided.'}
         </p>
         <p className="detail-date">
-          Created {new Date(project.createdAt || Date.now()).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
+          Created {project.createdAt
+            ? new Date(project.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })
+            : 'Unknown date'}
         </p>
       </div>
 

@@ -108,33 +108,12 @@ export function LabelImage({
     };
 
     fetchMasks();
-  }, [project, currentImage?.imageId]);
+  }, [project, currentImage, currentImage?.imageId]);
 
   // Clear hover state when image changes
   useEffect(() => {
     resetHover();
   }, [currentImage?.imageId, resetHover]);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        handleNavigate('prev');
-      }
-      if (e.key === 'ArrowRight') {
-        handleNavigate('next');
-      }
-      if (e.key === 'Enter') {
-        handleMarkLabeled();
-      }
-      if (e.key === 'Escape') {
-        handleClosePopup();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentImage]);
 
   // ============ Handlers ============
 
@@ -155,13 +134,13 @@ export function LabelImage({
     [images.length, onNextImage, onPrevImage]
   );
 
-  const handleMarkLabeled = async () => {
+  const handleMarkLabeled = useCallback(async () => {
     if (!currentImage) return;
     const ok = await onMarkLabeled(currentImage.imageId);
     if (ok) {
       handleNavigate('next');
     }
-  };
+  }, [currentImage, onMarkLabeled, handleNavigate]);
 
   const handleCanvasMouseMove = useCallback(
     (maskId: string | null) => {
@@ -196,6 +175,27 @@ export function LabelImage({
   const handleClosePopup = useCallback(() => {
     setLabelPopup(null);
   }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        handleNavigate('prev');
+      }
+      if (e.key === 'ArrowRight') {
+        handleNavigate('next');
+      }
+      if (e.key === 'Enter') {
+        handleMarkLabeled();
+      }
+      if (e.key === 'Escape') {
+        handleClosePopup();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentImage, handleClosePopup, handleMarkLabeled, handleNavigate]);
 
   const handleAssignLabel = useCallback(
     async (labelId: string | null) => {
