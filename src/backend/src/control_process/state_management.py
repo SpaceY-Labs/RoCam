@@ -216,6 +216,7 @@ class StateManagement:
             ).decode("ascii")
             bbox = self._bboxes.get_bbox(self._last_preview_frame.pts_ns)
 
+        timestamp_ms = int(time.time() * 1000)
         try:
             tilt, pan = self._gimbal_measure_deg_cached()
             return {
@@ -232,6 +233,7 @@ class StateManagement:
                 "memory_usage_bytes": memory_usage_bytes,
                 "disk_usage_bytes": disk_usage_bytes,
                 "recording_duration_left_ms": recording_duration_left_ms,
+                "timestamp_ms": timestamp_ms,
                 "is_recording": self._in_progress_recording_id is not None,
             }
         except Exception as e:
@@ -250,6 +252,7 @@ class StateManagement:
                 "memory_usage_bytes": memory_usage_bytes,
                 "disk_usage_bytes": disk_usage_bytes,
                 "recording_duration_left_ms": recording_duration_left_ms,
+                "timestamp_ms": timestamp_ms,
                 "is_recording": self._in_progress_recording_id is not None,
             }
 

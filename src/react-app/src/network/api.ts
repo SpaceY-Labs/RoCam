@@ -30,6 +30,7 @@ export type StatusResponse = {
   memory_usage_bytes: MemoryUsageBytes | null
   disk_usage_bytes: DiskUsageBytes | null
   recording_duration_left_ms: number | null
+  timestamp_ms: number
 }
 
 export type Recording = {

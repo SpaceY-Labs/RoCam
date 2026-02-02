@@ -1,4 +1,5 @@
 import logging
+import time
 from control_process.database import RecordingDatabase
 from control_process.state_management import RECORDING_DATABASE_BASE_PATH
 
@@ -16,6 +17,7 @@ class StateManagementRecordingManagementOnly:
         pass
 
     def status(self):
+        timestamp_ms = int(time.time() * 1000)
         disk_usage_bytes = None
         recording_duration_left_ms = None
         try:
@@ -43,6 +45,7 @@ class StateManagementRecordingManagementOnly:
             "memory_usage_bytes": None,
             "disk_usage_bytes": disk_usage_bytes,
             "recording_duration_left_ms": recording_duration_left_ms,
+            "timestamp_ms": timestamp_ms,
             "is_recording": False,
         }
 
