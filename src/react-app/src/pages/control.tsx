@@ -165,6 +165,24 @@ export default function ControlPage() {
               REC
             </div>
           )}
+        {isArmed &&
+          streamBounds.width > 0 &&
+          gridBounds.width > 0 && (
+            <div
+              className="pointer-events-none absolute z-20 inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-700 shadow-[0_6px_16px_rgba(251,191,36,0.18)] backdrop-blur-md"
+              style={{
+                left: Math.max(
+                  0,
+                  streamBounds.left - gridBounds.left + streamBounds.width - 12
+                ),
+                top: Math.max(0, streamBounds.top - gridBounds.top + 12),
+                transform: 'translateX(-100%)',
+              }}
+            >
+              <span className="h-2 w-2 rounded-full bg-amber-500" />
+              ARMED
+            </div>
+          )}
         <div
           ref={streamContainerRef}
           className="bg-gray-100 aspect-[9/16] rounded-lg flex items-center justify-center row-span-2"
