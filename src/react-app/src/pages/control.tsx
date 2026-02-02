@@ -125,14 +125,14 @@ export default function ControlPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/60 bg-white/70 p-5 backdrop-blur-sm">
+        <div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-5 shadow-[0_1px_0_rgba(0,0,0,0.03)] backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
               <span className={`h-2 w-2 rounded-full ${statusDotClass}`} />
               System Status
             </div>
             <span
-              className={`text-[10px] font-semibold uppercase tracking-[0.3em] ${statusTextClass}`}
+              className={`text-[10px] font-semibold uppercase tracking-[0.28em] ${statusTextClass}`}
             >
               {statusLabel}
             </span>
@@ -146,22 +146,22 @@ export default function ControlPage() {
                 item.progress === null ? 'bg-slate-200' : 'bg-slate-900/70'
               return (
                 <div key={item.label} className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-400">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
                     {item.label}
                   </p>
                   <p
                     className={
                       isUnavailable
                         ? 'mt-1 text-sm font-medium text-slate-400 tabular-nums'
-                        : 'mt-1 text-sm font-semibold text-slate-900 tabular-nums'
+                        : 'mt-1 text-base font-semibold text-slate-900 tabular-nums'
                     }
                   >
                     {item.value}
                   </p>
                   {hasProgress && (
-                    <div className="mt-2 h-1.5 w-full rounded-full bg-slate-100">
+                    <div className="mt-2 h-1 w-full rounded-full bg-slate-200/70">
                       <div
-                        className={`h-1.5 rounded-full ${progressBarClass}`}
+                        className={`h-1 rounded-full ${progressBarClass}`}
                         style={{ width: `${progress}%` }}
                       />
                     </div>
