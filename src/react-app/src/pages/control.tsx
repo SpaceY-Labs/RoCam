@@ -14,7 +14,9 @@ import DefaultLayout from '@/layouts/default'
 
 export default function ControlPage() {
   const { apiClient, status, statusPollingError } = useRocam()
-  const [streamContainerRef, { width, height }] = useMeasure<HTMLDivElement>()
+  const [streamContainerRef, streamBounds] = useMeasure<HTMLDivElement>()
+  const [gridRef, gridBounds] = useMeasure<HTMLDivElement>()
+  const { width, height } = streamBounds
 
   const ACTION_COOLDOWN_MS = 1500
   const [isArmLoading, setIsArmLoading] = useState(false)
@@ -150,7 +152,24 @@ export default function ControlPage() {
 
   return (
     <DefaultLayout className="flex items-stretch">
-      <div className="grid gap-4 m-4 mt-0 grid-cols-[auto_1fr] grid-rows-[1fr_auto] min-w-0 w-full">
+      <div
+        ref={gridRef}
+        className="relative grid gap-4 m-4 mt-0 grid-cols-[auto_1fr] grid-rows-[1fr_auto] min-w-0 w-full"
+      >
+        {isRecording &&
+          streamBounds.width > 0 &&
+          gridBounds.width > 0 && (
+            <div
+              className="pointer-events-none absolute z-20 inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-rose-600 shadow-[0_6px_16px_rgba(244,63,94,0.18)] backdrop-blur-md"
+              style={{
+                left: Math.max(0, streamBounds.left - gridBounds.left + 12),
+                top: Math.max(0, streamBounds.top - gridBounds.top + 12),
+              }}
+            >
+              <span className="h-2 w-2 rounded-full bg-rose-500" />
+              REC
+            </div>
+          )}
         <div
           ref={streamContainerRef}
           className="bg-gray-100 aspect-[9/16] rounded-lg flex items-center justify-center row-span-2"
@@ -198,11 +217,19 @@ export default function ControlPage() {
               <span className={`h-2 w-2 rounded-full ${statusDotClass}`} />
               System Status
             </div>
-            <span
-              className={`text-[10px] font-semibold uppercase tracking-[0.32em] ${statusTextClass}`}
-            >
-              {statusLabel}
-            </span>
+            <div className="flex items-center gap-3">
+              {isRecording && (
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-rose-600 shadow-[0_6px_16px_rgba(244,63,94,0.18)] backdrop-blur-md">
+                  <span className="h-2 w-2 rounded-full bg-rose-500" />
+                  REC
+                </div>
+              )}
+              <span
+                className={`text-[10px] font-semibold uppercase tracking-[0.32em] ${statusTextClass}`}
+              >
+                {statusLabel}
+              </span>
+            </div>
           </div>
           <div className="relative mt-6 grid gap-y-6 gap-x-8 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             {statusItems.map((item) => {
