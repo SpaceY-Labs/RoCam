@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class SystemStatusMonitor:
-    def __init__(self, update_interval_s: float = 1.0):
+    def __init__(self, update_interval_s: float = 3.0):
         self._interval = update_interval_s
         self._lock = threading.Lock()
         self._cpu_utilization: Optional[float] = None
@@ -113,6 +113,9 @@ class SystemStatusMonitor:
 
         if usage is None and tegrastats_metrics is not None:
             usage = tegrastats_metrics[0]
+
+        if usage is None:
+            usage = _read_gpu_utilization_sysfs()
 
         with self._lock:
             self._gpu_utilization = usage
@@ -283,24 +286,18 @@ def _read_nvidia_smi_power_w() -> Optional[float]:
 
 
 def _read_tegrastats_metrics() -> tuple[Optional[float], Optional[float]]:
-    try:
-        result = subprocess.run(
-            ["tegrastats", "--interval", "1000", "--count", "1"],
-            capture_output=True,
-            text=True,
-            timeout=2.0,
-        )
-    except (OSError, subprocess.TimeoutExpired):
+    output = _run_tegrastats_once()
+    if not output:
         return None, None
 
-    if result.returncode != 0:
-        return None, None
-
-    lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    lines = [line.strip() for line in output.splitlines() if line.strip()]
     gpu_utilization: Optional[float] = None
     system_power_w: Optional[float] = None
 
     for line in reversed(lines):
+        if "unknown command" in line.lower():
+            continue
+
         if gpu_utilization is None:
             match = re.search(r"GR3D_FREQ\s+(\d+)%", line)
             if match:
@@ -316,6 +313,32 @@ def _read_tegrastats_metrics() -> tuple[Optional[float], Optional[float]]:
             break
 
     return gpu_utilization, system_power_w
+
+
+def _run_tegrastats_once() -> str:
+    try:
+        result = subprocess.run(
+            ["tegrastats", "--interval", "1000"],
+            capture_output=True,
+            text=True,
+            timeout=2.0,
+        )
+        stdout = result.stdout or ""
+        stderr = result.stderr or ""
+    except subprocess.TimeoutExpired as exc:
+        stdout = exc.stdout or ""
+        stderr = exc.stderr or ""
+
+    if isinstance(stdout, bytes):
+        stdout = stdout.decode(errors="ignore")
+    if isinstance(stderr, bytes):
+        stderr = stderr.decode(errors="ignore")
+
+    output = stdout
+    if stderr:
+        output = f"{output}\n{stderr}" if output else stderr
+
+    return output.strip()
 
 
 def _parse_tegrastats_power_w(line: str) -> Optional[float]:
@@ -334,4 +357,102 @@ def _parse_tegrastats_power_w(line: str) -> Optional[float]:
         return None
 
     return max(values_mw) / 1000.0
+
+
+def _read_gpu_utilization_sysfs() -> Optional[float]:
+    candidates = _get_gpu_load_candidates()
+    for path, scale in candidates:
+        value = _read_sysfs_float(path)
+        if value is None:
+            continue
+
+        percent = _convert_gpu_load_to_percent(value, scale)
+        if percent is None:
+            continue
+
+        return percent
+
+    return None
+
+
+def _get_gpu_load_candidates() -> list[tuple[str, str]]:
+    candidates: list[tuple[str, str]] = []
+
+    fixed_paths = [
+        "/sys/devices/gpu.0/load",
+        "/sys/devices/17000000.gp10b/load",
+        "/sys/devices/17000000.gv11b/load",
+        "/sys/devices/17000000.ga10b/load",
+    ]
+
+    for path in fixed_paths:
+        if os.path.isfile(path):
+            candidates.append((path, "load-255"))
+
+    devfreq_base = "/sys/class/devfreq"
+    if os.path.isdir(devfreq_base):
+        try:
+            entries = os.listdir(devfreq_base)
+        except OSError:
+            entries = []
+
+        for entry in entries:
+            name = entry.lower()
+            if not any(key in name for key in ("gpu", "gp10b", "gv11b", "ga10b")):
+                continue
+
+            load_path = os.path.join(devfreq_base, entry, "load")
+            if os.path.isfile(load_path):
+                candidates.append((load_path, "load-1000"))
+
+    return candidates
+
+
+def _read_sysfs_float(path: str) -> Optional[float]:
+    try:
+        with open(path, "rb") as handle:
+            raw_bytes = handle.read()
+    except OSError:
+        return None
+
+    if not raw_bytes:
+        return None
+
+    raw = raw_bytes.decode(errors="ignore").strip()
+    if not raw:
+        return None
+
+    match = re.search(r"(\d+(\.\d+)?)", raw)
+    if not match:
+        return None
+
+    try:
+        return float(match.group(1))
+    except ValueError:
+        return None
+
+
+def _convert_gpu_load_to_percent(value: float, scale: str) -> Optional[float]:
+    if value < 0:
+        return None
+
+    if scale == "load-1000":
+        if value <= 1000:
+            return value / 10.0
+        return None
+
+    if scale == "load-255":
+        if value <= 255:
+            return value / 255.0 * 100.0
+        if value <= 100:
+            return value
+        return None
+
+    if value <= 100:
+        return value
+    if value <= 255:
+        return value / 255.0 * 100.0
+    if value <= 1000:
+        return value / 10.0
+
     return None
