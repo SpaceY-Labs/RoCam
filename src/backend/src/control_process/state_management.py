@@ -234,6 +234,7 @@ class StateManagement:
                 "disk_usage_bytes": disk_usage_bytes,
                 "recording_duration_left_ms": recording_duration_left_ms,
                 "timestamp_ms": timestamp_ms,
+                "in_progress_recording_id": self._in_progress_recording_id,
                 "is_recording": self._in_progress_recording_id is not None,
             }
         except Exception as e:
@@ -253,6 +254,7 @@ class StateManagement:
                 "disk_usage_bytes": disk_usage_bytes,
                 "recording_duration_left_ms": recording_duration_left_ms,
                 "timestamp_ms": timestamp_ms,
+                "in_progress_recording_id": self._in_progress_recording_id,
                 "is_recording": self._in_progress_recording_id is not None,
             }
 

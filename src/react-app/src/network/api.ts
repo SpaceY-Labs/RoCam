@@ -31,6 +31,7 @@ export type StatusResponse = {
   disk_usage_bytes: DiskUsageBytes | null
   recording_duration_left_ms: number | null
   timestamp_ms: number
+  in_progress_recording_id: string | null
 }
 
 export type Recording = {

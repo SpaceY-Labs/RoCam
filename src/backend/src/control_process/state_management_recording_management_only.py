@@ -46,6 +46,7 @@ class StateManagementRecordingManagementOnly:
             "disk_usage_bytes": disk_usage_bytes,
             "recording_duration_left_ms": recording_duration_left_ms,
             "timestamp_ms": timestamp_ms,
+            "in_progress_recording_id": None,
             "is_recording": False,
         }
 
