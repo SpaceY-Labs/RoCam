@@ -27,6 +27,37 @@ export default function ControlPage() {
   }, [statusPollingError])
 
   const bbox = status?.bbox
+  const isArmed = status?.armed === true
+  const statusLabel = status ? (isArmed ? 'Armed' : 'Disarmed') : 'Unknown'
+  const statusDotClass = status
+    ? isArmed
+      ? 'bg-rose-500'
+      : 'bg-emerald-400'
+    : 'bg-slate-400'
+  const statusTextClass = status
+    ? isArmed
+      ? 'text-rose-600'
+      : 'text-emerald-600'
+    : 'text-slate-400'
+  const statusItems = [
+    { label: 'TILT', value: formatDegrees(status?.tilt) },
+    { label: 'PAN', value: formatDegrees(status?.pan) },
+    { label: 'FPS', value: formatFps(status?.average_fps) },
+    {
+      label: 'CPU',
+      value: formatPercent(status?.cpu_utilization),
+      progress: clampPercent(status?.cpu_utilization),
+    },
+    {
+      label: 'GPU',
+      value: formatPercent(status?.gpu_utilization),
+      progress: clampPercent(status?.gpu_utilization),
+    },
+    { label: 'TEMP', value: formatTemperature(status?.core_temperature_celsius) },
+    { label: 'STORAGE', value: formatStorageLeft(status?.disk_usage_bytes) },
+    { label: 'POWER', value: formatPower(status?.system_power_w) },
+    { label: 'REC LEFT', value: formatDuration(status?.recording_duration_left_ms) },
+  ]
 
   const handleStartRecording = async () => {
     if (!apiClient || isStarting) return
@@ -94,64 +125,50 @@ export default function ControlPage() {
           </div>
         </div>
 
-        <div className="bg-gray-100 rounded-lg p-4 font-mono">
-          <p>
-            <span className="font-medium text-gray-500">Status: </span>
-            {status?.armed ? (
-              <span className="text-red-500">Armed</span>
-            ) : (
-              <span>Disarmed</span>
-            )}
-          </p>
-          <div className="flex gap-4 font-mono mt-4 flex-wrap">
-            <div>
-              <p className="text-sm font-medium text-gray-500 font-mono">
-                TILT
-              </p>
-              <p className="w-16">{formatDegrees(status?.tilt)}</p>
+        <div className="rounded-2xl border border-slate-200/60 bg-white/70 p-5 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500">
+              <span className={`h-2 w-2 rounded-full ${statusDotClass}`} />
+              System Status
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500 font-mono">PAN</p>
-              <p className="w-16">{formatDegrees(status?.pan)}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500 font-mono">FPS</p>
-              <p className="w-16">{formatFps(status?.average_fps)}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500 font-mono">CPU</p>
-              <p className="w-16">{formatPercent(status?.cpu_utilization)}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500 font-mono">GPU</p>
-              <p className="w-16">{formatPercent(status?.gpu_utilization)}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500 font-mono">TEMP</p>
-              <p className="w-16">
-                {formatTemperature(status?.core_temperature_celsius)}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500 font-mono">
-                STORAGE
-              </p>
-              <p className="w-24">{formatStorageLeft(status?.disk_usage_bytes)}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500 font-mono">
-                POWER
-              </p>
-              <p className="w-24">{formatPower(status?.system_power_w)}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500 font-mono">
-                REC LEFT
-              </p>
-              <p className="w-24">
-                {formatDuration(status?.recording_duration_left_ms)}
-              </p>
-            </div>
+            <span
+              className={`text-[10px] font-semibold uppercase tracking-[0.3em] ${statusTextClass}`}
+            >
+              {statusLabel}
+            </span>
+          </div>
+          <div className="mt-4 grid gap-y-4 gap-x-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+            {statusItems.map((item) => {
+              const isUnavailable = item.value === 'N/A'
+              const progress = item.progress ?? 0
+              const hasProgress = item.progress !== undefined
+              const progressBarClass =
+                item.progress === null ? 'bg-slate-200' : 'bg-slate-900/70'
+              return (
+                <div key={item.label} className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-400">
+                    {item.label}
+                  </p>
+                  <p
+                    className={
+                      isUnavailable
+                        ? 'mt-1 text-sm font-medium text-slate-400 tabular-nums'
+                        : 'mt-1 text-sm font-semibold text-slate-900 tabular-nums'
+                    }
+                  >
+                    {item.value}
+                  </p>
+                  {hasProgress && (
+                    <div className="mt-2 h-1.5 w-full rounded-full bg-slate-100">
+                      <div
+                        className={`h-1.5 rounded-full ${progressBarClass}`}
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
 
@@ -272,6 +289,12 @@ function formatPercent(value: number | null | undefined) {
   if (value === null || value === undefined) return 'N/A'
 
   return `${Math.round(value * 10) / 10}%`
+}
+
+function clampPercent(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(value)) return null
+
+  return Math.max(0, Math.min(100, value))
 }
 
 function formatTemperature(value: number | null | undefined) {
