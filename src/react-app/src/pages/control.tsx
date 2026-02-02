@@ -8,15 +8,14 @@ import {
   IconHome,
 } from '@tabler/icons-react'
 import { useMeasure } from 'react-use'
-import { Trans } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { msg } from '@lingui/core/macro'
-import { useLingui } from '@lingui/react'
 
 import { useRocam } from '@/network/rocamProvider'
 import DefaultLayout from '@/layouts/default'
 
 export default function ControlPage() {
-  const { i18n } = useLingui()
+  const { t } = useLingui()
   const { apiClient, status, statusPollingError } = useRocam()
   const [streamContainerRef, { width, height }] = useMeasure<HTMLDivElement>()
 
@@ -26,6 +25,7 @@ export default function ControlPage() {
 
   useEffect(() => {
     if (statusPollingError) {
+      // eslint-disable-next-line no-console
       console.error(statusPollingError)
     }
   }, [statusPollingError])
@@ -38,6 +38,7 @@ export default function ControlPage() {
     try {
       await apiClient.startRecording()
     } catch {
+      // eslint-disable-next-line no-console
       console.error('Failed to start recording')
     } finally {
       setIsStarting(false)
@@ -50,6 +51,7 @@ export default function ControlPage() {
     try {
       await apiClient.stopRecording()
     } catch {
+      // eslint-disable-next-line no-console
       console.error('Failed to stop recording')
     } finally {
       setIsStopping(false)
@@ -63,10 +65,12 @@ export default function ControlPage() {
           ref={streamContainerRef}
           className="bg-gray-100 aspect-[9/16] rounded-lg flex items-center justify-center row-span-2"
         >
-          <p><Trans>Live Stream Loading.....</Trans></p>
+          <p>
+            <Trans>Live Stream Loading.....</Trans>
+          </p>
           {status?.preview && (
             <img
-              alt={i18n._(msg`Camera Preview`)}
+              alt={t(msg`Camera Preview`)}
               className="absolute rotate-90 rounded-lg"
               src={`data:image/jpeg;base64,${status.preview}`}
               style={{ width: height, height: width }}
@@ -100,11 +104,17 @@ export default function ControlPage() {
 
         <div className="bg-gray-100 rounded-lg p-4 font-mono">
           <p>
-            <span className="font-medium text-gray-500"><Trans>Status:</Trans> </span>
+            <span className="font-medium text-gray-500">
+              <Trans>Status:</Trans>{' '}
+            </span>
             {status?.armed ? (
-              <span className="text-red-500"><Trans>Armed</Trans></span>
+              <span className="text-red-500">
+                <Trans>Armed</Trans>
+              </span>
             ) : (
-              <span><Trans>Disarmed</Trans></span>
+              <span>
+                <Trans>Disarmed</Trans>
+              </span>
             )}
           </p>
           <div className="flex gap-4 font-mono mt-4">
@@ -115,7 +125,9 @@ export default function ControlPage() {
               <p className="w-16">{formatDegrees(status?.tilt)}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500 font-mono"><Trans>PAN</Trans></p>
+              <p className="text-sm font-medium text-gray-500 font-mono">
+                <Trans>PAN</Trans>
+              </p>
               <p className="w-16">{formatDegrees(status?.pan)}</p>
             </div>
           </div>
@@ -147,7 +159,11 @@ export default function ControlPage() {
               variant="solid"
               onPress={handleStartRecording}
             >
-              {isStarting ? <Trans>Starting...</Trans> : <Trans>Start Recording</Trans>}
+              {isStarting ? (
+                <Trans>Starting...</Trans>
+              ) : (
+                <Trans>Start Recording</Trans>
+              )}
             </Button>
             <Button
               color="danger"
@@ -156,7 +172,11 @@ export default function ControlPage() {
               variant="bordered"
               onPress={handleStopRecording}
             >
-              {isStopping ? <Trans>Stopping...</Trans> : <Trans>Stop Recording</Trans>}
+              {isStopping ? (
+                <Trans>Stopping...</Trans>
+              ) : (
+                <Trans>Stop Recording</Trans>
+              )}
             </Button>
           </div>
 

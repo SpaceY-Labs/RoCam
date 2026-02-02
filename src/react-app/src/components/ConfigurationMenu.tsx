@@ -38,7 +38,11 @@ export function ConfigurationMenu() {
     <>
       <Dropdown>
         <DropdownTrigger>
-          <Button variant="bordered" radius="sm" startContent={<IconSettings />}>
+          <Button
+            radius="sm"
+            startContent={<IconSettings />}
+            variant="bordered"
+          >
             <Trans>Configuration</Trans>
           </Button>
         </DropdownTrigger>
@@ -46,13 +50,14 @@ export function ConfigurationMenu() {
           aria-label="Configuration"
           selectedKeys={[language]}
           selectionMode="single"
+          onAction={handleAction}
           onSelectionChange={(keys) => {
             const selected = Array.from(keys)[0]
+
             if (selected && selected !== 'change-metrics') {
               setLanguage(selected as Language)
             }
           }}
-          onAction={handleAction}
         >
           <DropdownSection title={i18n._(msg`Language`)}>
             {LANGUAGES.map(({ key, label }) => (
@@ -67,7 +72,10 @@ export function ConfigurationMenu() {
         </DropdownMenu>
       </Dropdown>
 
-      <Modal isOpen={metricsModalOpen} onClose={() => setMetricsModalOpen(false)}>
+      <Modal
+        isOpen={metricsModalOpen}
+        onClose={() => setMetricsModalOpen(false)}
+      >
         <ModalContent>
           {() => (
             <>

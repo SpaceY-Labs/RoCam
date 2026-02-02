@@ -39,6 +39,7 @@ export default function RecordingsPage() {
 
       setRecordings(data.recordings)
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error('Failed to load recordings:', e)
     } finally {
       setIsLoading(false)
@@ -63,6 +64,7 @@ export default function RecordingsPage() {
         await loadRecordings()
       }
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error('Failed to rename recording:', e)
       throw e
     }
@@ -81,6 +83,7 @@ export default function RecordingsPage() {
       await apiClient.deleteRecording(r.id)
       setRecordings((cur) => cur.filter((x) => x.id !== r.id))
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error('Failed to delete recording:', e)
       throw e
     }
@@ -101,7 +104,9 @@ export default function RecordingsPage() {
           ) : recordings.length === 0 ? (
             <div className="flex justify-center py-12">
               <p className="text-sm text-gray-500">
-                <Trans>No recordings yet. Start one from the Control page.</Trans>
+                <Trans>
+                  No recordings yet. Start one from the Control page.
+                </Trans>
               </p>
             </div>
           ) : (
@@ -341,7 +346,7 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
         {() => (
           <>
             <ModalHeader className="flex flex-col">
-              Preview {recording?.name}
+              <Trans>Preview {recording?.name}</Trans>
             </ModalHeader>
             <ModalBody>
               {recording && apiClient && (

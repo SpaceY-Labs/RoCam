@@ -6,6 +6,7 @@ import {
 } from '@heroui/dropdown'
 import { Button } from '@heroui/button'
 import { useAtom } from 'jotai'
+
 import { languageAtom, type Language } from '@/store/languageAtom'
 
 const LANGUAGES: { key: Language; label: string }[] = [
@@ -18,13 +19,14 @@ export function LanguageSelector() {
 
   const handleLanguageChange = (key: React.Key) => {
     const lang = key as Language
+
     setLanguage(lang)
   }
 
   return (
     <Dropdown>
       <DropdownTrigger>
-        <Button variant="bordered" radius="sm">
+        <Button radius="sm" variant="bordered">
           {language.toUpperCase()}
         </Button>
       </DropdownTrigger>
@@ -34,6 +36,7 @@ export function LanguageSelector() {
         selectionMode="single"
         onSelectionChange={(keys) => {
           const selected = Array.from(keys)[0]
+
           if (selected) handleLanguageChange(selected)
         }}
       >
