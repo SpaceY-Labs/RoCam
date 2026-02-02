@@ -191,9 +191,13 @@ class StateManagement:
         gpu_utilization = self._system_status.get_gpu_utilization()
         core_temperature_celsius = self._system_status.get_core_temperature_celsius()
         system_power_w = self._system_status.get_system_power_w()
+        memory_usage_bytes = None
         disk_usage_bytes = None
         recording_duration_left_ms = None
         try:
+            memory_usage = self._system_status.get_memory_usage_bytes()
+            if memory_usage is not None:
+                memory_usage_bytes = {"used": memory_usage[0], "total": memory_usage[1]}
             disk_used, disk_total = self.database.space_usage_bytes()
             disk_usage_bytes = {"used": disk_used, "total": disk_total}
             bytes_per_second = self.database.estimate_recording_bytes_per_second()
@@ -225,6 +229,7 @@ class StateManagement:
                 "gpu_utilization": gpu_utilization,
                 "core_temperature_celsius": core_temperature_celsius,
                 "system_power_w": system_power_w,
+                "memory_usage_bytes": memory_usage_bytes,
                 "disk_usage_bytes": disk_usage_bytes,
                 "recording_duration_left_ms": recording_duration_left_ms,
                 "is_recording": self._in_progress_recording_id is not None,
@@ -242,6 +247,7 @@ class StateManagement:
                 "gpu_utilization": gpu_utilization,
                 "core_temperature_celsius": core_temperature_celsius,
                 "system_power_w": system_power_w,
+                "memory_usage_bytes": memory_usage_bytes,
                 "disk_usage_bytes": disk_usage_bytes,
                 "recording_duration_left_ms": recording_duration_left_ms,
                 "is_recording": self._in_progress_recording_id is not None,

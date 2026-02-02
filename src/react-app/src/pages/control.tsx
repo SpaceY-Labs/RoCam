@@ -44,6 +44,11 @@ export default function ControlPage() {
     { label: 'PAN', value: formatDegrees(status?.pan) },
     { label: 'FPS', value: formatFps(status?.average_fps) },
     {
+      label: 'MEM',
+      value: formatPercent(calculateUsagePercent(status?.memory_usage_bytes)),
+      progress: calculateUsagePercent(status?.memory_usage_bytes),
+    },
+    {
       label: 'CPU',
       value: formatPercent(status?.cpu_utilization),
       progress: clampPercent(status?.cpu_utilization),
@@ -317,6 +322,14 @@ function clampPercent(value: number | null | undefined) {
   if (value === null || value === undefined || Number.isNaN(value)) return null
 
   return Math.max(0, Math.min(100, value))
+}
+
+function calculateUsagePercent(
+  usage: { used: number; total: number } | null | undefined
+) {
+  if (!usage || usage.total <= 0) return null
+
+  return (usage.used / usage.total) * 100
 }
 
 function formatTemperature(value: number | null | undefined) {

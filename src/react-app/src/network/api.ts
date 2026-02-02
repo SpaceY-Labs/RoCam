@@ -14,6 +14,8 @@ export type DiskUsageBytes = {
   total: number
 }
 
+export type MemoryUsageBytes = DiskUsageBytes
+
 export type StatusResponse = {
   armed: boolean
   tilt: number | null
@@ -25,6 +27,7 @@ export type StatusResponse = {
   gpu_utilization: number | null
   core_temperature_celsius: number | null
   system_power_w: number | null
+  memory_usage_bytes: MemoryUsageBytes | null
   disk_usage_bytes: DiskUsageBytes | null
   recording_duration_left_ms: number | null
 }

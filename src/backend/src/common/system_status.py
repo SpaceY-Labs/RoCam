@@ -18,12 +18,14 @@ class SystemStatusMonitor:
         self._gpu_utilization: Optional[float] = None
         self._core_temperature_celsius: Optional[float] = None
         self._system_power_w: Optional[float] = None
+        self._memory_usage_bytes: Optional[Tuple[int, int]] = None
         self._prev_cpu_total: Optional[int] = None
         self._prev_cpu_idle: Optional[int] = None
         self._has_proc_stat = os.path.isfile("/proc/stat")
         self._has_nvidia_smi = shutil.which("nvidia-smi") is not None
         self._has_tegrastats = shutil.which("tegrastats") is not None
         self._has_thermal_zones = os.path.isdir("/sys/class/thermal")
+        self._has_meminfo = os.path.isfile("/proc/meminfo")
         self._stop_event = threading.Event()
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
@@ -46,6 +48,10 @@ class SystemStatusMonitor:
     def get_system_power_w(self) -> Optional[float]:
         with self._lock:
             return self._system_power_w
+
+    def get_memory_usage_bytes(self) -> Optional[Tuple[int, int]]:
+        with self._lock:
+            return self._memory_usage_bytes
 
     def _run(self):
         while not self._stop_event.is_set():
@@ -75,6 +81,11 @@ class SystemStatusMonitor:
                 self._update_core_temperature_celsius()
             except Exception as e:
                 logger.warning(f"Failed to update temperature: {e}")
+
+            try:
+                self._update_memory_usage_bytes()
+            except Exception as e:
+                logger.warning(f"Failed to update memory usage: {e}")
 
             self._stop_event.wait(self._interval)
 
@@ -144,6 +155,16 @@ class SystemStatusMonitor:
         with self._lock:
             self._core_temperature_celsius = temperature
 
+    def _update_memory_usage_bytes(self):
+        if not self._has_meminfo:
+            with self._lock:
+                self._memory_usage_bytes = None
+            return
+
+        usage = _read_memory_usage_bytes()
+        with self._lock:
+            self._memory_usage_bytes = usage
+
 
 def _read_proc_stat() -> Optional[Tuple[int, int]]:
     try:
@@ -167,6 +188,38 @@ def _read_proc_stat() -> Optional[Tuple[int, int]]:
     idle = values[3] + (values[4] if len(values) > 4 else 0)
     total = sum(values)
     return total, idle
+
+
+def _read_memory_usage_bytes() -> Optional[Tuple[int, int]]:
+    meminfo: dict[str, int] = {}
+    try:
+        with open("/proc/meminfo", "r") as handle:
+            for line in handle:
+                parts = line.split()
+                if len(parts) < 2:
+                    continue
+                key = parts[0].rstrip(":")
+                try:
+                    value_kb = int(parts[1])
+                except ValueError:
+                    continue
+                meminfo[key] = value_kb
+    except OSError:
+        return None
+
+    total_kb = meminfo.get("MemTotal")
+    if total_kb is None:
+        return None
+
+    available_kb = meminfo.get("MemAvailable")
+    if available_kb is None:
+        free_kb = meminfo.get("MemFree", 0)
+        buffers_kb = meminfo.get("Buffers", 0)
+        cached_kb = meminfo.get("Cached", 0)
+        available_kb = free_kb + buffers_kb + cached_kb
+
+    used_kb = max(0, total_kb - available_kb)
+    return used_kb * 1024, total_kb * 1024
 
 
 def _read_core_temperature_celsius() -> Optional[float]:
