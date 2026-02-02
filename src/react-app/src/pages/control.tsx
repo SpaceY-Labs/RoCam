@@ -83,11 +83,6 @@ export default function ControlPage() {
     },
     { label: 'POWER', value: formatPower(status?.system_power_w) },
     { label: 'REC LEFT', value: formatDuration(status?.recording_duration_left_ms) },
-    {
-      label: 'REC ID',
-      value: formatRecordingId(status?.in_progress_recording_id),
-      title: status?.in_progress_recording_id ?? undefined,
-    },
   ]
   const glassPanelClass =
     'relative rounded-3xl border border-white/40 bg-gradient-to-b from-white/45 via-white/25 to-white/12 shadow-[0_20px_50px_rgba(15,23,42,0.14),0_1px_0_rgba(255,255,255,0.7)] ring-1 ring-white/25 backdrop-blur-2xl backdrop-saturate-150'
@@ -240,14 +235,12 @@ export default function ControlPage() {
                 item.progress === null
                   ? 'bg-slate-400/40'
                   : 'bg-gradient-to-r from-slate-900/80 via-slate-700/70 to-slate-500/60'
-              const valueTitle = item.title ?? item.value
               return (
                 <div key={item.label} className="min-w-0">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-slate-500/80">
                     {item.label}
                   </p>
                   <p
-                    title={valueTitle}
                     className={
                       isUnavailable
                         ? 'mt-2 text-sm font-medium text-slate-500/70 tabular-nums'
@@ -427,13 +420,6 @@ function calculateFreePercent(
   return ((usage.total - usage.used) / usage.total) * 100
 }
 
-function formatRecordingId(recordingId: string | null | undefined) {
-  if (!recordingId) return 'N/A'
-
-  if (recordingId.length <= 12) return recordingId
-
-  return `${recordingId.slice(0, 8)}...${recordingId.slice(-4)}`
-}
 
 function formatTemperature(value: number | null | undefined) {
   if (value === null || value === undefined) return 'N/A'
