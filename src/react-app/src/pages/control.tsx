@@ -59,7 +59,11 @@ export default function ControlPage() {
       progress: clampPercent(status?.gpu_utilization),
     },
     { label: 'TEMP', value: formatTemperature(status?.core_temperature_celsius) },
-    { label: 'STORAGE', value: formatStorageLeft(status?.disk_usage_bytes) },
+    {
+      label: 'STORAGE',
+      value: formatStorageLeft(status?.disk_usage_bytes),
+      progress: calculateFreePercent(status?.disk_usage_bytes),
+    },
     { label: 'POWER', value: formatPower(status?.system_power_w) },
     { label: 'REC LEFT', value: formatDuration(status?.recording_duration_left_ms) },
     {
@@ -337,6 +341,14 @@ function calculateUsagePercent(
   if (!usage || usage.total <= 0) return null
 
   return (usage.used / usage.total) * 100
+}
+
+function calculateFreePercent(
+  usage: { used: number; total: number } | null | undefined
+) {
+  if (!usage || usage.total <= 0) return null
+
+  return ((usage.total - usage.used) / usage.total) * 100
 }
 
 function formatRecordingId(recordingId: string | null | undefined) {
