@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@heroui/button'
 import {
   IconChevronLeft,
@@ -16,15 +16,30 @@ export default function ControlPage() {
   const { apiClient, status, statusPollingError } = useRocam()
   const [streamContainerRef, { width, height }] = useMeasure<HTMLDivElement>()
 
-  // added: simple UI state for start/stop buttons
-  const [isStarting, setIsStarting] = useState(false)
-  const [isStopping, setIsStopping] = useState(false)
+  const ACTION_COOLDOWN_MS = 1500
+  const [isArmLoading, setIsArmLoading] = useState(false)
+  const [isRecordLoading, setIsRecordLoading] = useState(false)
+  const [isArmCooldown, setIsArmCooldown] = useState(false)
+  const [isRecordCooldown, setIsRecordCooldown] = useState(false)
+  const armCooldownTimerRef = useRef<number | null>(null)
+  const recordCooldownTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (statusPollingError) {
       console.error(statusPollingError)
     }
   }, [statusPollingError])
+
+  useEffect(() => {
+    return () => {
+      if (armCooldownTimerRef.current !== null) {
+        window.clearTimeout(armCooldownTimerRef.current)
+      }
+      if (recordCooldownTimerRef.current !== null) {
+        window.clearTimeout(recordCooldownTimerRef.current)
+      }
+    }
+  }, [])
 
   const bbox = status?.bbox
   const isArmed = status?.armed === true
@@ -79,27 +94,57 @@ export default function ControlPage() {
   const glassInsetClass =
     'pointer-events-none absolute inset-0 rounded-3xl shadow-[inset_0_1px_0_rgba(255,255,255,0.7),inset_0_-1px_0_rgba(15,23,42,0.08)]'
 
-  const handleStartRecording = async () => {
-    if (!apiClient || isStarting) return
-    setIsStarting(true)
+  const isRecording = Boolean(
+    status?.is_recording ?? status?.in_progress_recording_id
+  )
+
+  const startCooldown = (
+    setCooldown: (value: boolean) => void,
+    timerRef: { current: number | null }
+  ) => {
+    setCooldown(true)
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current)
+    }
+    timerRef.current = window.setTimeout(() => {
+      setCooldown(false)
+      timerRef.current = null
+    }, ACTION_COOLDOWN_MS)
+  }
+
+  const handleToggleArm = async () => {
+    if (!apiClient || isArmLoading || isArmCooldown) return
+    setIsArmLoading(true)
+    startCooldown(setIsArmCooldown, armCooldownTimerRef)
     try {
-      await apiClient.startRecording()
+      if (isArmed) {
+        await apiClient.disarm()
+      } else {
+        await apiClient.arm()
+      }
     } catch {
-      console.error('Failed to start recording')
+      console.error(`Failed to ${isArmed ? 'disarm' : 'arm'}`)
     } finally {
-      setIsStarting(false)
+      setIsArmLoading(false)
     }
   }
 
-  const handleStopRecording = async () => {
-    if (!apiClient || isStopping) return
-    setIsStopping(true)
+  const handleToggleRecording = async () => {
+    if (!apiClient || isRecordLoading || isRecordCooldown) return
+    setIsRecordLoading(true)
+    startCooldown(setIsRecordCooldown, recordCooldownTimerRef)
     try {
-      await apiClient.stopRecording()
+      if (isRecording) {
+        await apiClient.stopRecording()
+      } else {
+        await apiClient.startRecording()
+      }
     } catch {
-      console.error('Failed to stop recording')
+      console.error(
+        `Failed to ${isRecording ? 'stop' : 'start'} recording`
+      )
     } finally {
-      setIsStopping(false)
+      setIsRecordLoading(false)
     }
   }
 
@@ -210,52 +255,52 @@ export default function ControlPage() {
               Manual
             </span>
           </div>
-          <div className="flex gap-4 flex-wrap">
+          <div className="flex gap-3 flex-wrap">
             <Button
-              color="danger"
+              isDisabled={!apiClient || isArmLoading || isArmCooldown}
               radius="sm"
-              variant="bordered"
-              onPress={() => apiClient?.arm()}
+              variant="ghost"
+              className={`border border-white/50 bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed ${
+                isArmed ? 'text-rose-600' : 'text-emerald-600'
+              }`}
+              onPress={handleToggleArm}
             >
-              Arm
+              {isArmLoading
+                ? isArmed
+                  ? 'Disarming...'
+                  : 'Arming...'
+                : isArmed
+                  ? 'Disarm'
+                  : 'Arm'}
             </Button>
             <Button
-              color="primary"
+              isDisabled={!apiClient || isRecordLoading || isRecordCooldown}
               radius="sm"
-              variant="bordered"
-              onPress={() => apiClient?.disarm()}
+              variant="ghost"
+              className={`border border-white/50 bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed ${
+                isRecording ? 'text-rose-600' : 'text-slate-800'
+              }`}
+              onPress={handleToggleRecording}
             >
-              Disarm
-            </Button>
-
-            {/* added: recording buttons */}
-            <Button
-              isDisabled={!apiClient || isStarting}
-              radius="sm"
-              variant="solid"
-              onPress={handleStartRecording}
-            >
-              {isStarting ? 'Starting...' : 'Start Recording'}
-            </Button>
-            <Button
-              color="danger"
-              isDisabled={!apiClient || isStopping}
-              radius="sm"
-              variant="bordered"
-              onPress={handleStopRecording}
-            >
-              {isStopping ? 'Stopping...' : 'Stop Recording'}
+              {isRecordLoading
+                ? isRecording
+                  ? 'Stopping...'
+                  : 'Starting...'
+                : isRecording
+                  ? 'Stop Recording'
+                  : 'Start Recording'}
             </Button>
           </div>
 
-          <div className="grid gap-2 mt-4 grid-cols-3 grid-rows-3 w-fit">
+          <div className="grid gap-2 mt-5 grid-cols-3 grid-rows-3 w-fit">
             <div />
             <Button
               isIconOnly
               disabled={status?.armed}
               radius="sm"
               size="lg"
-              variant="flat"
+              variant="ghost"
+              className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
               onPress={() => apiClient?.manualMove('up')}
             >
               <IconChevronUp />
@@ -266,7 +311,8 @@ export default function ControlPage() {
               disabled={status?.armed}
               radius="sm"
               size="lg"
-              variant="flat"
+              variant="ghost"
+              className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
               onPress={() => apiClient?.manualMove('left')}
             >
               <IconChevronLeft />
@@ -276,7 +322,8 @@ export default function ControlPage() {
               disabled={status?.armed}
               radius="sm"
               size="lg"
-              variant="flat"
+              variant="ghost"
+              className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
               onPress={() => apiClient?.manualMoveTo(0, 0)}
             >
               <IconHome />
@@ -286,7 +333,8 @@ export default function ControlPage() {
               disabled={status?.armed}
               radius="sm"
               size="lg"
-              variant="flat"
+              variant="ghost"
+              className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
               onPress={() => apiClient?.manualMove('right')}
             >
               <IconChevronRight />
@@ -297,7 +345,8 @@ export default function ControlPage() {
               disabled={status?.armed}
               radius="sm"
               size="lg"
-              variant="flat"
+              variant="ghost"
+              className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
               onPress={() => apiClient?.manualMove('down')}
             >
               <IconChevronDown />

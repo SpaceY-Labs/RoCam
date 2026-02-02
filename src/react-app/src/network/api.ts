@@ -32,6 +32,7 @@ export type StatusResponse = {
   recording_duration_left_ms: number | null
   timestamp_ms: number
   in_progress_recording_id: string | null
+  is_recording: boolean
 }
 
 export type Recording = {
