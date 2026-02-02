@@ -31,8 +31,8 @@ export default function ControlPage() {
   const statusLabel = status ? (isArmed ? 'Armed' : 'Disarmed') : 'Unknown'
   const statusDotClass = status
     ? isArmed
-      ? 'bg-rose-500'
-      : 'bg-emerald-400'
+      ? 'bg-rose-400/90'
+      : 'bg-emerald-400/90'
     : 'bg-slate-400'
   const statusTextClass = status
     ? isArmed
@@ -58,6 +58,12 @@ export default function ControlPage() {
     { label: 'POWER', value: formatPower(status?.system_power_w) },
     { label: 'REC LEFT', value: formatDuration(status?.recording_duration_left_ms) },
   ]
+  const glassPanelClass =
+    'relative rounded-3xl border border-white/40 bg-gradient-to-b from-white/45 via-white/25 to-white/12 shadow-[0_20px_50px_rgba(15,23,42,0.14),0_1px_0_rgba(255,255,255,0.7)] ring-1 ring-white/25 backdrop-blur-2xl backdrop-saturate-150'
+  const glassOverlayClass =
+    'pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-b from-white/35 via-transparent to-white/8'
+  const glassInsetClass =
+    'pointer-events-none absolute inset-0 rounded-3xl shadow-[inset_0_1px_0_rgba(255,255,255,0.7),inset_0_-1px_0_rgba(15,23,42,0.08)]'
 
   const handleStartRecording = async () => {
     if (!apiClient || isStarting) return
@@ -125,41 +131,45 @@ export default function ControlPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-white/40 bg-gradient-to-b from-white/40 via-white/25 to-white/15 px-6 py-5 shadow-[0_16px_40px_rgba(15,23,42,0.12),0_1px_0_rgba(255,255,255,0.6)] ring-1 ring-white/30 backdrop-blur-2xl backdrop-saturate-150">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-slate-600/80">
+        <div className={`${glassPanelClass} px-6 py-5`}>
+          <div className={glassOverlayClass} />
+          <div className={glassInsetClass} />
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-600/80">
               <span className={`h-2 w-2 rounded-full ${statusDotClass}`} />
               System Status
             </div>
             <span
-              className={`text-[10px] font-semibold uppercase tracking-[0.3em] ${statusTextClass}`}
+              className={`text-[10px] font-semibold uppercase tracking-[0.32em] ${statusTextClass}`}
             >
               {statusLabel}
             </span>
           </div>
-          <div className="mt-5 grid gap-y-5 gap-x-8 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+          <div className="relative mt-6 grid gap-y-6 gap-x-8 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             {statusItems.map((item) => {
               const isUnavailable = item.value === 'N/A'
               const progress = item.progress ?? 0
               const hasProgress = item.progress !== undefined
               const progressBarClass =
-                item.progress === null ? 'bg-slate-400/40' : 'bg-slate-900/70'
+                item.progress === null
+                  ? 'bg-slate-400/40'
+                  : 'bg-gradient-to-r from-slate-900/80 via-slate-700/70 to-slate-500/60'
               return (
                 <div key={item.label} className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500/80">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-slate-500/80">
                     {item.label}
                   </p>
                   <p
                     className={
                       isUnavailable
                         ? 'mt-2 text-sm font-medium text-slate-500/70 tabular-nums'
-                        : 'mt-2 text-base font-semibold text-slate-900 tabular-nums'
+                        : 'mt-2 text-[15px] font-semibold text-slate-950/90 tabular-nums'
                     }
                   >
                     {item.value}
                   </p>
                   {hasProgress && (
-                    <div className="mt-3 h-1 w-full rounded-full bg-white/60">
+                    <div className="mt-3 h-1 w-full rounded-full bg-white/70">
                       <div
                         className={`h-1 rounded-full ${progressBarClass}`}
                         style={{ width: `${progress}%` }}
@@ -172,7 +182,18 @@ export default function ControlPage() {
           </div>
         </div>
 
-        <div className="bg-gray-100 rounded-lg p-4">
+        <div className={`${glassPanelClass} p-4`}>
+          <div className={glassOverlayClass} />
+          <div className={glassInsetClass} />
+          <div className="relative">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-600/80">
+              Controls
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-400">
+              Manual
+            </span>
+          </div>
           <div className="flex gap-4 flex-wrap">
             <Button
               color="danger"
@@ -266,6 +287,7 @@ export default function ControlPage() {
               <IconChevronDown />
             </Button>
             <div />
+          </div>
           </div>
         </div>
       </div>
