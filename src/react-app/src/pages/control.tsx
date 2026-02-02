@@ -125,9 +125,9 @@ export default function ControlPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-slate-200/70 bg-slate-50/85 px-6 py-5 shadow-[0_1px_0_rgba(0,0,0,0.03)] backdrop-blur-sm">
+        <div className="rounded-3xl border border-white/40 bg-gradient-to-b from-white/40 via-white/25 to-white/15 px-6 py-5 shadow-[0_16px_40px_rgba(15,23,42,0.12),0_1px_0_rgba(255,255,255,0.6)] ring-1 ring-white/30 backdrop-blur-2xl backdrop-saturate-150">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
+            <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-slate-600/80">
               <span className={`h-2 w-2 rounded-full ${statusDotClass}`} />
               System Status
             </div>
@@ -143,23 +143,23 @@ export default function ControlPage() {
               const progress = item.progress ?? 0
               const hasProgress = item.progress !== undefined
               const progressBarClass =
-                item.progress === null ? 'bg-slate-200' : 'bg-slate-900/70'
+                item.progress === null ? 'bg-slate-400/40' : 'bg-slate-900/70'
               return (
                 <div key={item.label} className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500/80">
                     {item.label}
                   </p>
                   <p
                     className={
                       isUnavailable
-                        ? 'mt-2 text-sm font-medium text-slate-400 tabular-nums'
+                        ? 'mt-2 text-sm font-medium text-slate-500/70 tabular-nums'
                         : 'mt-2 text-base font-semibold text-slate-900 tabular-nums'
                     }
                   >
                     {item.value}
                   </p>
                   {hasProgress && (
-                    <div className="mt-3 h-1 w-full rounded-full bg-slate-200/70">
+                    <div className="mt-3 h-1 w-full rounded-full bg-white/60">
                       <div
                         className={`h-1 rounded-full ${progressBarClass}`}
                         style={{ width: `${progress}%` }}
