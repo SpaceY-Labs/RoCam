@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   Dropdown,
   DropdownTrigger,
@@ -12,9 +11,14 @@ import { useAtom } from 'jotai'
 import { IconSettings } from '@tabler/icons-react'
 import { Trans } from '@lingui/react/macro'
 import { msg } from '@lingui/core/macro'
-import { useLingui } from '@lingui/react'
+import { useLingui } from '@lingui/react/macro'
+import { Key } from 'react'
 
-import { languageAtom, type Language } from '@/store/languageAtom'
+import {
+  languageAtom,
+  metricsModalOpenAtom,
+  type Language,
+} from '@/store/languageAtom'
 
 const LANGUAGES: { key: Language; label: string }[] = [
   { key: 'en', label: 'EN' },
@@ -22,11 +26,11 @@ const LANGUAGES: { key: Language; label: string }[] = [
 ]
 
 export function ConfigurationMenu() {
-  const { i18n } = useLingui()
+  const { t } = useLingui()
   const [language, setLanguage] = useAtom(languageAtom)
-  const [metricsModalOpen, setMetricsModalOpen] = useState(false)
+  const [metricsModalOpen, setMetricsModalOpen] = useAtom(metricsModalOpenAtom)
 
-  const handleAction = (key: React.Key) => {
+  const handleAction = (key: Key) => {
     if (key === 'change-metrics') {
       setMetricsModalOpen(true)
     } else {
@@ -59,12 +63,12 @@ export function ConfigurationMenu() {
             }
           }}
         >
-          <DropdownSection title={i18n._(msg`Language`)}>
+          <DropdownSection title={t(msg`Language`)}>
             {LANGUAGES.map(({ key, label }) => (
               <DropdownItem key={key}>{label}</DropdownItem>
             ))}
           </DropdownSection>
-          <DropdownSection title={i18n._(msg`Units`)}>
+          <DropdownSection title={t(msg`Units`)}>
             <DropdownItem key="change-metrics">
               <Trans>Change metrics</Trans>
             </DropdownItem>

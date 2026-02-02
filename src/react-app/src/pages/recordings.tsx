@@ -16,13 +16,13 @@ import {
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/modal'
 import { Trans } from '@lingui/react/macro'
 import { msg } from '@lingui/core/macro'
-import { useLingui } from '@lingui/react'
+import { useLingui } from '@lingui/react/macro'
 
 import DefaultLayout from '@/layouts/default'
 import { useRocam } from '@/network/rocamProvider'
 
 export default function RecordingsPage() {
-  const { i18n } = useLingui()
+  const { t } = useLingui()
   const { apiClient } = useRocam()
 
   const [recordings, setRecordings] = useState<Recording[]>([])
@@ -74,7 +74,12 @@ export default function RecordingsPage() {
     if (!apiClient) return
     if (
       !confirm(
-        i18n._('Delete "{name}"? This cannot be undone.', { name: r.name })
+        (
+          t as unknown as (
+            id: string,
+            values?: Record<string, unknown>
+          ) => string
+        )('Delete "{name}"? This cannot be undone.', { name: r.name })
       )
     )
       return
@@ -99,7 +104,7 @@ export default function RecordingsPage() {
         <div className="divide-y divide-gray-200 px-4">
           {isLoading ? (
             <div className="flex justify-center py-12">
-              <Spinner label={i18n._(msg`Loading recordings...`)} />
+              <Spinner label={t(msg`Loading recordings...`)} />
             </div>
           ) : recordings.length === 0 ? (
             <div className="flex justify-center py-12">

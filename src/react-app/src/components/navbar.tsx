@@ -23,7 +23,7 @@ export const Navbar = () => {
       <NavbarContent justify="start">
         <img alt="RoCam" className="h-8" src="/logo.png" />
 
-        <div className="hidden lg:flex gap-4 justify-start ml-2">
+        <div className="flex gap-4 justify-start ml-2">
           <NavbarItem>
             <NavLink
               className={({ isActive }: { isActive: boolean }) =>
