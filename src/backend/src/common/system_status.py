@@ -1,9 +1,13 @@
+import logging
 import os
 import re
 import shutil
 import subprocess
 import threading
 from typing import Optional, Tuple
+
+
+logger = logging.getLogger(__name__)
 
 
 class SystemStatusMonitor:
@@ -47,11 +51,31 @@ class SystemStatusMonitor:
         while not self._stop_event.is_set():
             tegrastats_metrics = None
             if self._has_tegrastats:
-                tegrastats_metrics = _read_tegrastats_metrics()
-            self._update_cpu_utilization()
-            self._update_gpu_utilization(tegrastats_metrics)
-            self._update_system_power_w(tegrastats_metrics)
-            self._update_core_temperature_celsius()
+                try:
+                    tegrastats_metrics = _read_tegrastats_metrics()
+                except Exception as e:
+                    logger.warning(f"Failed to read tegrastats: {e}")
+
+            try:
+                self._update_cpu_utilization()
+            except Exception as e:
+                logger.warning(f"Failed to update CPU utilization: {e}")
+
+            try:
+                self._update_gpu_utilization(tegrastats_metrics)
+            except Exception as e:
+                logger.warning(f"Failed to update GPU utilization: {e}")
+
+            try:
+                self._update_system_power_w(tegrastats_metrics)
+            except Exception as e:
+                logger.warning(f"Failed to update system power: {e}")
+
+            try:
+                self._update_core_temperature_celsius()
+            except Exception as e:
+                logger.warning(f"Failed to update temperature: {e}")
+
             self._stop_event.wait(self._interval)
 
     def _update_cpu_utilization(self):
@@ -178,12 +202,20 @@ def _read_thermal_zones() -> list[tuple[str, float]]:
             zone_type = entry.lower()
 
         try:
-            with open(temp_path, "r") as temp_handle:
-                raw = temp_handle.read().strip()
-                if not raw:
-                    continue
-                value = float(raw)
-        except (OSError, ValueError):
+            with open(temp_path, "rb") as temp_handle:
+                raw_bytes = temp_handle.read()
+        except (OSError, TypeError):
+            continue
+
+        if not raw_bytes:
+            continue
+
+        try:
+            raw = raw_bytes.decode(errors="ignore").strip()
+            if not raw:
+                continue
+            value = float(raw)
+        except (UnicodeDecodeError, ValueError, TypeError):
             continue
 
         if value > 1000:
