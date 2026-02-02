@@ -70,7 +70,10 @@ export function ConfigurationMenu() {
           </DropdownSection>
           <DropdownSection title={t(msg`Units`)}>
             <DropdownItem key="change-metrics">
-              <Trans>Change metrics</Trans>
+              <Trans>Celsius</Trans>
+            </DropdownItem>
+            <DropdownItem key="change-metrics">
+              <Trans>Fahrenheit</Trans>
             </DropdownItem>
           </DropdownSection>
         </DropdownMenu>
