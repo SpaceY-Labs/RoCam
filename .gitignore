@@ -300,4 +300,4 @@ __pycache__/
 node_modules/
 
 .cursor/
-/src/react-app/src/locales/
+src/react-app/src/locales/

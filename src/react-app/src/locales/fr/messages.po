@@ -1,136 +1,133 @@
 msgid ""
 msgstr ""
-"POT-Creation-Date: 2026-02-01 13:45-0500\n"
+"POT-Creation-Date: 2026-02-03 11:18-0500\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: @lingui/cli\n"
 "Language: fr\n"
-"Project-Id-Version: \n"
-"Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: \n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"Plural-Forms: \n"
 
-#. js-lingui-explicit-id
-#: src/pages/recordings.tsx:75
-msgid "Delete \"{name}\"? This cannot be undone."
-msgstr "Supprimer \"{name}\" ? Cette action est irréversible."
-
-#: src/pages/control.tsx:132
+#: src/pages/control.tsx:144
 msgid "Arm"
-msgstr "Armer"
+msgstr ""
 
-#: src/pages/control.tsx:105
+#: src/pages/control.tsx:112
 msgid "Armed"
-msgstr "Armé"
+msgstr ""
 
-#: src/pages/control.tsx:69
+#: src/pages/control.tsx:73
 msgid "Camera Preview"
-msgstr "Aperçu de la caméra"
+msgstr ""
 
-#: src/components/ConfigurationMenu.tsx:61
-#: src/components/ConfigurationMenu.tsx:72
-msgid "Change metrics"
-msgstr "Changer les unités"
-
-#: src/components/ConfigurationMenu.tsx:39
+#: src/components/ConfigurationMenu.tsx:119
 msgid "Configuration"
-msgstr "Configuration"
+msgstr ""
 
 #: src/components/navbar.tsx:37
 msgid "Control"
-msgstr "Contrôle"
+msgstr ""
 
-#: src/pages/recordings.tsx:259
+#: src/pages/recordings.tsx:269
 msgid "Delete"
-msgstr "Supprimer"
+msgstr ""
 
-#: src/pages/control.tsx:140
+#: src/pages/control.tsx:152
 msgid "Disarm"
-msgstr "Désarmer"
+msgstr ""
 
-#: src/pages/control.tsx:107
+#: src/pages/control.tsx:116
 msgid "Disarmed"
-msgstr "Désarmé"
+msgstr ""
 
-#: src/pages/recordings.tsx:244
+#: src/components/ConfigurationMenu.tsx:152
+msgid "Distance"
+msgstr ""
+
+#: src/pages/recordings.tsx:254
 msgid "Download"
-msgstr "Télécharger"
+msgstr ""
 
 #: src/components/navbar.tsx:86
 msgid "Emergency Stop"
-msgstr "Arrêt d'urgence"
+msgstr ""
 
 #: src/components/navbar.tsx:72
 msgid "Exit Fullscreen"
-msgstr "Quitter le plein écran"
+msgstr ""
 
 #: src/components/navbar.tsx:74
 msgid "Fullscreen"
-msgstr "Plein écran"
+msgstr ""
 
-#: src/components/ConfigurationMenu.tsx:54
+#: src/components/ConfigurationMenu.tsx:134
 msgid "Language"
-msgstr "Langue"
+msgstr ""
 
-#: src/pages/control.tsx:66
+#: src/pages/control.tsx:69
 msgid "Live Stream Loading....."
-msgstr "Chargement du flux en direct....."
+msgstr ""
 
-#: src/pages/recordings.tsx:99
+#: src/pages/recordings.tsx:107
 msgid "Loading recordings..."
-msgstr "Chargement des enregistrements..."
+msgstr ""
 
-#: src/pages/recordings.tsx:104
+#: src/pages/recordings.tsx:112
 msgid "No recordings yet. Start one from the Control page."
-msgstr "Aucun enregistrement pour l'instant. Démarrez-en un depuis la page Contrôle."
+msgstr ""
 
-#: src/components/ConfigurationMenu.tsx:76
-msgid "Not implemented"
-msgstr "Non implémenté"
-
-#: src/pages/control.tsx:118
+#: src/pages/control.tsx:129
 msgid "PAN"
-msgstr "PAN"
+msgstr ""
 
-#: src/pages/recordings.tsx:234
+#: src/pages/recordings.tsx:244
 msgid "Preview"
-msgstr "Aperçu"
+msgstr ""
+
+#. placeholder {0}: recording?.name
+#: src/pages/recordings.tsx:354
+msgid "Preview {0}"
+msgstr ""
 
 #: src/components/navbar.tsx:50
 msgid "Recordings"
-msgstr "Enregistrements"
+msgstr ""
 
-#: src/pages/control.tsx:150
+#: src/components/ConfigurationMenu.tsx:146
+msgid "Speed"
+msgstr ""
+
+#: src/pages/control.tsx:165
 msgid "Start Recording"
-msgstr "Démarrer l'enregistrement"
+msgstr ""
 
-#: src/pages/control.tsx:150
+#: src/pages/control.tsx:163
 msgid "Starting..."
-msgstr "Démarrage..."
+msgstr ""
 
-#: src/pages/control.tsx:103
+#: src/pages/control.tsx:108
 msgid "Status:"
-msgstr "État :"
+msgstr ""
 
-#: src/pages/control.tsx:159
+#: src/pages/control.tsx:178
 msgid "Stop Recording"
-msgstr "Arrêter l'enregistrement"
+msgstr ""
 
-#: src/pages/control.tsx:159
+#: src/pages/control.tsx:176
 msgid "Stopping..."
-msgstr "Arrêt..."
+msgstr ""
 
-#: src/pages/control.tsx:113
+#: src/components/ConfigurationMenu.tsx:140
+msgid "Temperature"
+msgstr ""
+
+#: src/pages/control.tsx:123
 msgid "TILT"
-msgstr "INCLINAISON"
+msgstr ""
 
-#: src/components/ConfigurationMenu.tsx:59
-msgid "Units"
-msgstr "Unités"
+#: src/components/ConfigurationMenu.tsx:158
+msgid "Time"
+msgstr ""
 
-#: src/pages/recordings.tsx:365
+#: src/pages/recordings.tsx:375
 msgid "Your browser does not support the video tag."
-msgstr "Votre navigateur ne prend pas en charge la balise vidéo."
+msgstr ""
