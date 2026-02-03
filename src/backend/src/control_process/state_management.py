@@ -1,10 +1,13 @@
 import logging
 import time
 import threading
+from dataclasses import dataclass
+from typing import Optional
 from control_process.database import RecordingDatabase
 from common.ipc import BoundingBox, CVData, OSDData, PreviewData
 from common.ipc_buffer import cleanup_shared_memory
-from common.utils import ip4_addresses, set_scheduler_other
+from common.system_status import SystemStatusMonitor
+from common.utils import set_scheduler_other
 from control_process.cv_process_management import CVProcessManagement
 from control_process.livestream_process_management import LivestreamProcessManagement
 from control_process.gimbal import GimbalSerial
@@ -15,6 +18,29 @@ from cv_process.main import LIVE_STREAM_SHM_NAME
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class StatusResponse:
+    armed: bool
+    tilt: float
+    pan: float
+    preview: Optional[str]
+    bbox: Optional[BoundingBox]
+    average_fps: float
+    cpu_utilization: float
+    gpu_utilization: float
+    core_temperature_celsius: float
+    system_power_w: float
+    memory_used_bytes: int
+    memory_total_bytes: int
+    disk_used_bytes: int
+    disk_total_bytes: int
+    recording_duration_left_s: int
+    timestamp_ms: int
+    is_recording: bool
+    longitude: Optional[float]
+    latitude: Optional[float]
 
 
 class BoundingBoxCollection:
@@ -52,12 +78,6 @@ RECORDING_DATABASE_BASE_PATH = "/mnt/data/data"
 
 class StateManagement:
     def __init__(self):
-        self._device_ip_addresses = [ip for ip in ip4_addresses() if ip != "127.0.0.1"]
-        self._ip_refresh_thread = threading.Thread(
-            target=self._refresh_ip_addresses, daemon=True
-        )
-        self._ip_refresh_thread.start()
-
         self._status_led_thread = threading.Thread(
             target=self._blink_status_led, daemon=True
         )
@@ -72,6 +92,8 @@ class StateManagement:
 
         self._armed = False
         self._last_preview_frame: PreviewData | None = None
+        self._last_cv_data: CVData | None = None
+        self._system_status = SystemStatusMonitor()
 
         self._gimbal = GimbalSerial(port="/dev/ttyTHS1", baudrate=115200, timeout=0.1)
         self._gimbal.move_deg(0, 0)
@@ -91,17 +113,6 @@ class StateManagement:
             process_restart_callback=self._on_cv_process_restart_during_recording,
         )
 
-    def _refresh_ip_addresses(self):
-        set_scheduler_other()
-        while True:
-            time.sleep(1)
-            try:
-                self._device_ip_addresses = [
-                    ip for ip in ip4_addresses() if ip != "127.0.0.1"
-                ]
-            except Exception as e:
-                logger.error(f"Error refreshing IP addresses: {e}")
-
     def _blink_status_led(self):
         set_scheduler_other()
         while True:
@@ -116,11 +127,15 @@ class StateManagement:
             if now - self._last_gimbal_measure_time < 0.02:  # 20ms
                 return self._last_gimbal_measure
 
-            self._last_gimbal_measure = self._gimbal.measure_deg()
-            self._last_gimbal_measure_time = now
+            try:
+                self._last_gimbal_measure = self._gimbal.measure_deg()
+                self._last_gimbal_measure_time = now
+            except Exception as e:
+                logger.warning(f"Error measuring gimbal: {e}")
             return self._last_gimbal_measure
 
     def _on_cvdata(self, data: CVData):
+        self._last_cv_data = data
         self._bboxes.received_data(data)
 
         tracking_state = "idle"
@@ -156,7 +171,7 @@ class StateManagement:
             gimbal_tilt_deg=tilt,
             gimbal_pan_deg=pan,
             gimbal_focal_length_mm=24,  # Hardcoded for now
-            device_ip_addresses=self._device_ip_addresses,
+            device_ip_addresses=self._system_status.get_device_ip_addresses(),
             timestamp_ms=int(time.time() * 1000),
             tracking_state=tracking_state,
             longitude=None,
@@ -180,6 +195,9 @@ class StateManagement:
         self._gimbal.arm_led(False)
 
     def status(self):
+        average_fps = (
+            self._last_cv_data.fps if self._last_cv_data is not None else 0.0
+        )
         latest_preview_frame = None
         bbox = None
         if self._last_preview_frame is not None:
@@ -188,26 +206,31 @@ class StateManagement:
             ).decode("ascii")
             bbox = self._bboxes.get_bbox(self._last_preview_frame.pts_ns)
 
-        try:
-            tilt, pan = self._gimbal_measure_deg_cached()
-            return {
-                "armed": self._armed,
-                "tilt": tilt,
-                "pan": pan,
-                "preview": latest_preview_frame,
-                "bbox": bbox,
-                "is_recording": self._in_progress_recording_id is not None,
-            }
-        except Exception as e:
-            logger.error(f"Error reading status: {e}")
-            return {
-                "armed": self._armed,
-                "tilt": None,
-                "pan": None,
-                "preview": latest_preview_frame,
-                "bbox": bbox,
-                "is_recording": self._in_progress_recording_id is not None,
-            }
+        disk_used_bytes, disk_total_bytes = self.database.space_usage_bytes()
+        timestamp_ms = int(time.time() * 1000)
+
+        tilt, pan = self._gimbal_measure_deg_cached()
+        return StatusResponse(
+            armed=self._armed,
+            tilt=tilt,
+            pan=pan,
+            preview=latest_preview_frame,
+            bbox=bbox,
+            average_fps=average_fps,
+            cpu_utilization=self._system_status.get_cpu_utilization(),
+            gpu_utilization=self._system_status.get_gpu_utilization(),
+            core_temperature_celsius=self._system_status.get_core_temperature_celsius(),
+            system_power_w=self._system_status.get_system_power_w(),
+            memory_used_bytes=self._system_status.get_memory_used_bytes(),
+            memory_total_bytes=self._system_status.get_memory_total_bytes(),
+            disk_used_bytes=disk_used_bytes,
+            disk_total_bytes=disk_total_bytes,
+            recording_duration_left_s=self.database.recording_duration_left_s(),
+            timestamp_ms=timestamp_ms,
+            is_recording=self._in_progress_recording_id is not None,
+            longitude=None,
+            latitude=None,
+        )
 
     def manual_move(self, direction: str):
         if self._armed:
