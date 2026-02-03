@@ -27,9 +27,9 @@ export default function ControlPage() {
     <DefaultLayout className="flex items-stretch">
       <div className="relative grid gap-4 m-4 mt-0 grid-cols-[auto_1fr] grid-rows-[1fr_auto] min-w-0 w-full">
         <Card
-          radius="sm"
           ref={streamContainerRef}
           className="aspect-[9/16] row-span-2"
+          radius="sm"
         >
           <CardBody className="relative flex items-center justify-center">
             <Spinner label="Loading stream..." />

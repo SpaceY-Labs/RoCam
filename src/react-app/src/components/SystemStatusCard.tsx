@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import type { StatusResponse } from '@/network/api'
-import { useEffect, useRef, useState } from 'react'
 
+import { useEffect, useRef, useState } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import {
   IconArrowsVertical,

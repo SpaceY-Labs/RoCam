@@ -76,20 +76,20 @@ export function ControlsCard() {
           <GimbalPad />
           <div className="flex flex-col justify-center gap-3">
             <Button
+              color="danger"
               isDisabled={!apiClient || cooldownOrLoading}
               radius="sm"
               variant="bordered"
-              color="danger"
               onPress={handleToggleRecording}
             >
               {isRecording ? 'Stop Recording' : 'Start Recording'}
             </Button>
             <Button
+              className="border-amber-500 text-amber-600"
+              color="warning"
               isDisabled={!apiClient || cooldownOrLoading}
               radius="sm"
               variant="bordered"
-              color="warning"
-              className="border-amber-500 text-amber-600"
               onPress={handleToggleArm}
             >
               {isArmed ? 'Disarm' : 'Arm'}
