@@ -103,7 +103,11 @@ export default function ControlPage() {
       progress: calculateFreePercent(status?.disk_usage_bytes),
       icon: 'storage',
     },
-    { label: 'POWER', value: formatPower(status?.system_power_w), icon: 'power' },
+    {
+      label: 'POWER',
+      value: formatPower(status?.system_power_w),
+      icon: 'power',
+    },
     {
       label: 'REC LEFT',
       value: formatDuration(status?.recording_duration_left_ms),
@@ -163,9 +167,7 @@ export default function ControlPage() {
         await apiClient.startRecording()
       }
     } catch {
-      console.error(
-        `Failed to ${isRecording ? 'stop' : 'start'} recording`
-      )
+      console.error(`Failed to ${isRecording ? 'stop' : 'start'} recording`)
     } finally {
       setIsRecordLoading(false)
     }
@@ -177,38 +179,34 @@ export default function ControlPage() {
         ref={gridRef}
         className="relative grid gap-4 m-4 mt-0 grid-cols-[auto_1fr] grid-rows-[1fr_auto] min-w-0 w-full"
       >
-        {isRecording &&
-          streamBounds.width > 0 &&
-          gridBounds.width > 0 && (
-            <div
-              className="pointer-events-none absolute z-20 inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-rose-600 shadow-[0_6px_16px_rgba(244,63,94,0.18)] backdrop-blur-md"
-              style={{
-                left: Math.max(0, streamBounds.left - gridBounds.left + 12),
-                top: Math.max(0, streamBounds.top - gridBounds.top + 12),
-              }}
-            >
-              <span className="h-2 w-2 rounded-full bg-rose-500" />
-              REC
-            </div>
-          )}
-        {isArmed &&
-          streamBounds.width > 0 &&
-          gridBounds.width > 0 && (
-            <div
-              className="pointer-events-none absolute z-20 inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-700 shadow-[0_6px_16px_rgba(251,191,36,0.18)] backdrop-blur-md"
-              style={{
-                left: Math.max(
-                  0,
-                  streamBounds.left - gridBounds.left + streamBounds.width - 12
-                ),
-                top: Math.max(0, streamBounds.top - gridBounds.top + 12),
-                transform: 'translateX(-100%)',
-              }}
-            >
-              <span className="h-2 w-2 rounded-full bg-amber-500" />
-              ARMED
-            </div>
-          )}
+        {isRecording && streamBounds.width > 0 && gridBounds.width > 0 && (
+          <div
+            className="pointer-events-none absolute z-20 inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-rose-600 shadow-[0_6px_16px_rgba(244,63,94,0.18)] backdrop-blur-md"
+            style={{
+              left: Math.max(0, streamBounds.left - gridBounds.left + 12),
+              top: Math.max(0, streamBounds.top - gridBounds.top + 12),
+            }}
+          >
+            <span className="h-2 w-2 rounded-full bg-rose-500" />
+            REC
+          </div>
+        )}
+        {isArmed && streamBounds.width > 0 && gridBounds.width > 0 && (
+          <div
+            className="pointer-events-none absolute z-20 inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-700 shadow-[0_6px_16px_rgba(251,191,36,0.18)] backdrop-blur-md"
+            style={{
+              left: Math.max(
+                0,
+                streamBounds.left - gridBounds.left + streamBounds.width - 12
+              ),
+              top: Math.max(0, streamBounds.top - gridBounds.top + 12),
+              transform: 'translateX(-100%)',
+            }}
+          >
+            <span className="h-2 w-2 rounded-full bg-amber-500" />
+            ARMED
+          </div>
+        )}
         <div
           ref={streamContainerRef}
           className="bg-gray-100 aspect-[9/16] rounded-lg flex items-center justify-center row-span-2"
@@ -282,6 +280,7 @@ export default function ControlPage() {
                 item.progress === null
                   ? 'bg-slate-400/40'
                   : 'bg-gradient-to-r from-slate-900/75 via-slate-700/65 to-slate-500/55'
+
               return (
                 <div key={item.label} className="min-w-0">
                   <div className="flex items-center gap-2">
@@ -320,110 +319,110 @@ export default function ControlPage() {
           <div className="relative">
             <div className="flex items-center justify-between pb-3 border-b border-white/30">
               <span className="text-[9px] font-semibold uppercase tracking-[0.35em] text-slate-600/70">
-              Controls
-            </span>
+                Controls
+              </span>
               <span className="text-[9px] font-semibold uppercase tracking-[0.35em] text-slate-400">
-              Manual
-            </span>
-          </div>
+                Manual
+              </span>
+            </div>
             <div className="flex gap-3 flex-wrap mt-4">
-            <Button
-              isDisabled={!apiClient || isArmLoading || isArmCooldown}
-                radius="full"
-              variant="ghost"
+              <Button
                 className={`border border-white/50 bg-white/55 text-[12px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed ${
-                isArmed ? 'text-rose-600' : 'text-emerald-600'
-              }`}
-              onPress={handleToggleArm}
-            >
-              {isArmLoading
-                ? isArmed
-                  ? 'Disarming...'
-                  : 'Arming...'
-                : isArmed
-                  ? 'Disarm'
-                  : 'Arm'}
-            </Button>
-            <Button
-              isDisabled={!apiClient || isRecordLoading || isRecordCooldown}
+                  isArmed ? 'text-rose-600' : 'text-emerald-600'
+                }`}
+                isDisabled={!apiClient || isArmLoading || isArmCooldown}
                 radius="full"
-              variant="ghost"
+                variant="ghost"
+                onPress={handleToggleArm}
+              >
+                {isArmLoading
+                  ? isArmed
+                    ? 'Disarming...'
+                    : 'Arming...'
+                  : isArmed
+                    ? 'Disarm'
+                    : 'Arm'}
+              </Button>
+              <Button
                 className={`border border-white/50 bg-white/55 text-[12px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed ${
-                isRecording ? 'text-rose-600' : 'text-slate-800'
-              }`}
-              onPress={handleToggleRecording}
-            >
-              {isRecordLoading
-                ? isRecording
-                  ? 'Stopping...'
-                  : 'Starting...'
-                : isRecording
-                  ? 'Stop Recording'
-                  : 'Start Recording'}
-            </Button>
-          </div>
+                  isRecording ? 'text-rose-600' : 'text-slate-800'
+                }`}
+                isDisabled={!apiClient || isRecordLoading || isRecordCooldown}
+                radius="full"
+                variant="ghost"
+                onPress={handleToggleRecording}
+              >
+                {isRecordLoading
+                  ? isRecording
+                    ? 'Stopping...'
+                    : 'Starting...'
+                  : isRecording
+                    ? 'Stop Recording'
+                    : 'Start Recording'}
+              </Button>
+            </div>
 
-          <div className="grid gap-2 mt-5 grid-cols-3 grid-rows-3 w-fit">
-            <div />
-            <Button
-              isIconOnly
-              disabled={status?.armed}
-              radius="sm"
-              size="lg"
-              variant="ghost"
-              className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
-              onPress={() => apiClient?.manualMove('up')}
-            >
-              <IconChevronUp />
-            </Button>
-            <div />
-            <Button
-              isIconOnly
-              disabled={status?.armed}
-              radius="sm"
-              size="lg"
-              variant="ghost"
-              className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
-              onPress={() => apiClient?.manualMove('left')}
-            >
-              <IconChevronLeft />
-            </Button>
-            <Button
-              isIconOnly
-              disabled={status?.armed}
-              radius="sm"
-              size="lg"
-              variant="ghost"
-              className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
-              onPress={() => apiClient?.manualMoveTo(0, 0)}
-            >
-              <IconHome />
-            </Button>
-            <Button
-              isIconOnly
-              disabled={status?.armed}
-              radius="sm"
-              size="lg"
-              variant="ghost"
-              className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
-              onPress={() => apiClient?.manualMove('right')}
-            >
-              <IconChevronRight />
-            </Button>
-            <div />
-            <Button
-              isIconOnly
-              disabled={status?.armed}
-              radius="sm"
-              size="lg"
-              variant="ghost"
-              className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
-              onPress={() => apiClient?.manualMove('down')}
-            >
-              <IconChevronDown />
-            </Button>
-            <div />
-          </div>
+            <div className="grid gap-2 mt-5 grid-cols-3 grid-rows-3 w-fit">
+              <div />
+              <Button
+                isIconOnly
+                className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={status?.armed}
+                radius="sm"
+                size="lg"
+                variant="ghost"
+                onPress={() => apiClient?.manualMove('up')}
+              >
+                <IconChevronUp />
+              </Button>
+              <div />
+              <Button
+                isIconOnly
+                className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={status?.armed}
+                radius="sm"
+                size="lg"
+                variant="ghost"
+                onPress={() => apiClient?.manualMove('left')}
+              >
+                <IconChevronLeft />
+              </Button>
+              <Button
+                isIconOnly
+                className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={status?.armed}
+                radius="sm"
+                size="lg"
+                variant="ghost"
+                onPress={() => apiClient?.manualMoveTo(0, 0)}
+              >
+                <IconHome />
+              </Button>
+              <Button
+                isIconOnly
+                className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={status?.armed}
+                radius="sm"
+                size="lg"
+                variant="ghost"
+                onPress={() => apiClient?.manualMove('right')}
+              >
+                <IconChevronRight />
+              </Button>
+              <div />
+              <Button
+                isIconOnly
+                className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={status?.armed}
+                radius="sm"
+                size="lg"
+                variant="ghost"
+                onPress={() => apiClient?.manualMove('down')}
+              >
+                <IconChevronDown />
+              </Button>
+              <div />
+            </div>
           </div>
         </div>
       </div>
@@ -513,7 +512,6 @@ function StatusIcon({ kind }: { kind: StatusIconKind }) {
   }
 }
 
-
 function formatTemperature(value: number | null | undefined) {
   if (value === null || value === undefined) return 'N/A'
 
@@ -526,6 +524,7 @@ function formatStorageLeft(
   if (!diskUsage) return 'N/A'
 
   const freeBytes = Math.max(0, diskUsage.total - diskUsage.used)
+
   return formatBytes(freeBytes)
 }
 
