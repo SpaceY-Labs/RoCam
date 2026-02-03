@@ -127,8 +127,11 @@ class StateManagement:
             if now - self._last_gimbal_measure_time < 0.02:  # 20ms
                 return self._last_gimbal_measure
 
-            self._last_gimbal_measure = self._gimbal.measure_deg()
-            self._last_gimbal_measure_time = now
+            try:
+                self._last_gimbal_measure = self._gimbal.measure_deg()
+                self._last_gimbal_measure_time = now
+            except Exception as e:
+                logger.warning(f"Error measuring gimbal: {e}")
             return self._last_gimbal_measure
 
     def _on_cvdata(self, data: CVData):

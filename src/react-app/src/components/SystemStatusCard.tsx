@@ -211,7 +211,7 @@ export function SystemStatusCard() {
 
   if (status === null) {
     return (
-      <Card>
+      <Card radius="sm">
         <CardBody className="px-6 py-5" />
       </Card>
     )
