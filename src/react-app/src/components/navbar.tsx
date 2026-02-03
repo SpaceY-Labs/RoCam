@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import {
   Navbar as HeroUINavbar,
   NavbarContent,
@@ -10,12 +10,16 @@ import { Button } from '@heroui/button'
 import { IconCancel, IconMaximize, IconMaximizeOff } from '@tabler/icons-react'
 
 export const Navbar = () => {
+  const location = useLocation()
+  const isControlPage = location.pathname === '/'
+
   return (
     <HeroUINavbar
       classNames={{
-        base: 'bg-transparent backdrop-filter-none',
+        base: isControlPage ? 'bg-transparent backdrop-filter-none' : undefined,
         wrapper: 'px-4',
       }}
+      isBlurred={false}
       maxWidth="full"
     >
       <NavbarContent justify="start">
