@@ -16,8 +16,18 @@ import {
   IconDatabase,
   IconMapPin,
 } from '@tabler/icons-react'
+import { msg } from '@lingui/core/macro'
+import { useLingui } from '@lingui/react/macro'
+import { Trans } from '@lingui/react/macro'
 
 import { useRocam } from '@/network/rocamProvider'
+import { useAtomValue } from 'jotai'
+import {
+  temperatureUnitAtom,
+  powerUnitAtom,
+  type TemperatureUnit,
+  type PowerUnit,
+} from '@/store/languageAtom'
 
 const STATUS_ICON_PROPS = {
   size: 18,
@@ -52,8 +62,12 @@ function calculateUsagePercent(used: number, total: number) {
   return total <= 0 ? 0 : (used / total) * 100
 }
 
-function formatTemperature(value: number) {
-  return `${Math.round(value * 10) / 10}°C`
+function formatTemperature(celsius: number, unit: TemperatureUnit) {
+  if (unit === 'fahrenheit') {
+    const fahrenheit = (celsius * 9) / 5 + 32
+    return `${Math.round(fahrenheit * 10) / 10}°F`
+  }
+  return `${Math.round(celsius * 10) / 10}°C`
 }
 
 function formatBytes(bytes: number) {
@@ -81,8 +95,12 @@ function formatDuration(durationMs: number) {
   return `${hours}h ${minutes}m`
 }
 
-function formatPower(value: number) {
-  return `${Math.round(value * 10) / 10}W`
+function formatPower(watts: number, unit: PowerUnit) {
+  if (unit === 'kilowatts') {
+    const kw = watts / 1000
+    return `${Math.round(kw * 10) / 10}kW`
+  }
+  return `${Math.round(watts * 10) / 10}W`
 }
 
 function formatLatLon(
@@ -107,27 +125,32 @@ function formatServerTime(timestampMs: number) {
   })
 }
 
-function buildStatusItems(status: StatusResponse): StatusItem[] {
+function buildStatusItems(
+  status: StatusResponse,
+  temperatureUnit: TemperatureUnit,
+  powerUnit: PowerUnit,
+  translate: (id: ReturnType<typeof msg>) => string
+): StatusItem[] {
   const recLeftMs = status.recording_duration_left_s * 1000
 
   return [
     {
-      label: 'TILT',
+      label: translate(msg`Tilt`),
       value: formatDegrees(status.tilt),
       icon: <IconArrowsVertical {...STATUS_ICON_PROPS} />,
     },
     {
-      label: 'PAN',
+      label: translate(msg`Pan`),
       value: formatDegrees(status.pan),
       icon: <IconArrowsHorizontal {...STATUS_ICON_PROPS} />,
     },
     {
-      label: 'REC LEFT',
+      label: translate(msg`Rec Left`),
       value: formatDuration(recLeftMs),
       icon: <IconClockHour3 {...STATUS_ICON_PROPS} />,
     },
     {
-      label: 'STORAGE',
+      label: translate(msg`Storage`),
       value: formatStorageUsedTotal(
         status.disk_used_bytes,
         status.disk_total_bytes
@@ -139,12 +162,12 @@ function buildStatusItems(status: StatusResponse): StatusItem[] {
       icon: <IconDeviceSdCard {...STATUS_ICON_PROPS} />,
     },
     {
-      label: 'FPS',
+      label: translate(msg`FPS`),
       value: formatFps(status.average_fps),
       icon: <IconGauge {...STATUS_ICON_PROPS} />,
     },
     {
-      label: 'MEM',
+      label: translate(msg`Mem`),
       value: formatPercent(
         calculateUsagePercent(
           status.memory_used_bytes,
@@ -158,34 +181,34 @@ function buildStatusItems(status: StatusResponse): StatusItem[] {
       icon: <IconDatabase {...STATUS_ICON_PROPS} />,
     },
     {
-      label: 'CPU',
+      label: translate(msg`CPU`),
       value: formatPercent(status.cpu_utilization),
       progress: status.cpu_utilization,
       icon: <IconCpu {...STATUS_ICON_PROPS} />,
     },
     {
-      label: 'GPU',
+      label: translate(msg`GPU`),
       value: formatPercent(status.gpu_utilization),
       progress: clampPercent(status.gpu_utilization),
       icon: <IconCpu {...STATUS_ICON_PROPS} />,
     },
     {
-      label: 'TEMP',
-      value: formatTemperature(status.core_temperature_celsius),
+      label: translate(msg`Temp`),
+      value: formatTemperature(status.core_temperature_celsius, temperatureUnit),
       icon: <IconTemperature {...STATUS_ICON_PROPS} />,
     },
     {
-      label: 'POWER',
-      value: formatPower(status.system_power_w),
+      label: translate(msg`Power`),
+      value: formatPower(status.system_power_w, powerUnit),
       icon: <IconBolt {...STATUS_ICON_PROPS} />,
     },
     {
-      label: 'SERVER TIME',
+      label: translate(msg`Server Time`),
       value: formatServerTime(status.timestamp_ms),
       icon: <IconClock {...STATUS_ICON_PROPS} />,
     },
     {
-      label: 'GPS LOCATION',
+      label: translate(msg`GPS Location`),
       value: formatLatLon(status.latitude, status.longitude),
       icon: <IconMapPin {...STATUS_ICON_PROPS} />,
     },
@@ -194,6 +217,9 @@ function buildStatusItems(status: StatusResponse): StatusItem[] {
 
 export function SystemStatusCard() {
   const { status } = useRocam()
+  const { t } = useLingui()
+  const temperatureUnit = useAtomValue(temperatureUnitAtom)
+  const powerUnit = useAtomValue(powerUnitAtom)
   const [now, setNow] = useState(Date.now())
   const lastStatusChangeMsRef = useRef(0)
 
@@ -217,7 +243,12 @@ export function SystemStatusCard() {
     )
   }
 
-  const statusItems = buildStatusItems(status)
+  const statusItems = buildStatusItems(
+    status,
+    temperatureUnit,
+    powerUnit,
+    t
+  )
   const baseMs =
     lastStatusChangeMsRef.current === 0
       ? Date.now()
@@ -230,10 +261,10 @@ export function SystemStatusCard() {
       <CardBody className="px-6 py-5">
         <div className="flex items-center justify-between">
           <p className="text-xs font-semibold text-gray-800 tracking-widest">
-            SYSTEM STATUS
+            <Trans>System Status</Trans>
           </p>
           <p className="text-xs text-gray-500 font-medium tabular-nums">
-            last updated: {lastUpdatedText} ago
+            {t`Last updated: ${lastUpdatedText} ago`}
           </p>
         </div>
         <div className="mt-2 gap-x-10 flex flex-wrap">

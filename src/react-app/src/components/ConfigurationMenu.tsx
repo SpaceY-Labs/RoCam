@@ -16,14 +16,10 @@ import { Key } from 'react'
 import {
   languageAtom,
   temperatureUnitAtom,
-  speedUnitAtom,
-  distanceUnitAtom,
-  timeUnitAtom,
+  powerUnitAtom,
   type Language,
   type TemperatureUnit,
-  type SpeedUnit,
-  type DistanceUnit,
-  type TimeUnit,
+  type PowerUnit,
 } from '@/store/languageAtom'
 
 const LANGUAGES: { key: Language; label: string }[] = [
@@ -36,32 +32,16 @@ const TEMPERATURE_UNITS: { key: TemperatureUnit; label: string }[] = [
   { key: 'fahrenheit', label: '°F (Fahrenheit)' },
 ]
 
-const SPEED_UNITS: { key: SpeedUnit; label: string }[] = [
-  { key: 'kmh', label: 'km/h' },
-  { key: 'mph', label: 'mph' },
-  { key: 'ms', label: 'm/s' },
-]
-
-const DISTANCE_UNITS: { key: DistanceUnit; label: string }[] = [
-  { key: 'meters', label: 'Meters' },
-  { key: 'kilometers', label: 'Kilometers' },
-  { key: 'feet', label: 'Feet' },
-  { key: 'miles', label: 'Miles' },
-]
-
-const TIME_UNITS: { key: TimeUnit; label: string }[] = [
-  { key: 'seconds', label: 'Seconds' },
-  { key: 'minutes', label: 'Minutes' },
-  { key: 'hours', label: 'Hours' },
+const POWER_UNITS: { key: PowerUnit; label: string }[] = [
+  { key: 'watts', label: 'W (Watts)' },
+  { key: 'kilowatts', label: 'kW (Kilowatts)' },
 ]
 
 export function ConfigurationMenu() {
   const { t } = useLingui()
   const [language, setLanguage] = useAtom(languageAtom)
   const [temperatureUnit, setTemperatureUnit] = useAtom(temperatureUnitAtom)
-  const [speedUnit, setSpeedUnit] = useAtom(speedUnitAtom)
-  const [distanceUnit, setDistanceUnit] = useAtom(distanceUnitAtom)
-  const [timeUnit, setTimeUnit] = useAtom(timeUnitAtom)
+  const [powerUnit, setPowerUnit] = useAtom(powerUnitAtom)
 
   const handleAction = (key: Key) => {
     const keyStr = String(key)
@@ -80,28 +60,9 @@ export function ConfigurationMenu() {
       return
     }
 
-    // Check speed
-    if (keyStr === 'kmh' || keyStr === 'mph' || keyStr === 'ms') {
-      setSpeedUnit(keyStr as SpeedUnit)
-
-      return
-    }
-
-    // Check distance
-    if (
-      keyStr === 'meters' ||
-      keyStr === 'kilometers' ||
-      keyStr === 'feet' ||
-      keyStr === 'miles'
-    ) {
-      setDistanceUnit(keyStr as DistanceUnit)
-
-      return
-    }
-
-    // Check time
-    if (keyStr === 'seconds' || keyStr === 'minutes' || keyStr === 'hours') {
-      setTimeUnit(keyStr as TimeUnit)
+    // Check power
+    if (keyStr === 'watts' || keyStr === 'kilowatts') {
+      setPowerUnit(keyStr as PowerUnit)
 
       return
     }
@@ -121,18 +82,12 @@ export function ConfigurationMenu() {
         </DropdownTrigger>
         <DropdownMenu
           aria-label="Configuration"
-          selectedKeys={[
-            language,
-            temperatureUnit,
-            speedUnit,
-            distanceUnit,
-            timeUnit,
-          ]}
-          selectionMode="multiple"
-          onAction={handleAction}
           classNames={{
             base: 'max-h-[400px] overflow-y-auto',
           }}
+          selectedKeys={[language, temperatureUnit, powerUnit]}
+          selectionMode="multiple"
+          onAction={handleAction}
         >
           <DropdownSection title={t(msg`Language`)}>
             {LANGUAGES.map(({ key, label }) => (
@@ -146,20 +101,8 @@ export function ConfigurationMenu() {
             ))}
           </DropdownSection>
 
-          <DropdownSection title={t(msg`Speed`)}>
-            {SPEED_UNITS.map(({ key, label }) => (
-              <DropdownItem key={key}>{label}</DropdownItem>
-            ))}
-          </DropdownSection>
-
-          <DropdownSection title={t(msg`Distance`)}>
-            {DISTANCE_UNITS.map(({ key, label }) => (
-              <DropdownItem key={key}>{label}</DropdownItem>
-            ))}
-          </DropdownSection>
-
-          <DropdownSection title={t(msg`Time`)}>
-            {TIME_UNITS.map(({ key, label }) => (
+          <DropdownSection title={t(msg`Power`)}>
+            {POWER_UNITS.map(({ key, label }) => (
               <DropdownItem key={key}>{label}</DropdownItem>
             ))}
           </DropdownSection>

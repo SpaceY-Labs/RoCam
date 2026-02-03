@@ -72,16 +72,7 @@ export default function RecordingsPage() {
 
   const handleDelete = async (r: Recording) => {
     if (!apiClient) return
-    if (
-      !confirm(
-        (
-          t as unknown as (
-            id: string,
-            values?: Record<string, unknown>
-          ) => string
-        )('Delete "{name}"? This cannot be undone.', { name: r.name })
-      )
-    )
+    if (!confirm(t(msg`Delete "{name}"? This cannot be undone.`, { name: r.name })))
       return
 
     try {

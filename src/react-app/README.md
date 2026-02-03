@@ -4,8 +4,6 @@
 
 ```bash
 yarn
-yarn lingui extract
-yarn lingui compile
 yarn dev
 ```
 
