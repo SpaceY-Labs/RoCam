@@ -78,13 +78,11 @@ RECORDING_DATABASE_BASE_PATH = "/mnt/data/data"
 
 class StateManagement:
     def __init__(self):
-        self._status_led_thread = threading.Thread(
-            target=self._blink_status_led, daemon=True
-        )
-        self._status_led_thread.start()
-
         self.database = RecordingDatabase(base_path=RECORDING_DATABASE_BASE_PATH)
         self._in_progress_recording_id = None
+
+        self._download_count = 0
+        self._download_lock = threading.Lock()
 
         self._gimbal_lock = threading.Lock()
         self._last_gimbal_measure_time = 0.0
@@ -102,6 +100,11 @@ class StateManagement:
         )
 
         self._bboxes = BoundingBoxCollection()
+
+        self._status_led_thread = threading.Thread(
+            target=self._blink_status_led, daemon=True
+        )
+        self._status_led_thread.start()
 
         cleanup_shared_memory(LIVE_STREAM_SHM_NAME)
         # Need to start live stream process before cv process, due to nvidia driver bug
@@ -288,3 +291,20 @@ class StateManagement:
             recording_info = self.database.allocate_recording()
             self._cv_process.start_recording(recording_info)
             self._in_progress_recording_id = recording_info.id
+
+    def on_download_start(self):
+        with self._download_lock:
+            self._download_count += 1
+            if self._download_count == 1:
+                logger.info("Starting download/preview, pausing pipeline")
+                self._cv_process.pause_pipeline()
+
+    def on_download_end(self):
+        with self._download_lock:
+            self._download_count -= 1
+            if self._download_count == 0:
+                logger.info("All downloads/previews finished, resuming pipeline")
+                self._cv_process.resume_pipeline()
+            elif self._download_count < 0:
+                logger.error("Download count went below 0!")
+                self._download_count = 0
