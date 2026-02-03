@@ -6,6 +6,15 @@ import {
   IconChevronUp,
   IconChevronDown,
   IconHome,
+  IconArrowsVertical,
+  IconArrowsHorizontal,
+  IconGauge,
+  IconCpu,
+  IconTemperature,
+  IconDeviceSdCard,
+  IconBolt,
+  IconClockHour3,
+  IconDatabase,
 } from '@tabler/icons-react'
 import { useMeasure } from 'react-use'
 
@@ -56,33 +65,50 @@ export default function ControlPage() {
       ? 'text-rose-600'
       : 'text-emerald-600'
     : 'text-slate-400'
-  const statusItems = [
-    { label: 'TILT', value: formatDegrees(status?.tilt) },
-    { label: 'PAN', value: formatDegrees(status?.pan) },
-    { label: 'FPS', value: formatFps(status?.average_fps) },
+  const statusItems: Array<{
+    label: string
+    value: string
+    icon: StatusIconKind
+    progress?: number | null
+  }> = [
+    { label: 'TILT', value: formatDegrees(status?.tilt), icon: 'tilt' },
+    { label: 'PAN', value: formatDegrees(status?.pan), icon: 'pan' },
+    { label: 'FPS', value: formatFps(status?.average_fps), icon: 'fps' },
     {
       label: 'MEM',
       value: formatPercent(calculateUsagePercent(status?.memory_usage_bytes)),
       progress: calculateUsagePercent(status?.memory_usage_bytes),
+      icon: 'mem',
     },
     {
       label: 'CPU',
       value: formatPercent(status?.cpu_utilization),
       progress: clampPercent(status?.cpu_utilization),
+      icon: 'cpu',
     },
     {
       label: 'GPU',
       value: formatPercent(status?.gpu_utilization),
       progress: clampPercent(status?.gpu_utilization),
+      icon: 'gpu',
     },
-    { label: 'TEMP', value: formatTemperature(status?.core_temperature_celsius) },
+    {
+      label: 'TEMP',
+      value: formatTemperature(status?.core_temperature_celsius),
+      icon: 'temp',
+    },
     {
       label: 'STORAGE',
       value: formatStorageLeft(status?.disk_usage_bytes),
       progress: calculateFreePercent(status?.disk_usage_bytes),
+      icon: 'storage',
     },
-    { label: 'POWER', value: formatPower(status?.system_power_w) },
-    { label: 'REC LEFT', value: formatDuration(status?.recording_duration_left_ms) },
+    { label: 'POWER', value: formatPower(status?.system_power_w), icon: 'power' },
+    {
+      label: 'REC LEFT',
+      value: formatDuration(status?.recording_duration_left_ms),
+      icon: 'recLeft',
+    },
   ]
   const glassPanelClass =
     'relative rounded-3xl border border-white/40 bg-gradient-to-b from-white/45 via-white/25 to-white/12 shadow-[0_20px_50px_rgba(15,23,42,0.14),0_1px_0_rgba(255,255,255,0.7)] ring-1 ring-white/25 backdrop-blur-2xl backdrop-saturate-150'
@@ -225,8 +251,8 @@ export default function ControlPage() {
         <div className={`${glassPanelClass} px-6 py-5`}>
           <div className={glassOverlayClass} />
           <div className={glassInsetClass} />
-          <div className="relative flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-600/80">
+          <div className="relative flex items-center justify-between pb-4 border-b border-white/30">
+            <div className="flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.35em] text-slate-600/70">
               <span className={`h-2 w-2 rounded-full ${statusDotClass}`} />
               System Status
             </div>
@@ -238,13 +264,13 @@ export default function ControlPage() {
                 </div>
               )}
               <span
-                className={`text-[10px] font-semibold uppercase tracking-[0.32em] ${statusTextClass}`}
+                className={`text-[9px] font-semibold uppercase tracking-[0.35em] ${statusTextClass}`}
               >
                 {statusLabel}
               </span>
             </div>
           </div>
-          <div className="relative mt-6 grid gap-y-6 gap-x-8 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+          <div className="relative mt-5 grid gap-y-7 gap-x-10 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             {statusItems.map((item) => {
               const isUnavailable = item.value === 'N/A'
               const progress = item.progress ?? 0
@@ -255,24 +281,27 @@ export default function ControlPage() {
               const progressBarClass =
                 item.progress === null
                   ? 'bg-slate-400/40'
-                  : 'bg-gradient-to-r from-slate-900/80 via-slate-700/70 to-slate-500/60'
+                  : 'bg-gradient-to-r from-slate-900/75 via-slate-700/65 to-slate-500/55'
               return (
                 <div key={item.label} className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-slate-500/80">
-                    {item.label}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <StatusIcon kind={item.icon} />
+                    <p className="text-[9px] font-semibold uppercase tracking-[0.32em] text-slate-500/70">
+                      {item.label}
+                    </p>
+                  </div>
                   <p
                     className={
                       isUnavailable
-                        ? 'mt-2 text-sm font-medium text-slate-500/70 tabular-nums'
-                        : 'mt-2 text-[15px] font-semibold text-slate-950/90 tabular-nums'
+                        ? 'mt-2 text-sm font-medium text-slate-500/70 tabular-nums leading-none'
+                        : 'mt-2 text-[16px] font-medium text-slate-950/90 tabular-nums leading-none tracking-tight'
                     }
                   >
                     {item.value}
                   </p>
                   {hasProgress && (
-                    <div className="relative mt-3 h-1.5 w-full rounded-full bg-white/70 ring-1 ring-slate-200/70 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)] overflow-hidden">
-                      <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-slate-300/70" />
+                    <div className="relative mt-3 h-1.5 w-full rounded-full bg-white/80 ring-1 ring-slate-200/70 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.55)] overflow-hidden">
+                      <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-slate-300/60" />
                       <div
                         className={`h-full rounded-full ${progressBarClass}`}
                         style={{ width: `${progress}%` }}
@@ -289,20 +318,20 @@ export default function ControlPage() {
           <div className={glassOverlayClass} />
           <div className={glassInsetClass} />
           <div className="relative">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-600/80">
+            <div className="flex items-center justify-between pb-3 border-b border-white/30">
+              <span className="text-[9px] font-semibold uppercase tracking-[0.35em] text-slate-600/70">
               Controls
             </span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-400">
+              <span className="text-[9px] font-semibold uppercase tracking-[0.35em] text-slate-400">
               Manual
             </span>
           </div>
-          <div className="flex gap-3 flex-wrap">
+            <div className="flex gap-3 flex-wrap mt-4">
             <Button
               isDisabled={!apiClient || isArmLoading || isArmCooldown}
-              radius="sm"
+                radius="full"
               variant="ghost"
-              className={`border border-white/50 bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed ${
+                className={`border border-white/50 bg-white/55 text-[12px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed ${
                 isArmed ? 'text-rose-600' : 'text-emerald-600'
               }`}
               onPress={handleToggleArm}
@@ -317,9 +346,9 @@ export default function ControlPage() {
             </Button>
             <Button
               isDisabled={!apiClient || isRecordLoading || isRecordCooldown}
-              radius="sm"
+                radius="full"
               variant="ghost"
-              className={`border border-white/50 bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed ${
+                className={`border border-white/50 bg-white/55 text-[12px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed ${
                 isRecording ? 'text-rose-600' : 'text-slate-800'
               }`}
               onPress={handleToggleRecording}
@@ -440,6 +469,48 @@ function calculateFreePercent(
   if (!usage || usage.total <= 0) return null
 
   return ((usage.total - usage.used) / usage.total) * 100
+}
+
+type StatusIconKind =
+  | 'tilt'
+  | 'pan'
+  | 'fps'
+  | 'mem'
+  | 'cpu'
+  | 'gpu'
+  | 'temp'
+  | 'storage'
+  | 'power'
+  | 'recLeft'
+
+function StatusIcon({ kind }: { kind: StatusIconKind }) {
+  const className = 'text-slate-500/70'
+  const iconProps = { size: 15, strokeWidth: 1.2, className }
+
+  switch (kind) {
+    case 'tilt':
+      return <IconArrowsVertical {...iconProps} />
+    case 'pan':
+      return <IconArrowsHorizontal {...iconProps} />
+    case 'fps':
+      return <IconGauge {...iconProps} />
+    case 'mem':
+      return <IconDatabase {...iconProps} />
+    case 'cpu':
+      return <IconCpu {...iconProps} />
+    case 'gpu':
+      return <IconCpu {...iconProps} />
+    case 'temp':
+      return <IconTemperature {...iconProps} />
+    case 'storage':
+      return <IconDeviceSdCard {...iconProps} />
+    case 'power':
+      return <IconBolt {...iconProps} />
+    case 'recLeft':
+      return <IconClockHour3 {...iconProps} />
+    default:
+      return null
+  }
 }
 
 
