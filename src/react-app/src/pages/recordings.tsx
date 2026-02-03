@@ -217,8 +217,8 @@ function RecordingItem({
             onValueChange={setFilenameDraft}
           />
 
-          <div className="flex items-center text-xs text-gray-500 mt-2">
-            <div className="flex items-center gap-1 w-38">
+          <div className="flex items-center text-xs text-gray-500 font-medium tabular-nums mt-2">
+            <div className="flex items-center gap-1 w-37">
               <IconCalendarEvent size={14} />
               {formatDate(r.start_timestamp_ms)}
             </div>

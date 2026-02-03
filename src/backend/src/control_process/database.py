@@ -5,9 +5,12 @@ import shutil
 import logging
 from datetime import datetime
 from typing import Optional
-from common.ipc import RecordingInfo, OSDData
+from common.ipc import RecordingInfo
 
 logger = logging.getLogger(__name__)
+
+# Used to estimate recording duration left from free disk space (bytes per second).
+RECORDING_BYTES_PER_SECOND = 8_000_000  # 8 MB/s
 
 
 class RecordingNotFoundError(Exception):
@@ -156,8 +159,6 @@ class RecordingDatabase:
 
         return None, None
 
-    
-
     def get_recording_by_id(self, recording_id: str) -> Optional[RecordingInfo]:
         """
         Retrieves RecordingInfo for a specific recording_id.
@@ -257,3 +258,12 @@ class RecordingDatabase:
         """
         usage = shutil.disk_usage(self._base_path)
         return (usage.used, usage.total)
+
+    def recording_duration_left_s(self) -> int:
+        """
+        Estimates recording duration left in seconds from free disk space
+        using RECORDING_BYTES_PER_SECOND.
+        """
+        disk_used, disk_total = self.space_usage_bytes()
+        free_bytes = max(0, disk_total - disk_used)
+        return int(free_bytes / RECORDING_BYTES_PER_SECOND)
