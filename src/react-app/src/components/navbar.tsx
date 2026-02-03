@@ -13,6 +13,7 @@ export const Navbar = () => {
   return (
     <HeroUINavbar
       classNames={{
+        base: 'bg-transparent backdrop-filter-none',
         wrapper: 'px-4',
       }}
       maxWidth="full"

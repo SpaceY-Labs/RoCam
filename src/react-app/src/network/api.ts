@@ -1,7 +1,6 @@
 // API Types
 
 export type BoundingBox = {
-  pts_s: number
   conf: number
   left: number
   top: number
@@ -9,30 +8,26 @@ export type BoundingBox = {
   height: number
 }
 
-export type DiskUsageBytes = {
-  used: number
-  total: number
-}
-
-export type MemoryUsageBytes = DiskUsageBytes
-
 export type StatusResponse = {
   armed: boolean
-  tilt: number | null
-  pan: number | null
+  tilt: number
+  pan: number
   preview: string | null
   bbox: BoundingBox | null
-  average_fps: number | null
-  cpu_utilization: number | null
-  gpu_utilization: number | null
-  core_temperature_celsius: number | null
-  system_power_w: number | null
-  memory_usage_bytes: MemoryUsageBytes | null
-  disk_usage_bytes: DiskUsageBytes | null
-  recording_duration_left_ms: number | null
+  average_fps: number
+  cpu_utilization: number
+  gpu_utilization: number
+  core_temperature_celsius: number
+  system_power_w: number
+  memory_used_bytes: number
+  memory_total_bytes: number
+  disk_used_bytes: number
+  disk_total_bytes: number
+  recording_duration_left_s: number
   timestamp_ms: number
-  in_progress_recording_id: string | null
   is_recording: boolean
+  longitude: number | null
+  latitude: number | null
 }
 
 export type Recording = {
@@ -43,17 +38,8 @@ export type Recording = {
   size_bytes: number
 }
 
-export type RecordingStatusResponse = {
-  recording: Recording
-  status: 'recording' | 'stopped'
-}
-
 export type RecordingListResponse = {
   recordings: Recording[]
-}
-
-export type RecordingResponse = {
-  recording: Recording
 }
 
 export type ApiResponse<T = Record<string, unknown>> = T

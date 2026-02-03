@@ -5,10 +5,11 @@ from pathlib import Path
 import select
 import subprocess
 import time
+from dataclasses import asdict
 
 from pathvalidate import sanitize_filename
 from common.ipc import RecordingInfo
-from common.utils import set_scheduler_other, ip4_addresses
+from common.utils import set_scheduler_other
 from control_process.state_management import StateManagement
 from control_process.state_management_recording_management_only import (
     StateManagementRecordingManagementOnly,
@@ -38,7 +39,6 @@ def run_api_gateway(
     state_management: StateManagement | StateManagementRecordingManagementOnly,
 ):
     set_scheduler_other()
-    logger.info(f"ipv4 addresses: {ip4_addresses()}")
 
     app = Flask(__name__)
     CORS(app)

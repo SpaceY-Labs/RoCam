@@ -1,30 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@heroui/button'
+import { Card, CardBody } from '@heroui/card'
+import { Spinner } from '@heroui/spinner'
 import {
   IconChevronLeft,
   IconChevronRight,
   IconChevronUp,
   IconChevronDown,
   IconHome,
-  IconArrowsVertical,
-  IconArrowsHorizontal,
-  IconGauge,
-  IconCpu,
-  IconTemperature,
-  IconDeviceSdCard,
-  IconBolt,
-  IconClockHour3,
-  IconDatabase,
 } from '@tabler/icons-react'
 import { useMeasure } from 'react-use'
 
+import { SystemStatusCard } from '@/components/SystemStatusCard'
 import { useRocam } from '@/network/rocamProvider'
 import DefaultLayout from '@/layouts/default'
 
 export default function ControlPage() {
   const { apiClient, status, statusPollingError } = useRocam()
   const [streamContainerRef, streamBounds] = useMeasure<HTMLDivElement>()
-  const [gridRef, gridBounds] = useMeasure<HTMLDivElement>()
   const { width, height } = streamBounds
 
   const ACTION_COOLDOWN_MS = 1500
@@ -53,77 +46,8 @@ export default function ControlPage() {
   }, [])
 
   const bbox = status?.bbox
-  const isArmed = status?.armed === true
-  const statusLabel = status ? (isArmed ? 'Armed' : 'Disarmed') : 'Unknown'
-  const statusDotClass = status
-    ? isArmed
-      ? 'bg-rose-400/90'
-      : 'bg-emerald-400/90'
-    : 'bg-slate-400'
-  const statusTextClass = status
-    ? isArmed
-      ? 'text-rose-600'
-      : 'text-emerald-600'
-    : 'text-slate-400'
-  const statusItems: Array<{
-    label: string
-    value: string
-    icon: StatusIconKind
-    progress?: number | null
-  }> = [
-    { label: 'TILT', value: formatDegrees(status?.tilt), icon: 'tilt' },
-    { label: 'PAN', value: formatDegrees(status?.pan), icon: 'pan' },
-    { label: 'FPS', value: formatFps(status?.average_fps), icon: 'fps' },
-    {
-      label: 'MEM',
-      value: formatPercent(calculateUsagePercent(status?.memory_usage_bytes)),
-      progress: calculateUsagePercent(status?.memory_usage_bytes),
-      icon: 'mem',
-    },
-    {
-      label: 'CPU',
-      value: formatPercent(status?.cpu_utilization),
-      progress: clampPercent(status?.cpu_utilization),
-      icon: 'cpu',
-    },
-    {
-      label: 'GPU',
-      value: formatPercent(status?.gpu_utilization),
-      progress: clampPercent(status?.gpu_utilization),
-      icon: 'gpu',
-    },
-    {
-      label: 'TEMP',
-      value: formatTemperature(status?.core_temperature_celsius),
-      icon: 'temp',
-    },
-    {
-      label: 'STORAGE',
-      value: formatStorageLeft(status?.disk_usage_bytes),
-      progress: calculateFreePercent(status?.disk_usage_bytes),
-      icon: 'storage',
-    },
-    {
-      label: 'POWER',
-      value: formatPower(status?.system_power_w),
-      icon: 'power',
-    },
-    {
-      label: 'REC LEFT',
-      value: formatDuration(status?.recording_duration_left_ms),
-      icon: 'recLeft',
-    },
-  ]
-  const glassPanelClass =
-    'relative rounded-3xl border border-white/40 bg-gradient-to-b from-white/45 via-white/25 to-white/12 shadow-[0_20px_50px_rgba(15,23,42,0.14),0_1px_0_rgba(255,255,255,0.7)] ring-1 ring-white/25 backdrop-blur-2xl backdrop-saturate-150'
-  const glassOverlayClass =
-    'pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-b from-white/35 via-transparent to-white/8'
-  const glassInsetClass =
-    'pointer-events-none absolute inset-0 rounded-3xl shadow-[inset_0_1px_0_rgba(255,255,255,0.7),inset_0_-1px_0_rgba(15,23,42,0.08)]'
-
-  const isRecording = Boolean(
-    status?.is_recording ?? status?.in_progress_recording_id
-  )
+  const isArmed = !!status?.armed
+  const isRecording = !!status?.is_recording
 
   const startCooldown = (
     setCooldown: (value: boolean) => void,
@@ -175,395 +99,173 @@ export default function ControlPage() {
 
   return (
     <DefaultLayout className="flex items-stretch">
-      <div
-        ref={gridRef}
-        className="relative grid gap-4 m-4 mt-0 grid-cols-[auto_1fr] grid-rows-[1fr_auto] min-w-0 w-full"
-      >
-        {isRecording && streamBounds.width > 0 && gridBounds.width > 0 && (
-          <div
-            className="pointer-events-none absolute z-20 inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-rose-600 shadow-[0_6px_16px_rgba(244,63,94,0.18)] backdrop-blur-md"
-            style={{
-              left: Math.max(0, streamBounds.left - gridBounds.left + 12),
-              top: Math.max(0, streamBounds.top - gridBounds.top + 12),
-            }}
-          >
-            <span className="h-2 w-2 rounded-full bg-rose-500" />
-            REC
-          </div>
-        )}
-        {isArmed && streamBounds.width > 0 && gridBounds.width > 0 && (
-          <div
-            className="pointer-events-none absolute z-20 inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-700 shadow-[0_6px_16px_rgba(251,191,36,0.18)] backdrop-blur-md"
-            style={{
-              left: Math.max(
-                0,
-                streamBounds.left - gridBounds.left + streamBounds.width - 12
-              ),
-              top: Math.max(0, streamBounds.top - gridBounds.top + 12),
-              transform: 'translateX(-100%)',
-            }}
-          >
-            <span className="h-2 w-2 rounded-full bg-amber-500" />
-            ARMED
-          </div>
-        )}
-        <div
-          ref={streamContainerRef}
-          className="bg-gray-100 aspect-[9/16] rounded-lg flex items-center justify-center row-span-2"
-        >
-          <p>Live Stream Loading.....</p>
-          {status?.preview && (
-            <img
-              alt="Camera Preview"
-              className="absolute rotate-90 rounded-lg"
-              src={`data:image/jpeg;base64,${status.preview}`}
-              style={{ width: height, height: width }}
-            />
-          )}
-          <div className="absolute" style={{ width, height }}>
-            {bbox && (
-              <>
-                <div
-                  className="absolute bg-green-500 text-white w-11 h-6 pl-1"
-                  style={{
-                    top: bbox.top * height - 24,
-                    left: bbox.left * width,
-                  }}
-                >
-                  {Math.round(bbox.conf * 100) / 100}
-                </div>
-                <div
-                  className="absolute border-4 border-green-500"
-                  style={{
-                    top: bbox.top * height,
-                    left: bbox.left * width,
-                    width: bbox.width * width,
-                    height: bbox.height * height,
-                  }}
-                />
-              </>
+      <div className="relative grid gap-4 m-4 mt-0 grid-cols-[auto_1fr] grid-rows-[1fr_auto] min-w-0 w-full">
+        <Card radius="sm" ref={streamContainerRef} className="aspect-[9/16] row-span-2">
+          <CardBody className="flex items-center justify-center">
+            <Spinner label="Loading stream..." />
+            {status?.preview && (
+              <img
+                alt="Camera Preview"
+                className="absolute rotate-90 rounded-lg"
+                src={`data:image/jpeg;base64,${status.preview}`}
+                style={{ width: height, height: width }}
+              />
             )}
-          </div>
-        </div>
-
-        <div className={`${glassPanelClass} px-6 py-5`}>
-          <div className={glassOverlayClass} />
-          <div className={glassInsetClass} />
-          <div className="relative flex items-center justify-between pb-4 border-b border-white/30">
-            <div className="flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.35em] text-slate-600/70">
-              <span className={`h-2 w-2 rounded-full ${statusDotClass}`} />
-              System Status
-            </div>
-            <div className="flex items-center gap-3">
-              {isRecording && (
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-rose-600 shadow-[0_6px_16px_rgba(244,63,94,0.18)] backdrop-blur-md">
-                  <span className="h-2 w-2 rounded-full bg-rose-500" />
-                  REC
-                </div>
-              )}
-              <span
-                className={`text-[9px] font-semibold uppercase tracking-[0.35em] ${statusTextClass}`}
-              >
-                {statusLabel}
-              </span>
-            </div>
-          </div>
-          <div className="relative mt-5 grid gap-y-7 gap-x-10 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-            {statusItems.map((item) => {
-              const isUnavailable = item.value === 'N/A'
-              const progress = item.progress ?? 0
-              const hasProgress =
-                item.progress !== undefined &&
-                item.progress !== null &&
-                !isUnavailable
-              const progressBarClass =
-                item.progress === null
-                  ? 'bg-slate-400/40'
-                  : 'bg-gradient-to-r from-slate-900/75 via-slate-700/65 to-slate-500/55'
-
-              return (
-                <div key={item.label} className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <StatusIcon kind={item.icon} />
-                    <p className="text-[9px] font-semibold uppercase tracking-[0.32em] text-slate-500/70">
-                      {item.label}
-                    </p>
-                  </div>
-                  <p
-                    className={
-                      isUnavailable
-                        ? 'mt-2 text-sm font-medium text-slate-500/70 tabular-nums leading-none'
-                        : 'mt-2 text-[16px] font-medium text-slate-950/90 tabular-nums leading-none tracking-tight'
-                    }
+            <div className="absolute" style={{ width, height }}>
+              {bbox && (
+                <>
+                  <div
+                    className="absolute bg-green-500 text-white w-11 h-6 pl-1"
+                    style={{
+                      top: bbox.top * height - 24,
+                      left: bbox.left * width,
+                    }}
                   >
-                    {item.value}
-                  </p>
-                  {hasProgress && (
-                    <div className="relative mt-3 h-1.5 w-full rounded-full bg-white/80 ring-1 ring-slate-200/70 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.55)] overflow-hidden">
-                      <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-slate-300/60" />
-                      <div
-                        className={`h-full rounded-full ${progressBarClass}`}
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        <div className={`${glassPanelClass} p-4`}>
-          <div className={glassOverlayClass} />
-          <div className={glassInsetClass} />
-          <div className="relative">
-            <div className="flex items-center justify-between pb-3 border-b border-white/30">
-              <span className="text-[9px] font-semibold uppercase tracking-[0.35em] text-slate-600/70">
-                Controls
-              </span>
-              <span className="text-[9px] font-semibold uppercase tracking-[0.35em] text-slate-400">
-                Manual
-              </span>
-            </div>
-            <div className="flex gap-3 flex-wrap mt-4">
-              <Button
-                className={`border border-white/50 bg-white/55 text-[12px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed ${
-                  isArmed ? 'text-rose-600' : 'text-emerald-600'
-                }`}
-                isDisabled={!apiClient || isArmLoading || isArmCooldown}
-                radius="full"
-                variant="ghost"
-                onPress={handleToggleArm}
-              >
-                {isArmLoading
-                  ? isArmed
-                    ? 'Disarming...'
-                    : 'Arming...'
-                  : isArmed
-                    ? 'Disarm'
-                    : 'Arm'}
-              </Button>
-              <Button
-                className={`border border-white/50 bg-white/55 text-[12px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed ${
-                  isRecording ? 'text-rose-600' : 'text-slate-800'
-                }`}
-                isDisabled={!apiClient || isRecordLoading || isRecordCooldown}
-                radius="full"
-                variant="ghost"
-                onPress={handleToggleRecording}
-              >
-                {isRecordLoading
-                  ? isRecording
-                    ? 'Stopping...'
-                    : 'Starting...'
-                  : isRecording
-                    ? 'Stop Recording'
-                    : 'Start Recording'}
-              </Button>
+                    {Math.round(bbox.conf * 100) / 100}
+                  </div>
+                  <div
+                    className="absolute border-4 border-green-500"
+                    style={{
+                      top: bbox.top * height,
+                      left: bbox.left * width,
+                      width: bbox.width * width,
+                      height: bbox.height * height,
+                    }}
+                  />
+                </>
+              )}
             </div>
 
-            <div className="grid gap-2 mt-5 grid-cols-3 grid-rows-3 w-fit">
-              <div />
-              <Button
-                isIconOnly
-                className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={status?.armed}
-                radius="sm"
-                size="lg"
-                variant="ghost"
-                onPress={() => apiClient?.manualMove('up')}
-              >
-                <IconChevronUp />
-              </Button>
-              <div />
-              <Button
-                isIconOnly
-                className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={status?.armed}
-                radius="sm"
-                size="lg"
-                variant="ghost"
-                onPress={() => apiClient?.manualMove('left')}
-              >
-                <IconChevronLeft />
-              </Button>
-              <Button
-                isIconOnly
-                className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={status?.armed}
-                radius="sm"
-                size="lg"
-                variant="ghost"
-                onPress={() => apiClient?.manualMoveTo(0, 0)}
-              >
-                <IconHome />
-              </Button>
-              <Button
-                isIconOnly
-                className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={status?.armed}
-                radius="sm"
-                size="lg"
-                variant="ghost"
-                onPress={() => apiClient?.manualMove('right')}
-              >
-                <IconChevronRight />
-              </Button>
-              <div />
-              <Button
-                isIconOnly
-                className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={status?.armed}
-                radius="sm"
-                size="lg"
-                variant="ghost"
-                onPress={() => apiClient?.manualMove('down')}
-              >
-                <IconChevronDown />
-              </Button>
-              <div />
+            {isRecording && (
+              <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full px-2.5 py-1 text-sm font-semibold tracking-widest text-red-600 shadow-md shadow-red-500/20">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
+                REC
+              </div>
+            )}
+            {isArmed && (
+              <div className="absolute right-4 top-4 flex items-center gap-2 rounded-full px-2.5 py-1 text-sm font-semibold tracking-widest text-amber-600 shadow-md shadow-amber-500/30">
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse" />
+                ARMED
+              </div>
+            )}
+          </CardBody>
+        </Card>
+
+        <SystemStatusCard status={status} />
+
+        <Card radius="sm">
+          <CardBody className="px-6 p-4">
+            <div className="relative">
+              <div className="flex items-center justify-between pb-3 border-b border-white/30">
+                <span className="text-[9px] font-semibold uppercase tracking-[0.35em] text-slate-600/70">
+                  Controls
+                </span>
+                <span className="text-[9px] font-semibold uppercase tracking-[0.35em] text-slate-400">
+                  Manual
+                </span>
+              </div>
+              <div className="flex gap-3 flex-wrap mt-4">
+                <Button
+                  className={`border border-white/50 bg-white/55 text-[12px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    isArmed ? 'text-rose-600' : 'text-emerald-600'
+                  }`}
+                  isDisabled={!apiClient || isArmLoading || isArmCooldown}
+                  radius="full"
+                  variant="ghost"
+                  onPress={handleToggleArm}
+                >
+                  {isArmLoading
+                    ? isArmed
+                      ? 'Disarming...'
+                      : 'Arming...'
+                    : isArmed
+                      ? 'Disarm'
+                      : 'Arm'}
+                </Button>
+                <Button
+                  className={`border border-white/50 bg-white/55 text-[12px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    isRecording ? 'text-rose-600' : 'text-slate-800'
+                  }`}
+                  isDisabled={!apiClient || isRecordLoading || isRecordCooldown}
+                  radius="full"
+                  variant="ghost"
+                  onPress={handleToggleRecording}
+                >
+                  {isRecordLoading
+                    ? isRecording
+                      ? 'Stopping...'
+                      : 'Starting...'
+                    : isRecording
+                      ? 'Stop Recording'
+                      : 'Start Recording'}
+                </Button>
+              </div>
+
+              <div className="grid gap-2 mt-5 grid-cols-3 grid-rows-3 w-fit">
+                <div />
+                <Button
+                  isIconOnly
+                  className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={status?.armed}
+                  radius="sm"
+                  size="lg"
+                  variant="ghost"
+                  onPress={() => apiClient?.manualMove('up')}
+                >
+                  <IconChevronUp />
+                </Button>
+                <div />
+                <Button
+                  isIconOnly
+                  className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={status?.armed}
+                  radius="sm"
+                  size="lg"
+                  variant="ghost"
+                  onPress={() => apiClient?.manualMove('left')}
+                >
+                  <IconChevronLeft />
+                </Button>
+                <Button
+                  isIconOnly
+                  className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={status?.armed}
+                  radius="sm"
+                  size="lg"
+                  variant="ghost"
+                  onPress={() => apiClient?.manualMoveTo(0, 0)}
+                >
+                  <IconHome />
+                </Button>
+                <Button
+                  isIconOnly
+                  className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={status?.armed}
+                  radius="sm"
+                  size="lg"
+                  variant="ghost"
+                  onPress={() => apiClient?.manualMove('right')}
+                >
+                  <IconChevronRight />
+                </Button>
+                <div />
+                <Button
+                  isIconOnly
+                  className="border border-white/50 bg-white/55 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={status?.armed}
+                  radius="sm"
+                  size="lg"
+                  variant="ghost"
+                  onPress={() => apiClient?.manualMove('down')}
+                >
+                  <IconChevronDown />
+                </Button>
+                <div />
+              </div>
             </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
       </div>
     </DefaultLayout>
   )
-}
-
-function formatDegrees(degrees: number | null | undefined) {
-  if (degrees === null || degrees === undefined) return 'N/A'
-
-  return `${Math.round(degrees * 10) / 10}°`
-}
-
-function formatFps(fps: number | null | undefined) {
-  if (fps === null || fps === undefined) return 'N/A'
-
-  return `${Math.round(fps * 10) / 10}`
-}
-
-function formatPercent(value: number | null | undefined) {
-  if (value === null || value === undefined) return 'N/A'
-
-  return `${Math.round(value * 10) / 10}%`
-}
-
-function clampPercent(value: number | null | undefined) {
-  if (value === null || value === undefined || Number.isNaN(value)) return null
-
-  return Math.max(0, Math.min(100, value))
-}
-
-function calculateUsagePercent(
-  usage: { used: number; total: number } | null | undefined
-) {
-  if (!usage || usage.total <= 0) return null
-
-  return (usage.used / usage.total) * 100
-}
-
-function calculateFreePercent(
-  usage: { used: number; total: number } | null | undefined
-) {
-  if (!usage || usage.total <= 0) return null
-
-  return ((usage.total - usage.used) / usage.total) * 100
-}
-
-type StatusIconKind =
-  | 'tilt'
-  | 'pan'
-  | 'fps'
-  | 'mem'
-  | 'cpu'
-  | 'gpu'
-  | 'temp'
-  | 'storage'
-  | 'power'
-  | 'recLeft'
-
-function StatusIcon({ kind }: { kind: StatusIconKind }) {
-  const className = 'text-slate-500/70'
-  const iconProps = { size: 15, strokeWidth: 1.2, className }
-
-  switch (kind) {
-    case 'tilt':
-      return <IconArrowsVertical {...iconProps} />
-    case 'pan':
-      return <IconArrowsHorizontal {...iconProps} />
-    case 'fps':
-      return <IconGauge {...iconProps} />
-    case 'mem':
-      return <IconDatabase {...iconProps} />
-    case 'cpu':
-      return <IconCpu {...iconProps} />
-    case 'gpu':
-      return <IconCpu {...iconProps} />
-    case 'temp':
-      return <IconTemperature {...iconProps} />
-    case 'storage':
-      return <IconDeviceSdCard {...iconProps} />
-    case 'power':
-      return <IconBolt {...iconProps} />
-    case 'recLeft':
-      return <IconClockHour3 {...iconProps} />
-    default:
-      return null
-  }
-}
-
-function formatTemperature(value: number | null | undefined) {
-  if (value === null || value === undefined) return 'N/A'
-
-  return `${Math.round(value * 10) / 10}°C`
-}
-
-function formatStorageLeft(
-  diskUsage: { used: number; total: number } | null | undefined
-) {
-  if (!diskUsage) return 'N/A'
-
-  const freeBytes = Math.max(0, diskUsage.total - diskUsage.used)
-
-  return formatBytes(freeBytes)
-}
-
-function formatBytes(bytes: number) {
-  if (!Number.isFinite(bytes)) return 'N/A'
-
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let value = Math.max(0, bytes)
-  let unitIndex = 0
-
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024
-    unitIndex += 1
-  }
-
-  return `${Math.round(value * 10) / 10}${units[unitIndex]}`
-}
-
-function formatDuration(durationMs: number | null | undefined) {
-  if (durationMs === null || durationMs === undefined) return 'N/A'
-
-  const totalSeconds = Math.max(0, Math.floor(durationMs / 1000))
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
-
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`
-  }
-
-  if (minutes > 0) {
-    return `${minutes}m ${seconds}s`
-  }
-
-  return `${seconds}s`
-}
-
-function formatPower(value: number | null | undefined) {
-  if (value === null || value === undefined) return 'N/A'
-
-  return `${Math.round(value * 10) / 10}W`
 }

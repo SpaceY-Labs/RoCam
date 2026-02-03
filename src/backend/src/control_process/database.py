@@ -3,12 +3,14 @@ import json
 import uuid
 import shutil
 import logging
-import time
 from datetime import datetime
 from typing import Optional
-from common.ipc import RecordingInfo, OSDData
+from common.ipc import RecordingInfo
 
 logger = logging.getLogger(__name__)
+
+# Used to estimate recording duration left from free disk space (bytes per second).
+RECORDING_BYTES_PER_SECOND = 8_000_000  # 8 MB/s
 
 
 class RecordingNotFoundError(Exception):
@@ -25,8 +27,6 @@ class RecordingDatabase:
         self._base_path = os.path.abspath(base_path)
         if not os.path.exists(self._base_path):
             os.makedirs(self._base_path, exist_ok=True)
-        self._recording_rate_cache_value: Optional[float] = None
-        self._recording_rate_cache_time = 0.0
 
     def allocate_recording(self) -> RecordingInfo:
         """
@@ -159,8 +159,6 @@ class RecordingDatabase:
 
         return None, None
 
-    
-
     def get_recording_by_id(self, recording_id: str) -> Optional[RecordingInfo]:
         """
         Retrieves RecordingInfo for a specific recording_id.
@@ -261,34 +259,11 @@ class RecordingDatabase:
         usage = shutil.disk_usage(self._base_path)
         return (usage.used, usage.total)
 
-    def estimate_recording_bytes_per_second(
-        self, cache_ttl_s: float = 5.0
-    ) -> Optional[float]:
+    def recording_duration_left_s(self) -> int:
         """
-        Estimates bytes per second from recent recordings.
-        Uses a cached value to avoid expensive scans on every call.
+        Estimates recording duration left in seconds from free disk space
+        using RECORDING_BYTES_PER_SECOND.
         """
-        now = time.time()
-        if now - self._recording_rate_cache_time < cache_ttl_s:
-            return self._recording_rate_cache_value
-
-        rate: Optional[float] = None
-        recordings = self.list_all_recordings()
-        for recording in recordings:
-            if (
-                recording.duration_ms is None
-                or recording.duration_ms <= 0
-                or recording.size_bytes <= 0
-            ):
-                continue
-
-            duration_s = recording.duration_ms / 1000.0
-            if duration_s <= 0:
-                continue
-
-            rate = recording.size_bytes / duration_s
-            break
-
-        self._recording_rate_cache_value = rate
-        self._recording_rate_cache_time = now
-        return rate
+        disk_used, disk_total = self.space_usage_bytes()
+        free_bytes = max(0, disk_total - disk_used)
+        return int(free_bytes / RECORDING_BYTES_PER_SECOND)
