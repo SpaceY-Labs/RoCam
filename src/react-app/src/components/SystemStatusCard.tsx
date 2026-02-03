@@ -17,6 +17,8 @@ import {
   IconMapPin,
 } from '@tabler/icons-react'
 
+import { useRocam } from '@/network/rocamProvider'
+
 const STATUS_ICON_PROPS = {
   size: 18,
   strokeWidth: 1.5,
@@ -190,11 +192,8 @@ function buildStatusItems(status: StatusResponse): StatusItem[] {
   ]
 }
 
-export function SystemStatusCard({
-  status,
-}: {
-  status: StatusResponse | null
-}) {
+export function SystemStatusCard() {
+  const { status } = useRocam()
   const [now, setNow] = useState(Date.now())
   const lastStatusChangeMsRef = useRef(0)
 
