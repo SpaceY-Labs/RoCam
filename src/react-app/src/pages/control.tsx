@@ -268,9 +268,10 @@ export default function ControlPage() {
                     {item.value}
                   </p>
                   {hasProgress && (
-                    <div className="mt-3 h-1 w-full rounded-full bg-white/70">
+                    <div className="relative mt-3 h-1.5 w-full rounded-full bg-white/70 ring-1 ring-slate-200/70 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)] overflow-hidden">
+                      <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-slate-300/70" />
                       <div
-                        className={`h-1 rounded-full ${progressBarClass}`}
+                        className={`h-full rounded-full ${progressBarClass}`}
                         style={{ width: `${progress}%` }}
                       />
                     </div>
