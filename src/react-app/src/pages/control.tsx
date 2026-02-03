@@ -248,7 +248,10 @@ export default function ControlPage() {
             {statusItems.map((item) => {
               const isUnavailable = item.value === 'N/A'
               const progress = item.progress ?? 0
-              const hasProgress = item.progress !== undefined
+              const hasProgress =
+                item.progress !== undefined &&
+                item.progress !== null &&
+                !isUnavailable
               const progressBarClass =
                 item.progress === null
                   ? 'bg-slate-400/40'
