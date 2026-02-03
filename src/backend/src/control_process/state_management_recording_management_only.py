@@ -57,3 +57,9 @@ class StateManagementRecordingManagementOnly:
 
     def stop_recording(self):
         pass
+
+    def on_download_start(self):
+        pass
+
+    def on_download_end(self):
+        pass

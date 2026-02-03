@@ -1,4 +1,5 @@
 import os
+import subprocess
 import time
 import json
 import textwrap
@@ -24,7 +25,7 @@ import gi
 
 gi.require_version("Gst", "1.0")
 os.environ["GST_DEBUG_DUMP_DOT_DIR"] = "./"
-from gi.repository import Gst    # pyright: ignore[reportMissingModuleSource]  # noqa: E402
+from gi.repository import Gst  # pyright: ignore[reportMissingModuleSource]  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -423,12 +424,15 @@ class CVProcess:
             loop.quit()
         return True
 
+
 def _format_time(timestamp_ms: int) -> str:
     dt = datetime.fromtimestamp(timestamp_ms / 1000.0)
     return dt.strftime("%b %d %Y, %H:%M:%S.") + f"{timestamp_ms % 1000:03d}"
 
 
-def update_osd(osd: Gst.Element | None, shader: Gst.Element | None, msg: OSDData, step_size: int):
+def update_osd(
+    osd: Gst.Element | None, shader: Gst.Element | None, msg: OSDData, step_size: int
+):
     coordinates_text = "GPS unavailable"
     if msg.longitude is not None and msg.latitude is not None:
         coordinates_text = f"GPS: {msg.longitude:.6f}, {msg.latitude:.6f}"
@@ -452,6 +456,12 @@ def update_osd(osd: Gst.Element | None, shader: Gst.Element | None, msg: OSDData
 
 
 def run_cv_process():
+    subprocess.run(
+        ["sudo", "systemctl", "restart", "nvargus-daemon"],
+        check=True,
+        capture_output=True,
+    )
+    time.sleep(0.5)
     set_scheduler_fifo(40)
     cv_process = CVProcess()
     cv_process.pipeline_thread.join()
