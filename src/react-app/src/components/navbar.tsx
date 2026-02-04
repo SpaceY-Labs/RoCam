@@ -8,11 +8,12 @@ import { link as linkStyles } from '@heroui/theme'
 import clsx from 'clsx'
 import { Button } from '@heroui/button'
 import { IconCancel, IconMaximize, IconMaximizeOff } from '@tabler/icons-react'
-import { Trans } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 
 import { ConfigurationMenu } from './ConfigurationMenu'
 
 export const Navbar = () => {
+  const { t } = useLingui()
   const location = useLocation()
   const isControlPage = location.pathname === '/'
 
@@ -26,7 +27,7 @@ export const Navbar = () => {
       maxWidth="full"
     >
       <NavbarContent justify="start">
-        <img alt="RoCam" className="h-8" src="/logo.png" />
+        <img alt={t`RoCam`} className="h-8" src="/logo.png" />
 
         <div className="flex gap-4 justify-start ml-2">
           <NavbarItem>
@@ -85,7 +86,7 @@ export const Navbar = () => {
           startContent={<IconCancel />}
           variant="bordered"
           onPress={() => {
-            alert('Not implemented')
+            alert(t`Not implemented`)
           }}
         >
           <Trans>Emergency Stop</Trans>

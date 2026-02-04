@@ -16,18 +16,11 @@ import {
   IconDatabase,
   IconMapPin,
 } from '@tabler/icons-react'
-import { msg } from '@lingui/core/macro'
-import { useLingui } from '@lingui/react/macro'
 import { Trans } from '@lingui/react/macro'
+import { useAtomValue } from 'jotai'
 
 import { useRocam } from '@/network/rocamProvider'
-import { useAtomValue } from 'jotai'
-import {
-  temperatureUnitAtom,
-  powerUnitAtom,
-  type TemperatureUnit,
-  type PowerUnit,
-} from '@/store/languageAtom'
+import { temperatureUnitAtom, type TemperatureUnit } from '@/store/languageAtom'
 
 const STATUS_ICON_PROPS = {
   size: 18,
@@ -36,8 +29,8 @@ const STATUS_ICON_PROPS = {
 } as const
 
 type StatusItem = {
-  label: string
-  value: string
+  label: ReactNode
+  value: ReactNode
   icon: ReactNode
   progress?: number
 }
@@ -65,8 +58,10 @@ function calculateUsagePercent(used: number, total: number) {
 function formatTemperature(celsius: number, unit: TemperatureUnit) {
   if (unit === 'fahrenheit') {
     const fahrenheit = (celsius * 9) / 5 + 32
+
     return `${Math.round(fahrenheit * 10) / 10}°F`
   }
+
   return `${Math.round(celsius * 10) / 10}°C`
 }
 
@@ -95,20 +90,16 @@ function formatDuration(durationMs: number) {
   return `${hours}h ${minutes}m`
 }
 
-function formatPower(watts: number, unit: PowerUnit) {
-  if (unit === 'kilowatts') {
-    const kw = watts / 1000
-    return `${Math.round(kw * 10) / 10}kW`
-  }
+function formatPower(watts: number) {
   return `${Math.round(watts * 10) / 10}W`
 }
 
 function formatLatLon(
   latitude: number | null,
   longitude: number | null
-): string {
+): ReactNode {
   if (latitude === null || longitude === null) {
-    return 'N/A'
+    return <Trans>N/A</Trans>
   }
 
   return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
@@ -127,30 +118,28 @@ function formatServerTime(timestampMs: number) {
 
 function buildStatusItems(
   status: StatusResponse,
-  temperatureUnit: TemperatureUnit,
-  powerUnit: PowerUnit,
-  translate: (id: ReturnType<typeof msg>) => string
+  temperatureUnit: TemperatureUnit
 ): StatusItem[] {
   const recLeftMs = status.recording_duration_left_s * 1000
 
   return [
     {
-      label: translate(msg`Tilt`),
+      label: <Trans>Tilt</Trans>,
       value: formatDegrees(status.tilt),
       icon: <IconArrowsVertical {...STATUS_ICON_PROPS} />,
     },
     {
-      label: translate(msg`Pan`),
+      label: <Trans>Pan</Trans>,
       value: formatDegrees(status.pan),
       icon: <IconArrowsHorizontal {...STATUS_ICON_PROPS} />,
     },
     {
-      label: translate(msg`Rec Left`),
+      label: <Trans>Rec Left</Trans>,
       value: formatDuration(recLeftMs),
       icon: <IconClockHour3 {...STATUS_ICON_PROPS} />,
     },
     {
-      label: translate(msg`Storage`),
+      label: <Trans>Storage</Trans>,
       value: formatStorageUsedTotal(
         status.disk_used_bytes,
         status.disk_total_bytes
@@ -162,12 +151,12 @@ function buildStatusItems(
       icon: <IconDeviceSdCard {...STATUS_ICON_PROPS} />,
     },
     {
-      label: translate(msg`FPS`),
+      label: <Trans>FPS</Trans>,
       value: formatFps(status.average_fps),
       icon: <IconGauge {...STATUS_ICON_PROPS} />,
     },
     {
-      label: translate(msg`Mem`),
+      label: <Trans>Mem</Trans>,
       value: formatPercent(
         calculateUsagePercent(
           status.memory_used_bytes,
@@ -181,34 +170,37 @@ function buildStatusItems(
       icon: <IconDatabase {...STATUS_ICON_PROPS} />,
     },
     {
-      label: translate(msg`CPU`),
+      label: <Trans>CPU</Trans>,
       value: formatPercent(status.cpu_utilization),
       progress: status.cpu_utilization,
       icon: <IconCpu {...STATUS_ICON_PROPS} />,
     },
     {
-      label: translate(msg`GPU`),
+      label: <Trans>GPU</Trans>,
       value: formatPercent(status.gpu_utilization),
       progress: clampPercent(status.gpu_utilization),
       icon: <IconCpu {...STATUS_ICON_PROPS} />,
     },
     {
-      label: translate(msg`Temp`),
-      value: formatTemperature(status.core_temperature_celsius, temperatureUnit),
+      label: <Trans>Temp</Trans>,
+      value: formatTemperature(
+        status.core_temperature_celsius,
+        temperatureUnit
+      ),
       icon: <IconTemperature {...STATUS_ICON_PROPS} />,
     },
     {
-      label: translate(msg`Power`),
-      value: formatPower(status.system_power_w, powerUnit),
+      label: <Trans>Power</Trans>,
+      value: formatPower(status.system_power_w),
       icon: <IconBolt {...STATUS_ICON_PROPS} />,
     },
     {
-      label: translate(msg`Server Time`),
+      label: <Trans>Server Time</Trans>,
       value: formatServerTime(status.timestamp_ms),
       icon: <IconClock {...STATUS_ICON_PROPS} />,
     },
     {
-      label: translate(msg`GPS Location`),
+      label: <Trans>GPS Location</Trans>,
       value: formatLatLon(status.latitude, status.longitude),
       icon: <IconMapPin {...STATUS_ICON_PROPS} />,
     },
@@ -217,9 +209,7 @@ function buildStatusItems(
 
 export function SystemStatusCard() {
   const { status } = useRocam()
-  const { t } = useLingui()
   const temperatureUnit = useAtomValue(temperatureUnitAtom)
-  const powerUnit = useAtomValue(powerUnitAtom)
   const [now, setNow] = useState(Date.now())
   const lastStatusChangeMsRef = useRef(0)
 
@@ -243,12 +233,7 @@ export function SystemStatusCard() {
     )
   }
 
-  const statusItems = buildStatusItems(
-    status,
-    temperatureUnit,
-    powerUnit,
-    t
-  )
+  const statusItems = buildStatusItems(status, temperatureUnit)
   const baseMs =
     lastStatusChangeMsRef.current === 0
       ? Date.now()
@@ -260,16 +245,16 @@ export function SystemStatusCard() {
     <Card radius="sm">
       <CardBody className="px-6 py-5">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold text-gray-800 tracking-widest">
+          <p className="text-xs font-semibold uppercase text-gray-800 tracking-widest">
             <Trans>System Status</Trans>
           </p>
           <p className="text-xs text-gray-500 font-medium tabular-nums">
-            {t`Last updated: ${lastUpdatedText} ago`}
+            <Trans>Last updated: {lastUpdatedText} ago</Trans>
           </p>
         </div>
         <div className="mt-2 gap-x-10 flex flex-wrap">
-          {statusItems.map((item) => (
-            <StatusItemRow key={item.label} item={item} />
+          {statusItems.map((item, i) => (
+            <StatusItemRow key={i} item={item} />
           ))}
           <div className="grow basis-0 min-w-48" />
           <div className="grow basis-0 min-w-48" />

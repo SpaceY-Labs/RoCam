@@ -21,11 +21,16 @@ msgstr "Arm"
 msgid "ARMED"
 msgstr "ARMED"
 
-#: src/components/ConfigurationMenu.tsx:80
+#: src/pages/control.tsx:40
+msgid "Camera Preview"
+msgstr "Camera Preview"
+
+#: src/components/ConfigurationMenu.tsx:64
+#: src/components/ConfigurationMenu.tsx:68
 msgid "Configuration"
 msgstr "Configuration"
 
-#: src/components/navbar.tsx:42
+#: src/components/navbar.tsx:43
 msgid "Control"
 msgstr "Control"
 
@@ -33,59 +38,64 @@ msgstr "Control"
 msgid "Controls"
 msgstr "Controls"
 
-#: src/components/SystemStatusCard.tsx:184
+#: src/components/SystemStatusCard.tsx:173
 msgid "CPU"
 msgstr "CPU"
 
-#: src/pages/recordings.tsx:260
+#: src/pages/recordings.tsx:259
 msgid "Delete"
 msgstr "Delete"
 
+#. placeholder {0}: r.name
+#: src/pages/recordings.tsx:74
+msgid "Delete \"{0}\"? This cannot be undone."
+msgstr "Delete \"{0}\"? This cannot be undone."
+
 #: src/pages/recordings.tsx:75
-msgid "Delete \"{name}\"? This cannot be undone."
-msgstr "Delete \"{name}\"? This cannot be undone."
+#~ msgid "Delete \"{name}\"? This cannot be undone."
+#~ msgstr "Delete \"{name}\"? This cannot be undone."
 
 #: src/components/ControlsCard.tsx:100
 msgid "Disarm"
 msgstr "Disarm"
 
-#: src/pages/recordings.tsx:245
+#: src/pages/recordings.tsx:244
 msgid "Download"
 msgstr "Download"
 
-#: src/components/navbar.tsx:91
+#: src/components/navbar.tsx:92
 msgid "Emergency Stop"
 msgstr "Emergency Stop"
 
-#: src/components/navbar.tsx:77
+#: src/components/navbar.tsx:78
 msgid "Exit Fullscreen"
 msgstr "Exit Fullscreen"
 
-#: src/components/SystemStatusCard.tsx:165
+#: src/components/SystemStatusCard.tsx:154
 msgid "FPS"
 msgstr "FPS"
 
-#: src/components/navbar.tsx:79
+#: src/components/navbar.tsx:80
 msgid "Fullscreen"
 msgstr "Fullscreen"
 
-#: src/components/SystemStatusCard.tsx:211
+#: src/components/SystemStatusCard.tsx:203
 msgid "GPS Location"
 msgstr "GPS Location"
 
-#: src/components/SystemStatusCard.tsx:190
+#: src/components/SystemStatusCard.tsx:179
 msgid "GPU"
 msgstr "GPU"
 
-#: src/components/ConfigurationMenu.tsx:92
+#: src/components/ConfigurationMenu.tsx:76
 msgid "Language"
 msgstr "Language"
 
-#: src/components/SystemStatusCard.tsx:267
+#: src/components/SystemStatusCard.tsx:252
 msgid "Last updated: {lastUpdatedText} ago"
 msgstr "Last updated: {lastUpdatedText} ago"
 
-#: src/pages/recordings.tsx:98
+#: src/pages/recordings.tsx:96
 msgid "Loading recordings..."
 msgstr "Loading recordings..."
 
@@ -93,24 +103,31 @@ msgstr "Loading recordings..."
 msgid "Loading stream..."
 msgstr "Loading stream..."
 
-#: src/components/SystemStatusCard.tsx:170
+#: src/components/SystemStatusCard.tsx:159
 msgid "Mem"
 msgstr "Mem"
 
-#: src/pages/recordings.tsx:103
+#: src/components/SystemStatusCard.tsx:102
+msgid "N/A"
+msgstr "N/A"
+
+#: src/pages/recordings.tsx:101
 msgid "No recordings yet. Start one from the Control page."
 msgstr "No recordings yet. Start one from the Control page."
 
-#: src/components/SystemStatusCard.tsx:143
+#: src/components/navbar.tsx:89
+msgid "Not implemented"
+msgstr "Not implemented"
+
+#: src/components/SystemStatusCard.tsx:132
 msgid "Pan"
 msgstr "Pan"
 
-#: src/components/ConfigurationMenu.tsx:104
-#: src/components/SystemStatusCard.tsx:201
+#: src/components/SystemStatusCard.tsx:193
 msgid "Power"
 msgstr "Power"
 
-#: src/pages/recordings.tsx:235
+#: src/pages/recordings.tsx:234
 msgid "Preview"
 msgstr "Preview"
 
@@ -123,15 +140,23 @@ msgstr "Preview {0}"
 msgid "REC"
 msgstr "REC"
 
-#: src/components/SystemStatusCard.tsx:148
+#: src/components/SystemStatusCard.tsx:137
 msgid "Rec Left"
 msgstr "Rec Left"
 
-#: src/components/navbar.tsx:55
+#: src/components/navbar.tsx:56
 msgid "Recordings"
 msgstr "Recordings"
 
-#: src/components/SystemStatusCard.tsx:206
+#: src/components/navbar.tsx:30
+msgid "RoCam"
+msgstr "RoCam"
+
+#: src/components/LanguageSelector.tsx:36
+msgid "Select language"
+msgstr "Select language"
+
+#: src/components/SystemStatusCard.tsx:198
 msgid "Server Time"
 msgstr "Server Time"
 
@@ -143,23 +168,23 @@ msgstr "Start Recording"
 msgid "Stop Recording"
 msgstr "Stop Recording"
 
-#: src/components/SystemStatusCard.tsx:153
+#: src/components/SystemStatusCard.tsx:142
 msgid "Storage"
 msgstr "Storage"
 
-#: src/components/SystemStatusCard.tsx:264
+#: src/components/SystemStatusCard.tsx:249
 msgid "System Status"
 msgstr "System Status"
 
-#: src/components/SystemStatusCard.tsx:196
+#: src/components/SystemStatusCard.tsx:185
 msgid "Temp"
 msgstr "Temp"
 
-#: src/components/ConfigurationMenu.tsx:98
+#: src/components/ConfigurationMenu.tsx:82
 msgid "Temperature"
 msgstr "Temperature"
 
-#: src/components/SystemStatusCard.tsx:138
+#: src/components/SystemStatusCard.tsx:127
 msgid "Tilt"
 msgstr "Tilt"
 

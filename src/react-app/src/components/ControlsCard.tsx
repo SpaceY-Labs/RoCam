@@ -70,7 +70,7 @@ export function ControlsCard() {
   return (
     <Card radius="sm">
       <CardBody className="px-6 py-5">
-        <p className="text-xs font-semibold text-gray-800 tracking-widest">
+        <p className="text-xs font-semibold uppercase text-gray-800 tracking-widest">
           <Trans>Controls</Trans>
         </p>
         <div className="flex gap-8 mt-4">

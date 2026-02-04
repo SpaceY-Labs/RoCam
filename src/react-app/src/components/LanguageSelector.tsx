@@ -6,6 +6,7 @@ import {
 } from '@heroui/dropdown'
 import { Button } from '@heroui/button'
 import { useAtom } from 'jotai'
+import { useLingui } from '@lingui/react/macro'
 
 import { languageAtom, type Language } from '@/store/languageAtom'
 
@@ -15,6 +16,7 @@ const LANGUAGES: { key: Language; label: string }[] = [
 ]
 
 export function LanguageSelector() {
+  const { t } = useLingui()
   const [language, setLanguage] = useAtom(languageAtom)
 
   const handleLanguageChange = (key: React.Key) => {
@@ -31,7 +33,7 @@ export function LanguageSelector() {
         </Button>
       </DropdownTrigger>
       <DropdownMenu
-        aria-label="Select language"
+        aria-label={t`Select language`}
         selectedKeys={[language]}
         selectionMode="single"
         onSelectionChange={(keys) => {

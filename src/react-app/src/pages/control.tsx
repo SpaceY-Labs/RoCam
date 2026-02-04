@@ -37,7 +37,7 @@ export default function ControlPage() {
           <CardBody className="relative flex items-center justify-center overflow-hidden">
             {status?.preview ? (
               <img
-                alt="Camera Preview"
+                alt={t`Camera Preview`}
                 className="absolute rotate-90 rounded-lg max-w-none object-cover"
                 src={`data:image/jpeg;base64,${status.preview}`}
                 style={{ width: height + 1, height: width + 1 }}

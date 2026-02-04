@@ -9,17 +9,14 @@ import { Button } from '@heroui/button'
 import { useAtom } from 'jotai'
 import { IconSettings } from '@tabler/icons-react'
 import { Trans } from '@lingui/react/macro'
-import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { Key } from 'react'
 
 import {
   languageAtom,
   temperatureUnitAtom,
-  powerUnitAtom,
   type Language,
   type TemperatureUnit,
-  type PowerUnit,
 } from '@/store/languageAtom'
 
 const LANGUAGES: { key: Language; label: string }[] = [
@@ -32,16 +29,10 @@ const TEMPERATURE_UNITS: { key: TemperatureUnit; label: string }[] = [
   { key: 'fahrenheit', label: '°F (Fahrenheit)' },
 ]
 
-const POWER_UNITS: { key: PowerUnit; label: string }[] = [
-  { key: 'watts', label: 'W (Watts)' },
-  { key: 'kilowatts', label: 'kW (Kilowatts)' },
-]
-
 export function ConfigurationMenu() {
   const { t } = useLingui()
   const [language, setLanguage] = useAtom(languageAtom)
   const [temperatureUnit, setTemperatureUnit] = useAtom(temperatureUnitAtom)
-  const [powerUnit, setPowerUnit] = useAtom(powerUnitAtom)
 
   const handleAction = (key: Key) => {
     const keyStr = String(key)
@@ -56,13 +47,6 @@ export function ConfigurationMenu() {
     // Check temperature
     if (keyStr === 'celsius' || keyStr === 'fahrenheit') {
       setTemperatureUnit(keyStr as TemperatureUnit)
-
-      return
-    }
-
-    // Check power
-    if (keyStr === 'watts' || keyStr === 'kilowatts') {
-      setPowerUnit(keyStr as PowerUnit)
 
       return
     }
@@ -81,28 +65,22 @@ export function ConfigurationMenu() {
           </Button>
         </DropdownTrigger>
         <DropdownMenu
-          aria-label="Configuration"
+          aria-label={t`Configuration`}
           classNames={{
             base: 'max-h-[400px] overflow-y-auto',
           }}
-          selectedKeys={[language, temperatureUnit, powerUnit]}
+          selectedKeys={[language, temperatureUnit]}
           selectionMode="multiple"
           onAction={handleAction}
         >
-          <DropdownSection title={t(msg`Language`)}>
+          <DropdownSection title={t`Language`}>
             {LANGUAGES.map(({ key, label }) => (
               <DropdownItem key={key}>{label}</DropdownItem>
             ))}
           </DropdownSection>
 
-          <DropdownSection title={t(msg`Temperature`)}>
+          <DropdownSection title={t`Temperature`}>
             {TEMPERATURE_UNITS.map(({ key, label }) => (
-              <DropdownItem key={key}>{label}</DropdownItem>
-            ))}
-          </DropdownSection>
-
-          <DropdownSection title={t(msg`Power`)}>
-            {POWER_UNITS.map(({ key, label }) => (
               <DropdownItem key={key}>{label}</DropdownItem>
             ))}
           </DropdownSection>

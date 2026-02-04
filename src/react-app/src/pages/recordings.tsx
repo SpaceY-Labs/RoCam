@@ -1,3 +1,4 @@
+import type { TranslateFn } from '@/i18n'
 import type { Recording, ApiClient } from '@/network/api'
 
 import { useEffect, useRef, useState } from 'react'
@@ -14,9 +15,7 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/modal'
-import { Trans } from '@lingui/react/macro'
-import { msg } from '@lingui/core/macro'
-import { useLingui } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 
 import DefaultLayout from '@/layouts/default'
 import { useRocam } from '@/network/rocamProvider'
@@ -72,8 +71,7 @@ export default function RecordingsPage() {
 
   const handleDelete = async (r: Recording) => {
     if (!apiClient) return
-    if (!confirm(t(msg`Delete "{name}"? This cannot be undone.`, { name: r.name })))
-      return
+    if (!confirm(t`Delete "${r.name}"? This cannot be undone.`)) return
 
     try {
       await apiClient.deleteRecording(r.id)
@@ -95,7 +93,7 @@ export default function RecordingsPage() {
         <div className="divide-y divide-gray-200 px-4">
           {isLoading ? (
             <div className="flex justify-center py-12">
-              <Spinner label={t(msg`Loading recordings...`)} />
+              <Spinner label={t`Loading recordings...`} />
             </div>
           ) : recordings.length === 0 ? (
             <div className="flex justify-center py-12">
@@ -147,6 +145,7 @@ function RecordingItem({
   onDelete,
   onPreview,
 }: RecordingItemProps) {
+  const { t } = useLingui()
   const [filenameDraft, setFilenameDraft] = useState(r.name)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -211,11 +210,11 @@ function RecordingItem({
           <div className="flex items-center text-xs text-gray-500 font-medium tabular-nums mt-2">
             <div className="flex items-center gap-1 w-37">
               <IconCalendarEvent size={14} />
-              {formatDate(r.start_timestamp_ms)}
+              {formatDate(r.start_timestamp_ms, t)}
             </div>
             <div className="flex items-center gap-1 w-16">
               <IconClockHour3 size={14} />
-              {formatDuration(r.duration_ms)}
+              {formatDuration(r.duration_ms, t)}
             </div>
             <div className="flex items-center gap-1">
               <IconDeviceSdCard size={14} />
@@ -271,6 +270,7 @@ interface PreviewModalProps {
 }
 
 function PreviewModal({ recording, onClose }: PreviewModalProps) {
+  const { t } = useLingui()
   const { apiClient } = useRocam()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [currentTime, setCurrentTime] = useState(0)
@@ -379,7 +379,7 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
                   </Button>
                   <div className="absolute text-lg bottom-4 right-4 bg-white/75 text-black px-3 py-2 rounded-md text-sm font-mono pointer-events-none">
                     {formatSeconds(currentTime)} /{' '}
-                    {formatDuration(recording.duration_ms)}
+                    {formatDuration(recording.duration_ms, t)}
                   </div>
                 </div>
               )}
@@ -395,11 +395,11 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
  * UTILS
  */
 
-function formatDate(timestampMs: number | null) {
-  if (timestampMs === null || !Number.isFinite(timestampMs)) return '--'
+function formatDate(timestampMs: number | null, t: TranslateFn): string {
+  if (timestampMs === null || !Number.isFinite(timestampMs)) return t`—`
   const d = new Date(timestampMs)
 
-  if (isNaN(d.getTime())) return '--'
+  if (isNaN(d.getTime())) return t`—`
 
   return d.toLocaleString(undefined, {
     year: 'numeric',
@@ -410,9 +410,9 @@ function formatDate(timestampMs: number | null) {
   })
 }
 
-function formatDuration(durationMs: number | null) {
+function formatDuration(durationMs: number | null, t: TranslateFn): string {
   if (durationMs === null || !Number.isFinite(durationMs) || durationMs < 0)
-    return '--:--'
+    return t`--:--`
   const seconds = Math.floor(durationMs / 1000)
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)
