@@ -1246,25 +1246,25 @@ This module does not have any exported constants.
 \begin{center}
   \begin{tabular}{p{3cm} p{4cm} p{4cm} p{3.5cm}}
     \hline
-    \textbf{Name}        & \textbf{In}                      & \textbf{Out}                                                           & \textbf{Exceptions} \\
+    \textbf{Name}          & \textbf{In}                           & \textbf{Out}                                                                                    & \textbf{Exceptions} \\
     \hline
-    connect              & port: str \newline baudrate: int & -                                                                      & SerialError         \\
+    connect                & port: str \newline baudrate: int      & -                                                                                               & SerialError         \\
     \hline
-    gimbal\_info         & -                                & tilt\_range\_deg: (f32, f32), pan\_range\_deg: (f32, f32), focal\_length\_range\_mm: (f32, f32) & GimbalError         \\
+    gimbal\_info           & -                                     & tilt\_range\_deg: (f32, f32), pan\_range\_deg: (f32, f32), focal\_length\_range\_mm: (f32, f32) & GimbalError         \\
     \hline
-    set\_arm\_led        & enabled: bool                    & -                                                                      & GimbalError         \\
+    set\_arm\_led          & enabled: bool                         & -                                                                                               & GimbalError         \\
     \hline
-    set\_status\_led     & enabled: bool                    & -                                                                      & GimbalError         \\
+    set\_status\_led       & enabled: bool                         & -                                                                                               & GimbalError         \\
     \hline
-    set\_deg             & tilt\_deg: f32 \newline pan\_deg: f32 & -                                                                  & GimbalError         \\
+    set\_deg               & tilt\_deg: f32 \newline pan\_deg: f32 & -                                                                                               & GimbalError         \\
     \hline
-    get\_deg             & -                                & tilt\_deg: f32, pan\_deg: f32                                          & GimbalError         \\
+    get\_deg               & -                                     & tilt\_deg: f32, pan\_deg: f32                                                                   & GimbalError         \\
     \hline
-    set\_focal\_length\_mm & focal\_length\_mm: f32          & -                                                                      & GimbalError         \\
+    set\_focal\_length\_mm & focal\_length\_mm: f32                & -                                                                                               & GimbalError         \\
     \hline
-    get\_focal\_length\_mm & -                              & focal\_length\_mm: f32                                                 & GimbalError         \\
+    get\_focal\_length\_mm & -                                     & focal\_length\_mm: f32                                                                          & GimbalError         \\
     \hline
-    get\_gps\_data       & -                                & longitude: f64, latitude: f64, timestamp\_ms: u64                      & GimbalError         \\
+    get\_gps\_data         & -                                     & longitude: f64, latitude: f64, timestamp\_ms: u64                                               & GimbalError         \\
     \hline
   \end{tabular}
 \end{center}
@@ -1315,7 +1315,8 @@ This module does not have any assumptions.
         through the Serial Abstraction Module (\mref{mSerial}) (see the
         \href{https://github.com/SpaceY-Labs/RoCam/blob/main/docs/Design/GimbalProtocol/GimbalProtocol.pdf}{Gimbal
           Protocol} doc for details).
-  \item output: (tilt\_range\_deg: (f32, f32), pan\_range\_deg: (f32, f32), focal\_length\_range\_mm: (f32, f32))
+  \item output: (tilt\_range\_deg: (f32, f32), pan\_range\_deg: (f32, f32),
+        focal\_length\_range\_mm: (f32, f32))
   \item exception: GimbalError
 \end{itemize}
 
@@ -1355,7 +1356,8 @@ This module does not have any assumptions.
         through the Serial Abstraction Module (\mref{mSerial}) (see the
         \href{https://github.com/SpaceY-Labs/RoCam/blob/main/docs/Design/GimbalProtocol/GimbalProtocol.pdf}{Gimbal
           Protocol} doc for details).
-  \item output: (tilt\_deg: f32, pan\_deg: f32). If coordinates are not available, returns (NaN, NaN).
+  \item output: (tilt\_deg: f32, pan\_deg: f32). If coordinates are not available,
+        returns (NaN, NaN).
   \item exception: GimbalError
 \end{itemize}
 
@@ -1385,7 +1387,9 @@ This module does not have any assumptions.
         Module (\mref{mSerial}) (see the
         \href{https://github.com/SpaceY-Labs/RoCam/blob/main/docs/Design/GimbalProtocol/GimbalProtocol.pdf}{Gimbal
           Protocol} doc for details).
-  \item output: (longitude: f64, latitude: f64, timestamp\_ms: u64). If coordinates are not available, longitude and latitude are NaN. If timestamp is not available, timestamp\_ms is 0.
+  \item output: (longitude: f64, latitude: f64, timestamp\_ms: u64). If coordinates are
+        not available, longitude and latitude are NaN. If timestamp is not available,
+        timestamp\_ms is 0.
   \item exception: GimbalError
 \end{itemize}
 
@@ -2232,8 +2236,10 @@ This module does not have any environment variables.
           \item preview: \texttt{cv\_data.preview}.
           \item osd\_data: \texttt{osd\_data}.
           \item timestamp\_ms: Get from system time.
-          \item longitude: First element of \texttt{gimbal.get\_gps\_data()} (longitude); if NaN, null.
-          \item latitude: Second element of \texttt{gimbal.get\_gps\_data()} (latitude); if NaN, null.
+          \item longitude: First element of \texttt{gimbal.get\_gps\_data()} (longitude); if
+                NaN, null.
+          \item latitude: Second element of \texttt{gimbal.get\_gps\_data()} (latitude); if
+                NaN, null.
           \item gpu\_utilization: From \texttt{system\_status.get\_gpu\_utilization()}.
           \item cpu\_utilization: From \texttt{system\_status.get\_cpu\_utilization()}.
           \item core\_temperature\_celsius: From
@@ -2345,8 +2351,10 @@ This module does not have any environment variables.
                   \item If \texttt{is\_armed} is true, and \texttt{cv\_data.bbox} is null, return
                         'armed'.
                 \end{itemize}
-          \item longitude: First element of \texttt{gimbal.get\_gps\_data()} (longitude); if NaN, 0.0.
-          \item latitude: Second element of \texttt{gimbal.get\_gps\_data()} (latitude); if NaN, 0.0.
+          \item longitude: First element of \texttt{gimbal.get\_gps\_data()} (longitude); if
+                NaN, 0.0.
+          \item latitude: Second element of \texttt{gimbal.get\_gps\_data()} (latitude); if
+                NaN, 0.0.
         \end{itemize}
   \item output: \texttt{OSDData}
   \item exception: None
@@ -2372,8 +2380,8 @@ This module does not have any environment variables.
           \item Loop every 5 seconds.
                 \begin{itemize}
                   \item Call \texttt{gimbal.get\_gps\_data()}.
-                  \item If timestamp\_ms (third element) is not 0, set the system time to the timestamp and break
-                        the loop.
+                  \item If timestamp\_ms (third element) is not 0, set the system time to the timestamp
+                        and break the loop.
                 \end{itemize}.
         \end{itemize}
   \item output: None
