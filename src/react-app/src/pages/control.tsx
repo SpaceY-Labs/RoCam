@@ -43,7 +43,7 @@ export default function ControlPage() {
                 style={{ width: height + 1, height: width + 1 }}
               />
             ) : (
-              <Spinner label="Loading stream..." />
+              <Spinner label={t`Loading stream...`} />
             )}
             <div className="absolute" style={{ width, height }}>
               {bbox && (

@@ -17,7 +17,7 @@ msgstr ""
 msgid "Arm"
 msgstr "Arm"
 
-#: src/pages/control.tsx:81
+#: src/pages/control.tsx:82
 msgid "ARMED"
 msgstr "ARMED"
 
@@ -25,7 +25,7 @@ msgstr "ARMED"
 msgid "Configuration"
 msgstr "Configuration"
 
-#: src/components/navbar.tsx:38
+#: src/components/navbar.tsx:42
 msgid "Control"
 msgstr "Control"
 
@@ -53,11 +53,11 @@ msgstr "Disarm"
 msgid "Download"
 msgstr "Download"
 
-#: src/components/navbar.tsx:87
+#: src/components/navbar.tsx:91
 msgid "Emergency Stop"
 msgstr "Emergency Stop"
 
-#: src/components/navbar.tsx:73
+#: src/components/navbar.tsx:77
 msgid "Exit Fullscreen"
 msgstr "Exit Fullscreen"
 
@@ -65,7 +65,7 @@ msgstr "Exit Fullscreen"
 msgid "FPS"
 msgstr "FPS"
 
-#: src/components/navbar.tsx:75
+#: src/components/navbar.tsx:79
 msgid "Fullscreen"
 msgstr "Fullscreen"
 
@@ -89,7 +89,7 @@ msgstr "Last updated: {lastUpdatedText} ago"
 msgid "Loading recordings..."
 msgstr "Loading recordings..."
 
-#: src/pages/control.tsx:38
+#: src/pages/control.tsx:46
 msgid "Loading stream..."
 msgstr "Loading stream..."
 
@@ -119,7 +119,7 @@ msgstr "Preview"
 msgid "Preview {0}"
 msgstr "Preview {0}"
 
-#: src/pages/control.tsx:75
+#: src/pages/control.tsx:76
 msgid "REC"
 msgstr "REC"
 
@@ -127,7 +127,7 @@ msgstr "REC"
 msgid "Rec Left"
 msgstr "Rec Left"
 
-#: src/components/navbar.tsx:51
+#: src/components/navbar.tsx:55
 msgid "Recordings"
 msgstr "Recordings"
 
