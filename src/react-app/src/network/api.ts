@@ -207,6 +207,3 @@ export class ApiClient {
     )
   }
 }
-
-// Export a default instance
-export const apiClient = new ApiClient()

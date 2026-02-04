@@ -56,7 +56,8 @@ python3 accuracy_benchmark.py \
 
 # Benchmark Results
 
-| Path                     | Base Model | mAP@0.50:0.95 | mAP@0.50 | Author       | Date        | Notes                |
-| ------------------------ | ---------- | ------------- | -------- | ------------ | ----------- | -------------------- |
-| ./models/original.pt     | 11s        | 0.553312      | 0.884197 | Unknown      | Unknown     | Oldest model         |
-| ./models/first_yolo26.pt | 26s        | 0.579883      | 0.893774 | Xiaotian Lou | Jan 28 2026 | First YOLO26 attempt |
+| Path                     | Base Model | mAP@0.50:0.95 small | mAP@0.50:0.95 medium | mAP@0.50:0.95 large | Author       | Date        | Notes                       |
+| ------------------------ | ---------- | ------------------- | -------------------- | ------------------- | ------------ | ----------- | --------------------------- |
+| ./models/original.pt     | 11s        | 0.254               | 0.552                | 0.635               | Unknown      | Unknown     | Oldest model                |
+| ./models/first_yolo26.pt | 26s        | 0.304               | 0.565                | 0.664               | Xiaotian Lou | Jan 28 2026 | First YOLO26 attempt        |
+| ./models/small_rocket.pt | 26s        | 0.340               | 0.620                | 0.716               | Xiaotian Lou | Jan 31 2026 | Optimized for small rockets |
