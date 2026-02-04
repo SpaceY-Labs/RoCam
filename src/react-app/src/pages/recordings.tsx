@@ -1,4 +1,3 @@
-import type { TranslateFn } from '@/i18n'
 import type { Recording, ApiClient } from '@/network/api'
 
 import { useEffect, useRef, useState } from 'react'
@@ -145,7 +144,6 @@ function RecordingItem({
   onDelete,
   onPreview,
 }: RecordingItemProps) {
-  const { t } = useLingui()
   const [filenameDraft, setFilenameDraft] = useState(r.name)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -210,11 +208,11 @@ function RecordingItem({
           <div className="flex items-center text-xs text-gray-500 font-medium tabular-nums mt-2">
             <div className="flex items-center gap-1 w-37">
               <IconCalendarEvent size={14} />
-              {formatDate(r.start_timestamp_ms, t)}
+              {formatDate(r.start_timestamp_ms)}
             </div>
             <div className="flex items-center gap-1 w-16">
               <IconClockHour3 size={14} />
-              {formatDuration(r.duration_ms, t)}
+              {formatDuration(r.duration_ms)}
             </div>
             <div className="flex items-center gap-1">
               <IconDeviceSdCard size={14} />
@@ -270,7 +268,6 @@ interface PreviewModalProps {
 }
 
 function PreviewModal({ recording, onClose }: PreviewModalProps) {
-  const { t } = useLingui()
   const { apiClient } = useRocam()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [currentTime, setCurrentTime] = useState(0)
@@ -379,7 +376,7 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
                   </Button>
                   <div className="absolute text-lg bottom-4 right-4 bg-white/75 text-black px-3 py-2 rounded-md text-sm font-mono pointer-events-none">
                     {formatSeconds(currentTime)} /{' '}
-                    {formatDuration(recording.duration_ms, t)}
+                    {formatDuration(recording.duration_ms)}
                   </div>
                 </div>
               )}
@@ -395,11 +392,11 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
  * UTILS
  */
 
-function formatDate(timestampMs: number | null, t: TranslateFn): string {
-  if (timestampMs === null || !Number.isFinite(timestampMs)) return t`—`
+function formatDate(timestampMs: number | null): string {
+  if (timestampMs === null || !Number.isFinite(timestampMs)) return ''
   const d = new Date(timestampMs)
 
-  if (isNaN(d.getTime())) return t`—`
+  if (isNaN(d.getTime())) return ''
 
   return d.toLocaleString(undefined, {
     year: 'numeric',
@@ -410,9 +407,9 @@ function formatDate(timestampMs: number | null, t: TranslateFn): string {
   })
 }
 
-function formatDuration(durationMs: number | null, t: TranslateFn): string {
+function formatDuration(durationMs: number | null): string {
   if (durationMs === null || !Number.isFinite(durationMs) || durationMs < 0)
-    return t`--:--`
+    return ''
   const seconds = Math.floor(durationMs / 1000)
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)
