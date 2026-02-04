@@ -71,10 +71,6 @@ class RecordingInfo:
 class StopRecording:
     pass
 
-@dataclass
-class RecoverLiveVideo:
-    pass
-
 def create_rocam_ipc_server(socket_path: str):
     # Clean up stale socket file from previous runs
     if os.path.exists(socket_path):

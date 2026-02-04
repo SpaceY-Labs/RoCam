@@ -34,15 +34,16 @@ export default function ControlPage() {
           className="aspect-[9/16] row-span-2"
           radius="sm"
         >
-          <CardBody className="relative flex items-center justify-center">
-            <Spinner label={t`Loading stream...`} />
-            {status?.preview && (
+          <CardBody className="relative flex items-center justify-center overflow-hidden">
+            {status?.preview ? (
               <img
                 alt="Camera Preview"
-                className="absolute rotate-90 rounded-lg max-w-none"
+                className="absolute rotate-90 rounded-lg max-w-none object-cover"
                 src={`data:image/jpeg;base64,${status.preview}`}
-                style={{ width: height, height: width }}
+                style={{ width: height + 1, height: width + 1 }}
               />
+            ) : (
+              <Spinner label="Loading stream..." />
             )}
             <div className="absolute" style={{ width, height }}>
               {bbox && (

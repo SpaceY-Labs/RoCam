@@ -5,7 +5,6 @@ from pathlib import Path
 import select
 import subprocess
 import time
-from dataclasses import asdict
 
 from pathvalidate import sanitize_filename
 from common.ipc import RecordingInfo
@@ -46,6 +45,13 @@ def run_api_gateway(
     FRONTEND_DIR = Path("../react-app/dist").resolve()
     if not os.path.isdir(FRONTEND_DIR):
         logger.warning(f"{FRONTEND_DIR} does not exist.")
+
+    def _stream_wrapper(generator):
+        state_management.on_download_start()
+        try:
+            yield from generator
+        finally:
+            state_management.on_download_end()
 
     @app.post("/api/status")
     def get_status():
@@ -122,7 +128,9 @@ def run_api_gateway(
         }
         return Response(
             stream_with_context(
-                _stream_from_transcode_process("preview-stabilized", recording)
+                _stream_wrapper(
+                    _stream_from_transcode_process("preview-stabilized", recording)
+                )
             ),
             headers=headers,
         )
@@ -140,7 +148,9 @@ def run_api_gateway(
         }
         return Response(
             stream_with_context(
-                _stream_from_transcode_process("download-stabilized", recording)
+                _stream_wrapper(
+                    _stream_from_transcode_process("download-stabilized", recording)
+                )
             ),
             headers=headers,
         )

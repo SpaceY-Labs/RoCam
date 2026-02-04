@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import {
   Navbar as HeroUINavbar,
   NavbarContent,
@@ -13,12 +13,16 @@ import { Trans } from '@lingui/react/macro'
 import { ConfigurationMenu } from './ConfigurationMenu'
 
 export const Navbar = () => {
+  const location = useLocation()
+  const isControlPage = location.pathname === '/'
+
   return (
     <HeroUINavbar
       classNames={{
-        base: 'bg-transparent backdrop-filter-none',
+        base: isControlPage ? 'bg-transparent backdrop-filter-none' : undefined,
         wrapper: 'px-4',
       }}
+      isBlurred={false}
       maxWidth="full"
     >
       <NavbarContent justify="start">
