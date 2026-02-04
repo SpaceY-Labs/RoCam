@@ -25,6 +25,7 @@ class StatusResponse:
     armed: bool
     tilt: float
     pan: float
+    focal_length: float
     preview: Optional[str]
     bbox: Optional[BoundingBox]
     average_fps: float
@@ -87,6 +88,8 @@ class StateManagement:
         self._gimbal_lock = threading.Lock()
         self._last_gimbal_measure_time = 0.0
         self._last_gimbal_measure = (0.0, 0.0)
+        self._last_focal_length_time = 0.0
+        self._last_focal_length = 24.0  # Default focal length
 
         self._armed = False
         self._last_preview_frame: PreviewData | None = None
@@ -137,6 +140,19 @@ class StateManagement:
                 logger.warning(f"Error measuring gimbal: {e}")
             return self._last_gimbal_measure
 
+    def _focal_length_cached(self) -> float:
+        with self._gimbal_lock:
+            now = time.perf_counter()
+            if now - self._last_focal_length_time < 0.1:  # 100ms cache
+                return self._last_focal_length
+
+            try:
+                self._last_focal_length = self._gimbal.get_focal_length()
+                self._last_focal_length_time = now
+            except Exception as e:
+                logger.warning(f"Error getting focal length: {e}")
+            return self._last_focal_length
+
     def _on_cvdata(self, data: CVData):
         self._last_cv_data = data
         self._bboxes.received_data(data)
@@ -164,6 +180,7 @@ class StateManagement:
                 tracking_state = "armed"
 
         tilt, pan = self._gimbal_measure_deg_cached()
+        focal_length = self._focal_length_cached()
 
         osd_data = OSDData(
             pts_ns=data.pts_ns,
@@ -173,7 +190,7 @@ class StateManagement:
             average_fps=data.fps,
             gimbal_tilt_deg=tilt,
             gimbal_pan_deg=pan,
-            gimbal_focal_length_mm=24,  # Hardcoded for now
+            gimbal_focal_length_mm=focal_length,
             device_ip_addresses=self._system_status.get_device_ip_addresses(),
             timestamp_ms=int(time.time() * 1000),
             tracking_state=tracking_state,
@@ -213,10 +230,12 @@ class StateManagement:
         timestamp_ms = int(time.time() * 1000)
 
         tilt, pan = self._gimbal_measure_deg_cached()
+        focal_length = self._focal_length_cached()
         return StatusResponse(
             armed=self._armed,
             tilt=tilt,
             pan=pan,
+            focal_length=focal_length,
             preview=latest_preview_frame,
             bbox=bbox,
             average_fps=average_fps,
@@ -271,6 +290,20 @@ class StateManagement:
             self._gimbal.move_deg(new_tilt, new_pan)
         except Exception as e:
             logger.error(f"Error in manual_move_to: {e}")
+
+    def set_focal_length(self, focal_length_mm: float):
+        if self._armed:
+            return
+        try:
+            # Clamp focal length to a reasonable range (e.g., 10mm to 200mm)
+            clamped_focal_length = max(10.0, min(200.0, focal_length_mm))
+            self._gimbal.set_focal_length(clamped_focal_length)
+            # Update cache immediately
+            with self._gimbal_lock:
+                self._last_focal_length = clamped_focal_length
+                self._last_focal_length_time = time.perf_counter()
+        except Exception as e:
+            logger.error(f"Error in set_focal_length: {e}")
 
     def start_recording(self):
         recording_info = self.database.allocate_recording()

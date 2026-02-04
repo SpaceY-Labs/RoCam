@@ -7,6 +7,8 @@ import {
   IconChevronUp,
   IconChevronDown,
   IconHome,
+  IconZoomIn,
+  IconZoomOut,
 } from '@tabler/icons-react'
 import { useTimeoutFn } from 'react-use'
 import { Trans } from '@lingui/react/macro'
@@ -75,6 +77,7 @@ export function ControlsCard() {
         </p>
         <div className="flex gap-8 mt-4">
           <GimbalPad />
+          <FocalLengthControls />
           <div className="flex flex-col justify-center gap-3">
             <Button
               color="danger"
@@ -166,6 +169,51 @@ function GimbalPad() {
         <IconChevronDown />
       </Button>
       <div />
+    </div>
+  )
+}
+
+function FocalLengthControls() {
+  const { apiClient, status } = useRocam()
+  const disabled = !!status?.armed
+  const currentFocalLength = status?.focal_length ?? 24
+
+  const handleZoomIn = () => {
+    if (!apiClient || disabled) return
+    const newFocalLength = Math.min(200, currentFocalLength + 10)
+
+    apiClient.setFocalLength(newFocalLength)
+  }
+
+  const handleZoomOut = () => {
+    if (!apiClient || disabled) return
+    const newFocalLength = Math.max(10, currentFocalLength - 10)
+
+    apiClient.setFocalLength(newFocalLength)
+  }
+
+  return (
+    <div className="flex flex-col justify-center gap-2">
+      <Button
+        isIconOnly
+        disabled={disabled}
+        radius="sm"
+        size="lg"
+        variant="flat"
+        onPress={handleZoomIn}
+      >
+        <IconZoomIn />
+      </Button>
+      <Button
+        isIconOnly
+        disabled={disabled}
+        radius="sm"
+        size="lg"
+        variant="flat"
+        onPress={handleZoomOut}
+      >
+        <IconZoomOut />
+      </Button>
     </div>
   )
 }

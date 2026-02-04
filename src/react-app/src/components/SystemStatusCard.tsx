@@ -15,6 +15,7 @@ import {
   IconClockHour3,
   IconDatabase,
   IconMapPin,
+  IconFocusCentered,
 } from '@tabler/icons-react'
 import { Trans } from '@lingui/react/macro'
 import { useAtomValue } from 'jotai'
@@ -37,6 +38,10 @@ type StatusItem = {
 
 function formatDegrees(degrees: number) {
   return `${Math.round(degrees * 10) / 10}°`
+}
+
+function formatFocalLength(mm: number) {
+  return `${Math.round(mm * 10) / 10}mm`
 }
 
 function formatFps(fps: number) {
@@ -132,6 +137,11 @@ function buildStatusItems(
       label: <Trans>Pan</Trans>,
       value: formatDegrees(status.pan),
       icon: <IconArrowsHorizontal {...STATUS_ICON_PROPS} />,
+    },
+    {
+      label: <Trans>Focal Length</Trans>,
+      value: formatFocalLength(status.focal_length),
+      icon: <IconFocusCentered {...STATUS_ICON_PROPS} />,
     },
     {
       label: <Trans>Rec Left</Trans>,

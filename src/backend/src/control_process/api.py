@@ -82,6 +82,13 @@ def run_api_gateway(
         state_management.disarm()
         return jsonify({})
 
+    @app.post("/api/set_focal_length")
+    def set_focal_length():
+        data = request.get_json()
+        focal_length = data.get("focal_length")
+        state_management.set_focal_length(focal_length)
+        return jsonify({})
+
     @app.post("/api/recordings/start")
     def recordings_start():
         state_management.start_recording()

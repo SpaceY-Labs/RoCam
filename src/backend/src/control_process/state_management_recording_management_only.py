@@ -28,6 +28,7 @@ class StateManagementRecordingManagementOnly:
             armed=False,
             tilt=0,
             pan=0,
+            focal_length=24.0,
             preview=None,
             bbox=None,
             average_fps=0,
@@ -50,6 +51,9 @@ class StateManagementRecordingManagementOnly:
         pass
 
     def manual_move_to(self, tilt: float, pan: float):
+        pass
+
+    def set_focal_length(self, focal_length_mm: float):
         pass
 
     def start_recording(self):

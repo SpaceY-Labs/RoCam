@@ -12,6 +12,7 @@ export type StatusResponse = {
   armed: boolean
   tilt: number
   pan: number
+  focal_length: number
   preview: string | null
   bbox: BoundingBox | null
   average_fps: number
@@ -173,6 +174,17 @@ export class ApiClient {
    */
   async disarm(): Promise<ApiResponse> {
     return this.requestJson<ApiResponse>('POST', '/api/disarm')
+  }
+
+  /**
+   * Sets the camera focal length
+   * @param focalLength - The focal length in millimeters
+   * @returns Promise resolving to an empty response
+   */
+  async setFocalLength(focalLength: number): Promise<ApiResponse> {
+    const body = { focal_length: focalLength }
+
+    return this.requestJson<ApiResponse>('POST', '/api/set_focal_length', body)
   }
 
   async startRecording(): Promise<ApiResponse> {
