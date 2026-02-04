@@ -94,7 +94,12 @@ class StateManagement:
         self._system_status = SystemStatusMonitor()
 
         self._gimbal = GimbalSerial(port="/dev/ttyTHS1", baudrate=115200, timeout=0.1)
-        self._gimbal.move_deg(0, 0)
+        self._gimbal.set_deg(0, 0)
+        tilt_range, pan_range, focal_range = self._gimbal.gimbal_info()
+        logger.info(
+            f"Gimbal info: tilt {tilt_range} deg, pan {pan_range} deg, focal {focal_range} mm"
+        )
+        
         self._tracking = Tracking(
             gimbal=self._gimbal, width=1080, height=1920, k_p=0.005
         )
@@ -120,9 +125,9 @@ class StateManagement:
         set_scheduler_other()
         while True:
             time.sleep(0.5)
-            self._gimbal.status_led(True)
+            self._gimbal.set_status_led(True)
             time.sleep(0.5)
-            self._gimbal.status_led(False)
+            self._gimbal.set_status_led(False)
 
     def _gimbal_measure_deg_cached(self) -> tuple[float, float]:
         with self._gimbal_lock:
@@ -131,7 +136,7 @@ class StateManagement:
                 return self._last_gimbal_measure
 
             try:
-                self._last_gimbal_measure = self._gimbal.measure_deg()
+                self._last_gimbal_measure = self._gimbal.get_deg()
                 self._last_gimbal_measure_time = now
             except Exception as e:
                 logger.warning(f"Error measuring gimbal: {e}")
@@ -191,11 +196,11 @@ class StateManagement:
 
     def arm(self):
         self._armed = True
-        self._gimbal.arm_led(True)
+        self._gimbal.set_arm_led(True)
 
     def disarm(self):
         self._armed = False
-        self._gimbal.arm_led(False)
+        self._gimbal.set_arm_led(False)
 
     def status(self):
         average_fps = (
@@ -258,7 +263,7 @@ class StateManagement:
                 logger.warning(f"Unknown direction: {direction}")
                 return
 
-            self._gimbal.move_deg(new_tilt, new_pan)
+            self._gimbal.set_deg(new_tilt, new_pan)
         except Exception as e:
             logger.error(f"Error in manual_move: {e}")
 
@@ -268,7 +273,7 @@ class StateManagement:
         try:
             new_tilt = max(0.0, min(90.0, tilt))
             new_pan = max(-45.0, min(45.0, pan))
-            self._gimbal.move_deg(new_tilt, new_pan)
+            self._gimbal.set_deg(new_tilt, new_pan)
         except Exception as e:
             logger.error(f"Error in manual_move_to: {e}")
 
