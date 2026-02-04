@@ -85,7 +85,13 @@ def run_api_gateway(
     @app.post("/api/set_focal_length")
     def set_focal_length():
         data = request.get_json()
+        if data is None:
+            return jsonify({"error": "Missing request body"}), 400
         focal_length = data.get("focal_length")
+        if focal_length is None:
+            return jsonify({"error": "Missing focal_length parameter"}), 400
+        if not isinstance(focal_length, (int, float)):
+            return jsonify({"error": "focal_length must be a number"}), 400
         state_management.set_focal_length(focal_length)
         return jsonify({})
 

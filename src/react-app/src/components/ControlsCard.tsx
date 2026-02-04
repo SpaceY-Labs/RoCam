@@ -15,6 +15,11 @@ import { Trans } from '@lingui/react/macro'
 
 import { useRocam } from '@/network/rocamProvider'
 
+// Focal length control constants (must match backend validation)
+const MIN_FOCAL_LENGTH = 10
+const MAX_FOCAL_LENGTH = 200
+const FOCAL_LENGTH_STEP = 10
+
 export function ControlsCard() {
   const { apiClient, status } = useRocam()
   const [isArmLoading, setIsArmLoading] = useState(false)
@@ -180,14 +185,20 @@ function FocalLengthControls() {
 
   const handleZoomIn = () => {
     if (!apiClient || disabled) return
-    const newFocalLength = Math.min(200, currentFocalLength + 10)
+    const newFocalLength = Math.min(
+      MAX_FOCAL_LENGTH,
+      currentFocalLength + FOCAL_LENGTH_STEP
+    )
 
     apiClient.setFocalLength(newFocalLength)
   }
 
   const handleZoomOut = () => {
     if (!apiClient || disabled) return
-    const newFocalLength = Math.max(10, currentFocalLength - 10)
+    const newFocalLength = Math.max(
+      MIN_FOCAL_LENGTH,
+      currentFocalLength - FOCAL_LENGTH_STEP
+    )
 
     apiClient.setFocalLength(newFocalLength)
   }
