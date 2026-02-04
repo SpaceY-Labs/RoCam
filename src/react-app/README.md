@@ -3,6 +3,7 @@
 # How to Run:
 
 ```bash
+yarn
 yarn dev
 ```
 

@@ -9,6 +9,7 @@ import {
   IconHome,
 } from '@tabler/icons-react'
 import { useTimeoutFn } from 'react-use'
+import { Trans } from '@lingui/react/macro'
 
 import { useRocam } from '@/network/rocamProvider'
 
@@ -43,7 +44,7 @@ export function ControlsCard() {
         await apiClient.arm()
       }
     } catch {
-      console.error(`Failed to ${isArmed ? 'disarm' : 'arm'}`)
+      console.warn(`Failed to ${isArmed ? 'disarm' : 'arm'}`)
     } finally {
       setIsArmLoading(false)
     }
@@ -60,7 +61,7 @@ export function ControlsCard() {
         await apiClient.startRecording()
       }
     } catch {
-      console.error(`Failed to ${isRecording ? 'stop' : 'start'} recording`)
+      console.warn(`Failed to ${isRecording ? 'stop' : 'start'} recording`)
     } finally {
       setIsRecordLoading(false)
     }
@@ -69,8 +70,8 @@ export function ControlsCard() {
   return (
     <Card radius="sm">
       <CardBody className="px-6 py-5">
-        <p className="text-xs font-semibold text-gray-800 tracking-widest">
-          CONTROLS
+        <p className="text-xs font-semibold uppercase text-gray-800 tracking-widest">
+          <Trans>Controls</Trans>
         </p>
         <div className="flex gap-8 mt-4">
           <GimbalPad />
@@ -82,7 +83,11 @@ export function ControlsCard() {
               variant="bordered"
               onPress={handleToggleRecording}
             >
-              {isRecording ? 'Stop Recording' : 'Start Recording'}
+              {isRecording ? (
+                <Trans>Stop Recording</Trans>
+              ) : (
+                <Trans>Start Recording</Trans>
+              )}
             </Button>
             <Button
               className="border-amber-500 text-amber-600"
@@ -92,7 +97,7 @@ export function ControlsCard() {
               variant="bordered"
               onPress={handleToggleArm}
             >
-              {isArmed ? 'Disarm' : 'Arm'}
+              {isArmed ? <Trans>Disarm</Trans> : <Trans>Arm</Trans>}
             </Button>
           </div>
         </div>

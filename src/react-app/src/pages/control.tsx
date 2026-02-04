@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { Spinner } from '@heroui/spinner'
 import { useMeasure } from 'react-use'
+import { Trans, useLingui } from '@lingui/react/macro'
 
 import { ControlsCard } from '@/components/ControlsCard'
 import { SystemStatusCard } from '@/components/SystemStatusCard'
@@ -9,12 +10,14 @@ import { useRocam } from '@/network/rocamProvider'
 import DefaultLayout from '@/layouts/default'
 
 export default function ControlPage() {
+  const { t } = useLingui()
   const { status, statusPollingError } = useRocam()
   const [streamContainerRef, streamBounds] = useMeasure<HTMLDivElement>()
   const { width, height } = streamBounds
 
   useEffect(() => {
     if (statusPollingError) {
+      // eslint-disable-next-line no-console
       console.error(statusPollingError)
     }
   }, [statusPollingError])
@@ -34,13 +37,13 @@ export default function ControlPage() {
           <CardBody className="relative flex items-center justify-center overflow-hidden">
             {status?.preview ? (
               <img
-                alt="Camera Preview"
+                alt={t`Camera Preview`}
                 className="absolute rotate-90 rounded-lg max-w-none object-cover"
                 src={`data:image/jpeg;base64,${status.preview}`}
                 style={{ width: height + 1, height: width + 1 }}
               />
             ) : (
-              <Spinner label="Loading stream..." />
+              <Spinner label={t`Loading stream...`} />
             )}
             <div className="absolute" style={{ width, height }}>
               {bbox && (
@@ -70,13 +73,13 @@ export default function ControlPage() {
             {isRecording && (
               <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full px-2.5 py-1 text-sm font-semibold tracking-widest text-red-600 shadow-md shadow-red-500/20 bg-white">
                 <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
-                REC
+                <Trans>REC</Trans>
               </div>
             )}
             {isArmed && (
               <div className="absolute right-4 top-4 flex items-center gap-2 rounded-full px-2.5 py-1 text-sm font-semibold tracking-widest text-amber-600 shadow-md shadow-amber-500/30 bg-white">
                 <span className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse" />
-                ARMED
+                <Trans>ARMED</Trans>
               </div>
             )}
           </CardBody>
