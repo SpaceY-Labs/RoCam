@@ -36,9 +36,9 @@
 \section{Revision History}
 
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
-  \toprule {\bf Date} & {\bf Version} & {\bf Notes}   \\
+  \toprule {\bf Date} & {\bf Version} & {\bf Notes}                                                                                                               \\
   \midrule
-  Jan. 12, 2026       & Rev 0         & Initial Draft \\
+  Jan. 12, 2026       & Rev 0         & Initial Draft                                                                                                             \\
   Feb. 4, 2026        & Rev 1         & Added gimbal\_info (0x00); renumbered commands; renamed Move$\to$Set Deg, Measure$\to$Get Deg; Get GPS Data moved to 0x07 \\
   \bottomrule
 \end{tabularx}
@@ -383,10 +383,10 @@ command, we specify:
 \subsection{Gimbal Info (Command ID: \texttt{0x00})}
 
 \subsubsection{Purpose}
-This command requests capability information from the gimbal. The gimbal responds
-with the valid ranges for tilt (degrees), pan (degrees), and focal length
-(millimeters). Each range is given as a minimum and maximum value (two float32
-values per range).
+This command requests capability information from the gimbal. The gimbal
+responds with the valid ranges for tilt (degrees), pan (degrees), and focal
+length (millimeters). Each range is given as a minimum and maximum value (two
+float32 values per range).
 
 \subsubsection{Request Format}
 
@@ -412,15 +412,15 @@ Since there is no payload, the CRC is calculated over just the Command ID byte
   \centering
   \begin{tabular}{cccl}
     \toprule
-    \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}                    \\
+    \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}            \\
     \midrule
-    0..3          & 4             & (float32 LE)   & Tilt range minimum (degrees)            \\
-    4..7          & 4             & (float32 LE)   & Tilt range maximum (degrees)            \\
-    8..11         & 4             & (float32 LE)   & Pan range minimum (degrees)            \\
-    12..15        & 4             & (float32 LE)   & Pan range maximum (degrees)            \\
-    16..19        & 4             & (float32 LE)   & Focal length range minimum (mm)         \\
-    20..23        & 4             & (float32 LE)   & Focal length range maximum (mm)         \\
-    24            & 1             & (calculated)   & CRC-8 over bytes [0..23]                \\
+    0..3          & 4             & (float32 LE)   & Tilt range minimum (degrees)    \\
+    4..7          & 4             & (float32 LE)   & Tilt range maximum (degrees)    \\
+    8..11         & 4             & (float32 LE)   & Pan range minimum (degrees)     \\
+    12..15        & 4             & (float32 LE)   & Pan range maximum (degrees)     \\
+    16..19        & 4             & (float32 LE)   & Focal length range minimum (mm) \\
+    20..23        & 4             & (float32 LE)   & Focal length range maximum (mm) \\
+    24            & 1             & (calculated)   & CRC-8 over bytes [0..23]        \\
     \bottomrule
   \end{tabular}
   \caption{Gimbal Info Response (25 bytes total)}
@@ -438,14 +438,17 @@ Request to read gimbal info:
 Example response (tilt range $-30$ to $30$°, pan range $-180$ to $180$°, focal
 length 10 to 100 mm):
 \begin{itemize}
-  \item Tilt min ($-30$ as float32 LE): \texttt{0x00 0x00 0xF0 0xC1}; tilt max (30): \texttt{0x00 0x00 0xF0 0x41}
-  \item Pan min ($-180$ as float32 LE): \texttt{0x00 0x00 0x34 0xC3}; pan max (180): \texttt{0x00 0x00 0x34 0x43}
-  \item Focal min (10 as float32 LE): \texttt{0x00 0x00 0x20 0x41}; focal max (100): \texttt{0x00 0x00 0xC8 0x42}
+  \item Tilt min ($-30$ as float32 LE): \texttt{0x00 0x00 0xF0 0xC1}; tilt max (30):
+        \texttt{0x00 0x00 0xF0 0x41}
+  \item Pan min ($-180$ as float32 LE): \texttt{0x00 0x00 0x34 0xC3}; pan max (180):
+        \texttt{0x00 0x00 0x34 0x43}
+  \item Focal min (10 as float32 LE): \texttt{0x00 0x00 0x20 0x41}; focal max (100):
+        \texttt{0x00 0x00 0xC8 0x42}
   \item Data bytes: \texttt{0x00 0x00 0xF0 0xC1 0x00 0x00 0xF0 0x41 0x00 0x00 0x34 0xC3
           0x00 0x00 0x34 0x43 0x00 0x00 0x20 0x41 0x00 0x00 0xC8 0x42}
   \item CRC over data: \texttt{0x93}
-  \item Complete response: \texttt{0x00 0x00 0xF0 0xC1 0x00 0x00 0xF0 0x41 0x00 0x00 0x34 0xC3
-          0x00 0x00 0x34 0x43 0x00 0x00 0x20 0x41 0x00 0x00 0xC8 0x42 0x93}
+  \item Complete response: \texttt{0x00 0x00 0xF0 0xC1 0x00 0x00 0xF0 0x41 0x00 0x00
+          0x34 0xC3 0x00 0x00 0x34 0x43 0x00 0x00 0x20 0x41 0x00 0x00 0xC8 0x42 0x93}
 \end{itemize}
 
 \subsection{Set ARM LED (Command ID: \texttt{0x01})}
