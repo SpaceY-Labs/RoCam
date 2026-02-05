@@ -29,20 +29,25 @@ class _MessageAnnouncer:
 
     def __init__(self):
         self._listeners = []
+        self._lock = threading.Lock()
 
     def listen(self):
         q = queue.Queue(maxsize=1)
-        self._listeners.append(q)
+        with self._lock:  
+            self._listeners.append(q)
         return q
 
     def remove(self, q):
-        if q in self._listeners:
-            self._listeners.remove(q)
+        with self._lock:  
+            if q in self._listeners:  
+                self._listeners.remove(q)
 
     def announce(self, msg: str):
-        for i in reversed(range(len(self._listeners))):
-            try:
-                self._listeners[i].put_nowait(msg)
+        with self._lock:  
+            listeners_snapshot = list(self._listeners)  
+        for q in listeners_snapshot:  
+            try:  
+                q.put_nowait(msg)
             except queue.Full:
                 pass  # drop message for this client, keep connection
 
@@ -51,7 +56,7 @@ def register_status_sse(
     app,
     state_management: StateManagement | StateManagementRecordingManagementOnly,
 ) -> None:
-    """Register GET /api/generate_204 and GET /api/status (SSE) and start 30Hz broadcast thread."""
+    """Register GET /api/status (SSE) and start 30Hz broadcast thread."""
     announcer = _MessageAnnouncer()
 
     def _status_broadcast_loop():
