@@ -51,50 +51,30 @@ export function RocamProvider({ children }: RocamProviderProps) {
     }
   }, [])
 
-  // Poll status at 30Hz (or slower if limited by network)
+  // Subscribe to status SSE stream (30Hz from backend)
   useEffect(() => {
     if (!apiClient) return
 
-    let isMounted = true
-    let timeoutId: number | null = null
-    const targetInterval = 1000 / 30 // 15Hz
+    const url = apiClient.getStatusStreamUrl()
+    const es = new EventSource(url)
 
-    async function pollStatus() {
-      if (!isMounted || !apiClient) return
-
-      const startTime = Date.now()
-
+    es.onmessage = (event) => {
       try {
-        const statusData = await apiClient.getStatus()
+        const data = JSON.parse(event.data) as StatusResponse
 
-        if (isMounted) {
-          setStatus(statusData)
-          setError(null)
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(err instanceof Error ? err : new Error(String(err)))
-        }
+        setStatus(data)
+        setError(null)
+      } catch {
+        // ignore malformed messages
       }
-
-      if (!isMounted) return
-
-      // Calculate delay: wait for target interval, but account for request time
-      // This ensures we poll at 30Hz when network is fast, or slower if network is slow
-      const elapsed = Date.now() - startTime
-      const delay = Math.max(0, targetInterval - elapsed)
-
-      timeoutId = window.setTimeout(pollStatus, delay)
     }
 
-    // Start polling
-    pollStatus()
+    es.onerror = () => {
+      setError(new Error('Status stream connection error'))
+    }
 
     return () => {
-      isMounted = false
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId)
-      }
+      es.close()
     }
   }, [apiClient])
 

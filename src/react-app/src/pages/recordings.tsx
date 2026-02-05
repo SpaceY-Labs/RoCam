@@ -233,7 +233,7 @@ function RecordingItem({
           </Button>
           <Button
             as={'a'}
-            href={apiClient.downloadStablizedUrl(r.id)}
+            href={apiClient.getDownloadStabilizedUrl(r.id)}
             radius="sm"
             size="sm"
             startContent={<IconDownload size={20} strokeWidth={1.5} />}
@@ -353,7 +353,7 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
                     ref={videoRef}
                     autoPlay
                     className="w-full rounded-lg aspect-video bg-white"
-                    src={apiClient.previewStablizedUrl(recording.id)}
+                    src={apiClient.getPreviewStabilizedUrl(recording.id)}
                     onPause={handlePause}
                     onPlaying={handlePlaying}
                     onTimeUpdate={handleTimeUpdate}
