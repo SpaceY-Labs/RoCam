@@ -111,6 +111,13 @@ def main():
             except subprocess.TimeoutExpired:
                 proc.kill()
         sys.exit(130)
+    finally:
+        # Ensure Blender is stopped when the script is quitting
+        subprocess.run(
+            ["flatpak", "kill", args.blender_app_id],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
 if __name__ == "__main__":
     main()

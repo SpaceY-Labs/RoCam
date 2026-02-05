@@ -1,5 +1,6 @@
 import bpy
 import os
+import re
 import sys
 import random
 import math
@@ -43,13 +44,26 @@ def unwrap_object(obj):
     bpy.ops.object.mode_set(mode='OBJECT')
 
 def _material_with_texture(name, texture_image=None):
-    """Create a material with optional image texture (like rocket). Gray if no image."""
+    """Create a material with optional image texture (like rocket). Gray if no image.
+    When a texture is used, it is randomly translated (UV offset) before applying."""
     mat = bpy.data.materials.new(name=name)
-    bsdf = mat.node_tree.nodes["Principled BSDF"]
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    bsdf = nodes["Principled BSDF"]
     if texture_image:
-        tex_node = mat.node_tree.nodes.new("ShaderNodeTexImage")
+        tex_node = nodes.new("ShaderNodeTexImage")
         tex_node.image = texture_image
-        mat.node_tree.links.new(tex_node.outputs["Color"], bsdf.inputs["Base Color"])
+        # Random UV offset: Mapping node with random translation
+        tex_coord = nodes.new("ShaderNodeTexCoord")
+        mapping = nodes.new("ShaderNodeMapping")
+        mapping.inputs["Location"].default_value = (
+            random.uniform(-2.0, 2.0),
+            random.uniform(-2.0, 2.0),
+            0.0,
+        )
+        links.new(tex_coord.outputs["UV"], mapping.inputs["Vector"])
+        links.new(mapping.outputs["Vector"], tex_node.inputs["Vector"])
+        links.new(tex_node.outputs["Color"], bsdf.inputs["Base Color"])
     else:
         bsdf.inputs["Base Color"].default_value = (0.5, 0.5, 0.5, 1)
     bsdf.inputs["Roughness"].default_value = 0.5
@@ -314,17 +328,26 @@ def create_rocket(texture_image=None, body_radius=0.15, body_height=0.8, nose_he
     """Create a rocket model. smoke_flame_mode: 'none' | 'both' | 'smoke_only' | 'flame_only'."""
     # Material
     mat = bpy.data.materials.new(name="RocketMat")
-    # mat.use_nodes = True # Deprecated in 4.0+
-    bsdf = mat.node_tree.nodes["Principled BSDF"]
-    
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    bsdf = nodes["Principled BSDF"]
     if texture_image:
-        tex_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
+        tex_node = nodes.new("ShaderNodeTexImage")
         tex_node.image = texture_image
-        mat.node_tree.links.new(tex_node.outputs['Color'], bsdf.inputs['Base Color'])
+        # Random UV offset: Mapping node with random translation
+        tex_coord = nodes.new("ShaderNodeTexCoord")
+        mapping = nodes.new("ShaderNodeMapping")
+        mapping.inputs["Location"].default_value = (
+            random.uniform(-2.0, 2.0),
+            random.uniform(-2.0, 2.0),
+            0.0,
+        )
+        links.new(tex_coord.outputs["UV"], mapping.inputs["Vector"])
+        links.new(mapping.outputs["Vector"], tex_node.inputs["Vector"])
+        links.new(tex_node.outputs["Color"], bsdf.inputs["Base Color"])
     else:
-        bsdf.inputs['Base Color'].default_value = (0.5, 0.5, 0.5, 1) # Gray
-        
-    bsdf.inputs['Roughness'].default_value = 0.5
+        bsdf.inputs["Base Color"].default_value = (0.5, 0.5, 0.5, 1)
+    bsdf.inputs["Roughness"].default_value = 0.5
 
     # Body Tube (Cylinder)
     bpy.ops.mesh.primitive_cylinder_add(
@@ -802,9 +825,9 @@ def look_at(obj, target):
     rot_quat = direction.to_track_quat('-Z', 'Y')
     obj.rotation_euler = rot_quat.to_euler()
 
-def randomize_camera(camera, min_radius=20.0, max_radius=50.0, 
+def randomize_camera(camera, min_radius=10.0, max_radius=30.0, 
                      min_elev=-45, max_elev=10, 
-                     min_fov=20, max_fov=70):
+                     min_fov=20, max_fov=45):
     """
     Randomize camera position on a spherical shell sector.
     Randomize target look-at point (fixed at origin).
@@ -918,17 +941,33 @@ def main():
         except Exception as e:
             print(f"Failed to load texture: {tex_path}. Error: {e}")
 
+    # Detect existing outputs and resume from next index (e.g. 000042.jpg -> start at 43)
+    # --count = total images desired; generate only enough new ones to reach that total
+    start_index = 0
+    if os.path.isdir(args.out_dir):
+        pattern = re.compile(r"^(\d{6})\.(jpg|jpeg|png)$", re.IGNORECASE)
+        for name in os.listdir(args.out_dir):
+            m = pattern.match(name)
+            if m:
+                start_index = max(start_index, int(m.group(1)) + 1)
+    num_to_generate = max(0, args.count - start_index)
+    if start_index > 0:
+        print(f"Resuming: {start_index} images already exist, need {num_to_generate} more to reach total {args.count}")
+    if num_to_generate == 0:
+        print(f"Already have {start_index} images (>= count {args.count}). Nothing to generate.")
+        return
+
     # Loop
-    # Object: 20% nothing, 30% other (sphere/box/house/bottle), 50% rocket
+    # Object: 10% nothing, 10% other (sphere/box/house/bottle), 80% rocket
     # Smoke/flame (when rocket): 25% none, 55% both, 10% smoke_only, 10% flame_only
-    print(f"Starting generation of {args.count} images...")
-    for i in range(args.count):
+    print(f"Generating {num_to_generate} images (indices {start_index:06d} to {start_index + num_to_generate - 1:06d})...")
+    for n, i in enumerate(range(start_index, start_index + num_to_generate)):
         hdri_path = random.choice(hdri_files)
         set_hdri(world, hdri_path)
 
         object_roll = random.random()
-        nothing = object_roll < 0.2
-        other_object = object_roll >= 0.2 and object_roll < 0.5
+        nothing = object_roll < 0.1
+        other_object = object_roll >= 0.1 and object_roll < 0.2
         write_empty_label = nothing or other_object
 
         rocket = None
@@ -1028,11 +1067,11 @@ def main():
         filepath = os.path.join(args.out_dir, filename)
         scene = bpy.context.scene
         scene.render.filepath = filepath
-        # Lens flare 50% of the time
-        if random.random() < 0.5:
+        # Lens flare 10% of the time
+        if random.random() < 0.1:
             _create_lens_flare_speck(camera)
-        # Overlay text 30% of the time: 10-char random text, grayscale, random alpha, center, random size/rotation
-        if random.random() < 0.3:
+        # Overlay text 10% of the time: 10-char random text, grayscale, random alpha, center, random size/rotation
+        if random.random() < 0.1:
             _create_overlay_text(camera)
         bpy.ops.render.render(write_still=True)
         _delete_lens_flare_speck()
@@ -1051,7 +1090,7 @@ def main():
                 with open(label_path, "w") as f:
                     pass
 
-        print(f"Generated {i+1}/{args.count}: {filepath}")
+        print(f"Generated {n+1}/{num_to_generate} (index {i:06d}): {filepath}")
 
         if rocket is not None:
             delete_rocket(rocket)
