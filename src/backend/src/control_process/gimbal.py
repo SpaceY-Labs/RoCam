@@ -1,5 +1,6 @@
 import struct
 import serial
+import math
 from typing import Optional, Tuple
 from threading import Lock
 
@@ -175,11 +176,14 @@ class GimbalSerial:
         resp_data = self._send_request(0x06, b"", 4)
         return struct.unpack("<f", resp_data[0:4])[0]
 
-    def get_gps_data(self) -> Tuple[float, float, int]:
+    def get_gps_data(self) -> Tuple[Optional[Tuple[float, float]], Optional[int]]:
         """
-        Get longitude (deg), latitude (deg), and timestamp (ms) (Command ID 0x07).
-        If coordinates are not available, longitude and latitude are NaN.
-        If timestamp is not available, timestamp_ms is 0.
+        Get (longitude, latitude) and timestamp (ms) (Command ID 0x07).
+        
+        Returns:
+            ((longitude, latitude), timestamp_ms)
+            - coordinates: (longitude, latitude) in degrees, or None if unavailable.
+            - timestamp_ms: timestamp in ms, or None if unavailable.
         """
         if not self.ser or not self.ser.is_open:
             raise RuntimeError("Serial port is not open")
@@ -187,4 +191,13 @@ class GimbalSerial:
         longitude = struct.unpack("<d", resp_data[0:8])[0]
         latitude = struct.unpack("<d", resp_data[8:16])[0]
         timestamp_ms = struct.unpack("<Q", resp_data[16:24])[0]
-        return longitude, latitude, timestamp_ms
+
+        coordinates = None
+        if not math.isnan(longitude) and not math.isnan(latitude):
+            coordinates = (longitude, latitude)
+
+        timestamp = None
+        if timestamp_ms != 0:
+            timestamp = timestamp_ms
+
+        return coordinates, timestamp
