@@ -1188,12 +1188,12 @@ This module does not have any assumptions.
 \begin{itemize}
   \item transition:
         \begin{enumerate}
-          \item Get the current gimbal state from \texttt{gimbal.measure\_deg()} and
-                \texttt{gimbal.get\_focal\_length()}.
+          \item Get the current gimbal state from \texttt{gimbal.get\_deg()} and
+                \texttt{gimbal.get\_focal\_length\_mm()}.
           \item Calculate the desired gimbal state from \texttt{rocket\_bbox} so that the
                 rocket is centered and the height of the rocket is 50\% of the frame height.
-          \item Set the desired gimbal state using \texttt{gimbal.move\_deg()} and
-                \texttt{gimbal.set\_focal\_length()}.
+          \item Set the desired gimbal state using \texttt{gimbal.set\_deg()} and
+                \texttt{gimbal.set\_focal\_length\_mm()}.
         \end{enumerate}
   \item output: None
   \item exception: GimbalError if the functions in \texttt{gimbal} return an error.
@@ -1246,26 +1246,30 @@ This module does not have any exported constants.
 \begin{center}
   \begin{tabular}{p{3cm} p{4cm} p{4cm} p{3.5cm}}
     \hline
-    \textbf{Name}        & \textbf{In}                      & \textbf{Out}                                                           & \textbf{Exceptions} \\
+    \textbf{Name}          & \textbf{In}                           & \textbf{Out}                                                                                    & \textbf{Exceptions} \\
     \hline
-    connect              & port: str \newline baudrate: int & -                                                                      & SerialError         \\
+    connect                & port: str \newline baudrate: int      & -                                                                                               & SerialError         \\
     \hline
-    move\_deg            & tilt: f32 \newline pan: f32      & -                                                                      & GimbalError         \\
+    gimbal\_info           & -                                     & tilt\_range\_deg: (f32, f32), pan\_range\_deg: (f32, f32), focal\_length\_range\_mm: (f32, f32) & GimbalError         \\
     \hline
-    measure\_deg         & -                                & tilt: f32, pan: f32                                                    & GimbalError         \\
+    set\_arm\_led          & enabled: bool                         & -                                                                                               & GimbalError         \\
     \hline
-    control\_arm\_led    & enabled: bool                    & -                                                                      & GimbalError         \\
+    set\_status\_led       & enabled: bool                         & -                                                                                               & GimbalError         \\
     \hline
-    control\_status\_led & enabled: bool                    & -                                                                      & GimbalError         \\
+    set\_deg               & tilt\_deg: f32 \newline pan\_deg: f32 & -                                                                                               & GimbalError         \\
     \hline
-    get\_gps\_data       & -                                & (coordinates: Optional[Tuple[float, float]], timestamp: Optional[int]) & GimbalError         \\
+    get\_deg               & -                                     & tilt\_deg: f32, pan\_deg: f32                                                                   & GimbalError         \\
     \hline
-    set\_focal\_length   & focal\_length\_mm: f32           & -                                                                      & GimbalError         \\
+    set\_focal\_length\_mm & focal\_length\_mm: f32                & -                                                                                               & GimbalError         \\
     \hline
-    get\_focal\_length   & -                                & focal\_length\_mm: f32                                                 & GimbalError         \\
+    get\_focal\_length\_mm & -                                     & focal\_length\_mm: f32                                                                          & GimbalError         \\
+    \hline
+    get\_gps\_data         & -                                     & longitude: f64, latitude: f64, timestamp\_ms: u64                                               & GimbalError         \\
     \hline
   \end{tabular}
 \end{center}
+
+\noindent For \texttt{get\_deg}: if coordinates are not available, returns (NaN, NaN). For \texttt{get\_gps\_data}: if coordinates are not available, longitude and latitude are NaN; if timestamp is not available, timestamp\_ms is 0.
 
 \subsection{Semantics}
 
@@ -1305,27 +1309,18 @@ This module does not have any assumptions.
   \item exception: serialOpenError
 \end{itemize}
 
-\noindent move\_deg(tilt: f32, pan: f32):
+\noindent gimbal\_info():
 \begin{itemize}
-  \item transition: Sends the tilt and pan angles to the gimbal through the Serial
-        Abstraction Module (\mref{mSerial}) (see the
-        \href{https://github.com/SpaceY-Labs/RoCam/blob/main/docs/Design/GimbalProtocol/GimbalProtocol.pdf}{Gimbal
-          Protocol} doc for details).
-  \item output: None
-  \item exception: GimbalError
-\end{itemize}
-
-\noindent measure\_deg():
-\begin{itemize}
-  \item transition: Retrieves the tilt and pan angle measurements from the gimbal
+  \item transition: Retrieves tilt, pan, and focal length ranges from the gimbal
         through the Serial Abstraction Module (\mref{mSerial}) (see the
         \href{https://github.com/SpaceY-Labs/RoCam/blob/main/docs/Design/GimbalProtocol/GimbalProtocol.pdf}{Gimbal
           Protocol} doc for details).
-  \item output: (tilt: f32, pan: f32)
+  \item output: (tilt\_range\_deg: (f32, f32), pan\_range\_deg: (f32, f32),
+        focal\_length\_range\_mm: (f32, f32))
   \item exception: GimbalError
 \end{itemize}
 
-\noindent control\_arm\_led(enabled: bool):
+\noindent set\_arm\_led(enabled: bool):
 \begin{itemize}
   \item transition: Controls the arm LED on the gimbal through the Serial Abstraction
         Module (\mref{mSerial}) (see the
@@ -1335,7 +1330,7 @@ This module does not have any assumptions.
   \item exception: GimbalError
 \end{itemize}
 
-\noindent control\_status\_led(enabled: bool):
+\noindent set\_status\_led(enabled: bool):
 \begin{itemize}
   \item transition: Controls the status LED on the gimbal through the Serial
         Abstraction Module (\mref{mSerial}) (see the
@@ -1345,21 +1340,28 @@ This module does not have any assumptions.
   \item exception: GimbalError
 \end{itemize}
 
-\noindent get\_gps\_data():
+\noindent set\_deg(tilt\_deg: f32, pan\_deg: f32):
 \begin{itemize}
-  \item transition: Retrieves GPS data from the gimbal through the Serial Abstraction
-        Module (\mref{mSerial}) (see the
+  \item transition: Sends the tilt and pan angles to the gimbal through the Serial
+        Abstraction Module (\mref{mSerial}) (see the
         \href{https://github.com/SpaceY-Labs/RoCam/blob/main/docs/Design/GimbalProtocol/GimbalProtocol.pdf}{Gimbal
           Protocol} doc for details).
-  \item output: (coordinates: Optional[Tuple[float, float]], timestamp: Optional[int])
-        \begin{itemize}
-          \item If coordinates are unknown, coordinates is None.
-          \item If timestamp is unknown, timestamp is None.
-        \end{itemize}
+  \item output: None
   \item exception: GimbalError
 \end{itemize}
 
-\noindent set\_focal\_length(focal\_length\_mm: f32):
+\noindent get\_deg():
+\begin{itemize}
+  \item transition: Retrieves the tilt and pan angle measurements from the gimbal
+        through the Serial Abstraction Module (\mref{mSerial}) (see the
+        \href{https://github.com/SpaceY-Labs/RoCam/blob/main/docs/Design/GimbalProtocol/GimbalProtocol.pdf}{Gimbal
+          Protocol} doc for details).
+  \item output: (tilt\_deg: f32, pan\_deg: f32). If coordinates are not available,
+        returns (NaN, NaN).
+  \item exception: GimbalError
+\end{itemize}
+
+\noindent set\_focal\_length\_mm(focal\_length\_mm: f32):
 \begin{itemize}
   \item transition: Sets the camera focal length on the gimbal through the Serial
         Abstraction Module (\mref{mSerial}) (see the
@@ -1369,13 +1371,25 @@ This module does not have any assumptions.
   \item exception: GimbalError
 \end{itemize}
 
-\noindent get\_focal\_length():
+\noindent get\_focal\_length\_mm():
 \begin{itemize}
   \item transition: Retrieves the current camera focal length from the gimbal through
         the Serial Abstraction Module (\mref{mSerial}) (see the
         \href{https://github.com/SpaceY-Labs/RoCam/blob/main/docs/Design/GimbalProtocol/GimbalProtocol.pdf}{Gimbal
           Protocol} doc for details).
   \item output: focal\_length\_mm: f32
+  \item exception: GimbalError
+\end{itemize}
+
+\noindent get\_gps\_data():
+\begin{itemize}
+  \item transition: Retrieves GPS data from the gimbal through the Serial Abstraction
+        Module (\mref{mSerial}) (see the
+        \href{https://github.com/SpaceY-Labs/RoCam/blob/main/docs/Design/GimbalProtocol/GimbalProtocol.pdf}{Gimbal
+          Protocol} doc for details).
+  \item output: (longitude: f64, latitude: f64, timestamp\_ms: u64). If coordinates are
+        not available, longitude and latitude are NaN. If timestamp is not available,
+        timestamp\_ms is 0.
   \item exception: GimbalError
 \end{itemize}
 
@@ -2186,7 +2200,7 @@ This module does not have any environment variables.
   \item transition:
         \begin{itemize}
           \item Set \texttt{is\_armed} to true.
-          \item Call \texttt{gimbal.control\_arm\_led(true)}.
+          \item Call \texttt{gimbal.set\_arm\_led(true)}.
         \end{itemize}
   \item output: None
   \item exception: None
@@ -2197,7 +2211,7 @@ This module does not have any environment variables.
   \item transition:
         \begin{itemize}
           \item Set \texttt{is\_armed} to false.
-          \item Call \texttt{gimbal.control\_arm\_led(false)}.
+          \item Call \texttt{gimbal.set\_arm\_led(false)}.
         \end{itemize}
   \item output: None
   \item exception: None
@@ -2208,9 +2222,9 @@ This module does not have any environment variables.
   \item transition: Return \texttt{SystemStatus} with the following fields:
         \begin{itemize}
           \item average\_fps: \texttt{cv\_data.average\_fps}.
-          \item gimbal\_tilt\_deg: From \texttt{gimbal.measure\_deg()}.
-          \item gimbal\_pan\_deg: From \texttt{gimbal.measure\_deg()}.
-          \item gimbal\_focal\_length\_mm: From \texttt{gimbal.get\_focal\_length()}.
+          \item gimbal\_tilt\_deg: From \texttt{gimbal.get\_deg()}.
+          \item gimbal\_pan\_deg: From \texttt{gimbal.get\_deg()}.
+          \item gimbal\_focal\_length\_mm: From \texttt{gimbal.get\_focal\_length\_mm()}.
           \item tracking\_state:
                 \begin{itemize}
                   \item If \texttt{is\_armed} is false, return 'idle'.
@@ -2222,10 +2236,10 @@ This module does not have any environment variables.
           \item preview: \texttt{cv\_data.preview}.
           \item osd\_data: \texttt{osd\_data}.
           \item timestamp\_ms: Get from system time.
-          \item longitude: Extract from \texttt{gimbal.get\_gps\_data()} coordinates (first
-                element of tuple if coordinates is not None, else null).
-          \item latitude: Extract from \texttt{gimbal.get\_gps\_data()} coordinates (second
-                element of tuple if coordinates is not None, else null).
+          \item longitude: First element of \texttt{gimbal.get\_gps\_data()} (longitude); if
+                NaN, null.
+          \item latitude: Second element of \texttt{gimbal.get\_gps\_data()} (latitude); if
+                NaN, null.
           \item gpu\_utilization: From \texttt{system\_status.get\_gpu\_utilization()}.
           \item cpu\_utilization: From \texttt{system\_status.get\_cpu\_utilization()}.
           \item core\_temperature\_celsius: From
@@ -2243,7 +2257,7 @@ This module does not have any environment variables.
 \begin{itemize}
   \item transition:
         \begin{itemize}
-          \item Get current gimbal angle from \texttt{gimbal.measure\_deg()}.
+          \item Get current gimbal angle from \texttt{gimbal.get\_deg()}.
           \item Calculate the new gimbal angle based on the given direction.
                 \begin{itemize}
                   \item If direction is "up", new tilt is \texttt{current\_tilt + 10}.
@@ -2251,7 +2265,7 @@ This module does not have any environment variables.
                   \item If direction is "left", new pan is \texttt{current\_pan - 10}.
                   \item If direction is "right", new pan is \texttt{current\_pan + 10}.
                 \end{itemize}
-          \item Call \texttt{gimbal.move\_deg(new\_tilt, new\_pan)}.
+          \item Call \texttt{gimbal.set\_deg(new\_tilt, new\_pan)}.
         \end{itemize}
   \item output: None
   \item exception: None
@@ -2259,7 +2273,7 @@ This module does not have any environment variables.
 
 \noindent manual\_move\_to(tilt: float, pan: float):
 \begin{itemize}
-  \item transition: Call \texttt{gimbal.move\_deg(tilt, pan)}
+  \item transition: Call \texttt{gimbal.set\_deg(tilt, pan)}
   \item output: None
   \item exception: None
 \end{itemize}
@@ -2324,9 +2338,9 @@ This module does not have any environment variables.
                 \texttt{cv\_data.bbox} is null, use default values: translate\_x = 0,
                 translate\_y = 0, scale = 1.0).
           \item average\_fps: \texttt{cv\_data.average\_fps}.
-          \item gimbal\_tilt\_deg: From \texttt{gimbal.measure\_deg()}.
-          \item gimbal\_pan\_deg: From \texttt{gimbal.measure\_deg()}.
-          \item gimbal\_focal\_length\_mm: From \texttt{gimbal.get\_focal\_length()}.
+          \item gimbal\_tilt\_deg: From \texttt{gimbal.get\_deg()}.
+          \item gimbal\_pan\_deg: From \texttt{gimbal.get\_deg()}.
+          \item gimbal\_focal\_length\_mm: From \texttt{gimbal.get\_focal\_length\_mm()}.
           \item device\_ip\_addresses: Get from system network interfaces.
           \item timestamp\_ms: Get from system time.
           \item tracking\_state:
@@ -2337,10 +2351,10 @@ This module does not have any environment variables.
                   \item If \texttt{is\_armed} is true, and \texttt{cv\_data.bbox} is null, return
                         'armed'.
                 \end{itemize}
-          \item longitude: Extract from \texttt{gimbal.get\_gps\_data()} coordinates (first
-                element of tuple if coordinates is not None, else 0.0).
-          \item latitude: Extract from \texttt{gimbal.get\_gps\_data()} coordinates (second
-                element of tuple if coordinates is not None, else 0.0).
+          \item longitude: First element of \texttt{gimbal.get\_gps\_data()} (longitude); if
+                NaN, 0.0.
+          \item latitude: Second element of \texttt{gimbal.get\_gps\_data()} (latitude); if
+                NaN, 0.0.
         \end{itemize}
   \item output: \texttt{OSDData}
   \item exception: None
@@ -2366,8 +2380,8 @@ This module does not have any environment variables.
           \item Loop every 5 seconds.
                 \begin{itemize}
                   \item Call \texttt{gimbal.get\_gps\_data()}.
-                  \item If the timestamp is not None, set the system time to the timestamp and break
-                        the loop.
+                  \item If timestamp\_ms (third element) is not 0, set the system time to the timestamp
+                        and break the loop.
                 \end{itemize}.
         \end{itemize}
   \item output: None

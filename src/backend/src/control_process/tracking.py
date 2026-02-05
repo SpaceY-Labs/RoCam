@@ -53,7 +53,7 @@ class Tracking:
                     delta_pan = error_x * self._k_p
                     delta_tilt = -error_y * self._k_p
 
-                    current_tilt, current_pan = self._gimbal.measure_deg()
+                    current_tilt, current_pan = self._gimbal.get_deg()
                     # time.sleep(0.01)
                     new_tilt = current_tilt + delta_tilt
                     new_pan = current_pan + delta_pan
@@ -62,7 +62,7 @@ class Tracking:
                     new_tilt = max(0.0, min(90.0, new_tilt))
                     new_pan = max(-45.0, min(45.0, new_pan))
 
-                    self._gimbal.move_deg(new_tilt, new_pan)
+                    self._gimbal.set_deg(new_tilt, new_pan)
                     # time.sleep(0.01)
                 except Exception as e:
                     logger.error(f"Tracking worker error: {e}")

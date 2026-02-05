@@ -36,9 +36,10 @@
 \section{Revision History}
 
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
-  \toprule {\bf Date} & {\bf Version} & {\bf Notes}   \\
+  \toprule {\bf Date} & {\bf Version} & {\bf Notes}                                                                                                               \\
   \midrule
-  Jan. 12, 2026       & Rev 0         & Initial Draft \\
+  Jan. 12, 2026       & Rev 0         & Initial Draft                                                                                                             \\
+  Feb. 4, 2026        & Rev 1         & Added gimbal\_info (0x00); renumbered commands; renamed Move$\to$Set Deg, Measure$\to$Get Deg; Get GPS Data moved to 0x07 \\
   \bottomrule
 \end{tabularx}
 
@@ -366,19 +367,91 @@ command, we specify:
     \toprule
     \textbf{Command ID} & \textbf{Name}    & \textbf{Description}                                \\
     \midrule
-    \texttt{0x00}       & Set ARM LED      & Turn the ARM indicator LED on or off                \\
-    \texttt{0x01}       & Set Status LED   & Turn the Status indicator LED on or off             \\
-    \texttt{0x02}       & Move             & Move the gimbal to a specified tilt and pan angle   \\
-    \texttt{0x03}       & Measure          & Read the current tilt and pan angles                \\
-    \texttt{0x04}       & Get GPS Data     & Read the current GPS coordinates and timestamp      \\
+    \texttt{0x00}       & Gimbal Info      & Get tilt, pan, and focal length ranges              \\
+    \texttt{0x01}       & Set ARM LED      & Turn the ARM indicator LED on or off                \\
+    \texttt{0x02}       & Set Status LED   & Turn the Status indicator LED on or off             \\
+    \texttt{0x03}       & Set Deg          & Move the gimbal to a specified tilt and pan angle   \\
+    \texttt{0x04}       & Get Deg          & Read the current tilt and pan angles                \\
     \texttt{0x05}       & Set Focal Length & Set the camera focal length in millimeters          \\
     \texttt{0x06}       & Get Focal Length & Read the current camera focal length in millimeters \\
+    \texttt{0x07}       & Get GPS Data     & Read the current GPS coordinates and timestamp      \\
     \bottomrule
   \end{tabularx}
   \caption{Command Summary}
 \end{table}
 
-\subsection{Set ARM LED (Command ID: \texttt{0x00})}
+\subsection{Gimbal Info (Command ID: \texttt{0x00})}
+
+\subsubsection{Purpose}
+This command requests capability information from the gimbal. The gimbal
+responds with the valid ranges for tilt (degrees), pan (degrees), and focal
+length (millimeters). Each range is given as a minimum and maximum value (two
+float32 values per range).
+
+\subsubsection{Request Format}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cccl}
+    \toprule
+    \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}    \\
+    \midrule
+    0             & 1             & (calculated)   & CRC-8 over bytes [1..1] \\
+    1             & 1             & \texttt{0x00}  & Command ID              \\
+    \bottomrule
+  \end{tabular}
+  \caption{Gimbal Info Request (2 bytes total)}
+\end{table}
+
+Since there is no payload, the CRC is calculated over just the Command ID byte
+(\texttt{0x00}), which results in \texttt{0x00}.
+
+\subsubsection{Response Format}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cccl}
+    \toprule
+    \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}            \\
+    \midrule
+    0..3          & 4             & (float32 LE)   & Tilt range minimum (degrees)    \\
+    4..7          & 4             & (float32 LE)   & Tilt range maximum (degrees)    \\
+    8..11         & 4             & (float32 LE)   & Pan range minimum (degrees)     \\
+    12..15        & 4             & (float32 LE)   & Pan range maximum (degrees)     \\
+    16..19        & 4             & (float32 LE)   & Focal length range minimum (mm) \\
+    20..23        & 4             & (float32 LE)   & Focal length range maximum (mm) \\
+    24            & 1             & (calculated)   & CRC-8 over bytes [0..23]        \\
+    \bottomrule
+  \end{tabular}
+  \caption{Gimbal Info Response (25 bytes total)}
+\end{table}
+
+\subsubsection{Example}
+
+Request to read gimbal info:
+\begin{itemize}
+  \item Bytes to CRC: \texttt{0x00}
+  \item CRC result: \texttt{0x00}
+  \item Complete request: \texttt{0x00 0x00}
+\end{itemize}
+
+Example response (tilt range $-30$ to $30$°, pan range $-180$ to $180$°, focal
+length 10 to 100 mm):
+\begin{itemize}
+  \item Tilt min ($-30$ as float32 LE): \texttt{0x00 0x00 0xF0 0xC1}; tilt max (30):
+        \texttt{0x00 0x00 0xF0 0x41}
+  \item Pan min ($-180$ as float32 LE): \texttt{0x00 0x00 0x34 0xC3}; pan max (180):
+        \texttt{0x00 0x00 0x34 0x43}
+  \item Focal min (10 as float32 LE): \texttt{0x00 0x00 0x20 0x41}; focal max (100):
+        \texttt{0x00 0x00 0xC8 0x42}
+  \item Data bytes: \texttt{0x00 0x00 0xF0 0xC1 0x00 0x00 0xF0 0x41 0x00 0x00 0x34 0xC3
+          0x00 0x00 0x34 0x43 0x00 0x00 0x20 0x41 0x00 0x00 0xC8 0x42}
+  \item CRC over data: \texttt{0x93}
+  \item Complete response: \texttt{0x00 0x00 0xF0 0xC1 0x00 0x00 0xF0 0x41 0x00 0x00
+          0x34 0xC3 0x00 0x00 0x34 0x43 0x00 0x00 0x20 0x41 0x00 0x00 0xC8 0x42 0x93}
+\end{itemize}
+
+\subsection{Set ARM LED (Command ID: \texttt{0x01})}
 
 \subsubsection{Purpose}
 This command controls the ARM indicator LED on the gimbal. The ARM LED
@@ -394,7 +467,7 @@ typically indicates whether the gimbal is armed (ready to move) or disarmed
     \textbf{Byte} & \textbf{Size} & \textbf{Value}                 & \textbf{Description}       \\
     \midrule
     0             & 1             & (calculated)                   & CRC-8 over bytes [1..2]    \\
-    1             & 1             & \texttt{0x00}                  & Command ID                 \\
+    1             & 1             & \texttt{0x01}                  & Command ID                 \\
     2             & 1             & \texttt{0x00} or \texttt{0x01} & LED state: 0 = off, 1 = on \\
     \bottomrule
   \end{tabular}
@@ -420,13 +493,13 @@ typically indicates whether the gimbal is armed (ready to move) or disarmed
 To turn the ARM LED on:
 \begin{itemize}
   \item Payload: \texttt{0x01} (on)
-  \item Bytes to CRC: \texttt{0x00 0x01} (Command ID + payload)
-  \item CRC result: \texttt{0x07}
-  \item Complete request: \texttt{0x07 0x00 0x01}
+  \item Bytes to CRC: \texttt{0x01 0x01} (Command ID + payload)
+  \item CRC result: \texttt{0x12}
+  \item Complete request: \texttt{0x12 0x01 0x01}
   \item Expected response: \texttt{0x00}
 \end{itemize}
 
-\subsection{Set Status LED (Command ID: \texttt{0x01})}
+\subsection{Set Status LED (Command ID: \texttt{0x02})}
 
 \subsubsection{Purpose}
 This command controls the Status indicator LED on the gimbal. The Status LED
@@ -442,7 +515,7 @@ error conditions.
     \textbf{Byte} & \textbf{Size} & \textbf{Value}                 & \textbf{Description}       \\
     \midrule
     0             & 1             & (calculated)                   & CRC-8 over bytes [1..2]    \\
-    1             & 1             & \texttt{0x01}                  & Command ID                 \\
+    1             & 1             & \texttt{0x02}                  & Command ID                 \\
     2             & 1             & \texttt{0x00} or \texttt{0x01} & LED state: 0 = off, 1 = on \\
     \bottomrule
   \end{tabular}
@@ -468,13 +541,13 @@ error conditions.
 To turn the Status LED off:
 \begin{itemize}
   \item Payload: \texttt{0x00} (off)
-  \item Bytes to CRC: \texttt{0x01 0x00} (Command ID + payload)
-  \item CRC result: \texttt{0x07}
-  \item Complete request: \texttt{0x07 0x01 0x00}
+  \item Bytes to CRC: \texttt{0x02 0x00} (Command ID + payload)
+  \item CRC result: \texttt{0x2A}
+  \item Complete request: \texttt{0x2A 0x02 0x00}
   \item Expected response: \texttt{0x00}
 \end{itemize}
 
-\subsection{Move (Command ID: \texttt{0x02})}
+\subsection{Set Deg (Command ID: \texttt{0x03})}
 
 \subsubsection{Purpose}
 This command instructs the gimbal to move to a specified orientation. The
@@ -495,12 +568,12 @@ Both angles are specified in degrees as floating-point numbers.
     \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}    \\
     \midrule
     0             & 1             & (calculated)   & CRC-8 over bytes [1..9] \\
-    1             & 1             & \texttt{0x02}  & Command ID              \\
+    1             & 1             & \texttt{0x03}  & Command ID              \\
     2..5          & 4             & (float32 LE)   & Tilt angle in degrees   \\
     6..9          & 4             & (float32 LE)   & Pan angle in degrees    \\
     \bottomrule
   \end{tabular}
-  \caption{Move Request (10 bytes total)}
+  \caption{Set Deg Request (10 bytes total)}
 \end{table}
 
 \subsubsection{Response Format}
@@ -514,7 +587,7 @@ Both angles are specified in degrees as floating-point numbers.
     0             & 1             & \texttt{0x00}  & CRC-8 over 0 bytes (acknowledgment) \\
     \bottomrule
   \end{tabular}
-  \caption{Move Response (1 byte total)}
+  \caption{Set Deg Response (1 byte total)}
 \end{table}
 
 \subsubsection{Example}
@@ -523,13 +596,13 @@ To move to tilt = 0.0° and pan = 0.0° (center position):
 \begin{itemize}
   \item Tilt (0.0 as float32 LE): \texttt{0x00 0x00 0x00 0x00}
   \item Pan (0.0 as float32 LE): \texttt{0x00 0x00 0x00 0x00}
-  \item Bytes to CRC: \texttt{0x02 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00}
-  \item CRC result: \texttt{0x0E}
-  \item Complete request: \texttt{0x0E 0x02 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00}
+  \item Bytes to CRC: \texttt{0x03 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00}
+  \item CRC result: \texttt{0x8B}
+  \item Complete request: \texttt{0x8B 0x03 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00}
   \item Expected response: \texttt{0x00}
 \end{itemize}
 
-\subsection{Measure (Command ID: \texttt{0x03})}
+\subsection{Get Deg (Command ID: \texttt{0x04})}
 
 \subsubsection{Purpose}
 This command requests the current orientation of the gimbal. The gimbal
@@ -544,14 +617,14 @@ responds with its current tilt and pan angles in degrees.
     \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}    \\
     \midrule
     0             & 1             & (calculated)   & CRC-8 over bytes [1..1] \\
-    1             & 1             & \texttt{0x03}  & Command ID              \\
+    1             & 1             & \texttt{0x04}  & Command ID              \\
     \bottomrule
   \end{tabular}
-  \caption{Measure Request (2 bytes total)}
+  \caption{Get Deg Request (2 bytes total)}
 \end{table}
 
 Since there is no payload, the CRC is calculated over just the Command ID byte
-(\texttt{0x03}), which results in \texttt{0x1B}.
+(\texttt{0x04}), which results in \texttt{0x1C}.
 
 \subsubsection{Response Format}
 
@@ -566,16 +639,16 @@ Since there is no payload, the CRC is calculated over just the Command ID byte
     8             & 1             & (calculated)   & CRC-8 over bytes [0..7]       \\
     \bottomrule
   \end{tabular}
-  \caption{Measure Response (9 bytes total)}
+  \caption{Get Deg Response (9 bytes total)}
 \end{table}
 
 \subsubsection{Example}
 
 Request to read current angles:
 \begin{itemize}
-  \item Bytes to CRC: \texttt{0x03}
-  \item CRC result: \texttt{0x1B}
-  \item Complete request: \texttt{0x1B 0x03}
+  \item Bytes to CRC: \texttt{0x04}
+  \item CRC result: \texttt{0x1C}
+  \item Complete request: \texttt{0x1C 0x04}
 \end{itemize}
 
 Example response (tilt = 12.5°, pan = 3.25°):
@@ -583,109 +656,8 @@ Example response (tilt = 12.5°, pan = 3.25°):
   \item Tilt (12.5 as float32 LE): \texttt{0x00 0x00 0x48 0x41}
   \item Pan (3.25 as float32 LE): \texttt{0x00 0x00 0x50 0x40}
   \item Data bytes: \texttt{0x00 0x00 0x48 0x41 0x00 0x00 0x50 0x40}
-  \item CRC over data: \texttt{0xD9}
-  \item Complete response: \texttt{0x00 0x00 0x48 0x41 0x00 0x00 0x50 0x40 0xD9}
-\end{itemize}
-
-\subsection{Get GPS Data (Command ID: \texttt{0x04})}
-
-\subsubsection{Purpose}
-This command requests the current GPS data from the gimbal. The gimbal responds
-with its current longitude, latitude, and Unix timestamp in milliseconds. GPS
-typically acquires time before coordinates. If coordinates are unknown, they
-are returned as NaN (Not a Number). If the timestamp is unknown, it is returned
-as zero.
-
-\subsubsection{Request Format}
-
-\begin{table}[H]
-  \centering
-  \begin{tabular}{cccl}
-    \toprule
-    \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}    \\
-    \midrule
-    0             & 1             & (calculated)   & CRC-8 over bytes [1..1] \\
-    1             & 1             & \texttt{0x04}  & Command ID              \\
-    \bottomrule
-  \end{tabular}
-  \caption{Get GPS Data Request (2 bytes total)}
-\end{table}
-
-Since there is no payload, the CRC is calculated over just the Command ID byte
-(\texttt{0x04}), which results in \texttt{0x0C}.
-
-\subsubsection{Response Format}
-
-\begin{table}[H]
-  \centering
-  \begin{tabular}{cccl}
-    \toprule
-    \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}           \\
-    \midrule
-    0..7          & 8             & (float64 LE)   & Longitude in degrees           \\
-    8..15         & 8             & (float64 LE)   & Latitude in degrees            \\
-    16..23        & 8             & (u64 LE)       & Unix timestamp in milliseconds \\
-    24            & 1             & (calculated)   & CRC-8 over bytes [0..23]       \\
-    \bottomrule
-  \end{tabular}
-  \caption{Get GPS Data Response (25 bytes total)}
-\end{table}
-
-\textbf{Note:} The GPS may provide data in stages:
-\begin{itemize}
-  \item If coordinates are unknown, longitude and latitude are returned as NaN
-        (IEEE-754 NaN value).
-  \item If the timestamp is unknown, it is returned as zero.
-  \item GPS typically acquires time before coordinates, so it is possible to have a
-        valid timestamp with NaN coordinates.
-\end{itemize}
-
-\subsubsection{Example}
-
-Request to read GPS data:
-\begin{itemize}
-  \item Bytes to CRC: \texttt{0x04}
-  \item CRC result: \texttt{0x0C}
-  \item Complete request: \texttt{0x0C 0x04}
-\end{itemize}
-
-Example response with full GPS lock (longitude = -79.9167°, latitude =
-43.2567°, timestamp = 1705123456789 ms):
-\begin{itemize}
-  \item Longitude (-79.9167 as float64 LE): \texttt{0xCD 0xCC 0xCC 0xCC 0xCC 0x9C 0x4F
-          0xC0}
-  \item Latitude (43.2567 as float64 LE): \texttt{0x33 0x33 0x33 0x33 0x33 0x33 0x4D
-          0x40}
-  \item Timestamp (1705123456789 as u64 LE): \texttt{0x15 0xDE 0x29 0x09 0x8E 0x01 0x00
-          0x00}
-  \item Data bytes: \texttt{0xCD 0xCC 0xCC 0xCC 0xCC 0x9C 0x4F 0xC0 0x33 0x33 0x33 0x33
-          0x33 0x33 0x4D 0x40 0x15 0xDE 0x29 0x09 0x8E 0x01 0x00 0x00}
-  \item CRC over data: (calculated)
-  \item Complete response: (data bytes + CRC byte)
-\end{itemize}
-
-Example response with time only (timestamp = 1705123456789 ms, coordinates
-unknown):
-\begin{itemize}
-  \item Longitude (NaN as float64 LE): \texttt{0x00 0x00 0x00 0x00 0x00 0x00 0xF8 0x7F}
-  \item Latitude (NaN as float64 LE): \texttt{0x00 0x00 0x00 0x00 0x00 0x00 0xF8 0x7F}
-  \item Timestamp (1705123456789 as u64 LE): \texttt{0x15 0xDE 0x29 0x09 0x8E 0x01 0x00
-          0x00}
-  \item Data bytes: \texttt{0x00 0x00 0x00 0x00 0x00 0x00 0xF8 0x7F 0x00 0x00 0x00 0x00
-          0x00 0x00 0xF8 0x7F 0x15 0xDE 0x29 0x09 0x8E 0x01 0x00 0x00}
-  \item CRC over data: (calculated)
-  \item Complete response: (data bytes + CRC byte)
-\end{itemize}
-
-Example response without GPS lock (no time, no coordinates):
-\begin{itemize}
-  \item Longitude (NaN as float64 LE): \texttt{0x00 0x00 0x00 0x00 0x00 0x00 0xF8 0x7F}
-  \item Latitude (NaN as float64 LE): \texttt{0x00 0x00 0x00 0x00 0x00 0x00 0xF8 0x7F}
-  \item Timestamp (0 as u64 LE): \texttt{0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00}
-  \item Data bytes: \texttt{0x00 0x00 0x00 0x00 0x00 0x00 0xF8 0x7F 0x00 0x00 0x00 0x00
-          0x00 0x00 0xF8 0x7F 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00}
-  \item CRC over data: (calculated)
-  \item Complete response: (data bytes + CRC byte)
+  \item CRC over data: \texttt{0x58}
+  \item Complete response: \texttt{0x00 0x00 0x48 0x41 0x00 0x00 0x50 0x40 0x58}
 \end{itemize}
 
 \subsection{Set Focal Length (Command ID: \texttt{0x05})}
@@ -730,8 +702,8 @@ To set focal length to 50.0 mm:
 \begin{itemize}
   \item Focal length (50.0 as float32 LE): \texttt{0x00 0x00 0x48 0x42}
   \item Bytes to CRC: \texttt{0x05 0x00 0x00 0x48 0x42} (Command ID + payload)
-  \item CRC result: (calculated)
-  \item Complete request: (CRC byte + Command ID + payload)
+  \item CRC result: \texttt{0xD7}
+  \item Complete request: \texttt{0xD7 0x05 0x00 0x00 0x48 0x42}
   \item Expected response: \texttt{0x00}
 \end{itemize}
 
@@ -757,7 +729,7 @@ focal length is returned in millimeters as a floating-point number.
 \end{table}
 
 Since there is no payload, the CRC is calculated over just the Command ID byte
-(\texttt{0x06}), which results in \texttt{0x0D}.
+(\texttt{0x06}), which results in \texttt{0x12}.
 
 \subsubsection{Response Format}
 
@@ -779,16 +751,117 @@ Since there is no payload, the CRC is calculated over just the Command ID byte
 Request to read current focal length:
 \begin{itemize}
   \item Bytes to CRC: \texttt{0x06}
-  \item CRC result: \texttt{0x0D}
-  \item Complete request: \texttt{0x0D 0x06}
+  \item CRC result: \texttt{0x12}
+  \item Complete request: \texttt{0x12 0x06}
 \end{itemize}
 
 Example response (focal length = 50.0 mm):
 \begin{itemize}
   \item Focal length (50.0 as float32 LE): \texttt{0x00 0x00 0x48 0x42}
   \item Data bytes: \texttt{0x00 0x00 0x48 0x42}
-  \item CRC over data: \texttt{0x4B}
-  \item Complete response: \texttt{0x00 0x00 0x48 0x42 0x4B}
+  \item CRC over data: \texttt{0x3A}
+  \item Complete response: \texttt{0x00 0x00 0x48 0x42 0x3A}
+\end{itemize}
+
+\subsection{Get GPS Data (Command ID: \texttt{0x07})}
+
+\subsubsection{Purpose}
+This command requests the current GPS data from the gimbal. The gimbal responds
+with its current longitude, latitude, and Unix timestamp in milliseconds. If
+coordinates are not available, longitude and latitude are returned as NaN. If
+the timestamp is not available, it is returned as zero. GPS typically acquires
+time before coordinates.
+
+\subsubsection{Request Format}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cccl}
+    \toprule
+    \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}    \\
+    \midrule
+    0             & 1             & (calculated)   & CRC-8 over bytes [1..1] \\
+    1             & 1             & \texttt{0x07}  & Command ID              \\
+    \bottomrule
+  \end{tabular}
+  \caption{Get GPS Data Request (2 bytes total)}
+\end{table}
+
+Since there is no payload, the CRC is calculated over just the Command ID byte
+(\texttt{0x07}), which results in \texttt{0x15}.
+
+\subsubsection{Response Format}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cccl}
+    \toprule
+    \textbf{Byte} & \textbf{Size} & \textbf{Value} & \textbf{Description}           \\
+    \midrule
+    0..7          & 8             & (float64 LE)   & Longitude in degrees           \\
+    8..15         & 8             & (float64 LE)   & Latitude in degrees            \\
+    16..23        & 8             & (u64 LE)       & Unix timestamp in milliseconds \\
+    24            & 1             & (calculated)   & CRC-8 over bytes [0..23]       \\
+    \bottomrule
+  \end{tabular}
+  \caption{Get GPS Data Response (25 bytes total)}
+\end{table}
+
+\textbf{Note:} The GPS may provide data in stages:
+\begin{itemize}
+  \item If coordinates are unknown, longitude and latitude are returned as NaN
+        (IEEE-754 NaN value).
+  \item If the timestamp is unknown, it is returned as zero.
+  \item GPS typically acquires time before coordinates, so it is possible to have a
+        valid timestamp with NaN coordinates.
+\end{itemize}
+
+\subsubsection{Example}
+
+Request to read GPS data:
+\begin{itemize}
+  \item Bytes to CRC: \texttt{0x07}
+  \item CRC result: \texttt{0x15}
+  \item Complete request: \texttt{0x15 0x07}
+\end{itemize}
+
+Example response with full GPS lock (longitude = -79.9167°, latitude =
+43.2567°, timestamp = 1705123456789 ms):
+\begin{itemize}
+  \item Longitude (-79.9167 as float64 LE): \texttt{0x91 0x0F 0x7A 0x36 0xAB 0xFA 0x53
+          0xC0}
+  \item Latitude (43.2567 as float64 LE): \texttt{0x0D 0x71 0xAC 0x8B 0xDB 0xA0 0x45
+          0x40}
+  \item Timestamp (1705123456789 as u64 LE): \texttt{0x15 0x27 0x47 0x01 0x8D 0x01 0x00
+          0x00}
+  \item Data bytes: \texttt{0x91 0x0F 0x7A 0x36 0xAB 0xFA 0x53 0xC0 0x0D 0x71 0xAC 0x8B
+          0xDB 0xA0 0x45 0x40 0x15 0x27 0x47 0x01 0x8D 0x01 0x00 0x00}
+  \item CRC over data: \texttt{0x97}
+  \item Complete response: (data bytes + \texttt{0x97})
+\end{itemize}
+
+Example response with time only (timestamp = 1705123456789 ms, coordinates
+unknown):
+\begin{itemize}
+  \item Longitude (NaN as float64 LE): \texttt{0x00 0x00 0x00 0x00 0x00 0x00 0xF8 0x7F}
+  \item Latitude (NaN as float64 LE): \texttt{0x00 0x00 0x00 0x00 0x00 0x00 0xF8 0x7F}
+  \item Timestamp (1705123456789 as u64 LE): \texttt{0x15 0x27 0x47 0x01 0x8D 0x01 0x00
+          0x00}
+  \item Data bytes: \texttt{0x00 0x00 0x00 0x00 0x00 0x00 0xF8 0x7F 0x00 0x00 0x00 0x00
+          0x00 0x00 0xF8 0x7F 0x15 0x27 0x47 0x01 0x8D 0x01 0x00 0x00}
+  \item CRC over data: \texttt{0x37}
+  \item Complete response: (data bytes + \texttt{0x37})
+\end{itemize}
+
+Example response without GPS lock (no time, no coordinates):
+\begin{itemize}
+  \item Longitude (NaN as float64 LE): \texttt{0x00 0x00 0x00 0x00 0x00 0x00 0xF8 0x7F}
+  \item Latitude (NaN as float64 LE): \texttt{0x00 0x00 0x00 0x00 0x00 0x00 0xF8 0x7F}
+  \item Timestamp (0 as u64 LE): \texttt{0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00}
+  \item Data bytes: \texttt{0x00 0x00 0x00 0x00 0x00 0x00 0xF8 0x7F 0x00 0x00 0x00 0x00
+          0x00 0x00 0xF8 0x7F 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00}
+  \item CRC over data: \texttt{0x82}
+  \item Complete response: (data bytes + \texttt{0x82})
 \end{itemize}
 
 \section{Error Handling}
