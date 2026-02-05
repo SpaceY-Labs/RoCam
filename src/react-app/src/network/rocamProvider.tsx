@@ -61,6 +61,7 @@ export function RocamProvider({ children }: RocamProviderProps) {
     es.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data) as StatusResponse
+
         setStatus(data)
         setError(null)
       } catch {

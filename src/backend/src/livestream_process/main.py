@@ -34,7 +34,7 @@ class LivestreamProcess:
         pipeline_desc = f"""
             appsrc name=source emit-signals=True do-timestamp=True format=3 is-live=True caps=video/x-raw,format=RGBA,width={WIDTH},height={HEIGHT},framerate=60/1 ! 
             queue max-size-buffers=2 !
-            nvvideoconvert compute-hw=1 !
+            nvvideoconvert compute-hw=1 nvbuf-memory-type=4 !
             nvdrmvideosink set-mode=1
         """
 
@@ -60,10 +60,6 @@ class LivestreamProcess:
         t = message.type
         if t == Gst.MessageType.EOS:
             logger.info("End-of-stream\n")
-            # Cleanup log file if recording
-            if self._log_file:
-                self._log_file.close()
-                self._log_file = None
             loop.quit()
         elif t == Gst.MessageType.WARNING:
             err, debug = message.parse_warning()
@@ -71,10 +67,6 @@ class LivestreamProcess:
         elif t == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
             logger.error("%s: %s" % (err, debug))
-            # Cleanup log file if recording
-            if self._log_file:
-                self._log_file.close()
-                self._log_file = None
             loop.quit()
         return True
 

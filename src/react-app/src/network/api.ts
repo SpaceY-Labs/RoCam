@@ -79,6 +79,7 @@ export class ApiClient {
         const response = await fetch(client.getGenerate204Url(), {
           method: 'GET',
         })
+
         if (response.status === 204) return client
       } catch {
         // Continue to next URL if this one fails
