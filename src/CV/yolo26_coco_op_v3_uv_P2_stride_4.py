@@ -132,7 +132,7 @@ args = dict(
     data=DATA_YAML,
     imgsz=(IMG_H, IMG_W),
     batch=batch,
-    epochs=420,
+    epochs=600,
     cache='disk',
     device="0",
     workers=8,
@@ -183,8 +183,8 @@ def attach_albumentations_if_available(train_args: dict):
     small_obj_aug = [
         A.MotionBlur(blur_limit=7, p=0.15),
         A.GaussianBlur(blur_limit=7, p=0.10),
-        A.GaussNoise(var_limit=(10.0, 50.0), p=0.15),
-        A.ImageCompression(quality_lower=40, quality_upper=95, p=0.20),
+        A.GaussNoise(std_range=(0.01, 0.03), p=0.15),           # ✅ 新版 API（模拟传感器噪声）
+        A.ImageCompression(quality_range=(40, 95), p=0.20),    # ✅ 新版 API（模拟 JPEG 压缩伪影）
         A.RandomBrightnessContrast(p=0.20),
         A.RandomGamma(p=0.10),
         A.CLAHE(clip_limit=3.0, p=0.10),
