@@ -169,30 +169,39 @@ args = dict(
     close_mosaic=150,    # ✅ 从 80→150：最后 150 epoch 关闭 mosaic，在原始分辨率下精调小目标
 )
 
-def attach_albumentations_if_available(train_args: dict):
+def attach_albumentations_if_available():
     """
     ✅ 可选：加"成像退化类增强"（对小目标很关键）
+    通过猴子补丁注入自定义增强管线，兼容 DDP 多卡训练。
     如果环境里没装 albumentations，会自动跳过，不影响训练。
     """
     try:
         import albumentations as A
+        from ultralytics.data.augment import Albumentations
     except Exception as e:
-        print("[AUG] 未安装 albumentations，跳过额外成像增强。", repr(e))
-        return train_args
+        print("[AUG] 未安装 albumentations 或版本不兼容，跳过额外成像增强。", repr(e))
+        return
 
-    small_obj_aug = [
-        A.MotionBlur(blur_limit=7, p=0.15),
-        A.GaussianBlur(blur_limit=7, p=0.10),
-        A.GaussNoise(std_range=(0.01, 0.03), p=0.15),           # ✅ 新版 API（模拟传感器噪声）
-        A.ImageCompression(quality_range=(40, 95), p=0.20),    # ✅ 新版 API（模拟 JPEG 压缩伪影）
-        A.RandomBrightnessContrast(p=0.20),
-        A.RandomGamma(p=0.10),
-        A.CLAHE(clip_limit=3.0, p=0.10),
-    ]
-    train_args = dict(train_args)
-    train_args["augmentations"] = small_obj_aug
-    print("[AUG] 已启用 Albumentations 成像增强（blur/noise/jpeg/亮度等）")
-    return train_args
+    # 保存原始 __init__，用猴子补丁覆盖 Albumentations 类的初始化
+    _orig_init = Albumentations.__init__
+
+    def _custom_init(self, p=1.0):
+        # 先调用原始初始化
+        _orig_init(self, p=p)
+        # 替换为自定义的增强管线
+        self.transform = A.Compose([
+            A.MotionBlur(blur_limit=7, p=0.15),
+            A.GaussianBlur(blur_limit=7, p=0.10),
+            A.GaussNoise(std_range=(0.01, 0.03), p=0.15),
+            A.ImageCompression(quality_range=(40, 95), p=0.20),
+            A.RandomBrightnessContrast(p=0.20),
+            A.RandomGamma(p=0.10),
+            A.CLAHE(clip_limit=3.0, p=0.10),
+        ], bbox_params=A.BboxParams(format="yolo", min_visibility=0.0))
+        print("[AUG] 已注入自定义 Albumentations 增强（blur/noise/jpeg/亮度等）")
+
+    Albumentations.__init__ = _custom_init
+    print("[AUG] 已配置自定义 Albumentations 管线（DDP 兼容）")
 
 if __name__ == "__main__":
     # 1) 自动下载 & 解压 COCO（只会在第一次真下载）
@@ -209,10 +218,10 @@ if __name__ == "__main__":
     else:
         model = YOLO(MODEL)
 
-    # ✅ 挂载可选增强（若没装 albumentations 自动跳过）
-    train_args = attach_albumentations_if_available(args)
+    # ✅ 挂载可选增强（猴子补丁方式，兼容 DDP）
+    attach_albumentations_if_available()
 
-    results = model.train(**train_args)
+    results = model.train(**args)
 
     print("runs dir:", getattr(results, "save_dir", "see runs/detect/"))
 
