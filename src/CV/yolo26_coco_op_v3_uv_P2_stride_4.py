@@ -20,7 +20,7 @@ IMG_H, IMG_W = 544, 960
 #    参数量几乎不变(9.8M vs 10M)，GFLOPs +22%（推理慢约 20%）
 #    如果帧率不可接受，改回 "yolo26s.pt"
 MODEL     = "yolo26s-p2.yaml"
-batch = 192               # ✅ 3 卡 DDP：每卡 64（和单卡时一致）
+batch = 192               # ✅ 3 卡 DDP：每卡 64
 
 # ========= 新增：COCO 相关配置 =========
 BASE_DIR         = Path(__file__).resolve().parent
@@ -130,7 +130,7 @@ def prepare_coco_negatives():
 # ========= 训练参数（最小化改动：偏小目标友好 + 利用 YOLO26 默认策略） =========
 args = dict(
     data=DATA_YAML,
-    imgsz=max(IMG_H, IMG_W),  # DDP 要求整数 imgsz，用长边 960
+    imgsz=max(IMG_H, IMG_W),  # 960，与推理分辨率一致
     batch=batch,
     epochs=600,
     cache='disk',
