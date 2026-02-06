@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1,2,3"
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["MKL_THREADING_LAYER"] = "GNU"
 os.environ["OMP_NUM_THREADS"] = "16"
@@ -20,7 +20,7 @@ IMG_H, IMG_W = 544, 960
 #    参数量几乎不变(9.8M vs 10M)，GFLOPs +22%（推理慢约 20%）
 #    如果帧率不可接受，改回 "yolo26s.pt"
 MODEL     = "yolo26s-p2.yaml"
-batch = 64
+batch = 192               # ✅ 3 卡 DDP：每卡 64（和单卡时一致）
 
 # ========= 新增：COCO 相关配置 =========
 BASE_DIR         = Path(__file__).resolve().parent
@@ -130,11 +130,11 @@ def prepare_coco_negatives():
 # ========= 训练参数（最小化改动：偏小目标友好 + 利用 YOLO26 默认策略） =========
 args = dict(
     data=DATA_YAML,
-    imgsz=(IMG_H, IMG_W),
+    imgsz=max(IMG_H, IMG_W),  # DDP 要求整数 imgsz，用长边 960
     batch=batch,
     epochs=600,
     cache='disk',
-    device="0",
+    device="0,1,2",          # ✅ 3 卡 DDP（物理 GPU 1,2,3）
     workers=8,
     amp=True,
 
@@ -152,7 +152,7 @@ args = dict(
     # ---- 颜色抖动 ----
     hsv_h=0.015, hsv_s=0.6, hsv_v=0.4,
 
-    # ---- 几何增强（收敛一些，避免把小火箭“增强没了”）----
+    # ---- 几何增强（收敛一些，避免把小火箭"增强没了"）----
     degrees=180,         # 原 180 太激进
     flipud=0.5,         # 原 0.5 先关掉（上下翻转可能不符合真实分布）
     fliplr=0.5,
@@ -171,7 +171,7 @@ args = dict(
 
 def attach_albumentations_if_available(train_args: dict):
     """
-    ✅ 可选：加“成像退化类增强”（对小目标很关键）
+    ✅ 可选：加"成像退化类增强"（对小目标很关键）
     如果环境里没装 albumentations，会自动跳过，不影响训练。
     """
     try:
@@ -212,28 +212,14 @@ if __name__ == "__main__":
     # ✅ 挂载可选增强（若没装 albumentations 自动跳过）
     train_args = attach_albumentations_if_available(args)
 
-    try:
-        results = model.train(**train_args)
-    except Exception as e:
-        # 某些新版本/新模型可能不接受 imgsz=(H,W) 这种 tuple
-        # 这里做一个“只在失败时触发”的 fallback：用长边 imgsz + rect=True
-        print("[WARN] model.train 失败，可能是 imgsz tuple 不兼容。错误如下：")
-        print(e)
-        print("[WARN] 尝试 fallback：imgsz=max(H,W) + rect=True 重新训练...")
-
-        args2 = dict(train_args)
-        args2["imgsz"] = max(IMG_H, IMG_W)  # 960
-        args2["rect"] = True
-        args2["multi_scale"] = False  # rect=True 时通常不和 multi_scale 一起用
-        results = model.train(**args2)
+    results = model.train(**train_args)
 
     print("runs dir:", getattr(results, "save_dir", "see runs/detect/"))
 
     # 4) ✅ 用 YOLO26 的 one-to-many head 做验证（通常更偏精度）
     #    end2end=False => one-to-many（需要 NMS；一般更准）
     try:
-        metrics = model.val(data=DATA_YAML, imgsz=(IMG_H, IMG_W), end2end=False)
+        metrics = model.val(data=DATA_YAML, imgsz=max(IMG_H, IMG_W), end2end=False)
         print("[VAL] one-to-many metrics:", metrics)
     except Exception as e:
         print("[WARN] model.val(one-to-many) 失败，可能是版本参数不兼容：", repr(e))
-
