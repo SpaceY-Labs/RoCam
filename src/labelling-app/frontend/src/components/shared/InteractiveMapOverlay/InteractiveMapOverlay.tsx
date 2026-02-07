@@ -91,18 +91,15 @@ export function InteractiveMapOverlay({
     const cssH = rect.height;
     if (cssW <= 0 || cssH <= 0) return;
 
-    // Scale canvas bitmap by devicePixelRatio for crisp rendering.
-    const dpr = window.devicePixelRatio || 1;
-    const physW = Math.round(cssW * dpr);
-    const physH = Math.round(cssH * dpr);
+    const intW = Math.round(cssW);
+    const intH = Math.round(cssH);
+    if (intW <= 0 || intH <= 0) return;
 
-    canvas.width = physW;
-    canvas.height = physH;
-    canvas.style.width = `${cssW}px`;
-    canvas.style.height = `${cssH}px`;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    canvas.width = intW;
+    canvas.height = intH;
+    // CSS width/height handled by stylesheet (100% of parent)
 
-    ctx.clearRect(0, 0, cssW, cssH);
+    ctx.clearRect(0, 0, intW, intH);
 
     const hasColorMap = Boolean(colorMap && Object.keys(colorMap).length > 0);
     const hasHighlight = Boolean(highlightedMaskId && maskOverlay);
@@ -111,11 +108,6 @@ export function InteractiveMapOverlay({
     const srcWidth = maskOverlay?.width || imageWidth || cssW;
     const srcHeight = maskOverlay?.height || imageHeight || cssH;
     if (!srcWidth || !srcHeight) return;
-
-    // Use integer CSS dimensions for the ImageData (fractional not supported)
-    const intW = Math.round(cssW);
-    const intH = Math.round(cssH);
-    if (intW <= 0 || intH <= 0) return;
 
     const imageData = ctx.createImageData(intW, intH);
     const data = imageData.data;
@@ -210,14 +202,6 @@ export function InteractiveMapOverlay({
     const observer = new ResizeObserver(() => drawOverlay());
     observer.observe(frame);
     return () => observer.disconnect();
-  }, [drawOverlay]);
-
-  // Redraw when devicePixelRatio changes (drag between monitors, Ctrl+zoom)
-  useEffect(() => {
-    const mql = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
-    const onChange = () => drawOverlay();
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
   }, [drawOverlay]);
 
   // Prevent Ctrl+wheel / Meta+wheel browser zoom over the overlay
