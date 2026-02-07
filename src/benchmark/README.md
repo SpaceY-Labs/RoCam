@@ -61,3 +61,4 @@ python3 accuracy_benchmark.py \
 | ./models/original.pt     | 11s        | 0.254               | 0.552                | 0.635               | Unknown      | Unknown     | Oldest model                |
 | ./models/first_yolo26.pt | 26s        | 0.304               | 0.565                | 0.664               | Xiaotian Lou | Jan 28 2026 | First YOLO26 attempt        |
 | ./models/small_rocket.pt | 26s        | 0.340               | 0.620                | 0.716               | Xiaotian Lou | Jan 31 2026 | Optimized for small rockets |
+| ./models/small27.pt | 26s        | 0.361               | 0.663               | 0.704              | Xiaotian Lou | Feb 7 2026 | Optimized for small rockets |
