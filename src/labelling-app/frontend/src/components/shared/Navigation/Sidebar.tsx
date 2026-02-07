@@ -10,7 +10,6 @@ import './Sidebar.css';
 export function Sidebar({
   currentRoute,
   selectedProject,
-  queueLoading = false,
   onNavigate,
 }: SidebarProps) {
   return (
@@ -58,8 +57,8 @@ export function Sidebar({
             )}
           </div>
           <div className="status-row">
-            <span className={queueLoading ? 'status-dot pulse' : 'status-dot'} />
-            {queueLoading ? 'Syncing...' : 'Ready'}
+            <span className="status-dot" />
+            Ready
           </div>
         </div>
       </div>

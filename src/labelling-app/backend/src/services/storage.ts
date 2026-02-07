@@ -2,6 +2,13 @@ import { storage } from "../firebase";
 import { config } from "../config";
 import { HttpError } from "../middleware/error";
 import { colorMapCache, maskBufferCache, maskOverlayCache } from "./cache";
+import {
+  buildColorMapStoragePath,
+  buildMaskOverlayStoragePath,
+  buildMaskStoragePath,
+} from "./storagePaths";
+
+export { buildColorMapStoragePath, buildMaskOverlayStoragePath, buildMaskStoragePath } from "./storagePaths";
 
 const bucket = storage.bucket();
 
@@ -94,27 +101,6 @@ export const downloadMaskBuffer = async (storagePath: string): Promise<Buffer> =
 };
 
 /**
- * Build storage path for a mask file
- */
-export const buildMaskStoragePath = (
-  projectId: string,
-  imageId: string,
-  maskId: string
-): string => {
-  return `projects/${projectId}/images/${imageId}/masks/${maskId}.bin`;
-};
-
-/**
- * Build storage path for a colorMap file
- */
-export const buildColorMapStoragePath = (
-  projectId: string,
-  maskMapId: string
-): string => {
-  return `projects/${projectId}/maskmaps/${maskMapId}/colormap.json`;
-};
-
-/**
  * Upload colorMap JSON to storage
  */
 export const uploadColorMap = async (
@@ -169,16 +155,6 @@ interface MaskOverlay {
   /** Flattened row-major array: data[row * width + col] = maskIndex or -1 for no mask */
   data: number[];
 }
-
-/**
- * Build storage path for a maskOverlay file
- */
-export const buildMaskOverlayStoragePath = (
-  projectId: string,
-  maskMapId: string
-): string => {
-  return `projects/${projectId}/maskmaps/${maskMapId}/maskoverlay.json`;
-};
 
 /**
  * Upload maskOverlay JSON to storage

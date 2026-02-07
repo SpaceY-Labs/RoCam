@@ -4,20 +4,21 @@ Build a `/images/zip`-compatible archive from a folder of images using SAM (Ultr
 Flow:
   1) Load every image under the given folder (recursively by default)
   2) Run SAM to auto-label/segment each image
-  3) Save the original image and a generated binary mask as Feather, zipped in the layout
+  3) Save the original image and a generated binary mask as .bin, zipped in the layout
      expected by the backend upload endpoint `/projects/:projectId/images/zip`
 
 ZIP layout produced:
   * `image/<relative-path>` copies of every source image
-  * `masks/<relative-path>.feather` binary masks (columns: mask, width, height)
+  * `masks/<relative-path>.bin` binary masks (8-byte header: width uint32 LE, height uint32 LE, then raw mask bytes)
 
-Dependencies: `pip install ultralytics torch numpy pillow pyarrow`
+Dependencies: `pip install ultralytics torch numpy pillow`
 """
 
 from __future__ import annotations
 
 import argparse
 import io
+import struct
 import sys
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -28,12 +29,6 @@ try:
     import numpy as np
 except ImportError as exc:  # pragma: no cover - highlight missing dependency
     raise SystemExit("numpy is required (install via `pip install numpy`).") from exc
-
-try:
-    import pyarrow as pa
-    import pyarrow.feather as feather
-except ImportError as exc:  # pragma: no cover - highlight missing dependency
-    raise SystemExit("pyarrow is required (install via `pip install pyarrow`).") from exc
 
 try:
     from PIL import Image, UnidentifiedImageError
@@ -91,19 +86,10 @@ def collect_images_from_directory(root: Path, recursive: bool) -> List[ImageCand
     return sorted(files, key=lambda item: item.relative.as_posix())
 
 def encode_mask(mask: np.ndarray, width: int, height: int) -> bytes:
-    """Encode a binary mask array into a Feather file that the backend can parse."""
+    """Encode a binary mask into .bin format: 8-byte header (width, height uint32 LE) + raw mask bytes."""
 
-    table = pa.table(
-        {
-            "mask": pa.array([mask.tobytes()], type=pa.binary()),
-            "width": pa.array([int(width)], type=pa.int32()),
-            "height": pa.array([int(height)], type=pa.int32()),
-        }
-    )
-    buffer = io.BytesIO()
-    # Disable compression - apache-arrow JS doesn't support compressed feather
-    feather.write_feather(table, buffer, compression="uncompressed")
-    return buffer.getvalue()
+    header = struct.pack("<II", int(width), int(height))
+    return header + mask.tobytes()
 
 
 def predict_sam_masks(
@@ -208,13 +194,13 @@ def build_zip(
                 threshold=threshold,
             )
 
-            # Write each mask as a separate feather file with index suffix
-            # e.g., masks/image_00.feather, masks/image_01.feather, etc.
+            # Write each mask as a separate .bin file with index suffix
+            # e.g., masks/image_00.bin, masks/image_01.bin, etc.
             base_name = candidate.relative.stem  # filename without extension
             parent = candidate.relative.parent
 
             for idx, (mask_array, width, height) in enumerate(masks):
-                mask_filename = f"{base_name}_{idx:02d}.feather"
+                mask_filename = f"{base_name}_{idx:02d}.bin"
                 mask_entry = PurePosixPath("masks") / parent / mask_filename
                 mask_bytes = encode_mask(mask_array, width, height)
                 zout.writestr(mask_entry.as_posix(), mask_bytes)

@@ -330,6 +330,53 @@ export const serializeMaskToFeather = (
   return Buffer.from(ipc);
 };
 
+/** Header size for .bin mask format: 4 bytes width + 4 bytes height (uint32 LE each). */
+const BIN_MASK_HEADER_SIZE = 8;
+
+/**
+ * Parse a .bin mask buffer (8-byte header: width uint32 LE, height uint32 LE, then raw mask bytes).
+ * Returns ParsedMask or null if invalid.
+ */
+export const parseBinMask = (
+  buffer: Buffer,
+  baseName: string,
+  maskIndex: number = 0
+): ParsedMask | null => {
+  if (buffer.length < BIN_MASK_HEADER_SIZE) {
+    return null;
+  }
+  const width = buffer.readUInt32LE(0);
+  const height = buffer.readUInt32LE(4);
+  const expectedSize = width * height;
+  if (buffer.length !== BIN_MASK_HEADER_SIZE + expectedSize || width === 0 || height === 0) {
+    return null;
+  }
+  const maskData = new Uint8Array(buffer.subarray(BIN_MASK_HEADER_SIZE));
+  const data = binaryMaskToSparse(maskData, width, height, maskIndex);
+  return {
+    baseName,
+    data,
+    width,
+    height,
+    maskIndex,
+  };
+};
+
+/**
+ * Serialize a mask to .bin format for ZIP export: 8-byte header (width, height uint32 LE) + raw mask bytes.
+ */
+export const serializeMaskToBin = (
+  buffer: Buffer,
+  width: number,
+  height: number
+): Buffer => {
+  const out = Buffer.allocUnsafe(BIN_MASK_HEADER_SIZE + buffer.length);
+  out.writeUInt32LE(width, 0);
+  out.writeUInt32LE(height, 4);
+  buffer.copy(out, BIN_MASK_HEADER_SIZE, 0, buffer.length);
+  return out;
+};
+
 /**
  * Serialize mask for storage in Firestore.
  */

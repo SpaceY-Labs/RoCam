@@ -8,6 +8,10 @@
   overflow: hidden;
   background: var(--color-bg-tertiary, #1a1a1a);
   border-radius: var(--radius-md, 8px);
+  /* Prevent touch zoom / pan gestures on the canvas area */
+  touch-action: none;
+  /* Prevent scroll-chaining to parent when scrolling inside canvas */
+  overscroll-behavior: contain;
 }
 
 .mask-canvas-image {
@@ -20,13 +24,27 @@
   object-fit: fill;
 }
 
+/* Hide the <img> source element — the canvas shows the composite (image + mask).
+   We keep it in the DOM so it loads and provides naturalWidth/naturalHeight,
+   but it must be invisible to avoid misalignment with the canvas on zoom. */
+.mask-canvas-image-hidden {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .mask-canvas-overlay {
   position: absolute;
   top: 0;
   left: 0;
+  pointer-events: none;
+}
+
+/* Single composite canvas — fills the frame exactly */
+.mask-canvas-overlay-single {
   width: 100%;
   height: 100%;
-  pointer-events: none;
 }
 
 .mask-canvas-fallback {

@@ -1,0 +1,33 @@
+/**
+ * ErrorBoundary - Fallback UI styles
+ */
+
+.error-boundary-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 200px;
+  padding: 2rem;
+  background: var(--color-bg-secondary, #f5f5f5);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, #e0e0e0);
+}
+
+.error-boundary-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.error-boundary-content h4 {
+  margin: 0;
+  color: var(--color-text-primary, #333);
+}
+
+.error-boundary-content .muted {
+  color: var(--color-text-muted, #888);
+  margin: 0;
+}

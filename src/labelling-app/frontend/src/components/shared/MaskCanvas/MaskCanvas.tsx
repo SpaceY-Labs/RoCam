@@ -4,7 +4,7 @@
  * Used by LabelImage, ManagementModal, and PreviewGallery
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { MaskOverlay, SparseColorMap } from '../../../types';
 import type { CompositeBuffer } from '../../../types/compositeBuffer';
 import {
@@ -89,12 +89,26 @@ export function MaskCanvas({
     const canvas = canvasRef.current;
     const frame = frameRef.current;
     if (!buffer || !canvas || !frame) return;
-    const w = frame.clientWidth;
-    const h = frame.clientHeight;
-    if (w <= 0 || h <= 0) return;
-    renderBufferToCanvas(buffer, canvas, w, h);
-    canvas.style.width = `${w}px`;
-    canvas.style.height = `${h}px`;
+
+    // Use getBoundingClientRect for sub-pixel accurate CSS dimensions.
+    // clientWidth/clientHeight rounds to integers and causes mask↔image drift on
+    // fractional browser-zoom levels.
+    const rect = frame.getBoundingClientRect();
+    const cssW = rect.width;
+    const cssH = rect.height;
+    if (cssW <= 0 || cssH <= 0) return;
+
+    // Scale the canvas bitmap by devicePixelRatio so it stays crisp after
+    // Ctrl+scroll zoom, pinch-zoom, and on HiDPI screens.
+    const dpr = window.devicePixelRatio || 1;
+    const physW = Math.round(cssW * dpr);
+    const physH = Math.round(cssH * dpr);
+
+    renderBufferToCanvas(buffer, canvas, physW, physH);
+
+    // CSS display size must match the container exactly (fractional px OK).
+    canvas.style.width  = `${cssW}px`;
+    canvas.style.height = `${cssH}px`;
   }, []);
 
   // Build or update composite buffer when image loads or mask data changes
@@ -159,7 +173,7 @@ export function MaskCanvas({
     }
   }, [imageUrl]);
 
-  // Redraw when frame size changes
+  // Redraw when frame size changes (including browser-zoom driven resize)
   useEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;
@@ -167,6 +181,30 @@ export function MaskCanvas({
     observer.observe(frame);
     return () => observer.disconnect();
   }, [redraw]);
+
+  // Redraw when devicePixelRatio changes (e.g. drag window between monitors,
+  // or Ctrl+scroll zoom that doesn't trigger a resize).
+  useEffect(() => {
+    const mql = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+    const onChange = () => redraw();
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, [redraw]);
+
+  // Prevent Ctrl+wheel / Meta+wheel from zooming the browser while the
+  // cursor is over the canvas.  Must use native listener with { passive: false }
+  // because React's synthetic onWheel is passive and cannot preventDefault.
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+      }
+    };
+    frame.addEventListener('wheel', onWheel, { passive: false });
+    return () => frame.removeEventListener('wheel', onWheel);
+  }, []);
 
   // ============ Mouse Handlers ============
   const getMaskAtPosition = useCallback(

@@ -8,6 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "lint": "eslint src --ext .ts",
+    "test": "npm run build && node --test dist/services/storagePaths.test.js dist/services/masks.test.js",
     "test:api": "node scripts/test_api.mjs"
   },
   "dependencies": {

@@ -300,3 +300,4 @@ __pycache__/
 node_modules/
 .claude/
 .cursor/worktrees.json
+src/labelling-app/frontend/test-results/.last-run.json

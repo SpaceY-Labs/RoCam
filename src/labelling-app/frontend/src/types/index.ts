@@ -226,7 +226,7 @@ export interface LockResponse {
 // UI STATE TYPES
 // ============================================================================
 
-export type RouteId = 'projects' | 'create' | 'label' | 'upload' | 'preview';
+export type RouteId = 'projects' | 'create' | 'upload' | 'preview';
 
 export interface NavItem {
   id: RouteId;

@@ -35,6 +35,7 @@ import {
 } from "../services/projects";
 import {
   parseFeatherMask,
+  parseBinMask,
   getBaseName,
   getMaskImageBaseName,
   type ParsedMask,
@@ -45,6 +46,7 @@ import {
   rawBinaryToSparseMask,
   generateMaskOverlay,
   serializeMaskToFeather,
+  serializeMaskToBin,
 } from "../services/masks";
 import {
   uploadMaskBuffer,
@@ -220,15 +222,37 @@ router.delete(
     const projectId = req.params.projectId;
     const doc = await ensureProjectAccess(projectId, user.uid);
 
-    // Delete all masks
+    // Delete all masks (Cloud Storage .bin files first, then Firestore docs)
     const masksCollection = getProjectMasksCollection(projectId);
     const masksSnapshot = await masksCollection.get();
-    await Promise.all(masksSnapshot.docs.map((maskDoc: FirebaseFirestore.QueryDocumentSnapshot) => maskDoc.ref.delete()));
+    await Promise.all(
+      masksSnapshot.docs.map(async (maskDoc: FirebaseFirestore.QueryDocumentSnapshot) => {
+        const data = maskDoc.data();
+        const storagePath = data?.storagePath as string | undefined;
+        if (storagePath) {
+          await deleteFileIfExists(storagePath);
+        }
+        await maskDoc.ref.delete();
+      })
+    );
 
-    // Delete all mask maps
+    // Delete all mask maps (Cloud Storage colorMap + maskOverlay first, then Firestore docs)
     const maskMapsCollection = getProjectMaskMapsCollection(projectId);
     const maskMapsSnapshot = await maskMapsCollection.get();
-    await Promise.all(maskMapsSnapshot.docs.map((mapDoc: FirebaseFirestore.QueryDocumentSnapshot) => mapDoc.ref.delete()));
+    await Promise.all(
+      maskMapsSnapshot.docs.map(async (mapDoc: FirebaseFirestore.QueryDocumentSnapshot) => {
+        const data = mapDoc.data();
+        const colorMapStoragePath = data?.colorMapStoragePath as string | undefined;
+        const maskOverlayStoragePath = data?.maskOverlayStoragePath as string | undefined;
+        if (colorMapStoragePath) {
+          await deleteFileIfExists(colorMapStoragePath);
+        }
+        if (maskOverlayStoragePath) {
+          await deleteFileIfExists(maskOverlayStoragePath);
+        }
+        await mapDoc.ref.delete();
+      })
+    );
 
     // Delete all images and their storage files
     const imagesCollection = getProjectImagesCollection(projectId);
@@ -291,7 +315,7 @@ router.post(
     }
 
     // Separate entries into images and masks based on folder structure
-    // Expected structure: /image/*.png and /masks/*.feather (or .arrow)
+    // Expected structure: /image/*.png and /masks/*.bin (or .feather / .arrow for backward compat)
     const imageEntries: Array<{ entryName: string; baseName: string; data: Buffer }> = [];
     const maskEntries: Array<{ entryName: string; baseName: string; data: Buffer }> = [];
 
@@ -310,16 +334,16 @@ router.post(
       if (entryPath.includes("/image/") || entryPath.startsWith("image/")) {
         imageEntries.push({ entryName: entry.entryName, baseName, data });
       }
-      // Check if it's in the masks folder and is a feather/arrow file
+      // Check if it's in the masks folder and is .bin, .feather, or .arrow
       // Note: entryPath is lowercased, check for both forward and back slashes
       else if (
         (entryPath.includes("/masks/") || entryPath.includes("\\masks\\") ||
          entryPath.startsWith("masks/") || entryPath.startsWith("masks\\")) &&
-        (entryPath.endsWith(".feather") || entryPath.endsWith(".arrow"))
+        (entryPath.endsWith(".bin") || entryPath.endsWith(".feather") || entryPath.endsWith(".arrow"))
       ) {
         console.log(`[ZIP Upload] Found mask entry: ${entry.entryName}`);
         // Use getMaskImageBaseName to strip the _XX suffix for matching with images
-        // e.g., "image_00.feather" -> imageBaseName="image" to match "image.png"
+        // e.g., "image_00.bin" or "image_00.feather" -> imageBaseName="image" to match "image.png"
         const imageBaseName = getMaskImageBaseName(fileName);
         maskEntries.push({ entryName: entry.entryName, baseName: imageBaseName, data });
       }
@@ -350,7 +374,10 @@ router.post(
     let maskIndex = 0;
     for (const maskEntry of maskEntries) {
       console.log(`[ZIP Upload] Parsing mask: ${maskEntry.entryName}, imageBaseName: ${maskEntry.baseName}, dataSize: ${maskEntry.data.length}`);
-      const parsed = parseFeatherMask(maskEntry.data, maskEntry.baseName, maskIndex);
+      const isBin = maskEntry.entryName.toLowerCase().endsWith(".bin");
+      const parsed = isBin
+        ? parseBinMask(maskEntry.data, maskEntry.baseName, maskIndex)
+        : parseFeatherMask(maskEntry.data, maskEntry.baseName, maskIndex);
       if (parsed) {
         console.log(`[ZIP Upload] Mask parsed successfully for image: ${maskEntry.baseName}, maskIndex: ${maskIndex}`);
         const existing = masksByBaseName.get(maskEntry.baseName) || [];
@@ -363,16 +390,24 @@ router.post(
     }
     console.log(`[ZIP Upload] Total masks parsed: ${maskIndex}, for ${masksByBaseName.size} unique images`)
 
-    // Prepare images with resizing
+    // Prepare images with resizing; deduplicate file names so duplicates become NAME, NAME01, NAME02, ...
     const prepared: Array<{
       fileName: string;
       baseName: string;
       resized: { buffer: Buffer; contentType: string };
       parsedMasks: ParsedMask[] | null;
     }> = [];
+    const fileNameCount: Record<string, number> = {};
 
     for (const imageEntry of imageEntries) {
-      const fileName = path.basename(imageEntry.entryName);
+      const rawFileName = path.basename(imageEntry.entryName);
+      const count = fileNameCount[rawFileName] ?? 0;
+      fileNameCount[rawFileName] = count + 1;
+      const fileName =
+        count === 0
+          ? rawFileName
+          : `${getBaseName(rawFileName)}${String(count).padStart(2, "0")}${path.extname(rawFileName)}`;
+
       const resized = await resizeImageBuffer(imageEntry.data);
       const parsedMasks = masksByBaseName.get(imageEntry.baseName) || null;
       prepared.push({
@@ -538,6 +573,7 @@ router.post(
 // ============================================================================
 
 const ZIP_EXPORT_MAX_IMAGES = 100;
+const ZIP_DOWNLOAD_CONCURRENCY = 10;
 
 const streamToBuffer = (stream: NodeJS.ReadableStream): Promise<Buffer> =>
   new Promise((resolve, reject) => {
@@ -546,6 +582,20 @@ const streamToBuffer = (stream: NodeJS.ReadableStream): Promise<Buffer> =>
     stream.on("end", () => resolve(Buffer.concat(chunks)));
     stream.on("error", reject);
   });
+
+async function parallelMap<T, R>(
+  items: T[],
+  fn: (item: T) => Promise<R>,
+  concurrency: number
+): Promise<R[]> {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += concurrency) {
+    const batch = items.slice(i, i + concurrency);
+    const batchResults = await Promise.all(batch.map(fn));
+    results.push(...batchResults);
+  }
+  return results;
+}
 
 router.get(
   "/:projectId/images/zip",
@@ -605,58 +655,57 @@ router.get(
       `[images/zip] Start projectId=${projectId} limit=${limit} status=${status ?? "any"} ids=${idsDesc} imageCount=${items.length}`
     );
 
-    const zip = new AdmZip();
-    let imagesAdded = 0;
-    let masksAdded = 0;
+    // 1. Gather work: image entries and mask entries (with baseName, index for zip paths)
+    type ImageWorkItem = { storagePath: string; fileName: string; imageId: string };
+    type MaskWorkItem = { storagePath: string; width: number; height: number; baseName: string; index: number; maskId: string; imageId: string };
+
+    const imageWorkItems: ImageWorkItem[] = [];
+    const maskWorkItems: MaskWorkItem[] = [];
     const total = items.length;
 
     for (let imageIndex = 0; imageIndex < items.length; imageIndex++) {
       const image = items[imageIndex];
       const storagePath = image?.storagePath as string | undefined;
-      const fileName = (image?.meta as { fileName?: string } | undefined)
-        ?.fileName as string | undefined;
+      const fileName = (image?.meta as { fileName?: string } | undefined)?.fileName as string | undefined;
       const imageId = image?.imageId as string | undefined;
 
       if (!storagePath || !fileName) {
+        console.log(
+          `[images/zip] Skipping image ${imageIndex + 1}/${total} imageId=${imageId ?? "?"} — missing storagePath or fileName`
+        );
         continue;
       }
 
       const current = imageIndex + 1;
       console.log(
-        `[images/zip] Image ${current}/${total} imageId=${imageId ?? "?"} fileName=${fileName}`
+        `[images/zip] Gathering image ${current}/${total} imageId=${imageId ?? "?"} fileName=${fileName}`
       );
 
-      const fileStream = await getFileStream(storagePath);
-      const imageBuffer = await streamToBuffer(fileStream);
-      zip.addFile(`image/${fileName}`, imageBuffer);
-      imagesAdded += 1;
-      console.log(`[images/zip] Added image/${fileName}`);
+      imageWorkItems.push({ storagePath, fileName, imageId: imageId ?? "unknown" });
 
       const maskMapId = image?.maskMapId as string | undefined;
       if (!maskMapId) {
+        console.log(`[images/zip] Image ${fileName} has no maskMapId, skipping masks`);
         continue;
       }
 
-      const maskMapDoc = await getProjectMaskMapsCollection(projectId)
-        .doc(maskMapId)
-        .get();
+      const maskMapDoc = await getProjectMaskMapsCollection(projectId).doc(maskMapId).get();
       if (!maskMapDoc.exists) {
+        console.log(`[images/zip] Image ${fileName} maskMapId=${maskMapId} not found in Firestore`);
         continue;
       }
       const maskMapData = maskMapDoc.data();
       const maskIds = (maskMapData?.maskIds as string[] | undefined) || [];
       const baseName = getBaseName(fileName);
       console.log(
-        `[images/zip] Image ${fileName} masks=${maskIds.length}`
+        `[images/zip] Image ${fileName} has ${maskIds.length} mask(s) in maskMap=${maskMapId}`
       );
 
-      let masksAddedForImage = 0;
       for (let i = 0; i < maskIds.length; i++) {
         const maskId = maskIds[i];
-        const maskDoc = await getProjectMasksCollection(projectId)
-          .doc(maskId)
-          .get();
+        const maskDoc = await getProjectMasksCollection(projectId).doc(maskId).get();
         if (!maskDoc.exists) {
+          console.log(`[images/zip] Mask ${maskId} not found in Firestore, skipping`);
           continue;
         }
         const maskData = maskDoc.data();
@@ -664,39 +713,88 @@ router.get(
         const width = (maskData?.width as number) ?? 0;
         const height = (maskData?.height as number) ?? 0;
         if (!maskStoragePath) {
+          console.log(`[images/zip] Mask ${maskId} has no storagePath, skipping`);
           continue;
         }
-        try {
-          const binaryBuffer = await downloadMaskBuffer(maskStoragePath);
-          const featherBuffer = serializeMaskToFeather(
-            binaryBuffer,
-            width,
-            height
-          );
-          const indexPadded = String(i).padStart(2, "0");
-          zip.addFile(
-            `masks/${baseName}_${indexPadded}.feather`,
-            featherBuffer
-          );
-          masksAddedForImage += 1;
-          masksAdded += 1;
-        } catch (err) {
-          console.error(
-            `[images/zip] Mask download or serialize failed (projectId=${projectId}, imageId=${image?.imageId}, maskId=${maskId}):`,
-            err instanceof Error ? err.message : err
-          );
-        }
+        maskWorkItems.push({ storagePath: maskStoragePath, width, height, baseName, index: i, maskId, imageId: imageId ?? "unknown" });
       }
-      if (maskIds.length > 0) {
-        console.log(
-          `[images/zip] Image ${fileName} added ${masksAddedForImage} masks`
+    }
+
+    console.log(
+      `[images/zip] Gather complete: ${imageWorkItems.length} images, ${maskWorkItems.length} masks to download`
+    );
+
+    // 2. Download images and masks in parallel batches
+    const downloadImageBuffer = async (item: ImageWorkItem): Promise<Buffer> => {
+      console.log(`[images/zip] Downloading image: ${item.fileName} (${item.storagePath})`);
+      const stream = await getFileStream(item.storagePath);
+      const buf = await streamToBuffer(stream);
+      console.log(`[images/zip] Downloaded image: ${item.fileName} (${buf.length} bytes)`);
+      return buf;
+    };
+
+    const downloadMaskBufferWithLog = async (item: MaskWorkItem): Promise<Buffer | null> => {
+      try {
+        console.log(`[images/zip] Downloading mask: ${item.maskId} (${item.storagePath})`);
+        const buf = await downloadMaskBuffer(item.storagePath);
+        console.log(`[images/zip] Downloaded mask: ${item.maskId} (${buf.length} bytes)`);
+        return buf;
+      } catch (err) {
+        console.error(
+          `[images/zip] Mask download failed (imageId=${item.imageId}, maskId=${item.maskId}, path=${item.storagePath}):`,
+          err instanceof Error ? err.message : err
+        );
+        return null;
+      }
+    };
+
+    console.log(`[images/zip] Starting parallel image download (concurrency=${ZIP_DOWNLOAD_CONCURRENCY})...`);
+    const imageBuffers = await parallelMap(imageWorkItems, downloadImageBuffer, ZIP_DOWNLOAD_CONCURRENCY);
+    console.log(`[images/zip] All image downloads complete`);
+
+    console.log(`[images/zip] Starting parallel mask download (concurrency=${ZIP_DOWNLOAD_CONCURRENCY})...`);
+    const maskBuffers = await parallelMap(maskWorkItems, downloadMaskBufferWithLog, ZIP_DOWNLOAD_CONCURRENCY);
+    console.log(`[images/zip] All mask downloads complete`);
+
+    // 3. Build ZIP: image/{imageId}/{fileName}, masks/{baseName}_{index}.bin
+    const zip = new AdmZip();
+    let imagesAdded = 0;
+    let masksAdded = 0;
+    let masksFailed = 0;
+
+    for (let i = 0; i < imageWorkItems.length; i++) {
+      const item = imageWorkItems[i];
+      const imageZipPath = `image/${item.imageId}/${item.fileName}`;
+      zip.addFile(imageZipPath, imageBuffers[i]);
+      imagesAdded += 1;
+      console.log(`[images/zip] Added ${imageZipPath}`);
+    }
+    for (let i = 0; i < maskWorkItems.length; i++) {
+      const maskBuf = maskBuffers[i];
+      if (maskBuf === null) {
+        masksFailed += 1;
+        console.log(`[images/zip] Skipping failed mask ${maskWorkItems[i].maskId} for ${maskWorkItems[i].baseName}`);
+        continue;
+      }
+      try {
+        const m = maskWorkItems[i];
+        const binBuffer = serializeMaskToBin(maskBuf, m.width, m.height);
+        const indexPadded = String(m.index).padStart(2, "0");
+        zip.addFile(`masks/${m.baseName}_${indexPadded}.bin`, binBuffer);
+        masksAdded += 1;
+        console.log(`[images/zip] Added masks/${m.baseName}_${indexPadded}.bin`);
+      } catch (err) {
+        masksFailed += 1;
+        console.error(
+          `[images/zip] Mask serialize failed (maskId=${maskWorkItems[i].maskId}):`,
+          err instanceof Error ? err.message : err
         );
       }
     }
 
     const zipBuffer = zip.toBuffer();
     console.log(
-      `[images/zip] Done projectId=${projectId} imagesAdded=${imagesAdded} masksAdded=${masksAdded} zipSizeBytes=${zipBuffer.length}`
+      `[images/zip] Done projectId=${projectId} imagesAdded=${imagesAdded} masksAdded=${masksAdded} masksFailed=${masksFailed} zipSizeBytes=${zipBuffer.length}`
     );
 
     res.setHeader("Content-Type", "application/zip");
@@ -979,18 +1077,35 @@ router.delete(
     if (doc.exists) {
       const data = doc.data();
 
-      // Delete associated mask map and masks
+      // Delete associated mask map and masks (Cloud Storage first, then Firestore)
       if (data?.maskMapId) {
         const maskMapDoc = await getProjectMaskMapsCollection(projectId).doc(data.maskMapId).get();
         if (maskMapDoc.exists) {
           const maskMapData = maskMapDoc.data();
-          // Delete all masks in this mask map
+          // Delete each mask's .bin file from Cloud Storage, then delete mask Firestore doc
           if (maskMapData?.maskIds) {
             await Promise.all(
-              maskMapData.maskIds.map((maskId: string) =>
-                getProjectMasksCollection(projectId).doc(maskId).delete()
-              )
+              maskMapData.maskIds.map(async (maskId: string) => {
+                const maskDoc = await getProjectMasksCollection(projectId).doc(maskId).get();
+                if (maskDoc.exists) {
+                  const maskData = maskDoc.data();
+                  const maskStoragePath = maskData?.storagePath as string | undefined;
+                  if (maskStoragePath) {
+                    await deleteFileIfExists(maskStoragePath);
+                  }
+                  await maskDoc.ref.delete();
+                }
+              })
             );
+          }
+          // Delete maskMap's colorMap and maskOverlay from Cloud Storage
+          const colorMapStoragePath = maskMapData?.colorMapStoragePath as string | undefined;
+          const maskOverlayStoragePath = maskMapData?.maskOverlayStoragePath as string | undefined;
+          if (colorMapStoragePath) {
+            await deleteFileIfExists(colorMapStoragePath);
+          }
+          if (maskOverlayStoragePath) {
+            await deleteFileIfExists(maskOverlayStoragePath);
           }
           await maskMapDoc.ref.delete();
         }

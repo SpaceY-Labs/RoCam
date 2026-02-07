@@ -29,11 +29,11 @@ $deployArgs = @(
   "--project", $ProjectId,
   "--image", $Image,
   "--allow-unauthenticated",
-  "--cpu", "4",
-  "--memory", "16Gi",
-  "--concurrency", "1",
+  "--cpu", "8",
+  "--memory", "32Gi",
+  "--concurrency", "8",
   "--min-instances", "0",
-  "--max-instances", "2",
+  "--max-instances", "5",
   "--timeout", $RequestTimeoutSec.ToString(),
   "--set-env-vars", $envVars
 )

@@ -1,0 +1,63 @@
+/**
+ * InteractiveMapOverlay - Two-layer styles.
+ * Visible <img> fills the frame; transparent <canvas> overlay sits on top.
+ * No cross-origin pixel reading — mask overlay drawn directly to canvas.
+ */
+
+.interactive-map-overlay {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: var(--color-bg-tertiary, #1a1a1a);
+  border-radius: var(--radius-md, 8px);
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+/* Image is VISIBLE - fills the frame as the base layer */
+.interactive-map-overlay-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+/* Overlay canvas sits on top of the image */
+.interactive-map-overlay-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.interactive-map-overlay-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  color: var(--color-text-muted, #888);
+  font-size: 0.875rem;
+}
+
+.interactive-map-overlay-status {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text-primary, #fff);
+  font-size: 0.875rem;
+}
+
+.interactive-map-overlay-status.empty {
+  background: rgba(0, 0, 0, 0.5);
+}

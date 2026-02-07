@@ -3,17 +3,18 @@ Preview images and mask overlays from a ZIP formatted for /projects/:projectId/i
 
 Expected ZIP structure:
   - image/<path>.png (or jpg/webp/...)
-  - masks/<path>.feather (mask bytes + width + height columns)
+  - masks/<path>.bin (8-byte header: width uint32 LE, height uint32 LE, then raw mask bytes)
 
 For each image, this script loads all matching masks and shows a side-by-side preview.
 Hover over the overlay to highlight the mask under your mouse.
 
-Dependencies: pip install pillow pyarrow matplotlib numpy
+Dependencies: pip install pillow matplotlib numpy
 """
 
 from __future__ import annotations
 
 import io
+import struct
 from pathlib import Path, PurePosixPath
 from typing import Optional
 from zipfile import ZipFile
@@ -21,7 +22,6 @@ from zipfile import ZipFile
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
-import pyarrow.feather as feather
 from PIL import Image
 
 # Configure these values directly to run the preview
@@ -30,14 +30,12 @@ ALPHA = 0.4
 LIMIT: Optional[int] = None
 
 
-def load_mask(feather_bytes: bytes) -> tuple[np.ndarray, int, int]:
-    """Load mask bytes, width, and height from a Feather buffer."""
-    table = feather.read_table(io.BytesIO(feather_bytes))
-    mask_col = table.column("mask")[0].as_py()
-    width = int(table.column("width")[0].as_py())
-    height = int(table.column("height")[0].as_py())
-
-    mask_arr = np.frombuffer(mask_col, dtype=np.uint8)
+def load_mask(bin_bytes: bytes) -> tuple[np.ndarray, int, int]:
+    """Load mask from .bin format: 8-byte header (width, height uint32 LE) + raw mask bytes."""
+    if len(bin_bytes) < 8:
+        raise ValueError("Mask .bin buffer too short for header")
+    width, height = struct.unpack("<II", bin_bytes[:8])
+    mask_arr = np.frombuffer(bin_bytes[8:], dtype=np.uint8)
     if mask_arr.size != width * height:
         raise ValueError(f"Mask size mismatch (len={mask_arr.size}, expected={width*height})")
     return mask_arr.reshape((height, width)), width, height
@@ -122,7 +120,7 @@ def preview_zip(
             mask_entries = [
                 name
                 for name in zf.namelist()
-                if name.startswith(mask_prefix) and name.endswith(".feather")
+                if name.startswith(mask_prefix) and name.endswith(".bin")
             ]
 
             if not mask_entries:

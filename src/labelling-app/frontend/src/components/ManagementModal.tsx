@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   ImageStatus,
   MaskApiItem,
@@ -15,7 +15,9 @@ import {
   updateImage,
   updateMaskLabel,
 } from '../modules/API_Helps';
-import { Button, Input, Select, StatusBadge, TagBadge } from './ui';
+import { Button, Input, Select, StatusBadge, TagBadge, ErrorBoundary } from './ui';
+import { InteractiveMapOverlay, useMaskHover } from './shared';
+import './ui/ErrorBoundary.css';
 import './ManagementModal.css';
 
 const STATUS_OPTIONS = [
@@ -24,8 +26,6 @@ const STATUS_OPTIONS = [
   { value: 'labeled', label: 'Labeled' },
 ];
 
-const OVERLAY_ALPHA = 130;
-const HIGHLIGHT_ALPHA = 255;
 const HOVER_DELAY_MS = 1000;
 const UNLABELED_COLOR = '#3B82F6';
 
@@ -34,20 +34,6 @@ interface LabelPopupState {
   x: number;
   y: number;
 }
-
-const parseHexColor = (hexColor: string, fallback: [number, number, number]): [number, number, number] => {
-  const hex = hexColor.replace('#', '');
-  if (hex.length < 6) {
-    return fallback;
-  }
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) {
-    return fallback;
-  }
-  return [r, g, b] as [number, number, number];
-};
 
 interface ManagementModalProps {
   project: Project;
@@ -93,18 +79,19 @@ export function ManagementModal({
   const [labelError, setLabelError] = useState<string | null>(null);
 
   const [selectedMaskId, setSelectedMaskId] = useState<string | null>(null);
-  const [hoveredMaskId, setHoveredMaskId] = useState<string | null>(null);
-  const [highlightedMaskId, setHighlightedMaskId] = useState<string | null>(null);
   const [labelPopup, setLabelPopup] = useState<LabelPopupState | null>(null);
   const [labelAssigning, setLabelAssigning] = useState(false);
   const [activeColorMap, setActiveColorMap] = useState<SparseColorMap | null | undefined>(colorMap);
 
-  const frameRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const colorCache = useMemo(() => new Map<string, [number, number, number]>(), []);
   const labelPopupRef = useRef<HTMLDivElement>(null);
   const masksRequestIdRef = useRef(0);
+
+  const {
+    highlightedMaskId,
+    handleMouseMove: onOverlayMouseMove,
+    handleMouseLeave: onOverlayMouseLeave,
+    reset: resetHover,
+  } = useMaskHover({ hoverDelay: HOVER_DELAY_MS });
 
   useEffect(() => {
     setEditStatus(image.meta.status);
@@ -116,10 +103,9 @@ export function ManagementModal({
     setMaskError(null);
     setLabelError(null);
     setSelectedMaskId(null);
-    setHoveredMaskId(null);
-    setHighlightedMaskId(null);
     setLabelPopup(null);
-  }, [image.imageId, image.labelComplete, image.meta.status, image.meta.tags, image.reviewed]);
+    resetHover();
+  }, [image.imageId, image.labelComplete, image.meta.status, image.meta.tags, image.reviewed, resetHover]);
 
   useEffect(() => {
     setActiveColorMap(colorMap);
@@ -257,196 +243,24 @@ export function ManagementModal({
     ? masks.find((mask) => mask.maskId === selectedMaskId) || null
     : null;
 
-  const drawOverlay = useCallback(() => {
-    const frame = frameRef.current;
-    const canvas = canvasRef.current;
-    if (!frame || !canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const width = frame.clientWidth;
-    const height = frame.clientHeight;
-    if (width === 0 || height === 0) return;
-
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(width * dpr);
-    canvas.height = Math.floor(height * dpr);
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    ctx.clearRect(0, 0, width, height);
-
-    const hasColorMap = Boolean(activeColorMap && Object.keys(activeColorMap).length > 0);
-    const hasHighlight = Boolean(highlightedMaskId && maskOverlay);
-    if (!hasColorMap && !hasHighlight) {
-      return;
-    }
-
-    const srcWidth = maskOverlay?.width || image.meta.width || width;
-    const srcHeight = maskOverlay?.height || image.meta.height || height;
-    if (!srcWidth || !srcHeight) return;
-
-    const imageData = ctx.createImageData(width, height);
-    const data = imageData.data;
-
-    if (hasColorMap && activeColorMap) {
-      for (const [rowKey, cols] of Object.entries(activeColorMap)) {
-        const row = Number(rowKey);
-        if (!Number.isFinite(row)) continue;
-        if (row < 0 || row >= srcHeight) continue;
-        const destY = Math.floor((row / srcHeight) * height);
-        const destRow = destY * width * 4;
-
-        for (const [colKey, hexColor] of Object.entries(cols)) {
-          const col = Number(colKey);
-          if (!Number.isFinite(col)) continue;
-          if (col < 0 || col >= srcWidth) continue;
-          const destX = Math.floor((col / srcWidth) * width);
-          const dest = destRow + destX * 4;
-
-          let rgb = colorCache.get(hexColor);
-          if (!rgb) {
-            rgb = parseHexColor(hexColor, [59, 130, 246]);
-            colorCache.set(hexColor, rgb);
-          }
-
-          data[dest] = rgb[0];
-          data[dest + 1] = rgb[1];
-          data[dest + 2] = rgb[2];
-          data[dest + 3] = OVERLAY_ALPHA;
-        }
-      }
-    }
-
-    if (hasHighlight && maskOverlay && highlightedMaskId) {
-      const highlightIndex = maskOverlay.maskIds.indexOf(highlightedMaskId);
-      if (highlightIndex >= 0) {
-        const highlightColor = highlightedMask?.color || UNLABELED_COLOR;
-        const [r, g, b] = parseHexColor(highlightColor, [59, 130, 246]);
-        const overlayWidth = maskOverlay.width;
-        const overlayHeight = maskOverlay.height;
-
-        for (let i = 0; i < maskOverlay.data.length; i += 1) {
-          if (maskOverlay.data[i] !== highlightIndex) continue;
-          const srcY = Math.floor(i / overlayWidth);
-          const srcX = i - srcY * overlayWidth;
-          const destX = Math.floor((srcX / overlayWidth) * width);
-          const destY = Math.floor((srcY / overlayHeight) * height);
-          if (destX < 0 || destX >= width || destY < 0 || destY >= height) continue;
-          const dest = (destY * width + destX) * 4;
-          data[dest] = r;
-          data[dest + 1] = g;
-          data[dest + 2] = b;
-          data[dest + 3] = HIGHLIGHT_ALPHA;
-        }
-      }
-    }
-
-    ctx.putImageData(imageData, 0, 0);
-  }, [
-    activeColorMap,
-    colorCache,
-    highlightedMask,
-    highlightedMaskId,
-    image.meta.height,
-    image.meta.width,
-    maskOverlay,
-  ]);
-
-  useEffect(() => {
-    drawOverlay();
-  }, [drawOverlay]);
-
-  useEffect(() => {
-    const frame = frameRef.current;
-    if (!frame) return;
-    const observer = new ResizeObserver(() => drawOverlay());
-    observer.observe(frame);
-    return () => observer.disconnect();
-  }, [drawOverlay]);
-
-  const getMaskAtPosition = useCallback(
-    (clientX: number, clientY: number) => {
-      if (!maskOverlay || !frameRef.current) return null;
-      const rect = frameRef.current.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) return null;
-      if (maskOverlay.width === 0 || maskOverlay.height === 0) return null;
-
-      const relativeX = (clientX - rect.left) / rect.width;
-      const relativeY = (clientY - rect.top) / rect.height;
-      if (relativeX < 0 || relativeX > 1 || relativeY < 0 || relativeY > 1) {
-        return null;
-      }
-
-      const col = Math.floor(relativeX * maskOverlay.width);
-      const row = Math.floor(relativeY * maskOverlay.height);
-      const idx = row * maskOverlay.width + col;
-      const maskIndex = maskOverlay.data[idx];
-      if (maskIndex === undefined || maskIndex < 0) {
-        return null;
-      }
-      return maskOverlay.maskIds[maskIndex] ?? null;
+  const handleOverlayMouseMove = useCallback(
+    (maskId: string | null, _event: React.MouseEvent) => {
+      onOverlayMouseMove(maskId);
     },
-    [maskOverlay]
+    [onOverlayMouseMove]
   );
 
-  const handleCanvasMouseMove = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      if (!maskOverlay) return;
-      const maskIdAtPosition = getMaskAtPosition(event.clientX, event.clientY);
-      if (maskIdAtPosition !== hoveredMaskId) {
-        setHoveredMaskId(maskIdAtPosition);
-
-        if (hoverTimerRef.current) {
-          clearTimeout(hoverTimerRef.current);
-          hoverTimerRef.current = null;
-        }
-
-        if (!maskIdAtPosition) {
-          setHighlightedMaskId(null);
-        } else {
-          hoverTimerRef.current = setTimeout(() => {
-            setHighlightedMaskId(maskIdAtPosition);
-          }, HOVER_DELAY_MS);
-        }
-      }
-    },
-    [getMaskAtPosition, hoveredMaskId, maskOverlay]
-  );
-
-  const handleCanvasMouseLeave = useCallback(() => {
-    setHoveredMaskId(null);
-    setHighlightedMaskId(null);
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-  }, []);
-
-  useEffect(
-    () => () => {
-      if (hoverTimerRef.current) {
-        clearTimeout(hoverTimerRef.current);
-        hoverTimerRef.current = null;
-      }
-    },
-    []
-  );
-
-  const handleCanvasClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      if (!maskOverlay) return;
-      const maskIdAtPosition = getMaskAtPosition(event.clientX, event.clientY);
-      if (!maskIdAtPosition) return;
-      setSelectedMaskId(maskIdAtPosition);
+  const handleOverlayClick = useCallback(
+    (maskId: string | null, event: React.MouseEvent) => {
+      if (!maskId) return;
+      setSelectedMaskId(maskId);
       setLabelPopup({
-        maskId: maskIdAtPosition,
+        maskId,
         x: event.clientX,
         y: event.clientY + 12,
       });
     },
-    [getMaskAtPosition, maskOverlay]
+    []
   );
 
   const handleMaskClick = useCallback(
@@ -522,54 +336,60 @@ export function ManagementModal({
 
       <div className="management-body">
         <div className="management-preview">
-          <div
-            className="management-canvas"
-            ref={frameRef}
-            style={{
-              aspectRatio:
-                image.meta.width && image.meta.height
-                  ? `${image.meta.width} / ${image.meta.height}`
-                  : '1 / 1',
-              cursor: maskOverlay ? 'crosshair' : 'default',
-            }}
-            onMouseMove={handleCanvasMouseMove}
-            onMouseLeave={handleCanvasMouseLeave}
-            onClick={handleCanvasClick}
-          >
-            {image.fileUrl ? (
-              <img src={image.fileUrl} alt={image.meta.fileName} loading="lazy" />
-            ) : (
-              <div className="gallery-fallback">
-                <span>No image URL</span>
-              </div>
-            )}
-            <canvas ref={canvasRef} className="management-overlay" />
-            {maskLoading && (
-              <div className="management-overlay-status">
-                <div className="loading-spinner" />
-                <span>Loading masks...</span>
-              </div>
-            )}
-            {!maskLoading && maskOverlay && maskOverlay.maskIds.length === 0 && (
-              <div className="management-overlay-status empty">
-                <span>No masks available</span>
-              </div>
-            )}
-            {activeColorMap === undefined && !maskLoading && hasMaskData && (
-              <div className="management-overlay-status">
-                <div className="loading-spinner" />
-                <span>Loading labels...</span>
-              </div>
-            )}
-            {activeColorMap !== undefined &&
-              (!activeColorMap || Object.keys(activeColorMap).length === 0) &&
-              !maskLoading &&
-              hasMaskData && (
-                <div className="management-overlay-status empty">
-                  <span>No labeled masks</span>
+          <ErrorBoundary
+            fallback={(error, reset) => (
+              <div className="error-boundary-fallback" style={{ aspectRatio: image.meta.width && image.meta.height ? `${image.meta.width} / ${image.meta.height}` : '1 / 1' }}>
+                <div className="error-boundary-content">
+                  <h4>Failed to render image overlay</h4>
+                  <p className="muted small">{error.message}</p>
+                  <button className="btn btn-ghost btn-small" onClick={reset}>
+                    Try again
+                  </button>
                 </div>
-              )}
-          </div>
+              </div>
+            )}
+          >
+          <InteractiveMapOverlay
+            className="management-canvas"
+            imageUrl={image.fileUrl}
+            imageAlt={image.meta.fileName}
+            imageWidth={image.meta.width}
+            imageHeight={image.meta.height}
+            colorMap={activeColorMap}
+            maskOverlay={maskOverlay}
+            highlightedMaskId={highlightedMaskId}
+            highlightColor={highlightedMask?.color ?? UNLABELED_COLOR}
+            masks={masks}
+            interactive={Boolean(maskOverlay)}
+            onMouseMove={handleOverlayMouseMove}
+            onMouseLeave={onOverlayMouseLeave}
+            onClick={handleOverlayClick}
+            maskLoading={maskLoading}
+            statusContent={
+              <>
+                {!maskLoading && maskOverlay && maskOverlay.maskIds.length === 0 && (
+                  <div className="interactive-map-overlay-status empty">
+                    <span>No masks available</span>
+                  </div>
+                )}
+                {activeColorMap === undefined && !maskLoading && hasMaskData && (
+                  <div className="interactive-map-overlay-status">
+                    <div className="loading-spinner" />
+                    <span>Loading labels...</span>
+                  </div>
+                )}
+                {activeColorMap !== undefined &&
+                  (!activeColorMap || Object.keys(activeColorMap).length === 0) &&
+                  !maskLoading &&
+                  hasMaskData && (
+                    <div className="interactive-map-overlay-status empty">
+                      <span>No labeled masks</span>
+                    </div>
+                  )}
+              </>
+            }
+          />
+          </ErrorBoundary>
 
           <div className="management-preview-meta">
             {maskLoading && <span className="mask-loading">Loading masks...</span>}
