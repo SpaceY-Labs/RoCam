@@ -6,7 +6,7 @@
 import { useCallback, useRef, useState } from 'react';
 
 // ============ Constants ============
-const DEFAULT_HOVER_DELAY_MS = 1000;
+const DEFAULT_HOVER_DELAY_MS = 0;
 
 // ============ Types ============
 export interface UseMaskHoverOptions {

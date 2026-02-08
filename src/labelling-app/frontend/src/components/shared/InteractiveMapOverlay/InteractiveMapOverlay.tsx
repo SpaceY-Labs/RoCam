@@ -17,8 +17,23 @@ import type { MaskApiItem, MaskOverlay, SparseColorMap } from '../../../types';
 import './InteractiveMapOverlay.css';
 
 const DEFAULT_OVERLAY_ALPHA = 130;
-const DEFAULT_HIGHLIGHT_ALPHA = 255;
 const UNLABELED_RGB: readonly [number, number, number] = [59, 130, 246];
+
+/** Opacity levels for mask overlay (0–255) */
+const UNLABELED_ALPHA = 100;       // 10%
+const LABELED_ALPHA = 200;        // 80%
+const FOCUSED_ALPHA = 230;        // 90%
+const HOVER_BOOST_ALPHA = 130;    // ~50% for unlabeled hover
+const HOVER_LABELED_ALPHA = 230;  // ~90% for labeled hover
+
+/** Deterministic palette for unlabeled masks (RGB tuples) */
+const MASK_PALETTE: [number, number, number][] = [
+  [230, 25, 75], [60, 180, 75], [255, 225, 25], [67, 99, 216],
+  [245, 130, 49], [145, 30, 180], [66, 212, 244], [240, 50, 230],
+  [191, 239, 69], [250, 190, 212], [70, 153, 144], [220, 190, 255],
+  [154, 99, 36], [255, 127, 0], [0, 128, 128], [128, 0, 128],
+  [255, 0, 255], [0, 255, 255], [128, 128, 0], [128, 0, 0],
+];
 
 function parseHex(hex: string): [number, number, number] {
   const s = hex.replace('#', '');
@@ -39,6 +54,8 @@ export interface InteractiveMapOverlayProps {
   maskOverlay?: MaskOverlay | null;
   highlightedMaskId?: string | null;
   highlightColor?: string | null;
+  /** When set, only these masks are visible at 90% opacity; others hidden. Used for focus mode. */
+  focusedMaskIds?: string[];
   overlayAlpha?: number;
   highlightAlpha?: number;
   masks?: MaskApiItem[];
@@ -59,9 +76,10 @@ export function InteractiveMapOverlay({
   colorMap,
   maskOverlay,
   highlightedMaskId,
-  highlightColor,
+  highlightColor: _highlightColor,
+  focusedMaskIds = [],
   overlayAlpha = DEFAULT_OVERLAY_ALPHA,
-  highlightAlpha = DEFAULT_HIGHLIGHT_ALPHA,
+  highlightAlpha: _highlightAlpha = 255,
   masks = [],
   interactive = false,
   onMouseMove,
@@ -85,7 +103,6 @@ export function InteractiveMapOverlay({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Use getBoundingClientRect for sub-pixel accurate CSS dimensions.
     const rect = frame.getBoundingClientRect();
     const cssW = rect.width;
     const cssH = rect.height;
@@ -97,41 +114,87 @@ export function InteractiveMapOverlay({
 
     canvas.width = intW;
     canvas.height = intH;
-    // CSS width/height handled by stylesheet (100% of parent)
 
     ctx.clearRect(0, 0, intW, intH);
-
-    const hasColorMap = Boolean(colorMap && Object.keys(colorMap).length > 0);
-    const hasHighlight = Boolean(highlightedMaskId && maskOverlay);
-    if (!hasColorMap && !hasHighlight) return;
 
     const srcWidth = maskOverlay?.width || imageWidth || cssW;
     const srcHeight = maskOverlay?.height || imageHeight || cssH;
     if (!srcWidth || !srcHeight) return;
 
+    const hasMaskOverlay = Boolean(maskOverlay && maskOverlay.data.length > 0 && masks.length > 0);
+    const hasColorMap = Boolean(colorMap && Object.keys(colorMap).length > 0);
+
+    if (!hasMaskOverlay && !hasColorMap) return;
+
     const imageData = ctx.createImageData(intW, intH);
     const data = imageData.data;
+    const overlayWidth = maskOverlay?.width ?? 0;
+    const overlayHeight = maskOverlay?.height ?? 0;
 
-    // Draw color map (labeled masks)
-    if (hasColorMap && colorMap) {
+    if (hasMaskOverlay && maskOverlay) {
+      const masksById = new Map(masks.map((m) => [m.maskId, m]));
+      const focusSet = new Set(focusedMaskIds);
+      const isFocusMode = focusSet.size > 0;
+
+      // Iterate destination pixels (nearest-neighbor) to guarantee no gaps
+      for (let destY = 0; destY < intH; destY++) {
+        const srcY = Math.floor((destY / intH) * overlayHeight);
+        for (let destX = 0; destX < intW; destX++) {
+          const srcX = Math.floor((destX / intW) * overlayWidth);
+          const srcIdx = srcY * overlayWidth + srcX;
+          const maskIndex = maskOverlay.data[srcIdx];
+          if (maskIndex < 0) continue;
+          const maskId = maskOverlay.maskIds[maskIndex];
+          if (maskId === undefined) continue;
+
+          if (isFocusMode && !focusSet.has(maskId)) continue;
+
+          const mask = masksById.get(maskId);
+          const isLabeled = mask?.labelId != null;
+          let rgb: [number, number, number];
+          if (isLabeled && mask?.color) {
+            let cached = colorCache.get(mask.color);
+            if (!cached) {
+              cached = parseHex(mask.color);
+              colorCache.set(mask.color, cached);
+            }
+            rgb = cached;
+          } else {
+            rgb = MASK_PALETTE[maskIndex % MASK_PALETTE.length];
+          }
+
+          let alpha: number;
+          if (isFocusMode && focusSet.has(maskId)) {
+            alpha = FOCUSED_ALPHA;
+          } else if (highlightedMaskId === maskId) {
+            alpha = isLabeled ? HOVER_LABELED_ALPHA : HOVER_BOOST_ALPHA;
+          } else {
+            alpha = isLabeled ? LABELED_ALPHA : UNLABELED_ALPHA;
+          }
+
+          const dest = (destY * intW + destX) * 4;
+          data[dest] = rgb[0];
+          data[dest + 1] = rgb[1];
+          data[dest + 2] = rgb[2];
+          data[dest + 3] = alpha;
+        }
+      }
+    } else if (hasColorMap && colorMap) {
       for (const [rowKey, cols] of Object.entries(colorMap)) {
         const row = Number(rowKey);
         if (!Number.isFinite(row) || row < 0 || row >= srcHeight) continue;
         const destY = Math.floor((row / srcHeight) * intH);
         const destRow = destY * intW * 4;
-
         for (const [colKey, hexColor] of Object.entries(cols)) {
           const col = Number(colKey);
           if (!Number.isFinite(col) || col < 0 || col >= srcWidth) continue;
           const destX = Math.floor((col / srcWidth) * intW);
           const dest = destRow + destX * 4;
-
           let rgb = colorCache.get(hexColor);
           if (!rgb) {
             rgb = parseHex(hexColor);
             colorCache.set(hexColor, rgb);
           }
-
           data[dest] = rgb[0];
           data[dest + 1] = rgb[1];
           data[dest + 2] = rgb[2];
@@ -140,49 +203,12 @@ export function InteractiveMapOverlay({
       }
     }
 
-    // Draw highlighted mask
-    if (hasHighlight && maskOverlay && highlightedMaskId) {
-      const highlightIndex = maskOverlay.maskIds.indexOf(highlightedMaskId);
-      if (highlightIndex >= 0) {
-        // Resolve highlight color from mask label or prop
-        const masksById = new Map(masks.map((m) => [m.maskId, m]));
-        const mask = masksById.get(highlightedMaskId);
-        const isLabeled = mask?.labelId != null;
-        let rgb: [number, number, number];
-        if (isLabeled && mask?.color) {
-          rgb = parseHex(mask.color);
-        } else if (highlightColor) {
-          rgb = parseHex(highlightColor);
-        } else {
-          rgb = [...UNLABELED_RGB];
-        }
-
-        const overlayWidth = maskOverlay.width;
-        const overlayHeight = maskOverlay.height;
-
-        for (let i = 0; i < maskOverlay.data.length; i++) {
-          if (maskOverlay.data[i] !== highlightIndex) continue;
-          const srcY = Math.floor(i / overlayWidth);
-          const srcX = i - srcY * overlayWidth;
-          const destX = Math.floor((srcX / overlayWidth) * intW);
-          const destY = Math.floor((srcY / overlayHeight) * intH);
-          if (destX < 0 || destX >= intW || destY < 0 || destY >= intH) continue;
-          const dest = (destY * intW + destX) * 4;
-          data[dest] = rgb[0];
-          data[dest + 1] = rgb[1];
-          data[dest + 2] = rgb[2];
-          data[dest + 3] = highlightAlpha;
-        }
-      }
-    }
-
     ctx.putImageData(imageData, 0, 0);
   }, [
     colorMap,
     colorCache,
-    highlightColor,
+    focusedMaskIds,
     highlightedMaskId,
-    highlightAlpha,
     imageHeight,
     imageWidth,
     maskOverlay,
@@ -220,10 +246,11 @@ export function InteractiveMapOverlay({
   // ============ Mouse Handlers ============
   const getMaskAtPosition = useCallback(
     (clientX: number, clientY: number): string | null => {
-      if (!maskOverlay || !frameRef.current) return null;
-      const rect = frameRef.current.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) return null;
-      if (maskOverlay.width === 0 || maskOverlay.height === 0) return null;
+      const frame = frameRef.current;
+      if (!frame || !maskOverlay || maskOverlay.width === 0 || maskOverlay.height === 0) return null;
+
+      const rect = frame.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return null;
       const relativeX = (clientX - rect.left) / rect.width;
       const relativeY = (clientY - rect.top) / rect.height;
       if (relativeX < 0 || relativeX > 1 || relativeY < 0 || relativeY > 1) return null;
@@ -232,9 +259,17 @@ export function InteractiveMapOverlay({
       const idx = row * maskOverlay.width + col;
       const maskIndex = maskOverlay.data[idx];
       if (maskIndex === undefined || maskIndex < 0) return null;
-      return maskOverlay.maskIds[maskIndex] ?? null;
+      const maskId = maskOverlay.maskIds[maskIndex] ?? null;
+
+      // In focus mode, only return the mask if it's visible (in the focus set)
+      if (focusedMaskIds.length > 0 && maskId != null) {
+        const focusSet = new Set(focusedMaskIds);
+        return focusSet.has(maskId) ? maskId : null;
+      }
+
+      return maskId;
     },
-    [maskOverlay]
+    [focusedMaskIds, maskOverlay]
   );
 
   const handleMouseMove = useCallback(

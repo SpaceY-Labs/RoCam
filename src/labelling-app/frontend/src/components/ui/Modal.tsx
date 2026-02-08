@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import type { ModalProps } from '../../types';
 import './Modal.css';
 
@@ -22,7 +23,7 @@ export function Modal({ isOpen, onClose, title, children, contentClassName = '' 
 
   if (!isOpen) return null;
 
-  return (
+  const modalNode = (
     <div className="modal-overlay" onClick={onClose}>
       <div
         className={`modal-content ${contentClassName}`.trim()}
@@ -42,6 +43,8 @@ export function Modal({ isOpen, onClose, title, children, contentClassName = '' 
       </div>
     </div>
   );
+
+  return createPortal(modalNode, document.body);
 }
 
 export function ConfirmModal({

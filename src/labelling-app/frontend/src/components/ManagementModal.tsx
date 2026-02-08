@@ -26,7 +26,7 @@ const STATUS_OPTIONS = [
   { value: 'labeled', label: 'Labeled' },
 ];
 
-const HOVER_DELAY_MS = 1000;
+const HOVER_DELAY_MS = 0;
 const UNLABELED_COLOR = '#3B82F6';
 
 interface LabelPopupState {
@@ -79,6 +79,7 @@ export function ManagementModal({
   const [labelError, setLabelError] = useState<string | null>(null);
 
   const [selectedMaskId, setSelectedMaskId] = useState<string | null>(null);
+  const [focusedMaskIds, setFocusedMaskIds] = useState<string[]>([]);
   const [labelPopup, setLabelPopup] = useState<LabelPopupState | null>(null);
   const [labelAssigning, setLabelAssigning] = useState(false);
   const [activeColorMap, setActiveColorMap] = useState<SparseColorMap | null | undefined>(colorMap);
@@ -103,6 +104,7 @@ export function ManagementModal({
     setMaskError(null);
     setLabelError(null);
     setSelectedMaskId(null);
+    setFocusedMaskIds([]);
     setLabelPopup(null);
     resetHover();
   }, [image.imageId, image.labelComplete, image.meta.status, image.meta.tags, image.reviewed, resetHover]);
@@ -252,26 +254,44 @@ export function ManagementModal({
 
   const handleOverlayClick = useCallback(
     (maskId: string | null, event: React.MouseEvent) => {
-      if (!maskId) return;
-      setSelectedMaskId(maskId);
-      setLabelPopup({
-        maskId,
-        x: event.clientX,
-        y: event.clientY + 12,
-      });
+      // Focus mode active
+      if (focusedMaskIds.length > 0) {
+        if (maskId && focusedMaskIds.includes(maskId)) {
+          // Clicked on a focused mask -> open label popup
+          setSelectedMaskId(maskId);
+          setLabelPopup({
+            maskId,
+            x: event.clientX,
+            y: event.clientY + 12,
+          });
+        } else if (maskId) {
+          // Clicked on another visible mask -> add to focus set
+          setFocusedMaskIds((prev) => [...prev, maskId]);
+        } else {
+          // Clicked empty area -> exit focus mode
+          setFocusedMaskIds([]);
+        }
+        return;
+      }
+
+      // Normal mode: click on highlighted mask enters focus
+      if (highlightedMaskId) {
+        setFocusedMaskIds([highlightedMaskId]);
+      }
     },
-    []
+    [focusedMaskIds, highlightedMaskId]
   );
 
   const handleMaskClick = useCallback(
     (mask: MaskApiItem, event: React.MouseEvent) => {
       event.stopPropagation();
-      setSelectedMaskId(mask.maskId);
-      const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-      setLabelPopup({
-        maskId: mask.maskId,
-        x: rect.left + rect.width / 2,
-        y: rect.bottom + 8,
+      setFocusedMaskIds((prev) => {
+        if (prev.includes(mask.maskId)) {
+          // Remove from set (toggle off)
+          return prev.filter((id) => id !== mask.maskId);
+        }
+        // Add to set
+        return [...prev, mask.maskId];
       });
     },
     []
@@ -359,6 +379,7 @@ export function ManagementModal({
             maskOverlay={maskOverlay}
             highlightedMaskId={highlightedMaskId}
             highlightColor={highlightedMask?.color ?? UNLABELED_COLOR}
+            focusedMaskIds={focusedMaskIds}
             masks={masks}
             interactive={Boolean(maskOverlay)}
             onMouseMove={handleOverlayMouseMove}
@@ -395,7 +416,7 @@ export function ManagementModal({
             {maskLoading && <span className="mask-loading">Loading masks...</span>}
             {!maskLoading && maskOverlay && (
               <span className="management-hint">
-                Hover to highlight masks. Click to assign labels.
+                Click a mask in the list to highlight it, then click on the mask to label.
               </span>
             )}
             {!maskLoading && !maskOverlay && (
@@ -484,12 +505,13 @@ export function ManagementModal({
                   const label = mask.labelId ? project.labels[mask.labelId] : null;
                   const isSelected = selectedMask?.maskId === mask.maskId;
                   const isHighlighted = highlightedMaskId === mask.maskId;
+                  const isFocused = focusedMaskIds.includes(mask.maskId);
                   return (
                     <button
                       key={mask.maskId}
                       className={`mask-list-item ${isSelected ? 'selected' : ''} ${
                         isHighlighted ? 'highlighted' : ''
-                      }`}
+                      } ${isFocused ? 'focused' : ''}`}
                       onClick={(event) => handleMaskClick(mask, event)}
                     >
                       <span

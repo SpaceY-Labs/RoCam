@@ -8,7 +8,7 @@ import type { ProjectImage, SparseColorMap } from '../../../types';
 import { Card } from '../../../components/ui';
 
 // ============ Constants ============
-const OVERLAY_ALPHA = 130;
+const OVERLAY_ALPHA = 204; // 80% opacity for labeled masks
 
 // ============ Types ============
 export interface PreviewCardProps {
@@ -41,16 +41,13 @@ function ImagePreview({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const width = frame.clientWidth;
-    const height = frame.clientHeight;
+    const width = Math.round(frame.clientWidth);
+    const height = Math.round(frame.clientHeight);
     if (width === 0 || height === 0) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(width * dpr);
-    canvas.height = Math.floor(height * dpr);
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    canvas.width = width;
+    canvas.height = height;
+    // CSS width/height handled by stylesheet
 
     ctx.clearRect(0, 0, width, height);
 
