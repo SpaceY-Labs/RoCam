@@ -78,7 +78,8 @@
 .gallery-grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  /* Cap column width so cards don't grow huge on ultrawide screens */
+  grid-template-columns: repeat(auto-fill, minmax(220px, 320px));
 }
 
 /* ============ Card Wrapper ============ */
@@ -86,6 +87,8 @@
   display: block;
   cursor: pointer;
   outline: none;
+  /* Keep card within reasonable bounds; grid column already caps width */
+  min-width: 0;
 }
 
 .gallery-card-wrapper:focus-visible .gallery-card {
@@ -112,6 +115,8 @@
   overflow: hidden;
   background: #fff;
   border: 1px solid var(--border);
+  /* Prevent very tall images from making cards huge */
+  max-height: 320px;
 }
 
 .gallery-thumb img {
