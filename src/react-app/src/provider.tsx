@@ -2,6 +2,7 @@ import type { NavigateOptions } from 'react-router-dom'
 
 import React from 'react'
 import { HeroUIProvider } from '@heroui/system'
+import { ToastProvider } from '@heroui/toast'
 import { I18nProvider } from '@lingui/react'
 import { i18n } from '@lingui/core'
 import { useAtomValue } from 'jotai'
@@ -42,7 +43,9 @@ export function Provider({ children }: { children: React.ReactNode }) {
     <JotaiProvider>
       <I18nLoader>
         <HeroUIProvider navigate={navigate} useHref={useHref}>
-          <RocamProvider>{children}</RocamProvider>
+          <ToastProvider placement="bottom-right" maxVisibleToasts={3}>
+            <RocamProvider>{children}</RocamProvider>
+          </ToastProvider>
         </HeroUIProvider>
       </I18nLoader>
     </JotaiProvider>
