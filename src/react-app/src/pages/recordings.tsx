@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Button } from '@heroui/button'
 import { Spinner } from '@heroui/spinner'
 import { Input } from '@heroui/input'
+import { addToast } from '@heroui/toast'
 import {
   IconCalendarEvent,
   IconClockHour3,
@@ -21,13 +22,16 @@ import { useRocam } from '@/network/rocamProvider'
 
 export default function RecordingsPage() {
   const { t } = useLingui()
-  const { apiClient } = useRocam()
+  const { apiClient, statusPollingError } = useRocam()
 
   const [recordings, setRecordings] = useState<Recording[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<Error | null>(null)
   const [selectedRecording, setSelectedRecording] = useState<Recording | null>(
     null
   )
+  const lastLoadErrorRef = useRef<string | null>(null)
+  const lastConnectionErrorRef = useRef<string | null>(null)
 
   async function loadRecordings() {
     if (!apiClient) return
@@ -36,9 +40,11 @@ export default function RecordingsPage() {
       const data = await apiClient.listRecordings()
 
       setRecordings(data.recordings)
+      setLoadError(null)
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('Failed to load recordings:', e)
+      setLoadError(e instanceof Error ? e : new Error(String(e)))
     } finally {
       setIsLoading(false)
     }
@@ -49,6 +55,40 @@ export default function RecordingsPage() {
       loadRecordings()
     }
   }, [apiClient])
+
+  useEffect(() => {
+    if (!loadError) {
+      lastLoadErrorRef.current = null
+      return
+    }
+
+    const message = getErrorMessage(loadError)
+    if (lastLoadErrorRef.current !== message) {
+      addToast({
+        title: t`Failed to load recordings`,
+        description: message,
+        color: 'danger',
+      })
+      lastLoadErrorRef.current = message
+    }
+  }, [loadError, t])
+
+  useEffect(() => {
+    if (!statusPollingError) {
+      lastConnectionErrorRef.current = null
+      return
+    }
+
+    const message = getErrorMessage(statusPollingError)
+    if (lastConnectionErrorRef.current !== message) {
+      addToast({
+        title: t`Connection error`,
+        description: message,
+        color: 'danger',
+      })
+      lastConnectionErrorRef.current = message
+    }
+  }, [statusPollingError, t])
 
   const handleRename = async (id: string, newName: string) => {
     if (!apiClient) return
@@ -64,6 +104,11 @@ export default function RecordingsPage() {
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('Failed to rename recording:', e)
+      addToast({
+        title: t`Rename failed`,
+        description: getErrorMessage(e),
+        color: 'danger',
+      })
       throw e
     }
   }
@@ -75,9 +120,19 @@ export default function RecordingsPage() {
     try {
       await apiClient.deleteRecording(r.id)
       setRecordings((cur) => cur.filter((x) => x.id !== r.id))
+      addToast({
+        title: t`Recording deleted`,
+        description: r.name,
+        color: 'success',
+      })
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('Failed to delete recording:', e)
+      addToast({
+        title: t`Delete failed`,
+        description: getErrorMessage(e),
+        color: 'danger',
+      })
       throw e
     }
   }
@@ -429,4 +484,9 @@ function formatBytes(bytes: number) {
   }
 
   return `${b.toFixed(i === 0 ? 0 : 1)} ${units[i]}`
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) return error.message
+  return String(error ?? 'Unknown error')
 }
