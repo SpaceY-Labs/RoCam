@@ -776,34 +776,32 @@ export const generateMaskOverlay = (
   const sizeAtPixel = new Float32Array(totalPixels);
   sizeAtPixel.fill(Number.POSITIVE_INFINITY);
 
-  // Process each mask
+  // Process each mask – iterate DESTINATION pixels and sample from source
+  // (nearest-neighbor). This guarantees no gaps when upscaling masks that are
+  // smaller than the target resolution.
   for (const { maskId, size, binaryMask, srcWidth, srcHeight } of masks) {
     const maskIndex = maskIdToIndex.get(maskId);
     if (maskIndex === undefined) continue;
 
-    // Calculate scale factors from source (mask) dimensions to target (overlay) dimensions
+    // Scale factors: target / source
     const scaleX = targetWidth / srcWidth;
     const scaleY = targetHeight / srcHeight;
 
-    // DEBUG: Log scaling info for each mask
     const srcPixelCount = Object.values(binaryMask).reduce((sum, cols) => sum + Object.keys(cols).length, 0);
     console.log(`[generateMaskOverlay] Mask ${maskIndex}: src=${srcWidth}x${srcHeight}, scale=(${scaleX.toFixed(4)}, ${scaleY.toFixed(4)}), srcPixels=${srcPixelCount}`);
 
-    for (const [rowKey, cols] of Object.entries(binaryMask)) {
-      const srcRow = parseInt(rowKey, 10);
+    for (let targetRow = 0; targetRow < targetHeight; targetRow++) {
+      const srcRow = Math.floor(targetRow / scaleY);
       if (srcRow < 0 || srcRow >= srcHeight) continue;
 
-      // Scale row to target dimensions
-      const targetRow = Math.floor(srcRow * scaleY);
-      if (targetRow < 0 || targetRow >= targetHeight) continue;
+      // Skip entire row if no mask data for this source row
+      const rowData = binaryMask[String(srcRow)];
+      if (!rowData) continue;
 
-      for (const colKey of Object.keys(cols)) {
-        const srcCol = parseInt(colKey, 10);
+      for (let targetCol = 0; targetCol < targetWidth; targetCol++) {
+        const srcCol = Math.floor(targetCol / scaleX);
         if (srcCol < 0 || srcCol >= srcWidth) continue;
-
-        // Scale column to target dimensions
-        const targetCol = Math.floor(srcCol * scaleX);
-        if (targetCol < 0 || targetCol >= targetWidth) continue;
+        if (!rowData[String(srcCol)]) continue;
 
         const idx = targetRow * targetWidth + targetCol;
         // If this mask is smaller than the current one at this pixel, replace it
@@ -857,15 +855,23 @@ const blendColors = (colors: string[]): string => {
  * Compute colorMap from maskLabels and mask binary data.
  * This rebuilds the entire colorMap from scratch.
  *
+ * When targetWidth/targetHeight are provided, coordinates are scaled from each
+ * mask's native resolution to the target resolution so the colorMap aligns with
+ * the displayed image (always resized to target on upload).
+ *
  * @param maskLabels - Dictionary of maskId -> labelId
- * @param masks - Array of mask documents with binaryMask data
+ * @param masks - Array of mask documents with binaryMask data and source dimensions
  * @param labels - Project labels configuration
- * @returns Computed colorMap
+ * @param targetWidth - Target width to scale coordinates to (e.g. 1920)
+ * @param targetHeight - Target height to scale coordinates to (e.g. 1080)
+ * @returns Computed colorMap in target coordinate space
  */
 export const computeColorMap = (
   maskLabels: MaskLabelsMap,
-  masks: Array<{ maskId: string; binaryMask: SparseBinaryMask }>,
-  labels: LabelsMap
+  masks: Array<{ maskId: string; binaryMask: SparseBinaryMask; srcWidth?: number; srcHeight?: number }>,
+  labels: LabelsMap,
+  targetWidth?: number,
+  targetHeight?: number
 ): SparseColorMap => {
   // Track colors at each pixel: { rowKey: { colKey: [color1, color2] } }
   const pixelColors: Record<string, Record<string, string[]>> = {};
@@ -874,7 +880,6 @@ export const computeColorMap = (
   for (const mask of masks) {
     const labelId = maskLabels[mask.maskId];
     if (!labelId) {
-      // Unlabeled mask - doesn't contribute to colorMap
       continue;
     }
 
@@ -883,17 +888,34 @@ export const computeColorMap = (
       continue;
     }
 
-    // Add this color to each pixel in the mask's binaryMask
+    const needsScale = targetWidth && targetHeight && mask.srcWidth && mask.srcHeight &&
+      (mask.srcWidth !== targetWidth || mask.srcHeight !== targetHeight);
+    const scaleX = needsScale ? targetWidth / mask.srcWidth! : 1;
+    const scaleY = needsScale ? targetHeight / mask.srcHeight! : 1;
+
     for (const [rowKey, cols] of Object.entries(mask.binaryMask)) {
+      const srcRow = parseInt(rowKey, 10);
+
+      // When scaling, fill all target rows that map back to this source row
+      const tRowStart = needsScale ? Math.floor(srcRow * scaleY) : srcRow;
+      const tRowEnd = needsScale ? Math.floor((srcRow + 1) * scaleY) : srcRow + 1;
+
       for (const colKey of Object.keys(cols)) {
-        if (!pixelColors[rowKey]) {
-          pixelColors[rowKey] = {};
-        }
-        if (!pixelColors[rowKey][colKey]) {
-          pixelColors[rowKey][colKey] = [];
-        }
-        if (!pixelColors[rowKey][colKey].includes(color)) {
-          pixelColors[rowKey][colKey].push(color);
+        const srcCol = parseInt(colKey, 10);
+
+        const tColStart = needsScale ? Math.floor(srcCol * scaleX) : srcCol;
+        const tColEnd = needsScale ? Math.floor((srcCol + 1) * scaleX) : srcCol + 1;
+
+        for (let tr = tRowStart; tr < tRowEnd; tr++) {
+          const rk = String(tr);
+          if (!pixelColors[rk]) pixelColors[rk] = {};
+          for (let tc = tColStart; tc < tColEnd; tc++) {
+            const ck = String(tc);
+            if (!pixelColors[rk][ck]) pixelColors[rk][ck] = [];
+            if (!pixelColors[rk][ck].includes(color)) {
+              pixelColors[rk][ck].push(color);
+            }
+          }
         }
       }
     }

@@ -302,3 +302,7 @@ node_modules/
 .cursor/worktrees.json
 src/labelling-app/frontend/test-results/.last-run.json
 sample-data/
+
+# Auto-generated local env files
+.env.local
+**/.env.local

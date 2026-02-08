@@ -20,7 +20,7 @@ const DEFAULT_OVERLAY_ALPHA = 130;
 const UNLABELED_RGB: readonly [number, number, number] = [59, 130, 246];
 
 /** Opacity levels for mask overlay (0–255) */
-const UNLABELED_ALPHA = 100;       // 10%
+const UNLABELED_ALPHA = 50;       // 10%
 const LABELED_ALPHA = 200;        // 80%
 const FOCUSED_ALPHA = 230;        // 90%
 const HOVER_BOOST_ALPHA = 130;    // ~50% for unlabeled hover
@@ -54,7 +54,7 @@ export interface InteractiveMapOverlayProps {
   maskOverlay?: MaskOverlay | null;
   highlightedMaskId?: string | null;
   highlightColor?: string | null;
-  /** When set, only these masks are visible at 90% opacity; others hidden. Used for focus mode. */
+  /** Selected masks rendered at 90% opacity; other masks stay at normal opacity. */
   focusedMaskIds?: string[];
   overlayAlpha?: number;
   highlightAlpha?: number;
@@ -147,8 +147,6 @@ export function InteractiveMapOverlay({
           const maskId = maskOverlay.maskIds[maskIndex];
           if (maskId === undefined) continue;
 
-          if (isFocusMode && !focusSet.has(maskId)) continue;
-
           const mask = masksById.get(maskId);
           const isLabeled = mask?.labelId != null;
           let rgb: [number, number, number];
@@ -165,10 +163,12 @@ export function InteractiveMapOverlay({
 
           let alpha: number;
           if (isFocusMode && focusSet.has(maskId)) {
+            // Selected masks get boosted opacity
             alpha = FOCUSED_ALPHA;
           } else if (highlightedMaskId === maskId) {
             alpha = isLabeled ? HOVER_LABELED_ALPHA : HOVER_BOOST_ALPHA;
           } else {
+            // Non-selected masks keep their normal opacity
             alpha = isLabeled ? LABELED_ALPHA : UNLABELED_ALPHA;
           }
 
@@ -259,17 +259,9 @@ export function InteractiveMapOverlay({
       const idx = row * maskOverlay.width + col;
       const maskIndex = maskOverlay.data[idx];
       if (maskIndex === undefined || maskIndex < 0) return null;
-      const maskId = maskOverlay.maskIds[maskIndex] ?? null;
-
-      // In focus mode, only return the mask if it's visible (in the focus set)
-      if (focusedMaskIds.length > 0 && maskId != null) {
-        const focusSet = new Set(focusedMaskIds);
-        return focusSet.has(maskId) ? maskId : null;
-      }
-
-      return maskId;
+      return maskOverlay.maskIds[maskIndex] ?? null;
     },
-    [focusedMaskIds, maskOverlay]
+    [maskOverlay]
   );
 
   const handleMouseMove = useCallback(

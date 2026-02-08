@@ -1319,8 +1319,6 @@ router.patch(
 
       // Fetch all masks and their binary data from storage to recompute colorMap
       const allMaskIds = maskMapData?.maskIds || [];
-      const width = maskMapData?.width || 0;
-      const height = maskMapData?.height || 0;
 
       const allMasks = await Promise.all(
         allMaskIds.map(async (mid: string) => {
@@ -1333,18 +1331,20 @@ router.patch(
 
           try {
             const binaryBuffer = await downloadMaskBuffer(storagePath);
-            const binaryMask = rawBinaryToSparseMask(binaryBuffer, width, height);
-            return { maskId: mid, binaryMask };
+            const maskW = maskData.width || TARGET_WIDTH;
+            const maskH = maskData.height || TARGET_HEIGHT;
+            const binaryMask = rawBinaryToSparseMask(binaryBuffer, maskW, maskH);
+            return { maskId: mid, binaryMask, srcWidth: maskW, srcHeight: maskH };
           } catch {
             console.warn(`Failed to download mask ${mid} from storage`);
             return null;
           }
         })
       );
-      const validMasks = allMasks.filter((m): m is { maskId: string; binaryMask: Record<string, Record<string, 1>> } => m !== null);
+      const validMasks = allMasks.filter((m): m is { maskId: string; binaryMask: Record<string, Record<string, 1>>; srcWidth: number; srcHeight: number } => m !== null);
 
-      // Recompute colorMap with updated maskLabels
-      const colorMap = computeColorMap(maskLabels, validMasks, labels);
+      // Recompute colorMap with updated maskLabels, scaling to target resolution
+      const colorMap = computeColorMap(maskLabels, validMasks, labels, TARGET_WIDTH, TARGET_HEIGHT);
 
       // Upload updated colorMap to storage
       const colorMapStoragePath = maskMapData?.colorMapStoragePath;
@@ -1381,81 +1381,109 @@ router.patch(
       throw new HttpError(400, "VALIDATION_ERROR", parsed.error.message);
     }
 
-    const results = await Promise.all(
-      parsed.data.updates.map(async (update) => {
-        const maskRef = getProjectMasksCollection(projectId).doc(update.maskId);
-        const maskDoc = await maskRef.get();
+    // Step 1: Update all individual mask documents and collect results
+    const results: Array<{ maskId: string; success: boolean; labelId?: string | null; color?: string | null; error?: string }> = [];
+    const successfulUpdates: Array<{ maskId: string; labelId: string | null; color: string | null }> = [];
 
-        if (!maskDoc.exists) {
-          return { maskId: update.maskId, success: false, error: "NOT_FOUND" };
-        }
+    for (const update of parsed.data.updates) {
+      const maskRef = getProjectMasksCollection(projectId).doc(update.maskId);
+      const maskDoc = await maskRef.get();
 
-        const newLabelId = update.labelId;
-        const newColor = newLabelId && labels[newLabelId] ? labels[newLabelId].color : null;
+      if (!maskDoc.exists) {
+        results.push({ maskId: update.maskId, success: false, error: "NOT_FOUND" });
+        continue;
+      }
 
-        await maskRef.update({
-          labelId: newLabelId,
-          color: newColor,
-          updatedAt: FieldValue.serverTimestamp(),
-        });
+      const newLabelId = update.labelId;
+      const newColor = newLabelId && labels[newLabelId] ? labels[newLabelId].color : null;
 
-        // Update associated mask map
+      await maskRef.update({
+        labelId: newLabelId,
+        color: newColor,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      results.push({ maskId: update.maskId, success: true, labelId: newLabelId, color: newColor });
+      successfulUpdates.push({ maskId: update.maskId, labelId: newLabelId, color: newColor });
+    }
+
+    // Step 2: Group successful updates by mask map and update each mask map once
+    if (successfulUpdates.length > 0) {
+      // Find which mask maps contain these masks (typically all masks belong to same mask map)
+      const maskMapIds = new Set<string>();
+      const maskToMaskMapId = new Map<string, string>();
+
+      for (const update of successfulUpdates) {
         const maskMapsSnapshot = await getProjectMaskMapsCollection(projectId)
           .where("maskIds", "array-contains", update.maskId)
           .get();
 
         if (!maskMapsSnapshot.empty) {
-          const maskMapDoc = maskMapsSnapshot.docs[0];
-          const maskMapData = maskMapDoc.data();
+          const maskMapId = maskMapsSnapshot.docs[0].id;
+          maskMapIds.add(maskMapId);
+          maskToMaskMapId.set(update.maskId, maskMapId);
+        }
+      }
 
-          // Update maskLabels dictionary (source of truth)
-          const maskLabels = { ...(maskMapData?.maskLabels || {}) };
-          maskLabels[update.maskId] = newLabelId;
+      // Process each affected mask map once with all its updates
+      for (const maskMapId of maskMapIds) {
+        const maskMapDoc = await getProjectMaskMapsCollection(projectId).doc(maskMapId).get();
+        if (!maskMapDoc.exists) continue;
 
-          // Fetch all masks and their binary data from storage to recompute colorMap
-          const allMaskIds = maskMapData?.maskIds || [];
-          const width = maskMapData?.width || 0;
-          const height = maskMapData?.height || 0;
+        const maskMapData = maskMapDoc.data();
 
-          const allMasks = await Promise.all(
-            allMaskIds.map(async (mid: string) => {
-              const mDoc = await getProjectMasksCollection(projectId).doc(mid).get();
-              if (!mDoc.exists) return null;
+        // Collect all updates that belong to this mask map
+        const updatesForThisMaskMap = successfulUpdates.filter(
+          (u) => maskToMaskMapId.get(u.maskId) === maskMapId
+        );
 
-              const mData = mDoc.data();
-              const storagePath = mData?.storagePath;
-              if (!storagePath) return null;
-
-              try {
-                const binaryBuffer = await downloadMaskBuffer(storagePath);
-                const binaryMask = rawBinaryToSparseMask(binaryBuffer, width, height);
-                return { maskId: mid, binaryMask };
-              } catch {
-                console.warn(`Failed to download mask ${mid} from storage`);
-                return null;
-              }
-            })
-          );
-          const validMasks = allMasks.filter((m): m is { maskId: string; binaryMask: Record<string, Record<string, 1>> } => m !== null);
-
-          // Recompute colorMap with updated maskLabels
-          const colorMap = computeColorMap(maskLabels, validMasks, labels);
-
-          // Upload updated colorMap to storage
-          const colorMapStoragePath = maskMapData?.colorMapStoragePath;
-          if (colorMapStoragePath) {
-            await uploadColorMap(colorMapStoragePath, colorMap);
-          }
-
-          await maskMapDoc.ref.update({
-            maskLabels,
-            updatedAt: FieldValue.serverTimestamp(),
-          });
+        // Apply ALL updates to the maskLabels dictionary at once
+        const maskLabels = { ...(maskMapData?.maskLabels || {}) };
+        for (const update of updatesForThisMaskMap) {
+          maskLabels[update.maskId] = update.labelId;
         }
 
-        return { maskId: update.maskId, success: true, labelId: newLabelId, color: newColor };
-      })
-    );
+        // Fetch all masks and their binary data from storage to recompute colorMap
+        const allMaskIds = maskMapData?.maskIds || [];
+
+        const allMasks = await Promise.all(
+          allMaskIds.map(async (mid: string) => {
+            const mDoc = await getProjectMasksCollection(projectId).doc(mid).get();
+            if (!mDoc.exists) return null;
+
+            const mData = mDoc.data();
+            const storagePath = mData?.storagePath;
+            if (!storagePath) return null;
+
+            try {
+              const binaryBuffer = await downloadMaskBuffer(storagePath);
+              const maskW = mData.width || TARGET_WIDTH;
+              const maskH = mData.height || TARGET_HEIGHT;
+              const binaryMask = rawBinaryToSparseMask(binaryBuffer, maskW, maskH);
+              return { maskId: mid, binaryMask, srcWidth: maskW, srcHeight: maskH };
+            } catch {
+              console.warn(`Failed to download mask ${mid} from storage`);
+              return null;
+            }
+          })
+        );
+        const validMasks = allMasks.filter((m): m is { maskId: string; binaryMask: Record<string, Record<string, 1>>; srcWidth: number; srcHeight: number } => m !== null);
+
+        // Recompute colorMap with ALL updated maskLabels at once, scaling to target resolution
+        const colorMap = computeColorMap(maskLabels, validMasks, labels, TARGET_WIDTH, TARGET_HEIGHT);
+
+        // Upload updated colorMap to storage (once per mask map)
+        const colorMapStoragePath = maskMapData?.colorMapStoragePath;
+        if (colorMapStoragePath) {
+          await uploadColorMap(colorMapStoragePath, colorMap);
+        }
+
+        await maskMapDoc.ref.update({
+          maskLabels,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      }
+    }
 
     res.json({ results });
   })
@@ -1502,8 +1530,6 @@ router.delete(
 
       // Get remaining mask IDs (excluding the one being deleted)
       const remainingMaskIds = (maskMapData?.maskIds || []).filter((mid: string) => mid !== maskId);
-      const width = maskMapData?.width || 0;
-      const height = maskMapData?.height || 0;
 
       // Fetch remaining masks from storage to recompute colorMap
       const remainingMasks = await Promise.all(
@@ -1517,18 +1543,20 @@ router.delete(
 
           try {
             const binaryBuffer = await downloadMaskBuffer(storagePath);
-            const binaryMask = rawBinaryToSparseMask(binaryBuffer, width, height);
-            return { maskId: mid, binaryMask };
+            const maskW = mData.width || TARGET_WIDTH;
+            const maskH = mData.height || TARGET_HEIGHT;
+            const binaryMask = rawBinaryToSparseMask(binaryBuffer, maskW, maskH);
+            return { maskId: mid, binaryMask, srcWidth: maskW, srcHeight: maskH };
           } catch {
             console.warn(`Failed to download mask ${mid} from storage`);
             return null;
           }
         })
       );
-      const validMasks = remainingMasks.filter((m): m is { maskId: string; binaryMask: Record<string, Record<string, 1>> } => m !== null);
+      const validMasks = remainingMasks.filter((m): m is { maskId: string; binaryMask: Record<string, Record<string, 1>>; srcWidth: number; srcHeight: number } => m !== null);
 
-      // Recompute colorMap without the deleted mask
-      const colorMap = computeColorMap(maskLabels, validMasks, labels);
+      // Recompute colorMap without the deleted mask, scaling to target resolution
+      const colorMap = computeColorMap(maskLabels, validMasks, labels, TARGET_WIDTH, TARGET_HEIGHT);
 
       // Upload updated colorMap to storage
       const colorMapStoragePath = maskMapData?.colorMapStoragePath;

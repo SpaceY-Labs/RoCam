@@ -25,7 +25,7 @@ import numpy as np
 from PIL import Image
 
 # Configure these values directly to run the preview
-ZIP_PATH = Path(r"C:\Year4\4G06\project-folder\vision-guided-tracker\masked_images.zip")
+ZIP_PATH = Path(r"C:\Year4\4G06\project-folder\vision-guided-tracker\src\labelling-app\scripts\sample-data\masked_images.zip")
 ALPHA = 0.4
 LIMIT: Optional[int] = None
 

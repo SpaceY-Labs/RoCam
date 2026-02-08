@@ -16,6 +16,8 @@ export interface PreviewCardProps {
   image: ProjectImage;
   /** Color map for mask overlay */
   colorMap: SparseColorMap | null | undefined;
+  /** Optional callback when delete button is clicked */
+  onDelete?: (image: ProjectImage) => void;
 }
 
 // ============ Helper Components ============
@@ -47,7 +49,6 @@ function ImagePreview({
 
     canvas.width = width;
     canvas.height = height;
-    // CSS width/height handled by stylesheet
 
     ctx.clearRect(0, 0, width, height);
 
@@ -62,19 +63,17 @@ function ImagePreview({
     const imageData = ctx.createImageData(width, height);
     const data = imageData.data;
 
-    for (const [rowKey, cols] of Object.entries(colorMap)) {
-      const row = Number(rowKey);
-      if (!Number.isFinite(row) || row < 0 || row >= srcHeight) continue;
+    // Iterate destination pixels (nearest-neighbor sampling from colorMap).
+    // This avoids gaps when downscaling from source resolution to thumbnail.
+    for (let destY = 0; destY < height; destY++) {
+      const srcRow = String(Math.floor((destY / height) * srcHeight));
+      const cols = colorMap[srcRow];
+      if (!cols) continue;
 
-      const destY = Math.floor((row / srcHeight) * height);
-      const destRow = destY * width * 4;
-
-      for (const [colKey, hexColor] of Object.entries(cols)) {
-        const col = Number(colKey);
-        if (!Number.isFinite(col) || col < 0 || col >= srcWidth) continue;
-
-        const destX = Math.floor((col / srcWidth) * width);
-        const dest = destRow + destX * 4;
+      for (let destX = 0; destX < width; destX++) {
+        const srcCol = String(Math.floor((destX / width) * srcWidth));
+        const hexColor = cols[srcCol];
+        if (!hexColor) continue;
 
         let rgb = colorCache.get(hexColor);
         if (!rgb) {
@@ -90,6 +89,7 @@ function ImagePreview({
           colorCache.set(hexColor, rgb);
         }
 
+        const dest = (destY * width + destX) * 4;
         data[dest] = rgb[0];
         data[dest + 1] = rgb[1];
         data[dest + 2] = rgb[2];
@@ -147,7 +147,13 @@ function ImagePreview({
 }
 
 // ============ Component ============
-export function PreviewCard({ image, colorMap }: PreviewCardProps) {
+export function PreviewCard({ image, colorMap, onDelete }: PreviewCardProps) {
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onDelete?.(image);
+  };
+
   return (
     <Card className="gallery-card" variant="elevated" padding="small">
       <ImagePreview image={image} colorMap={colorMap} />
@@ -156,13 +162,25 @@ export function PreviewCard({ image, colorMap }: PreviewCardProps) {
           <p className="gallery-title">{image.meta.fileName}</p>
           <p className="gallery-subtitle">{image.imageId}</p>
         </div>
-        <span
-          className={`badge badge-small badge-${
-            image.meta.status === 'labeled' ? 'success' : 'default'
-          }`}
-        >
-          {image.meta.status}
-        </span>
+        <div className="gallery-meta-right">
+          {onDelete && (
+            <button
+              type="button"
+              className="gallery-card-delete"
+              onClick={handleDeleteClick}
+              aria-label={`Delete ${image.meta.fileName}`}
+            >
+              Delete
+            </button>
+          )}
+          <span
+            className={`badge badge-small badge-${
+              image.meta.status === 'labeled' ? 'success' : 'default'
+            }`}
+          >
+            {image.meta.status}
+          </span>
+        </div>
       </div>
     </Card>
   );

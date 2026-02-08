@@ -9,11 +9,11 @@ import type {
   SparseColorMap,
 } from '../types';
 import {
+  batchUpdateMaskLabels,
   getColorMap,
   getImageMaskOverlay,
   getImageMasks,
   updateImage,
-  updateMaskLabel,
 } from '../modules/API_Helps';
 import { Button, Input, Select, StatusBadge, TagBadge, ErrorBoundary } from './ui';
 import { InteractiveMapOverlay, useMaskHover } from './shared';
@@ -40,6 +40,10 @@ interface ManagementModalProps {
   image: ProjectImage;
   colorMap: SparseColorMap | null | undefined;
   onClose: () => void;
+  onPrevImage?: () => void;
+  onNextImage?: () => void;
+  hasPrevImage?: boolean;
+  hasNextImage?: boolean;
   onImageUpdated: (
     imageId: string,
     updates: {
@@ -59,6 +63,10 @@ export function ManagementModal({
   image,
   colorMap,
   onClose,
+  onPrevImage,
+  onNextImage,
+  hasPrevImage,
+  hasNextImage,
   onImageUpdated,
   onColorMapUpdated,
 }: ManagementModalProps) {
@@ -230,6 +238,7 @@ export function ManagementModal({
         labelComplete: editLabelComplete,
         reviewed: editReviewed,
       });
+      onClose();
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save changes');
     } finally {
@@ -254,32 +263,26 @@ export function ManagementModal({
 
   const handleOverlayClick = useCallback(
     (maskId: string | null, event: React.MouseEvent) => {
-      // Focus mode active
-      if (focusedMaskIds.length > 0) {
-        if (maskId && focusedMaskIds.includes(maskId)) {
-          // Clicked on a focused mask -> open label popup
-          setSelectedMaskId(maskId);
-          setLabelPopup({
-            maskId,
-            x: event.clientX,
-            y: event.clientY + 12,
-          });
-        } else if (maskId) {
-          // Clicked on another visible mask -> add to focus set
-          setFocusedMaskIds((prev) => [...prev, maskId]);
-        } else {
-          // Clicked empty area -> exit focus mode
-          setFocusedMaskIds([]);
-        }
+      if (!maskId) {
+        // Clicked empty area -> exit selection mode
+        setFocusedMaskIds([]);
         return;
       }
 
-      // Normal mode: click on highlighted mask enters focus
-      if (highlightedMaskId) {
-        setFocusedMaskIds([highlightedMaskId]);
+      if (focusedMaskIds.includes(maskId)) {
+        // Clicked on an already-selected mask -> open label popup
+        setSelectedMaskId(maskId);
+        setLabelPopup({
+          maskId,
+          x: event.clientX,
+          y: event.clientY + 12,
+        });
+      } else {
+        // Clicked on any mask -> add to selection
+        setFocusedMaskIds((prev) => [...prev, maskId]);
       }
     },
-    [focusedMaskIds, highlightedMaskId]
+    [focusedMaskIds]
   );
 
   const handleMaskClick = useCallback(
@@ -307,15 +310,30 @@ export function ManagementModal({
       setLabelAssigning(true);
       setLabelError(null);
 
+      // Build the set of masks to label: all selected masks
+      const maskIdsToLabel = focusedMaskIds.length > 0
+        ? [...new Set([...focusedMaskIds, labelPopup.maskId])]
+        : [labelPopup.maskId];
+
       try {
-        const result = await updateMaskLabel(projectId, labelPopup.maskId, labelId);
+        const updates = maskIdsToLabel.map((id) => ({ maskId: id, labelId }));
+        const { results } = await batchUpdateMaskLabels(projectId, updates);
+
+        // Build a map of successful results
+        const resultMap = new Map<string, { labelId: string | null; color: string | null }>();
+        for (const r of results) {
+          if (r.success) {
+            resultMap.set(r.maskId, { labelId: r.labelId ?? null, color: r.color ?? null });
+          }
+        }
 
         setMasks((prev) =>
-          prev.map((mask) =>
-            mask.maskId === labelPopup.maskId
-              ? { ...mask, labelId: result.labelId, color: result.color }
-              : mask
-          )
+          prev.map((mask) => {
+            const update = resultMap.get(mask.maskId);
+            return update
+              ? { ...mask, labelId: update.labelId, color: update.color }
+              : mask;
+          })
         );
 
         if (maskMap) {
@@ -324,14 +342,16 @@ export function ManagementModal({
           onColorMapUpdated(image.imageId, updatedColorMap);
         }
 
+        // Clear selection and popup
         setLabelPopup(null);
+        setFocusedMaskIds([]);
       } catch (err) {
         setLabelError(err instanceof Error ? err.message : 'Failed to update label');
       } finally {
         setLabelAssigning(false);
       }
     },
-    [image.imageId, labelPopup, maskMap, onColorMapUpdated, projectId]
+    [focusedMaskIds, image.imageId, labelPopup, maskMap, onColorMapUpdated, projectId]
   );
 
   const handleClearLabel = useCallback(() => {
@@ -343,7 +363,34 @@ export function ManagementModal({
   const hasLabels = Object.keys(project.labels || {}).length > 0;
   const hasMaskData = masks.length > 0 || Boolean(maskOverlay && maskOverlay.maskIds.length > 0);
 
+  const showNavArrows = (hasPrevImage || hasNextImage) && (onPrevImage || onNextImage);
+
   return (
+    <div className="management-modal-wrapper">
+      {showNavArrows && hasPrevImage && onPrevImage && (
+        <button
+          type="button"
+          className="management-nav-arrow management-nav-arrow--prev"
+          onClick={onPrevImage}
+          aria-label="Previous image"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+      )}
+      {showNavArrows && hasNextImage && onNextImage && (
+        <button
+          type="button"
+          className="management-nav-arrow management-nav-arrow--next"
+          onClick={onNextImage}
+          aria-label="Next image"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
+      )}
     <div className="management-modal">
       <div className="management-header">
         <div>
@@ -416,7 +463,7 @@ export function ManagementModal({
             {maskLoading && <span className="mask-loading">Loading masks...</span>}
             {!maskLoading && maskOverlay && (
               <span className="management-hint">
-                Click a mask in the list to highlight it, then click on the mask to label.
+                Click masks to select, then click a selected mask to label all selected.
               </span>
             )}
             {!maskLoading && !maskOverlay && (
@@ -500,7 +547,8 @@ export function ManagementModal({
             {masks.length === 0 ? (
               <p className="management-hint">No masks detected for this image.</p>
             ) : (
-              <div className="masks-list">
+              <div className="masks-list-wrap">
+                <div className="masks-list">
                 {masks.map((mask, index) => {
                   const label = mask.labelId ? project.labels[mask.labelId] : null;
                   const isSelected = selectedMask?.maskId === mask.maskId;
@@ -529,6 +577,7 @@ export function ManagementModal({
                     </button>
                   );
                 })}
+              </div>
               </div>
             )}
           </div>
@@ -642,6 +691,7 @@ export function ManagementModal({
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }

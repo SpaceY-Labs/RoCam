@@ -131,6 +131,11 @@ export const listImages = async (
 export const getImage = async (projectId: string, imageId: string) =>
   apiFetch(`/projects/${projectId}/images/${imageId}`, { method: "GET" }) as Promise<ProjectImageApiItem>;
 
+export const deleteImage = async (projectId: string, imageId: string) =>
+  apiFetch(`/projects/${projectId}/images/${imageId}`, {
+    method: "DELETE",
+  }) as Promise<{ success: boolean; deletedId: string }>;
+
 export const getAvailableImages = async (
   projectId: string,
   options: { limit?: number; status?: string; includeFileUrl?: boolean } = {}

@@ -2,11 +2,54 @@
 .management-modal-content {
   max-width: 1120px;
   width: min(1120px, 100%);
+  position: relative;
+}
+
+.management-modal-wrapper {
+  position: relative;
 }
 
 .management-modal {
   display: grid;
   gap: 18px;
+}
+
+/* Prev/Next arrows: fixed to viewport so they stay vertically centered in user's view when modal scrolls */
+.management-nav-arrow {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 110;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.management-nav-arrow:hover {
+  background: var(--color-bg-secondary, rgba(255, 255, 255, 0.08));
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.management-nav-arrow:active {
+  transform: translateY(-50%) scale(0.98);
+}
+
+.management-nav-arrow--prev {
+  left: 24px;
+}
+
+.management-nav-arrow--next {
+  right: 24px;
 }
 
 .management-header {
@@ -94,6 +137,15 @@
   gap: 12px;
   font-size: 0.8rem;
   color: var(--muted);
+}
+
+/* Only the masks list wrap is limited and scrollable (not the whole panel) */
+.masks-list-wrap {
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 8px;
+  min-height: 0;
 }
 
 .masks-list {

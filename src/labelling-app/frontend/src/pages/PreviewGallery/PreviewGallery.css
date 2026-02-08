@@ -125,8 +125,6 @@
 .gallery-overlay {
   position: absolute;
   inset: 0;
-  mix-blend-mode: multiply;
-  opacity: 0.8;
   pointer-events: none;
 }
 
@@ -180,4 +178,28 @@
   margin: 0;
   font-size: 0.75rem;
   color: var(--muted);
+}
+
+.gallery-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.gallery-card-delete {
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #c0392b;
+  background: transparent;
+  border: 1px solid rgba(192, 57, 43, 0.5);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.gallery-card-delete:hover {
+  background: rgba(231, 76, 60, 0.12);
+  color: #e74c3c;
 }

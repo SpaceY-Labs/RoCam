@@ -5,8 +5,13 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Project, ProjectImage, SparseColorMap } from '../../types';
-import { getColorMap, listImages, downloadProjectZip } from '../../modules/API_Helps';
-import { Button, EmptyState, LoadingState, Modal } from '../../components/ui';
+import {
+  getColorMap,
+  listImages,
+  downloadProjectZip,
+  deleteImage,
+} from '../../modules/API_Helps';
+import { Button, EmptyState, LoadingState, Modal, ConfirmModal } from '../../components/ui';
 import { ManagementModal } from '../../components/ManagementModal';
 import { Pagination } from './components/Pagination';
 import { PER_PAGE_OPTIONS } from './components/paginationConstants';
@@ -37,6 +42,8 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [activeImage, setActiveImage] = useState<ProjectImage | null>(null);
   const [downloadLoading, setDownloadLoading] = useState(false);
+  const [deleteImageTarget, setDeleteImageTarget] = useState<ProjectImage | null>(null);
+  const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
   const requestIdRef = useRef(0);
 
   // Computed pagination
@@ -212,6 +219,33 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
     setActiveImage(null);
   };
 
+  const requestDeleteImage = (image: ProjectImage) => {
+    setDeleteImageTarget(image);
+  };
+
+  const handleConfirmDeleteImage = async () => {
+    if (!projectId || !deleteImageTarget || deletingImageId) return;
+    setDeletingImageId(deleteImageTarget.imageId);
+    try {
+      await deleteImage(projectId, deleteImageTarget.imageId);
+      setImages((prev) => prev.filter((img) => img.imageId !== deleteImageTarget.imageId));
+      setColorMaps((prev) => {
+        const next = { ...prev };
+        delete next[deleteImageTarget.imageId];
+        return next;
+      });
+      if (activeImage?.imageId === deleteImageTarget.imageId) {
+        setActiveImage(null);
+      }
+      setTotal((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
+      setDeleteImageTarget(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete image');
+    } finally {
+      setDeletingImageId(null);
+    }
+  };
+
   const handleDownloadZip = async () => {
     if (!projectId) return;
     setDownloadLoading(true);
@@ -224,6 +258,12 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
       setDownloadLoading(false);
     }
   };
+
+  const currentImageIndex = activeImage
+    ? images.findIndex((img) => img.imageId === activeImage.imageId)
+    : -1;
+  const hasPrevImage = currentImageIndex > 0;
+  const hasNextImage = currentImageIndex >= 0 && currentImageIndex < images.length - 1;
 
   // ============ Empty States ============
 
@@ -300,7 +340,12 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
           description="Upload images to start managing labels and tags."
         />
       ) : (
-        <GalleryGrid images={images} colorMaps={colorMaps} onImageClick={openManagement} />
+        <GalleryGrid
+          images={images}
+          colorMaps={colorMaps}
+          onImageClick={openManagement}
+          onDeleteImage={requestDeleteImage}
+        />
       )}
 
       {/* Management Modal */}
@@ -316,11 +361,31 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
             image={activeImage}
             colorMap={colorMaps[activeImage.imageId]}
             onClose={closeManagement}
+            hasPrevImage={hasPrevImage}
+            hasNextImage={hasNextImage}
+            onPrevImage={hasPrevImage ? () => setActiveImage(images[currentImageIndex - 1]) : undefined}
+            onNextImage={hasNextImage ? () => setActiveImage(images[currentImageIndex + 1]) : undefined}
             onImageUpdated={handleImageUpdated}
             onColorMapUpdated={handleColorMapUpdated}
           />
         )}
       </Modal>
+
+      {/* Delete Image Confirmation Modal */}
+      <ConfirmModal
+        isOpen={Boolean(deleteImageTarget)}
+        onClose={() => setDeleteImageTarget(null)}
+        onConfirm={handleConfirmDeleteImage}
+        title="Delete image"
+        message={
+          deleteImageTarget
+            ? `Are you sure you want to delete "${deleteImageTarget.meta.fileName}"? This will remove the image and its masks from the project.`
+            : ''
+        }
+        confirmText={deletingImageId ? 'Deleting...' : 'Delete'}
+        cancelText="Cancel"
+        variant="danger"
+      />
     </div>
   );
 }
