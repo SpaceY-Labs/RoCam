@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { Spinner } from '@heroui/spinner'
 import { useMeasure } from 'react-use'
@@ -9,9 +9,14 @@ import { SystemStatusCard } from '@/components/SystemStatusCard'
 import { useRocam } from '@/network/rocamProvider'
 import DefaultLayout from '@/layouts/default'
 
+/** Degrees of gimbal movement per pixel of pointer drag. */
+const DRAG_SENSITIVITY = 0.15
+/** Minimum milliseconds between consecutive manualMoveTo API calls. */
+const DRAG_THROTTLE_MS = 50
+
 export default function ControlPage() {
   const { t } = useLingui()
-  const { status, statusPollingError } = useRocam()
+  const { apiClient, status, statusPollingError } = useRocam()
   const [streamContainerRef, streamBounds] = useMeasure<HTMLDivElement>()
   const { width, height } = streamBounds
 
@@ -25,6 +30,56 @@ export default function ControlPage() {
   const bbox = status?.bbox
   const isArmed = !!status?.armed
   const isRecording = !!status?.is_recording
+
+  // ── Drag-to-control ──────────────────────────────────────────────────
+  // Keep fresh values in refs so callbacks never go stale.
+  const statusRef = useRef(status)
+  statusRef.current = status
+  const apiClientRef = useRef(apiClient)
+  apiClientRef.current = apiClient
+
+  const dragRef = useRef({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    startTilt: 0,
+    startPan: 0,
+    lastCallTime: 0,
+  })
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    const s = statusRef.current
+    if (!s || s.armed) return
+    const drag = dragRef.current
+    drag.isDragging = true
+    drag.startX = e.clientX
+    drag.startY = e.clientY
+    drag.startTilt = s.tilt
+    drag.startPan = s.pan
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }, [])
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    const drag = dragRef.current
+    if (!drag.isDragging) return
+    const client = apiClientRef.current
+    if (!client) return
+
+    const now = Date.now()
+    if (now - drag.lastCallTime < DRAG_THROTTLE_MS) return
+
+    const dx = e.clientX - drag.startX
+    const dy = e.clientY - drag.startY
+    const newPan = drag.startPan + dx * DRAG_SENSITIVITY
+    const newTilt = drag.startTilt - dy * DRAG_SENSITIVITY
+
+    drag.lastCallTime = now
+    client.manualMoveTo(newTilt, newPan)
+  }, [])
+
+  const handlePointerUp = useCallback(() => {
+    dragRef.current.isDragging = false
+  }, [])
 
   return (
     <DefaultLayout className="flex items-stretch">
@@ -82,6 +137,16 @@ export default function ControlPage() {
                 <Trans>ARMED</Trans>
               </div>
             )}
+
+            {/* Transparent overlay that captures drag gestures for gimbal control */}
+            <div
+              className={`absolute inset-0 z-10 ${isArmed ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
+              style={{ touchAction: 'none' }}
+              onPointerCancel={handlePointerUp}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+            />
           </CardBody>
         </Card>
 
