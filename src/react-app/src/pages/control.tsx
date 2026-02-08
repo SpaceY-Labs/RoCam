@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { Spinner } from '@heroui/spinner'
+import { addToast } from '@heroui/toast'
 import { useMeasure } from 'react-use'
 import { Trans, useLingui } from '@lingui/react/macro'
 
@@ -19,13 +20,25 @@ export default function ControlPage() {
   const { apiClient, status, statusPollingError } = useRocam()
   const [streamContainerRef, streamBounds] = useMeasure<HTMLDivElement>()
   const { width, height } = streamBounds
+  const lastErrorMessageRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (statusPollingError) {
       // eslint-disable-next-line no-console
       console.error(statusPollingError)
+      const message = getErrorMessage(statusPollingError)
+      if (lastErrorMessageRef.current !== message) {
+        addToast({
+          title: t`Connection error`,
+          description: message,
+          color: 'danger',
+        })
+        lastErrorMessageRef.current = message
+      }
+    } else {
+      lastErrorMessageRef.current = null
     }
-  }, [statusPollingError])
+  }, [statusPollingError, t])
 
   const bbox = status?.bbox
   const isArmed = !!status?.armed
@@ -156,4 +169,9 @@ export default function ControlPage() {
       </div>
     </DefaultLayout>
   )
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) return error.message
+  return String(error ?? 'Unknown error')
 }
