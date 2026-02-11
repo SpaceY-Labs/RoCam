@@ -301,6 +301,28 @@
   gap: 12px;
 }
 
+/* SAM Point Tool Toolbar */
+.management-sam-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.sam-point-count {
+  font-size: 0.8rem;
+  color: var(--muted);
+  min-width: 60px;
+}
+
+.sam-error {
+  font-size: 0.8rem;
+  color: var(--danger, #ef4444);
+  flex: 1 1 100%;
+  margin-top: 2px;
+}
+
 @media (max-width: 900px) {
   .management-body {
     grid-template-columns: 1fr;

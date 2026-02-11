@@ -3,12 +3,16 @@ import { auth } from "../firebaseconfig";
 import type {
   LockResponse,
   MaskApiItem,
+  MaskImportRequest,
+  MaskImportResponse,
   MaskMapApiItem,
   MaskOverlay,
   ProjectApiItem,
   ProjectImageApiItem,
   ProjectImagesApiResponse,
   ProjectsApiResponse,
+  SamPoint,
+  SamSegmentResponse,
   SparseColorMap,
   UploadZipResponse,
 } from "../types";
@@ -369,3 +373,68 @@ export const batchUpdateMaskLabels = async (
       error?: string;
     }>;
   }>;
+
+// ============================================================================
+// SAM MASK GENERATION (direct to SAM backend, on-demand only)
+// ============================================================================
+
+const rawSamBase = (import.meta.env.VITE_SAM_BACKEND_URL || "").trim();
+const samBase = rawSamBase.replace(/\/$/, "");
+
+/**
+ * Request point-based mask predictions from the SAM backend.
+ * Called ONLY when the user explicitly triggers the point tool.
+ */
+export const requestSamMasks = async (
+  imageUrl: string,
+  points: SamPoint[]
+): Promise<SamSegmentResponse> => {
+  if (!samBase) {
+    throw new Error("VITE_SAM_BACKEND_URL is not configured");
+  }
+  const token = await getAuthToken();
+  const response = await fetch(`${samBase}/segment`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ mode: "click", imageUrl, points }),
+  });
+
+  const text = await response.text();
+  let data: unknown = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = text;
+  }
+
+  if (!response.ok) {
+    const message =
+      typeof data === "object" && data && "message" in data
+        ? String((data as { message: string }).message)
+        : `SAM request failed (${response.status})`;
+    throw new Error(message);
+  }
+
+  return data as SamSegmentResponse;
+};
+
+// ============================================================================
+// MASK IMPORT (persist SAM-generated masks into labelling backend)
+// ============================================================================
+
+/**
+ * Import SAM-generated masks into the labelling backend under a specific image.
+ */
+export const importSamMasks = async (
+  projectId: string,
+  imageId: string,
+  payload: MaskImportRequest
+): Promise<MaskImportResponse> =>
+  apiFetch(`/projects/${projectId}/images/${imageId}/masks/import`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }) as Promise<MaskImportResponse>;

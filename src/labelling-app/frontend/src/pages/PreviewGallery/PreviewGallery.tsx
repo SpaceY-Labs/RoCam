@@ -126,7 +126,17 @@ export function PreviewGallery({ project, onSelectProject }: PreviewGalleryProps
         );
 
         if (requestIdRef.current !== requestId) return;
-        setColorMaps({ ...overlaySeed });
+        // Preserve label updates made in the management modal while this fetch was in flight.
+        setColorMaps((prev) => {
+          const merged = { ...overlaySeed };
+          for (const imageId of Object.keys(merged)) {
+            const currentValue = prev[imageId];
+            if (currentValue !== undefined) {
+              merged[imageId] = currentValue;
+            }
+          }
+          return merged;
+        });
       } catch (err) {
         if (requestIdRef.current !== requestId) return;
         setError(err instanceof Error ? err.message : 'Failed to load images');

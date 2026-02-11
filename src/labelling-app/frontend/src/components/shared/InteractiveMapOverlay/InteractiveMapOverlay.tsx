@@ -63,9 +63,13 @@ export interface InteractiveMapOverlayProps {
   onMouseMove?: (maskId: string | null, event: React.MouseEvent) => void;
   onMouseLeave?: () => void;
   onClick?: (maskId: string | null, event: React.MouseEvent) => void;
+  /** Fires with normalized (0-1) image coordinates regardless of mask overlay state. */
+  onImageClick?: (point: { x: number; y: number }, event: React.MouseEvent) => void;
   className?: string;
   maskLoading?: boolean;
   statusContent?: React.ReactNode;
+  /** Overlay dots to render on top of the image (e.g. SAM prompt points). */
+  overlayDots?: Array<{ x: number; y: number; color?: string }>;
 }
 
 export function InteractiveMapOverlay({
@@ -85,9 +89,11 @@ export function InteractiveMapOverlay({
   onMouseMove,
   onMouseLeave,
   onClick,
+  onImageClick,
   className = '',
   maskLoading = false,
   statusContent,
+  overlayDots = [],
 }: InteractiveMapOverlayProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -280,11 +286,23 @@ export function InteractiveMapOverlay({
 
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
+      // Always emit normalized image coordinates if handler provided
+      if (onImageClick) {
+        const frame = frameRef.current;
+        if (frame) {
+          const rect = frame.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) {
+            const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+            const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+            onImageClick({ x, y }, event);
+          }
+        }
+      }
       if (!interactive || !onClick) return;
       const maskId = getMaskAtPosition(event.clientX, event.clientY);
       onClick(maskId, event);
     },
-    [interactive, onClick, getMaskAtPosition]
+    [interactive, onClick, onImageClick, getMaskAtPosition]
   );
 
   // ============ Render ============
@@ -333,6 +351,26 @@ export function InteractiveMapOverlay({
       )}
 
       {statusContent}
+
+      {overlayDots.length > 0 && overlayDots.map((dot, i) => (
+        <div
+          key={i}
+          className="interactive-map-overlay-dot"
+          style={{
+            position: 'absolute',
+            left: `${dot.x * 100}%`,
+            top: `${dot.y * 100}%`,
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            backgroundColor: dot.color || '#ff4444',
+            border: '2px solid white',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+            zIndex: 10,
+          }}
+        />
+      ))}
     </div>
   );
 }

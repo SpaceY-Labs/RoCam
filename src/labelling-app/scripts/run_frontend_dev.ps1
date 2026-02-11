@@ -57,6 +57,7 @@ $firebaseStorageBucket = Read-DotEnvValue -Path $mainEnvFile -Key "VITE_FIREBASE
 $firebaseMessagingSenderId = Read-DotEnvValue -Path $mainEnvFile -Key "VITE_FIREBASE_MESSAGING_SENDER_ID"
 $firebaseAppId = Read-DotEnvValue -Path $mainEnvFile -Key "VITE_FIREBASE_APP_ID"
 $firebaseMeasurementId = Read-DotEnvValue -Path $mainEnvFile -Key "VITE_FIREBASE_MEASUREMENT_ID"
+$samBackendUrl = Read-DotEnvValue -Path $mainEnvFile -Key "VITE_SAM_BACKEND_URL"
 
 # Determine backend URL
 $backendUrl = if ($UseProdBackend) {
@@ -85,6 +86,7 @@ VITE_FIREBASE_STORAGE_BUCKET=$firebaseStorageBucket
 VITE_FIREBASE_MESSAGING_SENDER_ID=$firebaseMessagingSenderId
 VITE_FIREBASE_APP_ID=$firebaseAppId
 VITE_FIREBASE_MEASUREMENT_ID=$firebaseMeasurementId
+VITE_SAM_BACKEND_URL=$samBackendUrl
 "@
 
 Set-Content -Path $frontendEnvFile -Value $envContent -Encoding UTF8

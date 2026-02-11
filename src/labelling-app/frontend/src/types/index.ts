@@ -402,3 +402,60 @@ export interface MaskMapApiItem {
   width: number;
   height: number;
 }
+
+// ============================================================================
+// SAM TYPES (point-based mask generation)
+// ============================================================================
+
+/** A single prompt point for SAM */
+export interface SamPoint {
+  /** Normalized X coordinate (0–1) */
+  x: number;
+  /** Normalized Y coordinate (0–1) */
+  y: number;
+  /** 1 = foreground, 0 = background */
+  label: 0 | 1;
+}
+
+/** Payload sent to the SAM backend POST /segment */
+export interface SamSegmentRequest {
+  mode: 'click';
+  imageUrl?: string;
+  projectId?: string;
+  imageId?: string;
+  points: SamPoint[];
+}
+
+/** A single mask returned by the SAM backend */
+export interface SamMaskResult {
+  /** 2D boolean mask array or chunked equivalent */
+  mask?: number[][];
+  /** Bounding box of the mask */
+  boundingBox?: { x: number; y: number; w: number; h: number };
+  /** Total pixel count */
+  totalRows?: number;
+  /** Chunk-based alternative */
+  maskChunkId?: string;
+  maskChunk?: { rows: number[][] };
+}
+
+/** Response from SAM backend POST /segment */
+export interface SamSegmentResponse {
+  masks: SamMaskResult[];
+}
+
+/** Payload sent to labelling backend to import SAM-generated masks */
+export interface MaskImportRequest {
+  masks: Array<{
+    /** Flattened binary mask (row-major, 0 or 1) */
+    mask: number[];
+    width: number;
+    height: number;
+  }>;
+}
+
+/** Response from labelling backend mask import */
+export interface MaskImportResponse {
+  maskIds: string[];
+  maskMapId: string;
+}

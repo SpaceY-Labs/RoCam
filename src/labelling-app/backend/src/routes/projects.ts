@@ -1181,6 +1181,198 @@ router.get(
   })
 );
 
+// ============================================================================
+// MASK IMPORT (persist SAM-generated masks)
+// ============================================================================
+
+router.post(
+  "/:projectId/images/:imageId/masks/import",
+  asyncHandler(async (req: AuthenticatedRequest, res) => {
+    const user = req.user;
+    if (!user) {
+      throw new HttpError(401, "UNAUTHORIZED", "Missing auth context");
+    }
+
+    const { projectId, imageId } = req.params;
+    await ensureProjectAccess(projectId, user.uid);
+
+    // Validate the image exists
+    const imageDoc = await getProjectImagesCollection(projectId).doc(imageId).get();
+    if (!imageDoc.exists) {
+      throw new HttpError(404, "NOT_FOUND", "Image not found");
+    }
+
+    // Validate payload
+    const masksPayload = req.body?.masks;
+    if (!Array.isArray(masksPayload) || masksPayload.length === 0) {
+      throw new HttpError(400, "VALIDATION_ERROR", "masks array is required and must not be empty");
+    }
+
+    for (let i = 0; i < masksPayload.length; i++) {
+      const m = masksPayload[i];
+      if (!Array.isArray(m.mask) || typeof m.width !== "number" || typeof m.height !== "number") {
+        throw new HttpError(400, "VALIDATION_ERROR", `masks[${i}] must have mask (number[]), width, and height`);
+      }
+      if (m.width <= 0 || m.height <= 0) {
+        throw new HttpError(400, "VALIDATION_ERROR", `masks[${i}] has invalid dimensions`);
+      }
+      if (m.mask.length !== m.width * m.height) {
+        throw new HttpError(400, "VALIDATION_ERROR", `masks[${i}].mask length (${m.mask.length}) does not match width*height (${m.width * m.height})`);
+      }
+    }
+
+    const imageData = imageDoc.data();
+    const existingMaskMapId = imageData?.maskMapId as string | undefined;
+
+    // Load existing mask data if mask map already exists
+    let existingMaskIds: string[] = [];
+    let existingMaskSizes: Record<string, number> = {};
+    let existingMaskLabels: Record<string, string | null> = {};
+    let existingMaskDataForOverlay: Array<{ maskId: string; size: number; binaryMask: SparseBinaryMask; srcWidth: number; srcHeight: number }> = [];
+
+    if (existingMaskMapId) {
+      const existingMaskMapDoc = await getProjectMaskMapsCollection(projectId).doc(existingMaskMapId).get();
+      if (existingMaskMapDoc.exists) {
+        const existingMaskMapData = existingMaskMapDoc.data();
+        existingMaskIds = existingMaskMapData?.maskIds || [];
+        existingMaskSizes = existingMaskMapData?.maskSizes || {};
+        existingMaskLabels = existingMaskMapData?.maskLabels || {};
+
+        // Load existing mask binaries for overlay regeneration
+        for (const mid of existingMaskIds) {
+          const mDoc = await getProjectMasksCollection(projectId).doc(mid).get();
+          if (!mDoc.exists) continue;
+          const mData = mDoc.data();
+          if (!mData?.storagePath) continue;
+          try {
+            const buf = await downloadMaskBuffer(mData.storagePath);
+            const maskW = mData.width || TARGET_WIDTH;
+            const maskH = mData.height || TARGET_HEIGHT;
+            const binaryMask = rawBinaryToSparseMask(buf, maskW, maskH);
+            existingMaskDataForOverlay.push({ maskId: mid, size: mData.size || 0, binaryMask, srcWidth: maskW, srcHeight: maskH });
+          } catch {
+            console.warn(`[masks/import] Failed to load existing mask ${mid}`);
+          }
+        }
+      }
+    }
+
+    // Create new mask documents and upload binaries
+    const newMaskIds: string[] = [];
+    const newMaskDataForOverlay: Array<{ maskId: string; size: number; binaryMask: SparseBinaryMask; srcWidth: number; srcHeight: number }> = [];
+    const newMaskSizes: Record<string, number> = {};
+    const newMaskLabels: Record<string, string | null> = {};
+
+    for (const m of masksPayload) {
+      const maskId = uuidv4();
+      const binary = Buffer.from(new Uint8Array(m.mask));
+      const binaryMask = rawBinaryToSparseMask(binary, m.width, m.height);
+      const size = Object.values(binaryMask).reduce((sum, cols) => sum + Object.keys(cols).length, 0);
+
+      // Upload binary to storage
+      const maskStoragePath = buildMaskStoragePath(projectId, imageId, maskId);
+      await uploadMaskBuffer(maskStoragePath, binary);
+
+      // Create Firestore document
+      await getProjectMasksCollection(projectId).doc(maskId).set({
+        maskId,
+        labelId: null,
+        color: null,
+        storagePath: maskStoragePath,
+        size,
+        width: m.width,
+        height: m.height,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      newMaskIds.push(maskId);
+      newMaskSizes[maskId] = size;
+      newMaskLabels[maskId] = null;
+      newMaskDataForOverlay.push({ maskId, size, binaryMask, srcWidth: m.width, srcHeight: m.height });
+    }
+
+    // Merge all mask data
+    const allMaskIds = [...existingMaskIds, ...newMaskIds];
+    const allMaskSizes = { ...existingMaskSizes, ...newMaskSizes };
+    const allMaskLabels = { ...existingMaskLabels, ...newMaskLabels };
+    const allMaskDataForOverlay = [...existingMaskDataForOverlay, ...newMaskDataForOverlay];
+
+    // Generate maskOverlay from all masks
+    const maskOverlay = generateMaskOverlay(allMaskDataForOverlay, TARGET_WIDTH, TARGET_HEIGHT);
+
+    // Get project labels for colorMap computation
+    const projectDoc = await firestore.collection("projects").doc(projectId).get();
+    const labels = projectDoc.data()?.labels || {};
+    const colorMap = computeColorMap(
+      allMaskLabels,
+      allMaskDataForOverlay.map((m) => ({ maskId: m.maskId, binaryMask: m.binaryMask, srcWidth: m.srcWidth, srcHeight: m.srcHeight })),
+      labels,
+      TARGET_WIDTH,
+      TARGET_HEIGHT
+    );
+
+    let maskMapId: string;
+
+    if (existingMaskMapId) {
+      // Update existing mask map
+      maskMapId = existingMaskMapId;
+
+      const colorMapStoragePath = buildColorMapStoragePath(projectId, maskMapId);
+      await uploadColorMap(colorMapStoragePath, colorMap);
+
+      const maskOverlayStoragePath = buildMaskOverlayStoragePath(projectId, maskMapId);
+      await uploadMaskOverlay(maskOverlayStoragePath, maskOverlay);
+
+      await getProjectMaskMapsCollection(projectId).doc(maskMapId).update({
+        maskIds: allMaskIds,
+        maskSizes: allMaskSizes,
+        maskLabels: allMaskLabels,
+        width: TARGET_WIDTH,
+        height: TARGET_HEIGHT,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    } else {
+      // Create new mask map
+      maskMapId = uuidv4();
+
+      const colorMapStoragePath = buildColorMapStoragePath(projectId, maskMapId);
+      await uploadColorMap(colorMapStoragePath, colorMap);
+
+      const maskOverlayStoragePath = buildMaskOverlayStoragePath(projectId, maskMapId);
+      await uploadMaskOverlay(maskOverlayStoragePath, maskOverlay);
+
+      const maskMapDoc = createMaskMapFromMasks(
+        maskMapId,
+        imageId,
+        allMaskIds,
+        allMaskSizes,
+        colorMapStoragePath,
+        maskOverlayStoragePath,
+        TARGET_WIDTH,
+        TARGET_HEIGHT
+      );
+
+      await getProjectMaskMapsCollection(projectId).doc(maskMapId).set({
+        ...maskMapDoc,
+        maskIds: allMaskIds,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      // Link mask map to image
+      await getProjectImagesCollection(projectId).doc(imageId).update({
+        maskMapId,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
+
+    console.log(`[masks/import] Imported ${newMaskIds.length} masks for image ${imageId}, maskMapId=${maskMapId}`);
+
+    res.status(201).json({ maskIds: newMaskIds, maskMapId });
+  })
+);
+
 // Get mask overlay for an image (2D array of mask IDs for each pixel)
 // This is used for hover detection on the frontend
 router.get(

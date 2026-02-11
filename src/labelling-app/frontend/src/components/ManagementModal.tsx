@@ -6,6 +6,7 @@ import type {
   MaskOverlay,
   Project,
   ProjectImage,
+  SamPoint,
   SparseColorMap,
 } from '../types';
 import {
@@ -13,6 +14,8 @@ import {
   getColorMap,
   getImageMaskOverlay,
   getImageMasks,
+  importSamMasks,
+  requestSamMasks,
   updateImage,
 } from '../modules/API_Helps';
 import { Button, Input, Select, StatusBadge, TagBadge, ErrorBoundary } from './ui';
@@ -92,6 +95,12 @@ export function ManagementModal({
   const [labelAssigning, setLabelAssigning] = useState(false);
   const [activeColorMap, setActiveColorMap] = useState<SparseColorMap | null | undefined>(colorMap);
 
+  // SAM point tool state
+  const [samToolActive, setSamToolActive] = useState(false);
+  const [samPoints, setSamPoints] = useState<SamPoint[]>([]);
+  const [samLoading, setSamLoading] = useState(false);
+  const [samError, setSamError] = useState<string | null>(null);
+
   const labelPopupRef = useRef<HTMLDivElement>(null);
   const masksRequestIdRef = useRef(0);
 
@@ -115,6 +124,9 @@ export function ManagementModal({
     setFocusedMaskIds([]);
     setLabelPopup(null);
     resetHover();
+    setSamToolActive(false);
+    setSamPoints([]);
+    setSamError(null);
   }, [image.imageId, image.labelComplete, image.meta.status, image.meta.tags, image.reviewed, resetHover]);
 
   useEffect(() => {
@@ -358,6 +370,106 @@ export function ManagementModal({
     handleAssignLabel(null);
   }, [handleAssignLabel]);
 
+  // ============ SAM Point Tool Handlers ============
+
+  const handleToggleSamTool = useCallback(() => {
+    setSamToolActive((prev) => {
+      if (prev) {
+        // Deactivating: clear points
+        setSamPoints([]);
+        setSamError(null);
+      }
+      return !prev;
+    });
+  }, []);
+
+  const handleImageClick = useCallback(
+    (point: { x: number; y: number }) => {
+      if (!samToolActive) return;
+      setSamPoints((prev) => [...prev, { x: point.x, y: point.y, label: 1 }]);
+    },
+    [samToolActive]
+  );
+
+  const handleClearSamPoints = useCallback(() => {
+    setSamPoints([]);
+    setSamError(null);
+  }, []);
+
+  /** Reload masks after import */
+  const reloadMasks = useCallback(async () => {
+    try {
+      const [maskResult, overlay] = await Promise.all([
+        getImageMasks(projectId, image.imageId),
+        getImageMaskOverlay(projectId, image.imageId),
+      ]);
+      setMasks(maskResult.masks);
+      setMaskMap(maskResult.maskMap);
+      setMaskOverlay(overlay);
+      if (maskResult.maskMap) {
+        const fetchedColorMap = await getColorMap(projectId, maskResult.maskMap.maskMapId);
+        setActiveColorMap(fetchedColorMap);
+        onColorMapUpdated(image.imageId, fetchedColorMap);
+      }
+    } catch {
+      // Non-critical: masks will refresh on next modal open
+    }
+  }, [image.imageId, onColorMapUpdated, projectId]);
+
+  const handleSubmitSamPoints = useCallback(async () => {
+    if (samPoints.length === 0 || !image.fileUrl) return;
+
+    setSamLoading(true);
+    setSamError(null);
+
+    try {
+      // Step 1: Request masks from SAM backend (explicit user action only)
+      const samResponse = await requestSamMasks(image.fileUrl, samPoints);
+
+      if (!samResponse.masks || samResponse.masks.length === 0) {
+        setSamError('SAM returned no masks for the given points.');
+        return;
+      }
+
+      // Step 2: Convert SAM response to import payload
+      const importMasks: Array<{ mask: number[]; width: number; height: number }> = [];
+      for (const samMask of samResponse.masks) {
+        if (samMask.mask && Array.isArray(samMask.mask)) {
+          const height = samMask.mask.length;
+          const width = height > 0 ? (samMask.mask[0]?.length ?? 0) : 0;
+          if (width > 0 && height > 0) {
+            const flat: number[] = [];
+            for (const row of samMask.mask) {
+              for (const val of row) {
+                flat.push(val > 0 ? 1 : 0);
+              }
+            }
+            importMasks.push({ mask: flat, width, height });
+          }
+        }
+      }
+
+      if (importMasks.length === 0) {
+        setSamError('Could not extract valid masks from SAM response.');
+        return;
+      }
+
+      // Step 3: Import into labelling backend
+      await importSamMasks(projectId, image.imageId, { masks: importMasks });
+
+      // Step 4: Refresh masks and overlay
+      await reloadMasks();
+
+      // Step 5: Deactivate tool and clear points
+      setSamToolActive(false);
+      setSamPoints([]);
+    } catch (err) {
+      setSamError(err instanceof Error ? err.message : 'SAM mask generation failed');
+    } finally {
+      setSamLoading(false);
+    }
+  }, [samPoints, image.fileUrl, image.imageId, projectId, reloadMasks]);
+
   const labeledCount = masks.filter((mask) => mask.labelId !== null).length;
   const unlabeledCount = Math.max(masks.length - labeledCount, 0);
   const hasLabels = Object.keys(project.labels || {}).length > 0;
@@ -428,14 +540,22 @@ export function ManagementModal({
             highlightColor={highlightedMask?.color ?? UNLABELED_COLOR}
             focusedMaskIds={focusedMaskIds}
             masks={masks}
-            interactive={Boolean(maskOverlay)}
+            interactive={Boolean(maskOverlay) && !samToolActive}
             onMouseMove={handleOverlayMouseMove}
             onMouseLeave={onOverlayMouseLeave}
-            onClick={handleOverlayClick}
+            onClick={samToolActive ? undefined : handleOverlayClick}
+            onImageClick={samToolActive ? handleImageClick : undefined}
+            overlayDots={samToolActive ? samPoints.map((p) => ({ x: p.x, y: p.y, color: '#ff4444' })) : []}
             maskLoading={maskLoading}
             statusContent={
               <>
-                {!maskLoading && maskOverlay && maskOverlay.maskIds.length === 0 && (
+                {samLoading && (
+                  <div className="interactive-map-overlay-status">
+                    <div className="loading-spinner" />
+                    <span>Generating masks...</span>
+                  </div>
+                )}
+                {!maskLoading && !samLoading && maskOverlay && maskOverlay.maskIds.length === 0 && !samToolActive && (
                   <div className="interactive-map-overlay-status empty">
                     <span>No masks available</span>
                   </div>
@@ -461,19 +581,64 @@ export function ManagementModal({
 
           <div className="management-preview-meta">
             {maskLoading && <span className="mask-loading">Loading masks...</span>}
-            {!maskLoading && maskOverlay && (
+            {!maskLoading && !samToolActive && maskOverlay && (
               <span className="management-hint">
                 Click masks to select, then click a selected mask to label all selected.
               </span>
             )}
-            {!maskLoading && !maskOverlay && (
+            {!maskLoading && !samToolActive && !maskOverlay && (
               <span className="management-hint">Masks are unavailable for this image.</span>
             )}
-            {highlightedMask && (
+            {samToolActive && (
+              <span className="management-hint">
+                Click on the image to place point prompts. Then click &quot;Generate&quot; to create masks.
+              </span>
+            )}
+            {highlightedMask && !samToolActive && (
               <span className="mask-hover-info">
                 Hovering: Mask ({highlightedMask.size.toLocaleString()}px)
                 {highlightedMask.labelId ? ' - Labeled' : ' - Click to label'}
               </span>
+            )}
+          </div>
+
+          {/* SAM Point Tool Toolbar */}
+          <div className="management-sam-toolbar">
+            <Button
+              type="button"
+              variant={samToolActive ? 'primary' : 'secondary'}
+              size="small"
+              onClick={handleToggleSamTool}
+              disabled={samLoading || !image.fileUrl}
+            >
+              {samToolActive ? 'Cancel Point Tool' : 'Add Masks by Point'}
+            </Button>
+            {samToolActive && (
+              <>
+                <span className="sam-point-count">{samPoints.length} point{samPoints.length !== 1 ? 's' : ''}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="small"
+                  onClick={handleClearSamPoints}
+                  disabled={samPoints.length === 0 || samLoading}
+                >
+                  Clear
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="small"
+                  onClick={handleSubmitSamPoints}
+                  disabled={samPoints.length === 0 || samLoading}
+                  loading={samLoading}
+                >
+                  Generate
+                </Button>
+              </>
+            )}
+            {samError && (
+              <span className="sam-error">{samError}</span>
             )}
           </div>
         </div>
