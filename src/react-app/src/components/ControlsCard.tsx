@@ -127,8 +127,37 @@ export function ControlsCard() {
 }
 
 function GimbalPad() {
+  const { t } = useLingui()
   const { apiClient, status } = useRocam()
   const disabled = !!status?.armed
+
+  const handleManualMove = async (
+    direction: 'up' | 'down' | 'left' | 'right'
+  ) => {
+    if (!apiClient) return
+    try {
+      await apiClient.manualMove(direction)
+    } catch (error) {
+      addToast({
+        title: t`Manual move failed`,
+        description: getErrorMessage(error),
+        color: 'danger',
+      })
+    }
+  }
+
+  const handleMoveHome = async () => {
+    if (!apiClient) return
+    try {
+      await apiClient.manualMoveTo(0, 0)
+    } catch (error) {
+      addToast({
+        title: t`Move to home failed`,
+        description: getErrorMessage(error),
+        color: 'danger',
+      })
+    }
+  }
 
   return (
     <div className="grid gap-2 grid-cols-3 grid-rows-3 w-fit">
@@ -139,7 +168,7 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMove('up')}
+        onPress={() => handleManualMove('up')}
       >
         <IconChevronUp />
       </Button>
@@ -150,7 +179,7 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMove('left')}
+        onPress={() => handleManualMove('left')}
       >
         <IconChevronLeft />
       </Button>
@@ -160,7 +189,7 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMoveTo(0, 0)}
+        onPress={() => handleMoveHome()}
       >
         <IconHome />
       </Button>
@@ -170,7 +199,7 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMove('right')}
+        onPress={() => handleManualMove('right')}
       >
         <IconChevronRight />
       </Button>
@@ -181,7 +210,7 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMove('down')}
+        onPress={() => handleManualMove('down')}
       >
         <IconChevronDown />
       </Button>
@@ -192,5 +221,6 @@ function GimbalPad() {
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) return error.message
+
   return String(error ?? 'Unknown error')
 }

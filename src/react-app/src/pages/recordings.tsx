@@ -59,10 +59,12 @@ export default function RecordingsPage() {
   useEffect(() => {
     if (!loadError) {
       lastLoadErrorRef.current = null
+
       return
     }
 
     const message = getErrorMessage(loadError)
+
     if (lastLoadErrorRef.current !== message) {
       addToast({
         title: t`Failed to load recordings`,
@@ -76,10 +78,12 @@ export default function RecordingsPage() {
   useEffect(() => {
     if (!statusPollingError) {
       lastConnectionErrorRef.current = null
+
       return
     }
 
     const message = getErrorMessage(statusPollingError)
+
     if (lastConnectionErrorRef.current !== message) {
       addToast({
         title: t`Connection error`,
@@ -488,5 +492,6 @@ function formatBytes(bytes: number) {
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) return error.message
+
   return String(error ?? 'Unknown error')
 }

@@ -43,9 +43,8 @@ export function Provider({ children }: { children: React.ReactNode }) {
     <JotaiProvider>
       <I18nLoader>
         <HeroUIProvider navigate={navigate} useHref={useHref}>
-          <ToastProvider placement="bottom-right" maxVisibleToasts={3}>
-            <RocamProvider>{children}</RocamProvider>
-          </ToastProvider>
+          <RocamProvider>{children}</RocamProvider>
+          <ToastProvider maxVisibleToasts={3} placement="bottom-right" />
         </HeroUIProvider>
       </I18nLoader>
     </JotaiProvider>
