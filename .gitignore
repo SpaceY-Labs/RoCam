@@ -301,3 +301,4 @@ node_modules/
 
 .cursor/
 
+src/react-app/package-lock.json
