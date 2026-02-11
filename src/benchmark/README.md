@@ -62,3 +62,4 @@ python3 accuracy_benchmark.py \
 | ./models/first_yolo26.pt | 26s        | 0.304               | 0.565                | 0.664               | Xiaotian Lou | Jan 28 2026 | First YOLO26 attempt        |
 | ./models/small_rocket.pt | 26s        | 0.340               | 0.620                | 0.716               | Xiaotian Lou | Jan 31 2026 | Optimized for small rockets |
 | ./models/small27.pt | 26s        | 0.361               | 0.663               | 0.704              | Xiaotian Lou | Feb 7 2026 | Optimized for small rockets |
+| ./models/pt8.pt | 26s        | 0.342               | 0.644               | 0.740              | Xiaotian Lou | Feb 8 2026 | Optimized for smal rocket add more coco ,fine train from small27.pt |
