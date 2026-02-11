@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Button } from '@heroui/button'
 import { Card, CardBody } from '@heroui/card'
 import { addToast } from '@heroui/toast'
@@ -131,22 +131,23 @@ function GimbalPad() {
   const { apiClient, status } = useRocam()
   const disabled = !!status?.armed
 
-  const handleManualMove = async (
-    direction: 'up' | 'down' | 'left' | 'right'
-  ) => {
-    if (!apiClient) return
-    try {
-      await apiClient.manualMove(direction)
-    } catch (error) {
-      addToast({
-        title: t`Manual move failed`,
-        description: getErrorMessage(error),
-        color: 'danger',
-      })
-    }
-  }
+  const handleManualMove = useCallback(
+    async (direction: 'up' | 'down' | 'left' | 'right') => {
+      if (!apiClient) return
+      try {
+        await apiClient.manualMove(direction)
+      } catch (error) {
+        addToast({
+          title: t`Manual move failed`,
+          description: getErrorMessage(error),
+          color: 'danger',
+        })
+      }
+    },
+    [apiClient, t]
+  )
 
-  const handleMoveHome = async () => {
+  const handleMoveHome = useCallback(async () => {
     if (!apiClient) return
     try {
       await apiClient.manualMoveTo(0, 0)
@@ -157,7 +158,7 @@ function GimbalPad() {
         color: 'danger',
       })
     }
-  }
+  }, [apiClient, t])
 
   return (
     <div className="grid gap-2 grid-cols-3 grid-rows-3 w-fit">

@@ -97,25 +97,30 @@ export default function ControlPage() {
       const newTilt = drag.startTilt - dy * DRAG_SENSITIVITY
 
       drag.lastCallTime = now
-      client.manualMoveTo(newTilt, newPan).catch((error) => {
-        const message = getErrorMessage(error)
+      client
+        .manualMoveTo(newTilt, newPan)
+        .then(() => {
+          // Clear error state on successful operation
+          lastDragErrorMessageRef.current = null
+        })
+        .catch((error) => {
+          const message = getErrorMessage(error)
 
-        if (lastDragErrorMessageRef.current !== message) {
-          addToast({
-            title: t`Manual control failed`,
-            description: message,
-            color: 'danger',
-          })
-          lastDragErrorMessageRef.current = message
-        }
-      })
+          if (lastDragErrorMessageRef.current !== message) {
+            addToast({
+              title: t`Manual control failed`,
+              description: message,
+              color: 'danger',
+            })
+            lastDragErrorMessageRef.current = message
+          }
+        })
     },
     [t]
   )
 
   const handlePointerUp = useCallback(() => {
     dragRef.current.isDragging = false
-    lastDragErrorMessageRef.current = null
   }, [])
 
   return (
