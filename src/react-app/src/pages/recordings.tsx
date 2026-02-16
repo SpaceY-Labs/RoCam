@@ -22,7 +22,7 @@ import { useRocam } from '@/network/rocamProvider'
 
 export default function RecordingsPage() {
   const { t } = useLingui()
-  const { apiClient, statusPollingError } = useRocam()
+  const { apiClient } = useRocam()
 
   const [recordings, setRecordings] = useState<Recording[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -31,7 +31,6 @@ export default function RecordingsPage() {
     null
   )
   const lastLoadErrorRef = useRef<string | null>(null)
-  const lastConnectionErrorRef = useRef<string | null>(null)
 
   async function loadRecordings() {
     if (!apiClient) return
@@ -72,23 +71,6 @@ export default function RecordingsPage() {
       lastLoadErrorRef.current = message
     }
   }, [loadError, t])
-
-  useEffect(() => {
-    if (!statusPollingError) {
-      lastConnectionErrorRef.current = null
-      return
-    }
-
-    const message = getErrorMessage(statusPollingError)
-    if (lastConnectionErrorRef.current !== message) {
-      addToast({
-        title: t`Connection error`,
-        description: message,
-        color: 'danger',
-      })
-      lastConnectionErrorRef.current = message
-    }
-  }, [statusPollingError, t])
 
   const handleRename = async (id: string, newName: string) => {
     if (!apiClient) return
