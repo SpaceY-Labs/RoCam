@@ -56,6 +56,19 @@ export const Navbar = () => {
               <Trans>Recordings</Trans>
             </NavLink>
           </NavbarItem>
+          <NavbarItem>
+            <NavLink
+              className={({ isActive }: { isActive: boolean }) =>
+                clsx(
+                  linkStyles({ color: 'foreground' }),
+                  isActive ? 'font-bold' : 'text-gray-500'
+                )
+              }
+              to={'/logs'}
+            >
+              <Trans>Logs</Trans>
+            </NavLink>
+          </NavbarItem>
         </div>
       </NavbarContent>
       <NavbarContent justify="end">

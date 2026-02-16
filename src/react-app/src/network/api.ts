@@ -42,6 +42,13 @@ export type RecordingListResponse = {
   recordings: Recording[]
 }
 
+export type LogEntry = {
+  level: string
+  name: string
+  message: string
+  created: number
+}
+
 export type ApiResponse<T = Record<string, unknown>> = T
 
 export class ApiError extends Error {
@@ -95,6 +102,11 @@ export class ApiClient {
   /** URL for the status SSE stream (GET /api/status). */
   getStatusStreamUrl(): string {
     return `${this.baseUrl}/api/status`
+  }
+
+  /** URL for the logs SSE stream (GET /api/logs). */
+  getLogsStreamUrl(): string {
+    return `${this.baseUrl}/api/logs`
   }
 
   /** URL for discovery probe (GET /api/generate_204). */

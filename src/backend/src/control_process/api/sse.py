@@ -93,3 +93,57 @@ def register_status_sse(
                 "X-Accel-Buffering": "no",
             },
         )
+
+
+class _LogStreamHandler(logging.Handler):
+    """Logging handler that forwards log records to an SSE announcer."""
+
+    def __init__(self, announcer: _MessageAnnouncer):
+        super().__init__()
+        self._announcer = announcer
+
+    def emit(self, record: logging.LogRecord) -> None:
+        try:
+            msg = self.format(record)
+            payload = json.dumps(
+                {
+                    "level": record.levelname,
+                    "name": record.name,
+                    "message": msg,
+                    "created": record.created,
+                }
+            )
+            self._announcer.announce(_format_sse(payload, event="log"))
+        except Exception:
+            self.handleError(record)
+
+
+def register_logs_sse(app) -> None:
+    """Register GET /api/logs (SSE) and attach a logging handler to stream log records."""
+    log_announcer = _MessageAnnouncer()
+    handler = _LogStreamHandler(log_announcer)
+    handler.setFormatter(
+        logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+    )
+    logging.getLogger().addHandler(handler)
+
+    @app.get("/api/logs")
+    def logs_stream():
+        def stream():
+            messages = log_announcer.listen()
+            try:
+                while True:
+                    yield messages.get()
+            finally:
+                log_announcer.remove(messages)
+
+        return Response(
+            stream_with_context(stream()),
+            mimetype="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Content-Type": "text/event-stream",
+                "X-Accel-Buffering": "no",
+            },
+        )
