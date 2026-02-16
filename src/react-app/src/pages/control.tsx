@@ -21,7 +21,6 @@ export default function ControlPage() {
   const [streamContainerRef, streamBounds] = useMeasure<HTMLDivElement>()
   const { width, height } = streamBounds
   const lastErrorMessageRef = useRef<string | null>(null)
-  const lastDragErrorMessageRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (statusPollingError) {
@@ -78,46 +77,26 @@ export default function ControlPage() {
     e.currentTarget.setPointerCapture(e.pointerId)
   }, [])
 
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      const drag = dragRef.current
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    const drag = dragRef.current
 
-      if (!drag.isDragging) return
-      const client = apiClientRef.current
+    if (!drag.isDragging) return
+    const client = apiClientRef.current
 
-      if (!client) return
+    if (!client) return
 
-      const now = Date.now()
+    const now = Date.now()
 
-      if (now - drag.lastCallTime < DRAG_THROTTLE_MS) return
+    if (now - drag.lastCallTime < DRAG_THROTTLE_MS) return
 
-      const dx = e.clientX - drag.startX
-      const dy = e.clientY - drag.startY
-      const newPan = drag.startPan + dx * DRAG_SENSITIVITY
-      const newTilt = drag.startTilt - dy * DRAG_SENSITIVITY
+    const dx = e.clientX - drag.startX
+    const dy = e.clientY - drag.startY
+    const newPan = drag.startPan + dx * DRAG_SENSITIVITY
+    const newTilt = drag.startTilt - dy * DRAG_SENSITIVITY
 
-      drag.lastCallTime = now
-      client
-        .manualMoveTo(newTilt, newPan)
-        .then(() => {
-          // Clear error state on successful operation
-          lastDragErrorMessageRef.current = null
-        })
-        .catch((error) => {
-          const message = getErrorMessage(error)
-
-          if (lastDragErrorMessageRef.current !== message) {
-            addToast({
-              title: t`Manual control failed`,
-              description: message,
-              color: 'danger',
-            })
-            lastDragErrorMessageRef.current = message
-          }
-        })
-    },
-    [t]
-  )
+    drag.lastCallTime = now
+    client.manualMoveTo(newTilt, newPan)
+  }, [])
 
   const handlePointerUp = useCallback(() => {
     dragRef.current.isDragging = false
