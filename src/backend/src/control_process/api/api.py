@@ -7,7 +7,7 @@ from control_process.state_management import StateManagement
 from control_process.state_management_recording_management_only import (
     StateManagementRecordingManagementOnly,
 )
-from control_process.api.sse import register_status_sse
+from control_process.api.sse import register_logs_sse, register_status_sse
 from control_process.api.transcode import register_transcode_routes
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
@@ -30,6 +30,7 @@ def run_api_gateway(
     CORS(app)
 
     register_status_sse(app, state_management)
+    register_logs_sse(app)
     register_transcode_routes(app, state_management)
 
     @app.get("/api/generate_204")
