@@ -27,12 +27,13 @@ def _format_sse(data: str, event=None) -> str:
 class _MessageAnnouncer:
     """Broadcasts messages to SSE listeners. Drops messages for slow clients (backpressure)."""
 
-    def __init__(self):
+    def __init__(self, queue_size: int = 1):
+        self._queue_size = queue_size
         self._listeners = []
         self._lock = threading.Lock()
 
     def listen(self):
-        q = queue.Queue(maxsize=1)
+        q = queue.Queue(maxsize=self._queue_size)
         with self._lock:  
             self._listeners.append(q)
         return q
@@ -75,6 +76,56 @@ def register_status_sse(
 
     @app.get("/api/status")
     def status_stream():
+        def stream():
+            messages = announcer.listen()
+            try:
+                while True:
+                    yield messages.get()
+            finally:
+                announcer.remove(messages)
+
+        return Response(
+            stream_with_context(stream()),
+            mimetype="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Content-Type": "text/event-stream",
+                "X-Accel-Buffering": "no",
+            },
+        )
+
+
+class _LogsSSEHandler(logging.Handler):
+    """Push backend log records into SSE listeners."""
+
+    def __init__(self, announcer: _MessageAnnouncer):
+        super().__init__()
+        self._announcer = announcer
+
+    def emit(self, record: logging.LogRecord) -> None:
+        try:
+            payload = {
+                "timestamp": int(record.created * 1000),
+                "level": record.levelname,
+                "logger": record.name,
+                "message": self.format(record),
+            }
+            self._announcer.announce(_format_sse(json.dumps(payload)))
+        except Exception:
+            self.handleError(record)
+
+
+def register_logs_sse(app) -> None:
+    """Register GET /api/logs (SSE) endpoint."""
+    announcer = _MessageAnnouncer(queue_size=200)
+    handler = _LogsSSEHandler(announcer)
+    handler.setLevel(logging.INFO)
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    logging.getLogger().addHandler(handler)
+
+    @app.get("/api/logs")
+    def logs_stream():
         def stream():
             messages = announcer.listen()
             try:
