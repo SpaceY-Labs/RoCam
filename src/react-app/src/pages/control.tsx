@@ -14,7 +14,7 @@ import DefaultLayout from '@/layouts/default'
 const DRAG_SENSITIVITY = 0.15
 /** Minimum milliseconds between consecutive manualMoveTo API calls. */
 const DRAG_THROTTLE_MS = 50
-const DEV_MODE_STORAGE_KEY = 'app-developer-mode'
+const DEV_SHOW_LOGS_STORAGE_KEY = 'app-developer-show-logs'
 const DEV_MODE_EVENT = 'developer-mode-change'
 
 export default function ControlPage() {
@@ -22,11 +22,13 @@ export default function ControlPage() {
   const { apiClient, status, statusPollingError } = useRocam()
   const [streamContainerRef, streamBounds] = useMeasure<HTMLDivElement>()
   const { width, height } = streamBounds
-  const [isDeveloperMode, setIsDeveloperMode] = useState(false)
+  const [showDeveloperLogs, setShowDeveloperLogs] = useState(false)
 
   useEffect(() => {
     const updateDeveloperMode = () => {
-      setIsDeveloperMode(localStorage.getItem(DEV_MODE_STORAGE_KEY) === 'true')
+      setShowDeveloperLogs(
+        localStorage.getItem(DEV_SHOW_LOGS_STORAGE_KEY) === 'true'
+      )
     }
 
     updateDeveloperMode()
@@ -105,11 +107,11 @@ export default function ControlPage() {
   return (
     <DefaultLayout className="flex items-stretch">
       <div
-        className={`relative grid gap-4 m-4 mt-0 grid-cols-[auto_1fr] min-w-0 w-full ${isDeveloperMode ? 'grid-rows-[1fr_auto_auto]' : 'grid-rows-[1fr_auto]'}`}
+        className={`relative grid gap-4 m-4 mt-0 grid-cols-[auto_1fr] min-w-0 w-full ${showDeveloperLogs ? 'grid-rows-[1fr_auto_auto]' : 'grid-rows-[1fr_auto]'}`}
       >
         <Card
           ref={streamContainerRef}
-          className={`aspect-[9/16] ${isDeveloperMode ? 'row-span-3' : 'row-span-2'}`}
+          className={`aspect-[9/16] ${showDeveloperLogs ? 'row-span-3' : 'row-span-2'}`}
           radius="sm"
         >
           <CardBody className="relative flex items-center justify-center overflow-hidden">
@@ -177,7 +179,7 @@ export default function ControlPage() {
 
         <ControlsCard />
 
-        {isDeveloperMode && <LogsCard />}
+        {showDeveloperLogs && <LogsCard />}
       </div>
     </DefaultLayout>
   )
