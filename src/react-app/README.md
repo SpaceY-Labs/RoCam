@@ -1,5 +1,5 @@
 # Frontend
-
+cd src\react-app && yarn dev
 # How to Run:
 
 ```bash

@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import {
   Navbar as HeroUINavbar,
   NavbarContent,
@@ -7,15 +8,36 @@ import {
 import { link as linkStyles } from '@heroui/theme'
 import clsx from 'clsx'
 import { Button } from '@heroui/button'
-import { IconCancel, IconMaximize, IconMaximizeOff } from '@tabler/icons-react'
+import {
+  IconBug,
+  IconCancel,
+  IconMaximize,
+  IconMaximizeOff,
+} from '@tabler/icons-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import { ConfigurationMenu } from './ConfigurationMenu'
+
+const DEV_MODE_STORAGE_KEY = 'app-developer-mode'
 
 export const Navbar = () => {
   const { t } = useLingui()
   const location = useLocation()
   const isControlPage = location.pathname === '/'
+  const [isDeveloperMode, setIsDeveloperMode] = useState(false)
+
+  useEffect(() => {
+    const enabled = localStorage.getItem(DEV_MODE_STORAGE_KEY) === 'true'
+    setIsDeveloperMode(enabled)
+    document.body.dataset.developerMode = enabled ? 'true' : 'false'
+  }, [])
+
+  const handleToggleDeveloperMode = () => {
+    const next = !isDeveloperMode
+    setIsDeveloperMode(next)
+    localStorage.setItem(DEV_MODE_STORAGE_KEY, String(next))
+    document.body.dataset.developerMode = next ? 'true' : 'false'
+  }
 
   return (
     <HeroUINavbar
@@ -60,6 +82,15 @@ export const Navbar = () => {
       </NavbarContent>
       <NavbarContent justify="end">
         <ConfigurationMenu />
+        <Button
+          color={isDeveloperMode ? 'warning' : 'default'}
+          radius="sm"
+          startContent={<IconBug />}
+          variant={isDeveloperMode ? 'solid' : 'bordered'}
+          onPress={handleToggleDeveloperMode}
+        >
+          <Trans>Developer Mode</Trans>
+        </Button>
         <Button
           radius="sm"
           startContent={

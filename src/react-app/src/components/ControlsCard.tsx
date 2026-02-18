@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@heroui/button'
 import { Card, CardBody } from '@heroui/card'
-import { addToast } from '@heroui/toast'
 import {
   IconChevronLeft,
   IconChevronRight,
@@ -10,12 +9,11 @@ import {
   IconHome,
 } from '@tabler/icons-react'
 import { useTimeoutFn } from 'react-use'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Trans } from '@lingui/react/macro'
 
 import { useRocam } from '@/network/rocamProvider'
 
 export function ControlsCard() {
-  const { t } = useLingui()
   const { apiClient, status } = useRocam()
   const [isArmLoading, setIsArmLoading] = useState(false)
   const [isRecordLoading, setIsRecordLoading] = useState(false)
@@ -45,12 +43,8 @@ export function ControlsCard() {
       } else {
         await apiClient.arm()
       }
-    } catch (error) {
-      addToast({
-        title: isArmed ? t`Failed to disarm` : t`Failed to arm`,
-        description: getErrorMessage(error),
-        color: 'danger',
-      })
+    } catch {
+      console.warn(`Failed to ${isArmed ? 'disarm' : 'arm'}`)
     } finally {
       setIsArmLoading(false)
     }
@@ -63,25 +57,11 @@ export function ControlsCard() {
     try {
       if (isRecording) {
         await apiClient.stopRecording()
-        addToast({
-          title: t`Recording stopped`,
-          color: 'success',
-        })
       } else {
         await apiClient.startRecording()
-        addToast({
-          title: t`Recording started`,
-          color: 'success',
-        })
       }
-    } catch (error) {
-      addToast({
-        title: isRecording
-          ? t`Failed to stop recording`
-          : t`Failed to start recording`,
-        description: getErrorMessage(error),
-        color: 'danger',
-      })
+    } catch {
+      console.warn(`Failed to ${isRecording ? 'stop' : 'start'} recording`)
     } finally {
       setIsRecordLoading(false)
     }
@@ -188,9 +168,4 @@ function GimbalPad() {
       <div />
     </div>
   )
-}
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error && error.message) return error.message
-  return String(error ?? 'Unknown error')
 }
