@@ -97,6 +97,11 @@ export class ApiClient {
     return `${this.baseUrl}/api/status`
   }
 
+  /** URL for backend logs SSE stream (GET /api/logs). */
+  getLogsStreamUrl(): string {
+    return `${this.baseUrl}/api/logs`
+  }
+
   /** URL for discovery probe (GET /api/generate_204). */
   getGenerate204Url(): string {
     return `${this.baseUrl}/api/generate_204`
