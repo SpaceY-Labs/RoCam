@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { Spinner } from '@heroui/spinner'
 import { useMeasure } from 'react-use'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import { ControlsCard } from '@/components/ControlsCard'
+import { LogsCard } from '@/components/LogsCard'
 import { SystemStatusCard } from '@/components/SystemStatusCard'
 import { useRocam } from '@/network/rocamProvider'
 import DefaultLayout from '@/layouts/default'
@@ -13,12 +14,32 @@ import DefaultLayout from '@/layouts/default'
 const DRAG_SENSITIVITY = 0.15
 /** Minimum milliseconds between consecutive manualMoveTo API calls. */
 const DRAG_THROTTLE_MS = 50
+const DEV_MODE_STORAGE_KEY = 'app-developer-mode'
+const DEV_MODE_EVENT = 'developer-mode-change'
 
 export default function ControlPage() {
   const { t } = useLingui()
   const { apiClient, status, statusPollingError } = useRocam()
   const [streamContainerRef, streamBounds] = useMeasure<HTMLDivElement>()
   const { width, height } = streamBounds
+  const [isDeveloperMode, setIsDeveloperMode] = useState(false)
+
+  useEffect(() => {
+    const updateDeveloperMode = () => {
+      setIsDeveloperMode(localStorage.getItem(DEV_MODE_STORAGE_KEY) === 'true')
+    }
+
+    updateDeveloperMode()
+    window.addEventListener('storage', updateDeveloperMode)
+    window.addEventListener('focus', updateDeveloperMode)
+    window.addEventListener(DEV_MODE_EVENT, updateDeveloperMode)
+
+    return () => {
+      window.removeEventListener('storage', updateDeveloperMode)
+      window.removeEventListener('focus', updateDeveloperMode)
+      window.removeEventListener(DEV_MODE_EVENT, updateDeveloperMode)
+    }
+  }, [])
 
   useEffect(() => {
     if (statusPollingError) {
@@ -83,10 +104,12 @@ export default function ControlPage() {
 
   return (
     <DefaultLayout className="flex items-stretch">
-      <div className="relative grid gap-4 m-4 mt-0 grid-cols-[auto_1fr] grid-rows-[1fr_auto] min-w-0 w-full">
+      <div
+        className={`relative grid gap-4 m-4 mt-0 grid-cols-[auto_1fr] min-w-0 w-full ${isDeveloperMode ? 'grid-rows-[1fr_auto_auto]' : 'grid-rows-[1fr_auto]'}`}
+      >
         <Card
           ref={streamContainerRef}
-          className="aspect-[9/16] row-span-2"
+          className={`aspect-[9/16] ${isDeveloperMode ? 'row-span-3' : 'row-span-2'}`}
           radius="sm"
         >
           <CardBody className="relative flex items-center justify-center overflow-hidden">
@@ -153,6 +176,8 @@ export default function ControlPage() {
         <SystemStatusCard />
 
         <ControlsCard />
+
+        {isDeveloperMode && <LogsCard />}
       </div>
     </DefaultLayout>
   )

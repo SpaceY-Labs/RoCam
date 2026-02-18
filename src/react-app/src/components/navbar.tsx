@@ -19,6 +19,7 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { ConfigurationMenu } from './ConfigurationMenu'
 
 const DEV_MODE_STORAGE_KEY = 'app-developer-mode'
+const DEV_MODE_EVENT = 'developer-mode-change'
 
 export const Navbar = () => {
   const { t } = useLingui()
@@ -37,6 +38,7 @@ export const Navbar = () => {
     setIsDeveloperMode(next)
     localStorage.setItem(DEV_MODE_STORAGE_KEY, String(next))
     document.body.dataset.developerMode = next ? 'true' : 'false'
+    window.dispatchEvent(new Event(DEV_MODE_EVENT))
   }
 
   return (
