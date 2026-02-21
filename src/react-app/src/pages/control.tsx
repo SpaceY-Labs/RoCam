@@ -34,8 +34,10 @@ export default function ControlPage() {
   // ── Drag-to-control ──────────────────────────────────────────────────
   // Keep fresh values in refs so callbacks never go stale.
   const statusRef = useRef(status)
+
   statusRef.current = status
   const apiClientRef = useRef(apiClient)
+
   apiClientRef.current = apiClient
 
   const dragRef = useRef({
@@ -49,8 +51,10 @@ export default function ControlPage() {
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     const s = statusRef.current
+
     if (!s || s.armed) return
     const drag = dragRef.current
+
     drag.isDragging = true
     drag.startX = e.clientX
     drag.startY = e.clientY
@@ -61,11 +65,14 @@ export default function ControlPage() {
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     const drag = dragRef.current
+
     if (!drag.isDragging) return
     const client = apiClientRef.current
+
     if (!client) return
 
     const now = Date.now()
+
     if (now - drag.lastCallTime < DRAG_THROTTLE_MS) return
 
     const dx = e.clientX - drag.startX
