@@ -44,8 +44,12 @@ export function ControlsCard() {
       } else {
         await apiClient.arm()
       }
-    } catch {
-      console.warn(`Failed to ${isArmed ? 'disarm' : 'arm'}`)
+    } catch (error) {
+      addToast({
+        title: `Failed to ${isArmed ? 'disarm' : 'arm'}`,
+        description: getErrorMessage(error),
+        color: 'danger',
+      })
     } finally {
       setIsArmLoading(false)
     }
@@ -58,11 +62,17 @@ export function ControlsCard() {
     try {
       if (isRecording) {
         await apiClient.stopRecording()
+        addToast({ title: 'Recording stopped', color: 'success' })
       } else {
         await apiClient.startRecording()
+        addToast({ title: 'Recording started', color: 'success' })
       }
-    } catch {
-      console.warn(`Failed to ${isRecording ? 'stop' : 'start'} recording`)
+    } catch (error) {
+      addToast({
+        title: `Failed to ${isRecording ? 'stop' : 'start'} recording`,
+        description: getErrorMessage(error),
+        color: 'danger',
+      })
     } finally {
       setIsRecordLoading(false)
     }
@@ -169,4 +179,9 @@ function GimbalPad() {
       <div />
     </div>
   )
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) return error.message
+  return String(error ?? 'Unknown error')
 }
