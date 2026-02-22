@@ -3,14 +3,14 @@ import { Card, CardBody } from '@heroui/card'
 import { Spinner } from '@heroui/spinner'
 import { useMeasure } from 'react-use'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { useAtomValue } from 'jotai'
 
 import { ControlsCard } from '@/components/ControlsCard'
 import { SystemStatusCard } from '@/components/SystemStatusCard'
 import { useRocam } from '@/network/rocamProvider'
 import DefaultLayout from '@/layouts/default'
+import { invertDragAtom, dragSensitivityAtom } from '@/store/languageAtom'
 
-/** Degrees of gimbal movement per pixel of pointer drag. */
-const DRAG_SENSITIVITY = 0.15
 /** Minimum milliseconds between consecutive manualMoveTo API calls. */
 const DRAG_THROTTLE_MS = 50
 
@@ -32,6 +32,9 @@ export default function ControlPage() {
   const isRecording = !!status?.is_recording
 
   // ── Drag-to-control ──────────────────────────────────────────────────
+  const invertDrag = useAtomValue(invertDragAtom)
+  const dragSensitivity = useAtomValue(dragSensitivityAtom)
+
   // Keep fresh values in refs so callbacks never go stale.
   const statusRef = useRef(status)
 
@@ -39,6 +42,12 @@ export default function ControlPage() {
   const apiClientRef = useRef(apiClient)
 
   apiClientRef.current = apiClient
+  const invertDragRef = useRef(invertDrag)
+
+  invertDragRef.current = invertDrag
+  const dragSensitivityRef = useRef(dragSensitivity)
+
+  dragSensitivityRef.current = dragSensitivity
 
   const dragRef = useRef({
     isDragging: false,
@@ -75,10 +84,12 @@ export default function ControlPage() {
 
     if (now - drag.lastCallTime < DRAG_THROTTLE_MS) return
 
+    const sensitivity = dragSensitivityRef.current
+    const sign = invertDragRef.current ? -1 : 1
     const dx = e.clientX - drag.startX
     const dy = e.clientY - drag.startY
-    const newPan = drag.startPan + dx * DRAG_SENSITIVITY
-    const newTilt = drag.startTilt - dy * DRAG_SENSITIVITY
+    const newPan = drag.startPan + dx * sensitivity * sign
+    const newTilt = drag.startTilt - dy * sensitivity * sign
 
     drag.lastCallTime = now
     client.manualMoveTo(newTilt, newPan)
