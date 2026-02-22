@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Button } from '@heroui/button'
 import { Spinner } from '@heroui/spinner'
 import { Input } from '@heroui/input'
+import { addToast } from '@heroui/toast'
 import {
   IconCalendarEvent,
   IconClockHour3,
@@ -28,6 +29,7 @@ export default function RecordingsPage() {
   const [selectedRecording, setSelectedRecording] = useState<Recording | null>(
     null
   )
+  const lastLoadErrorToastRef = useRef<string | null>(null)
 
   async function loadRecordings() {
     if (!apiClient) return
@@ -36,7 +38,18 @@ export default function RecordingsPage() {
       const data = await apiClient.listRecordings()
 
       setRecordings(data.recordings)
+      lastLoadErrorToastRef.current = null
     } catch (e) {
+      const message = getErrorMessage(e)
+
+      if (lastLoadErrorToastRef.current !== message) {
+        addToast({
+          title: 'Failed to load recordings',
+          description: message,
+          color: 'danger',
+        })
+        lastLoadErrorToastRef.current = message
+      }
       // eslint-disable-next-line no-console
       console.error('Failed to load recordings:', e)
     } finally {
@@ -62,6 +75,11 @@ export default function RecordingsPage() {
         await loadRecordings()
       }
     } catch (e) {
+      addToast({
+        title: 'Failed to rename recording',
+        description: getErrorMessage(e),
+        color: 'danger',
+      })
       // eslint-disable-next-line no-console
       console.error('Failed to rename recording:', e)
       throw e
@@ -75,7 +93,16 @@ export default function RecordingsPage() {
     try {
       await apiClient.deleteRecording(r.id)
       setRecordings((cur) => cur.filter((x) => x.id !== r.id))
+      addToast({
+        title: 'Recording deleted',
+        color: 'success',
+      })
     } catch (e) {
+      addToast({
+        title: 'Failed to delete recording',
+        description: getErrorMessage(e),
+        color: 'danger',
+      })
       // eslint-disable-next-line no-console
       console.error('Failed to delete recording:', e)
       throw e
@@ -429,4 +456,9 @@ function formatBytes(bytes: number) {
   }
 
   return `${b.toFixed(i === 0 ? 0 : 1)} ${units[i]}`
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) return error.message
+  return String(error ?? 'Unknown error')
 }
