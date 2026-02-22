@@ -100,7 +100,7 @@ export function ConfigurationMenu() {
 
           <DropdownSection title={t`Camera Controls`}>
             <DropdownItem key="invert-drag">
-              <Trans>Invert drag direction</Trans>
+              {t`Invert drag direction`}
             </DropdownItem>
             <DropdownItem
               key="drag-sensitivity"
