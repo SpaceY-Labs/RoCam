@@ -129,6 +129,6 @@ def run_pipeline_and_wait_for_start(
 
     threading.Thread(target=generate_png_and_cleanup, daemon=True).start()
 
-    logger.info(f"{pipeline_name} started")
+    logger.info(f"\033[32m{pipeline_name} started\033[0m")
 
     return thread
