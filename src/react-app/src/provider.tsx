@@ -2,6 +2,7 @@ import type { NavigateOptions } from 'react-router-dom'
 
 import React from 'react'
 import { HeroUIProvider } from '@heroui/system'
+import { ToastProvider } from '@heroui/toast'
 import { I18nProvider } from '@lingui/react'
 import { i18n } from '@lingui/core'
 import { useAtomValue } from 'jotai'
@@ -21,17 +22,13 @@ declare module '@react-types/shared' {
 
 function I18nLoader({ children }: { children: React.ReactNode }) {
   const language = useAtomValue(languageAtom)
-
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     dynamicActivate(language).then(() => setReady(true))
   }, [language])
 
-  if (!ready) {
-    return null
-  }
-
+  if (!ready) return null
   return <I18nProvider i18n={i18n}>{children}</I18nProvider>
 }
 
@@ -42,7 +39,10 @@ export function Provider({ children }: { children: React.ReactNode }) {
     <JotaiProvider>
       <I18nLoader>
         <HeroUIProvider navigate={navigate} useHref={useHref}>
-          <RocamProvider>{children}</RocamProvider>
+          <RocamProvider>
+            {children}
+            <ToastProvider placement="bottom-right" maxVisibleToasts={3} />
+          </RocamProvider>
         </HeroUIProvider>
       </I18nLoader>
     </JotaiProvider>

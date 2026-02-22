@@ -25,6 +25,7 @@
     "@heroui/switch": "2.2.24",
     "@heroui/system": "2.4.23",
     "@heroui/theme": "2.4.23",
+    "@heroui/toast": "^2.0.21",
     "@heroui/use-theme": "2.1.10",
     "@lingui/core": "^5.9.0",
     "@lingui/macro": "^5.9.0",
