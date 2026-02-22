@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { Spinner } from '@heroui/spinner'
+import { addToast } from '@heroui/toast'
 import { useMeasure } from 'react-use'
 import { Trans, useLingui } from '@lingui/react/macro'
 
@@ -23,6 +24,7 @@ export default function ControlPage() {
   const [streamContainerRef, streamBounds] = useMeasure<HTMLDivElement>()
   const { width, height } = streamBounds
   const [showDeveloperLogs, setShowDeveloperLogs] = useState(false)
+  const lastStatusPollingErrorToastRef = useRef<string | null>(null)
 
   useEffect(() => {
     const updateDeveloperMode = () => {
@@ -44,10 +46,21 @@ export default function ControlPage() {
   }, [])
 
   useEffect(() => {
-    if (statusPollingError) {
-      // eslint-disable-next-line no-console
-      console.error(statusPollingError)
+    if (!statusPollingError) {
+      lastStatusPollingErrorToastRef.current = null
+      return
     }
+
+    const message = getErrorMessage(statusPollingError)
+
+    if (lastStatusPollingErrorToastRef.current === message) return
+
+    addToast({
+      title: 'Failed to poll status',
+      description: message,
+      color: 'danger',
+    })
+    lastStatusPollingErrorToastRef.current = message
   }, [statusPollingError])
 
   const bbox = status?.bbox
@@ -183,4 +196,9 @@ export default function ControlPage() {
       </div>
     </DefaultLayout>
   )
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) return error.message
+  return String(error ?? 'Unknown error')
 }
