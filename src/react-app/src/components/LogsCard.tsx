@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Card, CardBody } from '@heroui/card'
+import { addToast } from '@heroui/toast'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import { useRocam } from '@/network/rocamProvider'
@@ -19,6 +20,7 @@ export function LogsCard() {
   const { apiClient } = useRocam()
   const [entries, setEntries] = useState<LogEntry[]>([])
   const nextIdRef = useRef(1)
+  const lastStreamErrorToastRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (!apiClient) return
@@ -29,11 +31,22 @@ export function LogsCard() {
       const entry = parseLogEvent(event.data, nextIdRef.current++)
       if (!entry) return
 
+      lastStreamErrorToastRef.current = null
       setEntries((prev) => {
         const next = [...prev, entry]
         if (next.length <= MAX_LOG_ENTRIES) return next
         return next.slice(next.length - MAX_LOG_ENTRIES)
       })
+    }
+    es.onerror = () => {
+      const message = 'Logs stream connection error'
+      if (lastStreamErrorToastRef.current === message) return
+      addToast({
+        title: 'Failed to stream logs',
+        description: message,
+        color: 'danger',
+      })
+      lastStreamErrorToastRef.current = message
     }
 
     return () => {
