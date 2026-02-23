@@ -120,6 +120,20 @@ export function ControlsCard() {
 function GimbalPad() {
   const { apiClient, status } = useRocam()
   const disabled = !!status?.armed
+  const handleMove = async (
+    move: () => Promise<unknown>,
+    actionLabel: string
+  ) => {
+    try {
+      await move()
+    } catch (error) {
+      addToast({
+        title: `Failed to move ${actionLabel}`,
+        description: getErrorMessage(error),
+        color: 'danger',
+      })
+    }
+  }
 
   return (
     <div className="grid gap-2 grid-cols-3 grid-rows-3 w-fit">
@@ -130,7 +144,10 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMove('up')}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMove('up'), 'up')
+        }}
       >
         <IconChevronUp />
       </Button>
@@ -141,7 +158,10 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMove('left')}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMove('left'), 'left')
+        }}
       >
         <IconChevronLeft />
       </Button>
@@ -151,7 +171,10 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMoveTo(0, 0)}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMoveTo(0, 0), 'home')
+        }}
       >
         <IconHome />
       </Button>
@@ -161,7 +184,10 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMove('right')}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMove('right'), 'right')
+        }}
       >
         <IconChevronRight />
       </Button>
@@ -172,7 +198,10 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMove('down')}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMove('down'), 'down')
+        }}
       >
         <IconChevronDown />
       </Button>
