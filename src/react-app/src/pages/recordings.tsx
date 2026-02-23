@@ -297,6 +297,7 @@ interface PreviewModalProps {
 function PreviewModal({ recording, onClose }: PreviewModalProps) {
   const { apiClient } = useRocam()
   const videoRef = useRef<HTMLVideoElement>(null)
+  const lastPreviewErrorToastRef = useRef<string | null>(null)
   const [currentTime, setCurrentTime] = useState(0)
   const [isWaiting, setIsWaiting] = useState(true)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -307,6 +308,7 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
       setCurrentTime(0)
       setIsWaiting(true)
       setIsPlaying(false)
+      lastPreviewErrorToastRef.current = null
     } else {
       // Cancel video loading when recording is null (modal closed)
       if (videoRef.current) {
@@ -332,6 +334,17 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
     setCurrentTime(e.currentTarget.currentTime)
   }
 
+  const toastPreviewError = (error: unknown) => {
+    const message = getErrorMessage(error)
+    if (lastPreviewErrorToastRef.current === message) return
+    addToast({
+      title: 'Failed to play preview',
+      description: message,
+      color: 'danger',
+    })
+    lastPreviewErrorToastRef.current = message
+  }
+
   const handlePlayPause = () => {
     if (!videoRef.current) return
 
@@ -339,8 +352,13 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
       videoRef.current.pause()
       setIsPlaying(false)
     } else {
-      videoRef.current.play()
-      setIsPlaying(true)
+      videoRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch((error) => {
+          setIsPlaying(false)
+          toastPreviewError(error)
+        })
     }
   }
 
@@ -385,6 +403,7 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
                     onPlaying={handlePlaying}
                     onTimeUpdate={handleTimeUpdate}
                     onWaiting={() => setIsWaiting(true)}
+                    onError={() => toastPreviewError('Preview stream error')}
                   >
                     <track kind="captions" />
                     <Trans>Your browser does not support the video tag.</Trans>
