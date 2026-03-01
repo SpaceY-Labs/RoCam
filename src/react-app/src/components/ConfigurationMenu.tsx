@@ -6,6 +6,7 @@ import {
   DropdownSection,
 } from '@heroui/dropdown'
 import { Button } from '@heroui/button'
+import { Slider } from '@heroui/slider'
 import { useAtom } from 'jotai'
 import { IconSettings } from '@tabler/icons-react'
 import { Trans } from '@lingui/react/macro'
@@ -15,6 +16,8 @@ import { Key } from 'react'
 import {
   languageAtom,
   temperatureUnitAtom,
+  invertDragAtom,
+  dragSensitivityAtom,
   type Language,
   type TemperatureUnit,
 } from '@/store/languageAtom'
@@ -33,20 +36,26 @@ export function ConfigurationMenu() {
   const { t } = useLingui()
   const [language, setLanguage] = useAtom(languageAtom)
   const [temperatureUnit, setTemperatureUnit] = useAtom(temperatureUnitAtom)
+  const [invertDrag, setInvertDrag] = useAtom(invertDragAtom)
+  const [dragSensitivity, setDragSensitivity] = useAtom(dragSensitivityAtom)
 
   const handleAction = (key: Key) => {
     const keyStr = String(key)
 
-    // Check language
     if (keyStr === 'en' || keyStr === 'fr') {
       setLanguage(keyStr as Language)
 
       return
     }
 
-    // Check temperature
     if (keyStr === 'celsius' || keyStr === 'fahrenheit') {
       setTemperatureUnit(keyStr as TemperatureUnit)
+
+      return
+    }
+
+    if (keyStr === 'invert-drag') {
+      setInvertDrag(!invertDrag)
 
       return
     }
@@ -69,7 +78,11 @@ export function ConfigurationMenu() {
           classNames={{
             base: 'max-h-[400px] overflow-y-auto',
           }}
-          selectedKeys={[language, temperatureUnit]}
+          selectedKeys={[
+            language,
+            temperatureUnit,
+            ...(invertDrag ? ['invert-drag'] : []),
+          ]}
           selectionMode="multiple"
           onAction={handleAction}
         >
@@ -83,6 +96,31 @@ export function ConfigurationMenu() {
             {TEMPERATURE_UNITS.map(({ key, label }) => (
               <DropdownItem key={key}>{label}</DropdownItem>
             ))}
+          </DropdownSection>
+
+          <DropdownSection title={t`Camera Controls`}>
+            <DropdownItem key="invert-drag">
+              {t`Invert drag direction`}
+            </DropdownItem>
+            <DropdownItem
+              key="drag-sensitivity"
+              isReadOnly
+              classNames={{
+                base: '!bg-transparent !cursor-default',
+              }}
+              textValue={t`Drag sensitivity`}
+            >
+              <Slider
+                aria-label={t`Drag sensitivity`}
+                label={<Trans>Drag sensitivity</Trans>}
+                maxValue={0.2}
+                minValue={0.01}
+                size="sm"
+                step={0.01}
+                value={dragSensitivity}
+                onChange={(v) => setDragSensitivity(v as number)}
+              />
+            </DropdownItem>
           </DropdownSection>
         </DropdownMenu>
       </Dropdown>

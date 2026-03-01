@@ -17,16 +17,20 @@ msgstr ""
 msgid "Arm"
 msgstr "Arm"
 
-#: src/pages/control.tsx:82
+#: src/pages/control.tsx:155
 msgid "ARMED"
 msgstr "ARMED"
 
-#: src/pages/control.tsx:40
+#: src/components/ConfigurationMenu.tsx:101
+msgid "Camera Controls"
+msgstr "Camera Controls"
+
+#: src/pages/control.tsx:113
 msgid "Camera Preview"
 msgstr "Camera Preview"
 
-#: src/components/ConfigurationMenu.tsx:64
-#: src/components/ConfigurationMenu.tsx:68
+#: src/components/ConfigurationMenu.tsx:73
+#: src/components/ConfigurationMenu.tsx:77
 msgid "Configuration"
 msgstr "Configuration"
 
@@ -42,12 +46,12 @@ msgstr "Controls"
 msgid "CPU"
 msgstr "CPU"
 
-#: src/pages/recordings.tsx:259
+#: src/pages/recordings.tsx:257
 msgid "Delete"
 msgstr "Delete"
 
 #. placeholder {0}: r.name
-#: src/pages/recordings.tsx:74
+#: src/pages/recordings.tsx:73
 msgid "Delete \"{0}\"? This cannot be undone."
 msgstr "Delete \"{0}\"? This cannot be undone."
 
@@ -59,9 +63,15 @@ msgstr "Delete \"{0}\"? This cannot be undone."
 msgid "Disarm"
 msgstr "Disarm"
 
-#: src/pages/recordings.tsx:244
+#: src/pages/recordings.tsx:242
 msgid "Download"
 msgstr "Download"
+
+#: src/components/ConfigurationMenu.tsx:111
+#: src/components/ConfigurationMenu.tsx:114
+#: src/components/ConfigurationMenu.tsx:115
+msgid "Drag sensitivity"
+msgstr "Drag sensitivity"
 
 #: src/components/navbar.tsx:92
 msgid "Emergency Stop"
@@ -87,7 +97,11 @@ msgstr "GPS Location"
 msgid "GPU"
 msgstr "GPU"
 
-#: src/components/ConfigurationMenu.tsx:76
+#: src/components/ConfigurationMenu.tsx:103
+msgid "Invert drag direction"
+msgstr "Invert drag direction"
+
+#: src/components/ConfigurationMenu.tsx:89
 msgid "Language"
 msgstr "Language"
 
@@ -95,11 +109,11 @@ msgstr "Language"
 msgid "Last updated: {lastUpdatedText} ago"
 msgstr "Last updated: {lastUpdatedText} ago"
 
-#: src/pages/recordings.tsx:96
+#: src/pages/recordings.tsx:95
 msgid "Loading recordings..."
 msgstr "Loading recordings..."
 
-#: src/pages/control.tsx:46
+#: src/pages/control.tsx:119
 msgid "Loading stream..."
 msgstr "Loading stream..."
 
@@ -111,7 +125,7 @@ msgstr "Mem"
 msgid "N/A"
 msgstr "N/A"
 
-#: src/pages/recordings.tsx:101
+#: src/pages/recordings.tsx:100
 msgid "No recordings yet. Start one from the Control page."
 msgstr "No recordings yet. Start one from the Control page."
 
@@ -127,16 +141,16 @@ msgstr "Pan"
 msgid "Power"
 msgstr "Power"
 
-#: src/pages/recordings.tsx:234
+#: src/pages/recordings.tsx:232
 msgid "Preview"
 msgstr "Preview"
 
 #. placeholder {0}: recording?.name
-#: src/pages/recordings.tsx:345
+#: src/pages/recordings.tsx:342
 msgid "Preview {0}"
 msgstr "Preview {0}"
 
-#: src/pages/control.tsx:76
+#: src/pages/control.tsx:149
 msgid "REC"
 msgstr "REC"
 
@@ -180,7 +194,7 @@ msgstr "System Status"
 msgid "Temp"
 msgstr "Temp"
 
-#: src/components/ConfigurationMenu.tsx:82
+#: src/components/ConfigurationMenu.tsx:95
 msgid "Temperature"
 msgstr "Temperature"
 
@@ -188,6 +202,6 @@ msgstr "Temperature"
 msgid "Tilt"
 msgstr "Tilt"
 
-#: src/pages/recordings.tsx:366
+#: src/pages/recordings.tsx:363
 msgid "Your browser does not support the video tag."
 msgstr "Your browser does not support the video tag."
