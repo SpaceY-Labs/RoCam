@@ -298,5 +298,5 @@ __pycache__/
 *$py.class
 
 node_modules/
-.cursor/worktrees.json
+.cursor/
 src/labelling-app/frontend/test-results/.last-run.json
