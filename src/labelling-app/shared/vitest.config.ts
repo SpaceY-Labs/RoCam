@@ -9,6 +9,8 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "html"],
       include: ["src/**/*.ts"],
+      // Exclude pure type-definition files that have no runtime coverage
+      exclude: ["src/index.ts", "src/validation/types.ts"],
     },
   },
 });
