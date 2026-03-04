@@ -111,3 +111,126 @@ class TestTranscodeProcessReadLog:
         result = obj._read_log(log_path)
         assert len(result) == 5
         assert [r.pts_ns for r in result] == list(range(5))
+
+
+# ---------------------------------------------------------------------------
+# TranscodeProcess._shader_probe
+# ---------------------------------------------------------------------------
+
+class TestTranscodeProcessShaderProbe:
+    def _make_instance_with_osd_data(self, osd_list=None, mode="preview-stabilized"):
+        """Return a bare TranscodeProcess with injected OSD data."""
+        from transcode_process.main import TranscodeProcess
+        obj = TranscodeProcess.__new__(TranscodeProcess)
+        obj._mode = mode
+        obj._step_size = 5 if mode == "preview-stabilized" else 1
+        obj._osd_data_list = osd_list if osd_list is not None else []
+        obj._osd_data_pointer = 0
+        obj._osd = MagicMock()
+        obj._shader = MagicMock()
+        return obj
+
+    def _make_probe_args(self, pts_ns=1000):
+        pad = MagicMock()
+        gst_buf = MagicMock()
+        gst_buf.pts = pts_ns
+        info = MagicMock()
+        info.get_buffer.return_value = gst_buf
+        return pad, info, 0
+
+    def test_returns_ok_when_buffer_is_none(self):
+        from gi.repository import Gst as GstStub  # stub from conftest
+        obj = self._make_instance_with_osd_data()
+        pad, info, u_data = self._make_probe_args()
+        info.get_buffer.return_value = None
+        # Should return Gst.PadProbeReturn.OK
+        result = obj._shader_probe(pad, info, u_data)
+        # Gst stub returns MagicMock for enum; just check no exception was raised
+        assert result is not None
+
+    def test_uses_empty_osd_when_no_list(self):
+        obj = self._make_instance_with_osd_data(osd_list=[])
+        pad, info, u_data = self._make_probe_args(pts_ns=500)
+        with patch("transcode_process.main.update_osd") as mock_update:
+            obj._shader_probe(pad, info, u_data)
+        mock_update.assert_called_once()
+        called_osd = mock_update.call_args[0][2]
+        assert called_osd.pts_ns == 500
+
+    def test_uses_last_osd_when_pointer_exceeds_list(self):
+        from common.ipc import OSDData
+        last = OSDData(**_osd_dict(pts_ns=999))
+        obj = self._make_instance_with_osd_data(osd_list=[last])
+        obj._osd_data_pointer = 10  # past end
+        pad, info, u_data = self._make_probe_args()
+        with patch("transcode_process.main.update_osd") as mock_update:
+            obj._shader_probe(pad, info, u_data)
+        mock_update.assert_called_once()
+        called_osd = mock_update.call_args[0][2]
+        assert called_osd.pts_ns == 999
+
+    def test_advances_pointer_in_preview_mode(self):
+        from common.ipc import OSDData
+        entries = [OSDData(**_osd_dict(pts_ns=i)) for i in range(5)]
+        obj = self._make_instance_with_osd_data(osd_list=entries, mode="preview-stabilized")
+        pad, info, u_data = self._make_probe_args()
+        with patch("transcode_process.main.update_osd"):
+            obj._shader_probe(pad, info, u_data)
+        assert obj._osd_data_pointer == 2  # increments by 2 in preview mode
+
+    def test_advances_pointer_in_download_mode(self):
+        from common.ipc import OSDData
+        entries = [OSDData(**_osd_dict(pts_ns=i)) for i in range(5)]
+        obj = self._make_instance_with_osd_data(osd_list=entries, mode="download-stabilized")
+        pad, info, u_data = self._make_probe_args()
+        with patch("transcode_process.main.update_osd"):
+            obj._shader_probe(pad, info, u_data)
+        assert obj._osd_data_pointer == 1  # increments by 1 in download mode
+
+
+# ---------------------------------------------------------------------------
+# TranscodeProcess._bus_call
+# ---------------------------------------------------------------------------
+
+class TestTranscodeProcessBusCall:
+    def _make_instance(self):
+        from transcode_process.main import TranscodeProcess
+        obj = TranscodeProcess.__new__(TranscodeProcess)
+        obj._osd_data_list = []
+        obj._osd_data_pointer = 0
+        return obj
+
+    def test_eos_calls_loop_quit(self):
+        from gi.repository import Gst as GstStub
+        obj = self._make_instance()
+        bus = MagicMock()
+        loop = MagicMock()
+        message = MagicMock()
+        message.type = GstStub.MessageType.EOS
+        result = obj._bus_call(bus, message, loop)
+        loop.quit.assert_called_once()
+        assert result is True
+
+    def test_warning_does_not_quit(self):
+        from gi.repository import Gst as GstStub
+        obj = self._make_instance()
+        bus = MagicMock()
+        loop = MagicMock()
+        message = MagicMock()
+        message.type = GstStub.MessageType.WARNING
+        message.parse_warning.return_value = ("warn_err", "warn_debug")
+        result = obj._bus_call(bus, message, loop)
+        loop.quit.assert_not_called()
+        assert result is True
+
+    def test_error_calls_loop_quit(self):
+        from gi.repository import Gst as GstStub
+        obj = self._make_instance()
+        bus = MagicMock()
+        loop = MagicMock()
+        message = MagicMock()
+        message.type = GstStub.MessageType.ERROR
+        message.parse_error.return_value = ("err", "debug")
+        result = obj._bus_call(bus, message, loop)
+        loop.quit.assert_called_once()
+        assert result is True
