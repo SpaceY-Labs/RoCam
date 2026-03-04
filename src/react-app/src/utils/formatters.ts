@@ -24,7 +24,10 @@ export function calculateUsagePercent(used: number, total: number): number {
   return total <= 0 ? 0 : (used / total) * 100
 }
 
-export function formatTemperature(celsius: number, unit: TemperatureUnit): string {
+export function formatTemperature(
+  celsius: number,
+  unit: TemperatureUnit
+): string {
   if (unit === 'fahrenheit') {
     const fahrenheit = (celsius * 9) / 5 + 32
     return `${Math.round(fahrenheit * 10) / 10}°F`

@@ -18,7 +18,9 @@ vi.mock('./api', async (importOriginal) => {
   return {
     ...original,
     ApiClient: class {
-      static createAutomatic = vi.fn().mockRejectedValue(new Error('no network'))
+      static createAutomatic = vi
+        .fn()
+        .mockRejectedValue(new Error('no network'))
       getStatusStreamUrl = vi.fn().mockReturnValue('/api/status')
       getGenerate204Url = vi.fn().mockReturnValue('/api/generate_204')
     },
@@ -41,9 +43,15 @@ function ConsumerComponent() {
   const { status, apiClient, statusPollingError } = useRocam()
   return (
     <div>
-      <span data-testid="status">{status === null ? 'null' : 'has-status'}</span>
-      <span data-testid="client">{apiClient === null ? 'null' : 'has-client'}</span>
-      <span data-testid="error">{statusPollingError === null ? 'null' : 'has-error'}</span>
+      <span data-testid="status">
+        {status === null ? 'null' : 'has-status'}
+      </span>
+      <span data-testid="client">
+        {apiClient === null ? 'null' : 'has-client'}
+      </span>
+      <span data-testid="error">
+        {statusPollingError === null ? 'null' : 'has-error'}
+      </span>
     </div>
   )
 }
@@ -103,7 +111,9 @@ describe('RocamProvider', () => {
       getStatusStreamUrl: vi.fn().mockReturnValue('/api/status'),
       getGenerate204Url: vi.fn().mockReturnValue('/api/generate_204'),
     }
-    vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(fakeClient as unknown as InstanceType<typeof ApiClient>)
+    vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(
+      fakeClient as unknown as InstanceType<typeof ApiClient>
+    )
 
     render(
       <RocamProvider>
@@ -121,14 +131,19 @@ describe('RocamProvider', () => {
     const fakeClient = {
       getStatusStreamUrl: vi.fn().mockReturnValue('/api/status'),
     }
-    vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(fakeClient as unknown as InstanceType<typeof ApiClient>)
+    vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(
+      fakeClient as unknown as InstanceType<typeof ApiClient>
+    )
 
-    vi.stubGlobal('EventSource', class extends FakeEventSource {
-      constructor(url: string) {
-        super(url)
-        capturedEs = this
+    vi.stubGlobal(
+      'EventSource',
+      class extends FakeEventSource {
+        constructor(url: string) {
+          super(url)
+          capturedEs = this
+        }
       }
-    })
+    )
 
     render(
       <RocamProvider>
@@ -144,9 +159,11 @@ describe('RocamProvider', () => {
     // Simulate SSE message
     act(() => {
       if (capturedEs?.onmessage) {
-        capturedEs.onmessage(new MessageEvent('message', {
-          data: JSON.stringify({ armed: false, recording: false }),
-        }))
+        capturedEs.onmessage(
+          new MessageEvent('message', {
+            data: JSON.stringify({ armed: false, recording: false }),
+          })
+        )
       }
     })
 
@@ -161,14 +178,19 @@ describe('RocamProvider', () => {
     const fakeClient = {
       getStatusStreamUrl: vi.fn().mockReturnValue('/api/status'),
     }
-    vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(fakeClient as unknown as InstanceType<typeof ApiClient>)
+    vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(
+      fakeClient as unknown as InstanceType<typeof ApiClient>
+    )
 
-    vi.stubGlobal('EventSource', class extends FakeEventSource {
-      constructor(url: string) {
-        super(url)
-        capturedEs = this
+    vi.stubGlobal(
+      'EventSource',
+      class extends FakeEventSource {
+        constructor(url: string) {
+          super(url)
+          capturedEs = this
+        }
       }
-    })
+    )
 
     render(
       <RocamProvider>
@@ -198,14 +220,19 @@ describe('RocamProvider', () => {
     const fakeClient = {
       getStatusStreamUrl: vi.fn().mockReturnValue('/api/status'),
     }
-    vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(fakeClient as unknown as InstanceType<typeof ApiClient>)
+    vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(
+      fakeClient as unknown as InstanceType<typeof ApiClient>
+    )
 
-    vi.stubGlobal('EventSource', class extends FakeEventSource {
-      constructor(url: string) {
-        super(url)
-        capturedEs = this
+    vi.stubGlobal(
+      'EventSource',
+      class extends FakeEventSource {
+        constructor(url: string) {
+          super(url)
+          capturedEs = this
+        }
       }
-    })
+    )
 
     const { unmount } = render(
       <RocamProvider>
@@ -227,14 +254,19 @@ describe('RocamProvider', () => {
     const fakeClient = {
       getStatusStreamUrl: vi.fn().mockReturnValue('/api/status'),
     }
-    vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(fakeClient as unknown as InstanceType<typeof ApiClient>)
+    vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(
+      fakeClient as unknown as InstanceType<typeof ApiClient>
+    )
 
-    vi.stubGlobal('EventSource', class extends FakeEventSource {
-      constructor(url: string) {
-        super(url)
-        capturedEs = this
+    vi.stubGlobal(
+      'EventSource',
+      class extends FakeEventSource {
+        constructor(url: string) {
+          super(url)
+          capturedEs = this
+        }
       }
-    })
+    )
 
     render(
       <RocamProvider>
@@ -249,7 +281,9 @@ describe('RocamProvider', () => {
     // Simulate malformed SSE message
     act(() => {
       if (capturedEs?.onmessage) {
-        capturedEs.onmessage(new MessageEvent('message', { data: 'not-json{{{' }))
+        capturedEs.onmessage(
+          new MessageEvent('message', { data: 'not-json{{{' })
+        )
       }
     })
 

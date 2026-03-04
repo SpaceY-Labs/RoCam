@@ -15,7 +15,8 @@ import { renderWithI18n } from '@/test/renderWithProviders'
 
 // Mock the ConfigurationMenu to avoid rendering its complexity
 vi.mock('./ConfigurationMenu', () => ({
-  ConfigurationMenu: () => React.createElement('div', { 'data-testid': 'config-menu' }),
+  ConfigurationMenu: () =>
+    React.createElement('div', { 'data-testid': 'config-menu' }),
 }))
 
 async function renderNavbar(initialPath = '/') {
@@ -36,14 +37,16 @@ describe('Navbar', () => {
   it('renders Control navigation link', async () => {
     await renderNavbar('/')
     const links = screen.getAllByRole('link')
-    const controlLink = links.find(l => l.textContent?.includes('Control'))
+    const controlLink = links.find((l) => l.textContent?.includes('Control'))
     expect(controlLink).toBeDefined()
   })
 
   it('renders Recordings navigation link', async () => {
     await renderNavbar('/recordings')
     const links = screen.getAllByRole('link')
-    const recordingsLink = links.find(l => l.textContent?.includes('Recordings'))
+    const recordingsLink = links.find((l) =>
+      l.textContent?.includes('Recordings')
+    )
     expect(recordingsLink).toBeDefined()
   })
 
@@ -94,7 +97,9 @@ describe('Navbar', () => {
     it('calls window.alert when emergency stop is pressed', async () => {
       const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {})
       await renderNavbar()
-      const emergencyBtn = screen.getByRole('button', { name: /emergency stop/i })
+      const emergencyBtn = screen.getByRole('button', {
+        name: /emergency stop/i,
+      })
       fireEvent.click(emergencyBtn)
       expect(alertMock).toHaveBeenCalled()
       alertMock.mockRestore()

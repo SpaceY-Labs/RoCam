@@ -5,7 +5,12 @@
  * and that their keys are correctly configured.
  */
 import { describe, it, expect } from 'vitest'
-import { languageAtom, temperatureUnitAtom, invertDragAtom, dragSensitivityAtom } from './languageAtom'
+import {
+  languageAtom,
+  temperatureUnitAtom,
+  invertDragAtom,
+  dragSensitivityAtom,
+} from './languageAtom'
 
 describe('languageAtom', () => {
   it('is defined', () => {

@@ -15,8 +15,5 @@ export function renderWithI18n(
   ui: React.ReactElement,
   options?: RenderOptions
 ) {
-  return render(
-    <I18nProvider i18n={i18n}>{ui}</I18nProvider>,
-    options
-  )
+  return render(<I18nProvider i18n={i18n}>{ui}</I18nProvider>, options)
 }

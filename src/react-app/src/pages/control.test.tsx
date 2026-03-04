@@ -22,7 +22,13 @@ i18n.activate('en')
 
 // Mock layout to avoid Navbar complexity
 vi.mock('@/layouts/default', () => ({
-  default: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  default: ({
+    children,
+    className,
+  }: {
+    children: React.ReactNode
+    className?: string
+  }) => (
     <div className={className} data-testid="layout">
       {children}
     </div>
@@ -119,10 +125,16 @@ describe('ControlPage', () => {
   })
 
   it('renders preview image when status.preview is set', () => {
-    renderControl({ preview: 'base64encodeddata', armed: false, is_recording: false })
+    renderControl({
+      preview: 'base64encodeddata',
+      armed: false,
+      is_recording: false,
+    })
     const img = document.querySelector('img[alt]')
     expect(img).not.toBeNull()
-    expect((img as HTMLImageElement).src).toContain('data:image/jpeg;base64,base64encodeddata')
+    expect((img as HTMLImageElement).src).toContain(
+      'data:image/jpeg;base64,base64encodeddata'
+    )
   })
 
   it('shows REC indicator when recording', () => {
@@ -182,10 +194,20 @@ describe('ControlPage', () => {
   describe('Drag interaction', () => {
     it('does not start drag when status.armed is true', () => {
       renderControl({ armed: true, is_recording: false, tilt: 10, pan: 20 })
-      const overlay = document.querySelector('[style*="touch-action: none"]') as HTMLElement
+      const overlay = document.querySelector(
+        '[style*="touch-action: none"]'
+      ) as HTMLElement
       if (overlay) {
-        fireEvent.pointerDown(overlay, { clientX: 100, clientY: 100, pointerId: 1 })
-        fireEvent.pointerMove(overlay, { clientX: 150, clientY: 150, pointerId: 1 })
+        fireEvent.pointerDown(overlay, {
+          clientX: 100,
+          clientY: 100,
+          pointerId: 1,
+        })
+        fireEvent.pointerMove(overlay, {
+          clientX: 150,
+          clientY: 150,
+          pointerId: 1,
+        })
         // Should not call manualMoveTo since armed
         expect(mockApiClient.manualMoveTo).not.toHaveBeenCalled()
       }
@@ -193,17 +215,29 @@ describe('ControlPage', () => {
 
     it('does not start drag when status is null', () => {
       renderControl(undefined)
-      const overlay = document.querySelector('[style*="touch-action: none"]') as HTMLElement
+      const overlay = document.querySelector(
+        '[style*="touch-action: none"]'
+      ) as HTMLElement
       if (overlay) {
-        fireEvent.pointerDown(overlay, { clientX: 100, clientY: 100, pointerId: 1 })
-        fireEvent.pointerMove(overlay, { clientX: 200, clientY: 200, pointerId: 1 })
+        fireEvent.pointerDown(overlay, {
+          clientX: 100,
+          clientY: 100,
+          pointerId: 1,
+        })
+        fireEvent.pointerMove(overlay, {
+          clientX: 200,
+          clientY: 200,
+          pointerId: 1,
+        })
         expect(mockApiClient.manualMoveTo).not.toHaveBeenCalled()
       }
     })
 
     it('handles pointerUp without crashing', () => {
       renderControl({ armed: false, is_recording: false, tilt: 10, pan: 20 })
-      const overlay = document.querySelector('[style*="touch-action: none"]') as HTMLElement
+      const overlay = document.querySelector(
+        '[style*="touch-action: none"]'
+      ) as HTMLElement
       if (overlay) {
         fireEvent.pointerUp(overlay)
       }
@@ -212,7 +246,9 @@ describe('ControlPage', () => {
 
     it('handles pointerCancel without crashing', () => {
       renderControl({ armed: false, is_recording: false, tilt: 10, pan: 20 })
-      const overlay = document.querySelector('[style*="touch-action: none"]') as HTMLElement
+      const overlay = document.querySelector(
+        '[style*="touch-action: none"]'
+      ) as HTMLElement
       if (overlay) {
         fireEvent.pointerCancel(overlay)
       }
@@ -221,16 +257,26 @@ describe('ControlPage', () => {
 
     it('starts drag when status is non-null and not armed', () => {
       renderControl({ armed: false, is_recording: false, tilt: 10, pan: 20 })
-      const overlay = document.querySelector('[style*="touch-action: none"]') as HTMLElement
+      const overlay = document.querySelector(
+        '[style*="touch-action: none"]'
+      ) as HTMLElement
       if (overlay) {
         // Mock setPointerCapture so it does not throw in jsdom
         overlay.setPointerCapture = vi.fn()
-        fireEvent.pointerDown(overlay, { clientX: 100, clientY: 100, pointerId: 1 })
+        fireEvent.pointerDown(overlay, {
+          clientX: 100,
+          clientY: 100,
+          pointerId: 1,
+        })
         // Drag has started; pointerMove should now attempt manualMoveTo
         // Advance time past the throttle window by mocking Date.now
         const realNow = Date.now
         vi.spyOn(Date, 'now').mockReturnValue(realNow() + 1000)
-        fireEvent.pointerMove(overlay, { clientX: 200, clientY: 200, pointerId: 1 })
+        fireEvent.pointerMove(overlay, {
+          clientX: 200,
+          clientY: 200,
+          pointerId: 1,
+        })
         vi.restoreAllMocks()
         // manualMoveTo should have been called since drag is active
         expect(mockApiClient.manualMoveTo).toHaveBeenCalled()

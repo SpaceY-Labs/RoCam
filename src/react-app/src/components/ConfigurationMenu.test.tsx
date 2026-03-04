@@ -31,7 +31,9 @@ vi.mock('jotai', async (importOriginal) => {
     useAtom: vi.fn((atom: unknown) => {
       // Return appropriate state based on which atom is being accessed
       // We identify atoms by the order they are called inside the component
-      const call = (vi.mocked(actual.useAtom) as ReturnType<typeof vi.fn>).mock.calls.length ?? 0
+      const call =
+        (vi.mocked(actual.useAtom) as ReturnType<typeof vi.fn>).mock.calls
+          .length ?? 0
       // Since we can't easily identify atoms by reference, use a call-count approach
       return [mockLanguage, mockSetLanguage]
     }),
@@ -80,10 +82,20 @@ vi.mock('@heroui/dropdown', () => ({
     onActionHandler = onAction
     return <ul data-testid="dropdown-menu">{children}</ul>
   },
-  DropdownItem: ({ children, textValue }: { children: React.ReactNode; textValue?: string }) => (
-    <li>{children ?? textValue}</li>
-  ),
-  DropdownSection: ({ children, title }: { children: React.ReactNode; title?: string }) => (
+  DropdownItem: ({
+    children,
+    textValue,
+  }: {
+    children: React.ReactNode
+    textValue?: string
+  }) => <li>{children ?? textValue}</li>,
+  DropdownSection: ({
+    children,
+    title,
+  }: {
+    children: React.ReactNode
+    title?: string
+  }) => (
     <li>
       <span data-testid={`section-${title}`}>{title}</span>
       <ul>{children}</ul>
@@ -211,7 +223,7 @@ describe('ConfigurationMenu', () => {
 
   it('calls setDragSensitivity when slider changes', () => {
     renderMenu()
-    onSliderChange?.(0.10)
-    expect(mockSetDragSensitivity).toHaveBeenCalledWith(0.10)
+    onSliderChange?.(0.1)
+    expect(mockSetDragSensitivity).toHaveBeenCalledWith(0.1)
   })
 })

@@ -40,9 +40,13 @@ vi.mock('@heroui/dropdown', () => ({
     <ul aria-label={ariaLabel} data-testid="dropdown-menu">
       {React.Children.map(children, (child) =>
         React.isValidElement(child)
-          ? React.cloneElement(child as React.ReactElement<{ onClick?: () => void }>, {
-              onClick: () => onSelectionChange?.(new Set([child.key as string])),
-            })
+          ? React.cloneElement(
+              child as React.ReactElement<{ onClick?: () => void }>,
+              {
+                onClick: () =>
+                  onSelectionChange?.(new Set([child.key as string])),
+              }
+            )
           : child
       )}
     </ul>
@@ -54,7 +58,12 @@ vi.mock('@heroui/dropdown', () => ({
     children: React.ReactNode
     onClick?: () => void
   }) => (
-    <li data-testid={`dropdown-item-${children}`} onClick={onClick}>
+    <li
+      data-testid={`dropdown-item-${children}`}
+      role="menuitem"
+      onClick={onClick}
+      onKeyDown={onClick}
+    >
       {children}
     </li>
   ),

@@ -29,7 +29,8 @@ vi.mock('@/network/rocamProvider', () => ({
 // Mock lingui to avoid needing real i18n setup
 // Use createElement instead of JSX to avoid Lingui macro compilation issues
 vi.mock('@lingui/react/macro', () => ({
-  Trans: ({ children }: any) => React.createElement(React.Fragment, null, children),
+  Trans: ({ children }: any) =>
+    React.createElement(React.Fragment, null, children),
   useLingui: () => ({ t: (s: TemplateStringsArray | string) => String(s) }),
 }))
 
@@ -62,9 +63,11 @@ describe('ControlsCard', () => {
 
   it('calls arm() when ARM button is clicked (not armed)', async () => {
     await renderCard(false)
-    const armBtn = screen.queryAllByRole('button').find(b =>
-      b.textContent?.includes('Arm') || b.textContent?.includes('ARM')
-    )
+    const armBtn = screen
+      .queryAllByRole('button')
+      .find(
+        (b) => b.textContent?.includes('Arm') || b.textContent?.includes('ARM')
+      )
     if (armBtn) {
       fireEvent.click(armBtn)
       await waitFor(() => {
@@ -76,8 +79,9 @@ describe('ControlsCard', () => {
   it('calls disarm() when ARM button is clicked while armed', async () => {
     await renderCard(true)
     const buttons = screen.queryAllByRole('button')
-    const disarmBtn = buttons.find(b =>
-      b.textContent?.includes('Disarm') || b.textContent?.includes('DISARM')
+    const disarmBtn = buttons.find(
+      (b) =>
+        b.textContent?.includes('Disarm') || b.textContent?.includes('DISARM')
     )
     if (disarmBtn) {
       fireEvent.click(disarmBtn)
@@ -89,9 +93,9 @@ describe('ControlsCard', () => {
 
   it('calls startRecording() when record button clicked (not recording)', async () => {
     await renderCard(false, false)
-    const recordBtn = screen.queryAllByRole('button').find(b =>
-      b.textContent?.includes('Start Recording')
-    )
+    const recordBtn = screen
+      .queryAllByRole('button')
+      .find((b) => b.textContent?.includes('Start Recording'))
     if (recordBtn) {
       fireEvent.click(recordBtn)
       await waitFor(() => {
@@ -102,9 +106,9 @@ describe('ControlsCard', () => {
 
   it('calls stopRecording() when record button clicked (currently recording)', async () => {
     await renderCard(false, true)
-    const stopBtn = screen.queryAllByRole('button').find(b =>
-      b.textContent?.includes('Stop Recording')
-    )
+    const stopBtn = screen
+      .queryAllByRole('button')
+      .find((b) => b.textContent?.includes('Stop Recording'))
     if (stopBtn) {
       fireEvent.click(stopBtn)
       await waitFor(() => {
@@ -116,9 +120,9 @@ describe('ControlsCard', () => {
   it('swallows error when arm() throws', async () => {
     mockApiClient.arm.mockRejectedValueOnce(new Error('arm failed'))
     await renderCard(false)
-    const armBtn = screen.queryAllByRole('button').find(b =>
-      b.textContent?.includes('Arm')
-    )
+    const armBtn = screen
+      .queryAllByRole('button')
+      .find((b) => b.textContent?.includes('Arm'))
     if (armBtn) {
       fireEvent.click(armBtn)
       await waitFor(() => {
@@ -132,9 +136,9 @@ describe('ControlsCard', () => {
   it('swallows error when startRecording() throws', async () => {
     mockApiClient.startRecording.mockRejectedValueOnce(new Error('rec failed'))
     await renderCard(false, false)
-    const recordBtn = screen.queryAllByRole('button').find(b =>
-      b.textContent?.includes('Start Recording')
-    )
+    const recordBtn = screen
+      .queryAllByRole('button')
+      .find((b) => b.textContent?.includes('Start Recording'))
     if (recordBtn) {
       fireEvent.click(recordBtn)
       await waitFor(() => {
@@ -167,8 +171,10 @@ describe('ControlsCard', () => {
     renderWithI18n(<ControlsCard />)
     const buttons = screen.queryAllByRole('button')
     // The arm and record buttons (last two in the flex column) should be disabled
-    const armBtn = buttons.find(b => b.textContent?.includes('Arm'))
-    const recBtn = buttons.find(b => b.textContent?.includes('Start Recording'))
+    const armBtn = buttons.find((b) => b.textContent?.includes('Arm'))
+    const recBtn = buttons.find((b) =>
+      b.textContent?.includes('Start Recording')
+    )
     expect(armBtn).toBeDefined()
     expect(recBtn).toBeDefined()
   })
@@ -182,7 +188,7 @@ describe('GimbalPad', () => {
   it('calls manualMove("up") when up button pressed', async () => {
     await renderCard(false)
     const buttons = screen.queryAllByRole('button')
-    const upBtn = buttons.find(b => b.querySelector('svg') !== null)
+    const upBtn = buttons.find((b) => b.querySelector('svg') !== null)
     // Press the first icon-only button (up arrow)
     if (buttons.length >= 4) {
       fireEvent.click(buttons[0])
