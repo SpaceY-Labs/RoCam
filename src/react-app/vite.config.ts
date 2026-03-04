@@ -28,6 +28,10 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    alias: {
+      // Replace Lingui macros with simple stubs in test environment
+      '@lingui/react/macro': new URL('./src/test/lingui-macro-mock.tsx', import.meta.url).pathname,
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
