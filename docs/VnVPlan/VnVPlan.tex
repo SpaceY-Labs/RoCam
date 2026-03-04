@@ -42,12 +42,12 @@
 \section*{Revision History}
 
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
-  \toprule {\bf Date} & {\bf Version} & {\bf Notes}                                        \\
+  \toprule {\bf Date} & {\bf Version} & {\bf Notes}                                                                                                                                                                 \\
   \midrule
-  2025-10-21          & 1.0           & Initial Draft                                      \\
-  2025-10-23          & 2.0           & Revised on section 3                               \\
-  2025-10-26          & 3.0           & Revised on section 3 based on TA and peer feedback \\
-  2025-10-27          & 4.0           & Added system tests                                 \\
+  2025-10-21          & 1.0           & Initial Draft                                                                                                                                                               \\
+  2025-10-23          & 2.0           & Revised on section 3                                                                                                                                                        \\
+  2025-10-26          & 3.0           & Revised on section 3 based on TA and peer feedback                                                                                                                          \\
+  2025-10-27          & 4.0           & Added system tests                                                                                                                                                          \\
   2026-03-04          & 5.0           & Scope limited to unit testing and stakeholder (McMaster Rocketry Team) review only; removed supervisor, classmate, task-based inspection, field testing, CAS~741 references \\
   \bottomrule
 \end{tabularx}
@@ -101,18 +101,22 @@
 This Verification and Validation (V\&V) plan outlines how the RoCam project
 will demonstrate that the system is built correctly (verification) and fits
 stakeholder needs (validation). It anchors testing to the SRS, architecture
-(MG), and detailed design (MIS), ensuring every requirement is traceable where possible. \textbf{The only testing performed is unit testing;}
-integration, system, and field testing are out of scope. Verification relies on structured internal reviews and checklists, plus unit
-tests, to confirm functional behavior and safety assumptions.
-Validation is limited to a planned review with the McMaster Rocketry Team (stakeholders) to collect feedback; no task-based inspection, classmate review, or supervisor validation is conducted.  Roles and responsibilities are
-assigned to team members only, with feedback from the rocketry team captured and tracked. Priorities emphasize
-correctness, performance, reliability, and safety; lower-priority or
-out-of-scope items (e.g., exhaustive usability studies, independent
-verification of third-party components, and all testing beyond unit tests) are
-noted to keep the plan feasible. The document concludes with traceability
-tables, placeholders for unit-level details after design finalization, and
-appendices for parameters and optional surveys---forming a clear, practical
-roadmap for the evidence of quality that can be gathered under these constraints.
+(MG), and detailed design (MIS), ensuring every requirement is traceable where
+possible. \textbf{The only testing performed is unit testing;} integration,
+system, and field testing are out of scope. Verification relies on structured
+internal reviews and checklists, plus unit tests, to confirm functional
+behavior and safety assumptions. Validation is limited to a planned review with
+the McMaster Rocketry Team (stakeholders) to collect feedback; no task-based
+inspection, classmate review, or supervisor validation is conducted. Roles and
+responsibilities are assigned to team members only, with feedback from the
+rocketry team captured and tracked. Priorities emphasize correctness,
+performance, reliability, and safety; lower-priority or out-of-scope items
+(e.g., exhaustive usability studies, independent verification of third-party
+components, and all testing beyond unit tests) are noted to keep the plan
+feasible. The document concludes with traceability tables, placeholders for
+unit-level details after design finalization, and appendices for parameters and
+optional surveys---forming a clear, practical roadmap for the evidence of
+quality that can be gathered under these constraints.
 
 \wss{provide an introductory blurb and roadmap of the
   Verification and Validation plan}
@@ -146,13 +150,12 @@ unit testing and internal review to confirm that functional and performance
 criteria are addressed where possible, with improvements tracked through GitHub
 Issues. Validation focuses on a planned review with the McMaster Rocketry Team
 (stakeholders) to collect feedback; no field testing or supervisor validation
-is performed. These qualities—correctness,
-performance, reliability, and traceability—are fundamental to the success of
-the V\&V process, ensuring that the RoCam system is both technically sound and
-operationally dependable. Certain objectives, such as independent verification
-of third-party hardware and extended usability testing, are excluded due to
-scope and resource limitations, with reliance placed on manufacturer and
-stakeholder validation.
+is performed. These qualities—correctness, performance, reliability, and
+traceability—are fundamental to the success of the V\&V process, ensuring that
+the RoCam system is both technically sound and operationally dependable.
+Certain objectives, such as independent verification of third-party hardware
+and extended usability testing, are excluded due to scope and resource
+limitations, with reliance placed on manufacturer and stakeholder validation.
 
 \subsection{In-Scope Objectives}
 Verification and validation efforts will prioritize the following qualities:
@@ -269,10 +272,11 @@ methods used to verify that the system meets its functional and non-functional
 requirements and to validate that it fulfills stakeholder needs. The section
 covers the verification of the SRS, design, and implementation via internal
 reviews and unit testing only, as well as the validation strategy through a
-planned stakeholder review with the McMaster Rocketry Team (no field testing). Its purpose is to provide a clear, organized
-framework ensuring that all aspects of RoCam are systematically tested,
-reviewed, and proven reliable before final deployment. \wss{Introduce this
-  section. You can provide a roadmap of the sections to come.}
+planned stakeholder review with the McMaster Rocketry Team (no field testing).
+Its purpose is to provide a clear, organized framework ensuring that all
+aspects of RoCam are systematically tested, reviewed, and proven reliable
+before final deployment. \wss{Introduce this section. You can provide a roadmap
+  of the sections to come.}
 
 \subsection{Verification and Validation Team}
 
@@ -282,23 +286,23 @@ reviewed, and proven reliable before final deployment. \wss{Introduce this
   \label{tab:vnv_team}
   \begin{tabular}{|p{3.5cm}|p{3.5cm}|p{8cm}|}
     \hline
-    \textbf{Name}                  & \textbf{Role}                                    & \textbf{V\&V Responsibilities} \\ \hline
+    \textbf{Name}         & \textbf{Role}                                    & \textbf{V\&V Responsibilities} \\ \hline
 
-    \textbf{Zifan Si}              & Front End Interface Tester                       &
+    \textbf{Zifan Si}     & Front End Interface Tester                       &
     Responsible for verifying and validating the usability and functionality of the
     react frontend interface.
-    Ensure usability, robustness of frontend features.                                                                 \\ \hline
+    Ensure usability, robustness of frontend features.                                                        \\ \hline
 
-    \textbf{Jianqing Liu}          & Team Lead                                        &
+    \textbf{Jianqing Liu} & Team Lead                                        &
     Conduct integration test and system validation. Validate the functionality and
     performance of the system against requirements and use cases. Validate system
-    design and functionality.                                                                                          \\ \hline
+    design and functionality.                                                                                 \\ \hline
 
-    \textbf{Mike Chen}             & CV Tester                                        &
+    \textbf{Mike Chen}    & CV Tester                                        &
     Verify and validate computer vision pipeline performance, including object detection
-    and tracking accuracy.                                                                                             \\ \hline
+    and tracking accuracy.                                                                                    \\ \hline
 
-    \textbf{Xiaotian Lou}          & Integration Tester and test automation developer &
+    \textbf{Xiaotian Lou} & Integration Tester and test automation developer &
     Implement automated testing frameworks in all software components. Implement
     API, and integration test across different modules.
     \\ \hline
@@ -324,9 +328,9 @@ on verify the system design as a whole against the requirements. It will be
 implemented as integration test in the final stages of development.
 
 \subsubsection{Stakeholder Review}
-Since our team leader is the control team lead of the McMaster Rocketry Team, 
-He will be the one to review the system design and implementation 
-and the communication bridge between the team and the stakeholders.
+Since our team leader is the control team lead of the McMaster Rocketry Team,
+He will be the one to review the system design and implementation and the
+communication bridge between the team and the stakeholders.
 
 \subsubsection{Constraints and Scope of Work Review}
 Several internal review sessions will be conducted to ensure that our system
@@ -350,7 +354,7 @@ specified in the SRS document.
                                                     & $\square$ \; Record test results and address any failed cases                                 \\[-2pt]
                                                     & $\square$ \; Update traceability matrix after verification                                    \\ \hline
 
-    Stakeholder Review                                                                                                                   \\[-2pt]
+    Stakeholder Review                                                                                                                              \\[-2pt]
                                                     & $\square$ \; Present verified results and collect feedback                                    \\[-2pt]
                                                     & $\square$ \; Document required changes based on feedback                                      \\[-2pt]
                                                     & $\square$ \; Obtain stakeholder confirmation or approval                                      \\ \hline
@@ -424,20 +428,20 @@ completeness and consistency across all modules:
   \setlength{\tabcolsep}{8pt}
   \begin{tabular}{|p{4.4cm}|p{10.1cm}|}
     \hline
-    \textbf{Phase}            & \textbf{Verification Activities}                                                         \\ \hline
+    \textbf{Phase}         & \textbf{Verification Activities}                                                     \\ \hline
 
-    Internal Design Review    & $\square$ \; Review subsystem architectures (vision,
-    control, UI) with all team members                                                                                   \\[-2pt]
-                              & $\square$ \; Confirm APIs that are agreed upon                                           \\[-2pt]
-                              & $\square$ \; Verify all module interfaces are clearly defined and documented in code     \\[-2pt]
-                              & $\square$ \; Ensure design supports scalability and modularity                           \\[-2pt]
-                              & $\square$ \; Record review comments and update design diagrams                           \\ \hline
+    Internal Design Review & $\square$ \; Review subsystem architectures (vision,
+    control, UI) with all team members                                                                            \\[-2pt]
+                           & $\square$ \; Confirm APIs that are agreed upon                                       \\[-2pt]
+                           & $\square$ \; Verify all module interfaces are clearly defined and documented in code \\[-2pt]
+                           & $\square$ \; Ensure design supports scalability and modularity                       \\[-2pt]
+                           & $\square$ \; Record review comments and update design diagrams                       \\ \hline
 
-    Verification Artifacts    & $\square$ \; Store verified design diagrams and
-    updated interface specifications                                                                                     \\[-2pt]
-                              & $\square$ \; Archive internal review notes and design decisions                         \\[-2pt]
-                              & $\square$ \; Maintain a design document in the project repository           \\[-2pt]
-                              & $\square$ \; Complete and file the final design verification checklist                   \\ \hline
+    Verification Artifacts & $\square$ \; Store verified design diagrams and
+    updated interface specifications                                                                              \\[-2pt]
+                           & $\square$ \; Archive internal review notes and design decisions                      \\[-2pt]
+                           & $\square$ \; Maintain a design document in the project repository                    \\[-2pt]
+                           & $\square$ \; Complete and file the final design verification checklist               \\ \hline
   \end{tabular}
 \end{table}
 
@@ -478,22 +482,23 @@ conducted is unit testing.
   \setlength{\tabcolsep}{8pt}
   \begin{tabular}{|p{4.4cm}|p{10.1cm}|}
     \hline
-    \textbf{Phase}                 & \textbf{Actionable Verification and Validation Activities}                             \\ \hline
+    \textbf{Phase}                 & \textbf{Actionable Verification and Validation Activities}                               \\ \hline
 
     Verification Plan Review       & $\square$ \; Conduct internal reviews of the V\&V
-    plan with team                                                                                                          \\[-2pt]
-                                   & $\square$ \; Ensure functionality and performance metrics are fully covered            \\[-2pt]
-                                   & $\square$ \; Track feedback and revisions using GitHub Issues                          \\[-2pt]
-                                   & $\square$ \; Confirm all review comments are resolved before approval                  \\ \hline
+    plan with team                                                                                                            \\[-2pt]
+                                   & $\square$ \; Ensure functionality and performance metrics are fully covered              \\[-2pt]
+                                   & $\square$ \; Track feedback and revisions using GitHub Issues                            \\[-2pt]
+                                   & $\square$ \; Confirm all review comments are resolved before approval                    \\ \hline
 
     Automated Verification Testing & $\square$ \; Develop automated tests for
-    vision, control, and UI components                                                                                      \\[-2pt]
-                                   & $\square$ \; Verify software behavior under simulated conditions                       \\[-2pt]
-                                   & $\square$ \; Record test results and compare against performance criteria              \\[-2pt]
-                                   & $\square$ \; Update test scripts based on identified defects or regressions            \\ \hline
+    vision, control, and UI components                                                                                        \\[-2pt]
+                                   & $\square$ \; Verify software behavior under simulated conditions                         \\[-2pt]
+                                   & $\square$ \; Record test results and compare against performance criteria                \\[-2pt]
+                                   & $\square$ \; Update test scripts based on identified defects or regressions              \\ \hline
 
-    Continuous Monitoring          & $\square$ \; Review unit test outcomes after each iteration                            \\[-2pt]
-                                   & $\square$ \; Maintain test evidence and validation summaries in repository             \\[-2pt]
+    Continuous Monitoring          & $\square$ \; Review unit test outcomes after each
+    iteration                                                                                                                 \\[-2pt]
+                                   & $\square$ \; Maintain test evidence and validation summaries in repository               \\[-2pt]
                                    & $\square$ \; Update the V\&V plan to reflect system improvements and new unit test cases \\ \hline
   \end{tabular}
 \end{table}
@@ -581,16 +586,15 @@ criteria: (1) \textbf{language and runtime fit}, ensuring each tool aligns with
 its respective language and runtime; (2) \textbf{ease of automation}, to
 integrate smoothly with CI/CD pipelines; and (3) \textbf{scalability}, so that
 test coverage can expand as the project evolves. These principles ensure a
-consistent and reliable testing environment across frontend and
-end-to-end validation stages.
+consistent and reliable testing environment across frontend and end-to-end
+validation stages.
 
 Each subsystem of RoCam employs unit testing and coverage tools appropriate to
 its implementation language. The frontend (React/TypeScript) uses a unit
-testing framework and coverage reporting suited to that stack. System-level
-and Web UI testing, where in scope, use tooling that can coordinate frontend
-and hardware layers. Specific frameworks are chosen
-to support CI/CD integration and to allow test coverage to scale as the project
-evolves.
+testing framework and coverage reporting suited to that stack. System-level and
+Web UI testing, where in scope, use tooling that can coordinate frontend and
+hardware layers. Specific frameworks are chosen to support CI/CD integration
+and to allow test coverage to scale as the project evolves.
 
 \textbf{Code Coverage and Reporting Plan:} \\
 Coverage analysis is conducted using tools that provide line, branch, and
