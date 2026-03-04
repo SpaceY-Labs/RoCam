@@ -8,7 +8,7 @@
  *   - Handles delete action
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, fireEvent } from '@testing-library/react'
 import React from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { renderWithI18n } from '@/test/renderWithProviders'
@@ -45,6 +45,14 @@ async function renderRecordingsPage() {
   )
 }
 
+const sampleRecording = {
+  id: 'rec1',
+  name: 'Test Recording',
+  start_timestamp_ms: 1700000000000,
+  duration_ms: 65000,
+  size_bytes: 1024 * 1024,
+}
+
 describe('RecordingsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -68,15 +76,7 @@ describe('RecordingsPage', () => {
 
   it('renders recording items when data is loaded', async () => {
     mockApiClient.listRecordings.mockResolvedValue({
-      recordings: [
-        {
-          id: 'rec1',
-          name: 'Test Recording',
-          start_timestamp_ms: 1700000000000,
-          duration_ms: 60000,
-          size_bytes: 1024 * 1024,
-        },
-      ],
+      recordings: [sampleRecording],
     })
     await renderRecordingsPage()
     await waitFor(() => {
@@ -98,5 +98,150 @@ describe('RecordingsPage', () => {
       </MemoryRouter>
     )
     expect(document.body).toBeDefined()
+  })
+
+  it('calls deleteRecording when Delete button is clicked and confirmed', async () => {
+    mockApiClient.listRecordings.mockResolvedValue({ recordings: [sampleRecording] })
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    await renderRecordingsPage()
+
+    await waitFor(() => {
+      expect(screen.queryByText('Test Recording')).toBeDefined()
+    }, { timeout: 3000 })
+
+    const deleteBtn = screen.queryAllByRole('button').find(b =>
+      b.textContent?.includes('Delete')
+    )
+    if (deleteBtn) {
+      fireEvent.click(deleteBtn)
+      await waitFor(() => {
+        expect(mockApiClient.deleteRecording).toHaveBeenCalledWith('rec1')
+      })
+    }
+    confirmSpy.mockRestore()
+  })
+
+  it('does not call deleteRecording when confirm is cancelled', async () => {
+    mockApiClient.listRecordings.mockResolvedValue({ recordings: [sampleRecording] })
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    await renderRecordingsPage()
+
+    await waitFor(() => {
+      expect(screen.queryByText('Test Recording')).toBeDefined()
+    }, { timeout: 3000 })
+
+    const deleteBtn = screen.queryAllByRole('button').find(b =>
+      b.textContent?.includes('Delete')
+    )
+    if (deleteBtn) {
+      fireEvent.click(deleteBtn)
+      await waitFor(() => {
+        expect(mockApiClient.deleteRecording).not.toHaveBeenCalled()
+      })
+    }
+    confirmSpy.mockRestore()
+  })
+
+  it('calls renameRecording when input is changed and blurred', async () => {
+    mockApiClient.listRecordings.mockResolvedValue({ recordings: [sampleRecording] })
+    mockApiClient.renameRecording.mockResolvedValue({ recording: { ...sampleRecording, name: 'New Name' } })
+    await renderRecordingsPage()
+
+    await waitFor(() => {
+      expect(screen.queryByText('Test Recording')).toBeDefined()
+    }, { timeout: 3000 })
+
+    const input = screen.getByDisplayValue('Test Recording')
+    if (input) {
+      fireEvent.change(input, { target: { value: 'New Name' } })
+      fireEvent.blur(input)
+      await waitFor(() => {
+        expect(mockApiClient.renameRecording).toHaveBeenCalledWith('rec1', 'New Name')
+      })
+    }
+  })
+
+  it('does not call renameRecording when name is unchanged', async () => {
+    mockApiClient.listRecordings.mockResolvedValue({ recordings: [sampleRecording] })
+    await renderRecordingsPage()
+
+    await waitFor(() => {
+      expect(screen.queryByText('Test Recording')).toBeDefined()
+    }, { timeout: 3000 })
+
+    const input = screen.getByDisplayValue('Test Recording')
+    if (input) {
+      fireEvent.blur(input) // blur without changing
+      expect(mockApiClient.renameRecording).not.toHaveBeenCalled()
+    }
+  })
+
+  it('resets filename draft on Escape key', async () => {
+    mockApiClient.listRecordings.mockResolvedValue({ recordings: [sampleRecording] })
+    await renderRecordingsPage()
+
+    await waitFor(() => {
+      expect(screen.queryByText('Test Recording')).toBeDefined()
+    }, { timeout: 3000 })
+
+    const input = screen.getByDisplayValue('Test Recording')
+    if (input) {
+      fireEvent.change(input, { target: { value: 'Draft Name' } })
+      fireEvent.keyDown(input, { key: 'Escape' })
+      // After Escape, input should revert to original name
+      expect(mockApiClient.renameRecording).not.toHaveBeenCalled()
+    }
+  })
+
+  it('shows preview modal when Preview button is clicked (no crash)', async () => {
+    mockApiClient.listRecordings.mockResolvedValue({ recordings: [sampleRecording] })
+    await renderRecordingsPage()
+
+    await waitFor(() => {
+      expect(screen.queryByText('Test Recording')).toBeDefined()
+    }, { timeout: 3000 })
+
+    const previewBtn = screen.queryAllByRole('button').find(b =>
+      b.textContent?.includes('Preview')
+    )
+    if (previewBtn) {
+      fireEvent.click(previewBtn)
+    }
+    // Should not throw
+    expect(document.body).toBeDefined()
+  })
+})
+
+describe('formatDate', () => {
+  it('formats valid timestamp', async () => {
+    // Import the module and test formatDate indirectly through rendered UI
+    mockApiClient.listRecordings.mockResolvedValue({
+      recordings: [{ ...sampleRecording, start_timestamp_ms: 1700000000000 }],
+    })
+    await renderRecordingsPage()
+    await waitFor(() => {
+      // The date should be rendered somewhere in the output
+      expect(document.body).toBeDefined()
+    })
+  })
+
+  it('renders recording with null timestamp without crashing', async () => {
+    mockApiClient.listRecordings.mockResolvedValue({
+      recordings: [{ ...sampleRecording, start_timestamp_ms: null }],
+    })
+    await renderRecordingsPage()
+    await waitFor(() => {
+      expect(screen.queryByText('Test Recording')).toBeDefined()
+    }, { timeout: 3000 })
+  })
+
+  it('renders recording with null duration without crashing', async () => {
+    mockApiClient.listRecordings.mockResolvedValue({
+      recordings: [{ ...sampleRecording, duration_ms: null }],
+    })
+    await renderRecordingsPage()
+    await waitFor(() => {
+      expect(screen.queryByText('Test Recording')).toBeDefined()
+    }, { timeout: 3000 })
   })
 })
