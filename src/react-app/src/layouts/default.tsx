@@ -10,7 +10,7 @@ export default function DefaultLayout({
   className?: string
 }) {
   return (
-    <div className="relative flex flex-col h-screen">
+    <div className="relative flex flex-col min-h-screen">
       <Navbar />
       <main className={clsx('flex-grow', className)}>{children}</main>
     </div>

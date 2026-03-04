@@ -1,0 +1,207 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-02-03 18:34-0500\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: fr\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#: src/components/ControlsCard.tsx:100
+msgid "Arm"
+msgstr "Armer"
+
+#: src/pages/control.tsx:155
+msgid "ARMED"
+msgstr "ARMÉ"
+
+#: src/components/ConfigurationMenu.tsx:101
+msgid "Camera Controls"
+msgstr "Contrôles caméra"
+
+#: src/pages/control.tsx:113
+msgid "Camera Preview"
+msgstr "Aperçu caméra"
+
+#: src/components/ConfigurationMenu.tsx:73
+#: src/components/ConfigurationMenu.tsx:77
+msgid "Configuration"
+msgstr "Configuration"
+
+#: src/components/navbar.tsx:43
+msgid "Control"
+msgstr "Contrôle"
+
+#: src/components/ControlsCard.tsx:74
+msgid "Controls"
+msgstr "Contrôles"
+
+#: src/components/SystemStatusCard.tsx:173
+msgid "CPU"
+msgstr "CPU"
+
+#: src/pages/recordings.tsx:257
+msgid "Delete"
+msgstr "Supprimer"
+
+#. placeholder {0}: r.name
+#: src/pages/recordings.tsx:73
+msgid "Delete \"{0}\"? This cannot be undone."
+msgstr "Supprimer « {0} » ? Cette action est irréversible."
+
+#: src/pages/recordings.tsx:75
+#~ msgid "Delete \"{name}\"? This cannot be undone."
+#~ msgstr "Supprimer « {name} » ? Cette action est irréversible."
+
+#: src/components/ControlsCard.tsx:100
+msgid "Disarm"
+msgstr "Désarmer"
+
+#: src/pages/recordings.tsx:242
+msgid "Download"
+msgstr "Télécharger"
+
+#: src/components/ConfigurationMenu.tsx:111
+#: src/components/ConfigurationMenu.tsx:114
+#: src/components/ConfigurationMenu.tsx:115
+msgid "Drag sensitivity"
+msgstr "Sensibilité du glissement"
+
+#: src/components/navbar.tsx:92
+msgid "Emergency Stop"
+msgstr "Arrêt d'urgence"
+
+#: src/components/navbar.tsx:78
+msgid "Exit Fullscreen"
+msgstr "Quitter le plein écran"
+
+#: src/components/SystemStatusCard.tsx:154
+msgid "FPS"
+msgstr "FPS"
+
+#: src/components/navbar.tsx:80
+msgid "Fullscreen"
+msgstr "Plein écran"
+
+#: src/components/SystemStatusCard.tsx:203
+msgid "GPS Location"
+msgstr "Position GPS"
+
+#: src/components/SystemStatusCard.tsx:179
+msgid "GPU"
+msgstr "GPU"
+
+#: src/components/ConfigurationMenu.tsx:103
+msgid "Invert drag direction"
+msgstr "Inverser la direction du glissement"
+
+#: src/components/ConfigurationMenu.tsx:89
+msgid "Language"
+msgstr "Langue"
+
+#: src/components/SystemStatusCard.tsx:252
+msgid "Last updated: {lastUpdatedText} ago"
+msgstr "Dernière mise à jour : il y a {lastUpdatedText}"
+
+#: src/pages/recordings.tsx:95
+msgid "Loading recordings..."
+msgstr "Chargement des enregistrements..."
+
+#: src/pages/control.tsx:119
+msgid "Loading stream..."
+msgstr "Chargement du flux..."
+
+#: src/components/SystemStatusCard.tsx:159
+msgid "Mem"
+msgstr "Mémoire"
+
+#: src/components/SystemStatusCard.tsx:102
+msgid "N/A"
+msgstr "N/A"
+
+#: src/pages/recordings.tsx:100
+msgid "No recordings yet. Start one from the Control page."
+msgstr "Aucun enregistrement. Démarrez-en un depuis la page Contrôle."
+
+#: src/components/navbar.tsx:89
+msgid "Not implemented"
+msgstr "Non implémenté"
+
+#: src/components/SystemStatusCard.tsx:132
+msgid "Pan"
+msgstr "Panoramique"
+
+#: src/components/SystemStatusCard.tsx:193
+msgid "Power"
+msgstr "Puissance"
+
+#: src/pages/recordings.tsx:232
+msgid "Preview"
+msgstr "Aperçu"
+
+#. placeholder {0}: recording?.name
+#: src/pages/recordings.tsx:342
+msgid "Preview {0}"
+msgstr "Aperçu {0}"
+
+#: src/pages/control.tsx:149
+msgid "REC"
+msgstr "ENR"
+
+#: src/components/SystemStatusCard.tsx:137
+msgid "Rec Left"
+msgstr "Enr. restant"
+
+#: src/components/navbar.tsx:56
+msgid "Recordings"
+msgstr "Enregistrements"
+
+#: src/components/navbar.tsx:30
+msgid "RoCam"
+msgstr "RoCam"
+
+#: src/components/LanguageSelector.tsx:36
+msgid "Select language"
+msgstr "Choisir la langue"
+
+#: src/components/SystemStatusCard.tsx:198
+msgid "Server Time"
+msgstr "Heure serveur"
+
+#: src/components/ControlsCard.tsx:89
+msgid "Start Recording"
+msgstr "Démarrer l'enregistrement"
+
+#: src/components/ControlsCard.tsx:87
+msgid "Stop Recording"
+msgstr "Arrêter l'enregistrement"
+
+#: src/components/SystemStatusCard.tsx:142
+msgid "Storage"
+msgstr "Stockage"
+
+#: src/components/SystemStatusCard.tsx:249
+msgid "System Status"
+msgstr "État du système"
+
+#: src/components/SystemStatusCard.tsx:185
+msgid "Temp"
+msgstr "Temp."
+
+#: src/components/ConfigurationMenu.tsx:95
+msgid "Temperature"
+msgstr "Température"
+
+#: src/components/SystemStatusCard.tsx:127
+msgid "Tilt"
+msgstr "Inclinaison"
+
+#: src/pages/recordings.tsx:363
+msgid "Your browser does not support the video tag."
+msgstr "Votre navigateur ne prend pas en charge la balise vidéo."

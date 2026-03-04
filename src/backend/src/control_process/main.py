@@ -1,7 +1,7 @@
 import logging
 
 from common.utils import set_scheduler_fifo, set_scheduler_other
-from control_process.api import run_api_gateway
+from control_process.api.api import run_api_gateway
 from threading import Thread
 
 from control_process.state_management import StateManagement

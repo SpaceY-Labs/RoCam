@@ -12,9 +12,9 @@ def cleanup():
 
     logger.info("Cleaning up.....")
     gimbal = GimbalSerial(port="/dev/ttyTHS1", baudrate=115200, timeout=0.1)
-    gimbal.move_deg(0, 0)
-    gimbal.arm_led(False)
-    gimbal.status_led(False)
+    gimbal.set_deg(0, 0)
+    gimbal.set_arm_led(False)
+    gimbal.set_status_led(False)
     gimbal.close()
 
 

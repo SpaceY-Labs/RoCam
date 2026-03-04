@@ -1,7 +1,6 @@
 // API Types
 
 export type BoundingBox = {
-  pts_s: number
   conf: number
   left: number
   top: number
@@ -11,10 +10,24 @@ export type BoundingBox = {
 
 export type StatusResponse = {
   armed: boolean
-  tilt: number | null
-  pan: number | null
+  tilt: number
+  pan: number
   preview: string | null
   bbox: BoundingBox | null
+  average_fps: number
+  cpu_utilization: number
+  gpu_utilization: number
+  core_temperature_celsius: number
+  system_power_w: number
+  memory_used_bytes: number
+  memory_total_bytes: number
+  disk_used_bytes: number
+  disk_total_bytes: number
+  recording_duration_left_s: number
+  timestamp_ms: number
+  is_recording: boolean
+  longitude: number | null
+  latitude: number | null
 }
 
 export type Recording = {
@@ -25,17 +38,8 @@ export type Recording = {
   size_bytes: number
 }
 
-export type RecordingStatusResponse = {
-  recording: Recording
-  status: 'recording' | 'stopped'
-}
-
 export type RecordingListResponse = {
   recordings: Recording[]
-}
-
-export type RecordingResponse = {
-  recording: Recording
 }
 
 export type ApiResponse<T = Record<string, unknown>> = T
@@ -61,7 +65,7 @@ export class ApiClient {
 
   /**
    * Automatically creates an ApiClient by trying different base URLs in order.
-   * Tests each URL by calling getStatus() and returns the first working instance.
+   * Probes each URL with GET /api/generate_204 and returns the first working instance.
    * @returns Promise resolving to an ApiClient instance with a working base URL
    * @throws Error if none of the base URLs are accessible
    */
@@ -72,9 +76,11 @@ export class ApiClient {
       const client = new ApiClient(baseUrl)
 
       try {
-        await client.getStatus()
+        const response = await fetch(client.getGenerate204Url(), {
+          method: 'GET',
+        })
 
-        return client
+        if (response.status === 204) return client
       } catch {
         // Continue to next URL if this one fails
         continue
@@ -86,11 +92,21 @@ export class ApiClient {
     )
   }
 
-  previewStablizedUrl(recordingId: string): string {
+  /** URL for the status SSE stream (GET /api/status). */
+  getStatusStreamUrl(): string {
+    return `${this.baseUrl}/api/status`
+  }
+
+  /** URL for discovery probe (GET /api/generate_204). */
+  getGenerate204Url(): string {
+    return `${this.baseUrl}/api/generate_204`
+  }
+
+  getPreviewStabilizedUrl(recordingId: string): string {
     return `${this.baseUrl}/api/recordings/${recordingId}/preview-stabilized`
   }
 
-  downloadStablizedUrl(recordingId: string): string {
+  getDownloadStabilizedUrl(recordingId: string): string {
     return `${this.baseUrl}/api/recordings/${recordingId}/download-stabilized`
   }
 
@@ -120,14 +136,6 @@ export class ApiClient {
     }
 
     return data as T
-  }
-
-  /**
-   * Gets the current status from the backend
-   * @returns Promise resolving to the status object
-   */
-  async getStatus(): Promise<ApiResponse<StatusResponse>> {
-    return this.requestJson<ApiResponse<StatusResponse>>('POST', '/api/status')
   }
 
   /**
@@ -203,6 +211,3 @@ export class ApiClient {
     )
   }
 }
-
-// Export a default instance
-export const apiClient = new ApiClient()

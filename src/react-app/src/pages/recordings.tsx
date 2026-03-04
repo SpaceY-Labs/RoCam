@@ -14,11 +14,13 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/modal'
+import { Trans, useLingui } from '@lingui/react/macro'
 
 import DefaultLayout from '@/layouts/default'
 import { useRocam } from '@/network/rocamProvider'
 
 export default function RecordingsPage() {
+  const { t } = useLingui()
   const { apiClient } = useRocam()
 
   const [recordings, setRecordings] = useState<Recording[]>([])
@@ -35,6 +37,7 @@ export default function RecordingsPage() {
 
       setRecordings(data.recordings)
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error('Failed to load recordings:', e)
     } finally {
       setIsLoading(false)
@@ -59,6 +62,7 @@ export default function RecordingsPage() {
         await loadRecordings()
       }
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error('Failed to rename recording:', e)
       throw e
     }
@@ -66,12 +70,13 @@ export default function RecordingsPage() {
 
   const handleDelete = async (r: Recording) => {
     if (!apiClient) return
-    if (!confirm(`Delete "${r.name}"? This cannot be undone.`)) return
+    if (!confirm(t`Delete "${r.name}"? This cannot be undone.`)) return
 
     try {
       await apiClient.deleteRecording(r.id)
       setRecordings((cur) => cur.filter((x) => x.id !== r.id))
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error('Failed to delete recording:', e)
       throw e
     }
@@ -87,12 +92,14 @@ export default function RecordingsPage() {
         <div className="divide-y divide-gray-200 px-4">
           {isLoading ? (
             <div className="flex justify-center py-12">
-              <Spinner label="Loading recordings..." />
+              <Spinner label={t`Loading recordings...`} />
             </div>
           ) : recordings.length === 0 ? (
             <div className="flex justify-center py-12">
               <p className="text-sm text-gray-500">
-                No recordings yet. Start one from the Control page.
+                <Trans>
+                  No recordings yet. Start one from the Control page.
+                </Trans>
               </p>
             </div>
           ) : (
@@ -198,8 +205,8 @@ function RecordingItem({
             onValueChange={setFilenameDraft}
           />
 
-          <div className="flex items-center text-xs text-gray-500 mt-2">
-            <div className="flex items-center gap-1 w-38">
+          <div className="flex items-center text-xs text-gray-500 font-medium tabular-nums mt-2">
+            <div className="flex items-center gap-1 w-37">
               <IconCalendarEvent size={14} />
               {formatDate(r.start_timestamp_ms)}
             </div>
@@ -222,17 +229,17 @@ function RecordingItem({
             variant="bordered"
             onPress={() => onPreview(r)}
           >
-            Preview
+            <Trans>Preview</Trans>
           </Button>
           <Button
             as={'a'}
-            href={apiClient.downloadStablizedUrl(r.id)}
+            href={apiClient.getDownloadStabilizedUrl(r.id)}
             radius="sm"
             size="sm"
             startContent={<IconDownload size={20} strokeWidth={1.5} />}
             variant="bordered"
           >
-            Download
+            <Trans>Download</Trans>
           </Button>
 
           <Button
@@ -247,7 +254,7 @@ function RecordingItem({
             variant="bordered"
             onPress={handleDelete}
           >
-            Delete
+            <Trans>Delete</Trans>
           </Button>
         </div>
       </div>
@@ -332,7 +339,7 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
         {() => (
           <>
             <ModalHeader className="flex flex-col">
-              Preview {recording?.name}
+              <Trans>Preview {recording?.name}</Trans>
             </ModalHeader>
             <ModalBody>
               {recording && apiClient && (
@@ -346,14 +353,14 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
                     ref={videoRef}
                     autoPlay
                     className="w-full rounded-lg aspect-video bg-white"
-                    src={apiClient.previewStablizedUrl(recording.id)}
+                    src={apiClient.getPreviewStabilizedUrl(recording.id)}
                     onPause={handlePause}
                     onPlaying={handlePlaying}
                     onTimeUpdate={handleTimeUpdate}
                     onWaiting={() => setIsWaiting(true)}
                   >
                     <track kind="captions" />
-                    Your browser does not support the video tag.
+                    <Trans>Your browser does not support the video tag.</Trans>
                   </video>
                   <Button
                     isIconOnly
@@ -385,11 +392,11 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
  * UTILS
  */
 
-function formatDate(timestampMs: number | null) {
-  if (timestampMs === null || !Number.isFinite(timestampMs)) return '--'
+function formatDate(timestampMs: number | null): string {
+  if (timestampMs === null || !Number.isFinite(timestampMs)) return ''
   const d = new Date(timestampMs)
 
-  if (isNaN(d.getTime())) return '--'
+  if (isNaN(d.getTime())) return ''
 
   return d.toLocaleString(undefined, {
     year: 'numeric',
@@ -400,9 +407,9 @@ function formatDate(timestampMs: number | null) {
   })
 }
 
-function formatDuration(durationMs: number | null) {
+function formatDuration(durationMs: number | null): string {
   if (durationMs === null || !Number.isFinite(durationMs) || durationMs < 0)
-    return '--:--'
+    return ''
   const seconds = Math.floor(durationMs / 1000)
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)

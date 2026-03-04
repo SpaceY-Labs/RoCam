@@ -1,225 +1,177 @@
-import { useEffect, useState } from 'react'
-import { Button } from '@heroui/button'
-import {
-  IconChevronLeft,
-  IconChevronRight,
-  IconChevronUp,
-  IconChevronDown,
-  IconHome,
-} from '@tabler/icons-react'
+import { useCallback, useEffect, useRef } from 'react'
+import { Card, CardBody } from '@heroui/card'
+import { Spinner } from '@heroui/spinner'
 import { useMeasure } from 'react-use'
+import { Trans, useLingui } from '@lingui/react/macro'
+import { useAtomValue } from 'jotai'
 
+import { ControlsCard } from '@/components/ControlsCard'
+import { SystemStatusCard } from '@/components/SystemStatusCard'
 import { useRocam } from '@/network/rocamProvider'
 import DefaultLayout from '@/layouts/default'
+import { invertDragAtom, dragSensitivityAtom } from '@/store/languageAtom'
+
+/** Minimum milliseconds between consecutive manualMoveTo API calls. */
+const DRAG_THROTTLE_MS = 50
 
 export default function ControlPage() {
+  const { t } = useLingui()
   const { apiClient, status, statusPollingError } = useRocam()
-  const [streamContainerRef, { width, height }] = useMeasure<HTMLDivElement>()
-
-  // added: simple UI state for start/stop buttons
-  const [isStarting, setIsStarting] = useState(false)
-  const [isStopping, setIsStopping] = useState(false)
+  const [streamContainerRef, streamBounds] = useMeasure<HTMLDivElement>()
+  const { width, height } = streamBounds
 
   useEffect(() => {
     if (statusPollingError) {
+      // eslint-disable-next-line no-console
       console.error(statusPollingError)
     }
   }, [statusPollingError])
 
   const bbox = status?.bbox
+  const isArmed = !!status?.armed
+  const isRecording = !!status?.is_recording
 
-  const handleStartRecording = async () => {
-    if (!apiClient || isStarting) return
-    setIsStarting(true)
-    try {
-      await apiClient.startRecording()
-    } catch {
-      console.error('Failed to start recording')
-    } finally {
-      setIsStarting(false)
-    }
-  }
+  // ── Drag-to-control ──────────────────────────────────────────────────
+  const invertDrag = useAtomValue(invertDragAtom)
+  const dragSensitivity = useAtomValue(dragSensitivityAtom)
 
-  const handleStopRecording = async () => {
-    if (!apiClient || isStopping) return
-    setIsStopping(true)
-    try {
-      await apiClient.stopRecording()
-    } catch {
-      console.error('Failed to stop recording')
-    } finally {
-      setIsStopping(false)
-    }
-  }
+  // Keep fresh values in refs so callbacks never go stale.
+  const statusRef = useRef(status)
+
+  statusRef.current = status
+  const apiClientRef = useRef(apiClient)
+
+  apiClientRef.current = apiClient
+  const invertDragRef = useRef(invertDrag)
+
+  invertDragRef.current = invertDrag
+  const dragSensitivityRef = useRef(dragSensitivity)
+
+  dragSensitivityRef.current = dragSensitivity
+
+  const dragRef = useRef({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    startTilt: 0,
+    startPan: 0,
+    lastCallTime: 0,
+  })
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    const s = statusRef.current
+
+    if (!s || s.armed) return
+    const drag = dragRef.current
+
+    drag.isDragging = true
+    drag.startX = e.clientX
+    drag.startY = e.clientY
+    drag.startTilt = s.tilt
+    drag.startPan = s.pan
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }, [])
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    const drag = dragRef.current
+
+    if (!drag.isDragging) return
+    const client = apiClientRef.current
+
+    if (!client) return
+
+    const now = Date.now()
+
+    if (now - drag.lastCallTime < DRAG_THROTTLE_MS) return
+
+    const sensitivity = dragSensitivityRef.current
+    const sign = invertDragRef.current ? -1 : 1
+    const dx = e.clientX - drag.startX
+    const dy = e.clientY - drag.startY
+    const newPan = drag.startPan + dx * sensitivity * sign
+    const newTilt = drag.startTilt - dy * sensitivity * sign
+
+    drag.lastCallTime = now
+    client.manualMoveTo(newTilt, newPan)
+  }, [])
+
+  const handlePointerUp = useCallback(() => {
+    dragRef.current.isDragging = false
+  }, [])
 
   return (
     <DefaultLayout className="flex items-stretch">
-      <div className="grid gap-4 m-4 mt-0 grid-cols-[auto_1fr] grid-rows-[1fr_auto] min-w-0 w-full">
-        <div
+      <div className="relative grid gap-4 m-4 mt-0 grid-cols-[auto_1fr] grid-rows-[1fr_auto] min-w-0 w-full">
+        <Card
           ref={streamContainerRef}
-          className="bg-gray-100 aspect-[9/16] rounded-lg flex items-center justify-center row-span-2"
+          className="aspect-[9/16] row-span-2"
+          radius="sm"
         >
-          <p>Live Stream Loading.....</p>
-          {status?.preview && (
-            <img
-              alt="Camera Preview"
-              className="absolute rotate-90 rounded-lg"
-              src={`data:image/jpeg;base64,${status.preview}`}
-              style={{ width: height, height: width }}
-            />
-          )}
-          <div className="absolute" style={{ width, height }}>
-            {bbox && (
-              <>
-                <div
-                  className="absolute bg-green-500 text-white w-11 h-6 pl-1"
-                  style={{
-                    top: bbox.top * height - 24,
-                    left: bbox.left * width,
-                  }}
-                >
-                  {Math.round(bbox.conf * 100) / 100}
-                </div>
-                <div
-                  className="absolute border-4 border-green-500"
-                  style={{
-                    top: bbox.top * height,
-                    left: bbox.left * width,
-                    width: bbox.width * width,
-                    height: bbox.height * height,
-                  }}
-                />
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className="bg-gray-100 rounded-lg p-4 font-mono">
-          <p>
-            <span className="font-medium text-gray-500">Status: </span>
-            {status?.armed ? (
-              <span className="text-red-500">Armed</span>
+          <CardBody className="relative flex items-center justify-center overflow-hidden">
+            {status?.preview ? (
+              <img
+                alt={t`Camera Preview`}
+                className="absolute rotate-90 rounded-lg max-w-none object-cover"
+                src={`data:image/jpeg;base64,${status.preview}`}
+                style={{ width: height + 1, height: width + 1 }}
+              />
             ) : (
-              <span>Disarmed</span>
+              <Spinner label={t`Loading stream...`} />
             )}
-          </p>
-          <div className="flex gap-4 font-mono mt-4">
-            <div>
-              <p className="text-sm font-medium text-gray-500 font-mono">
-                TILT
-              </p>
-              <p className="w-16">{formatDegrees(status?.tilt)}</p>
+            <div className="absolute" style={{ width, height }}>
+              {bbox && (
+                <>
+                  <div
+                    className="absolute bg-green-500 text-white w-11 h-6 pl-1"
+                    style={{
+                      top: bbox.top * height - 24,
+                      left: bbox.left * width,
+                    }}
+                  >
+                    {Math.round(bbox.conf * 100) / 100}
+                  </div>
+                  <div
+                    className="absolute border-4 border-green-500"
+                    style={{
+                      top: bbox.top * height,
+                      left: bbox.left * width,
+                      width: bbox.width * width,
+                      height: bbox.height * height,
+                    }}
+                  />
+                </>
+              )}
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500 font-mono">PAN</p>
-              <p className="w-16">{formatDegrees(status?.pan)}</p>
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-gray-100 rounded-lg p-4">
-          <div className="flex gap-4 flex-wrap">
-            <Button
-              color="danger"
-              radius="sm"
-              variant="bordered"
-              onPress={() => apiClient?.arm()}
-            >
-              Arm
-            </Button>
-            <Button
-              color="primary"
-              radius="sm"
-              variant="bordered"
-              onPress={() => apiClient?.disarm()}
-            >
-              Disarm
-            </Button>
+            {isRecording && (
+              <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full px-2.5 py-1 text-sm font-semibold tracking-widest text-red-600 shadow-md shadow-red-500/20 bg-white">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
+                <Trans>REC</Trans>
+              </div>
+            )}
+            {isArmed && (
+              <div className="absolute right-4 top-4 flex items-center gap-2 rounded-full px-2.5 py-1 text-sm font-semibold tracking-widest text-amber-600 shadow-md shadow-amber-500/30 bg-white">
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse" />
+                <Trans>ARMED</Trans>
+              </div>
+            )}
 
-            {/* added: recording buttons */}
-            <Button
-              isDisabled={!apiClient || isStarting}
-              radius="sm"
-              variant="solid"
-              onPress={handleStartRecording}
-            >
-              {isStarting ? 'Starting...' : 'Start Recording'}
-            </Button>
-            <Button
-              color="danger"
-              isDisabled={!apiClient || isStopping}
-              radius="sm"
-              variant="bordered"
-              onPress={handleStopRecording}
-            >
-              {isStopping ? 'Stopping...' : 'Stop Recording'}
-            </Button>
-          </div>
+            {/* Transparent overlay that captures drag gestures for gimbal control */}
+            <div
+              className={`absolute inset-0 z-10 ${isArmed ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
+              style={{ touchAction: 'none' }}
+              onPointerCancel={handlePointerUp}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+            />
+          </CardBody>
+        </Card>
 
-          <div className="grid gap-2 mt-4 grid-cols-3 grid-rows-3 w-fit">
-            <div />
-            <Button
-              isIconOnly
-              disabled={status?.armed}
-              radius="sm"
-              size="lg"
-              variant="flat"
-              onPress={() => apiClient?.manualMove('up')}
-            >
-              <IconChevronUp />
-            </Button>
-            <div />
-            <Button
-              isIconOnly
-              disabled={status?.armed}
-              radius="sm"
-              size="lg"
-              variant="flat"
-              onPress={() => apiClient?.manualMove('left')}
-            >
-              <IconChevronLeft />
-            </Button>
-            <Button
-              isIconOnly
-              disabled={status?.armed}
-              radius="sm"
-              size="lg"
-              variant="flat"
-              onPress={() => apiClient?.manualMoveTo(0, 0)}
-            >
-              <IconHome />
-            </Button>
-            <Button
-              isIconOnly
-              disabled={status?.armed}
-              radius="sm"
-              size="lg"
-              variant="flat"
-              onPress={() => apiClient?.manualMove('right')}
-            >
-              <IconChevronRight />
-            </Button>
-            <div />
-            <Button
-              isIconOnly
-              disabled={status?.armed}
-              radius="sm"
-              size="lg"
-              variant="flat"
-              onPress={() => apiClient?.manualMove('down')}
-            >
-              <IconChevronDown />
-            </Button>
-            <div />
-          </div>
-        </div>
+        <SystemStatusCard />
+
+        <ControlsCard />
       </div>
     </DefaultLayout>
   )
-}
-
-function formatDegrees(degrees: number | null | undefined) {
-  if (degrees === null || degrees === undefined) return 'N/A'
-
-  return `${Math.round(degrees * 10) / 10}°`
 }
