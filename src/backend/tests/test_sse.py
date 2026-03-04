@@ -6,10 +6,12 @@ Covers:
   - _MessageAnnouncer.listen() - creates a Queue and registers it
   - _MessageAnnouncer.remove() - deregisters a Queue
   - _MessageAnnouncer.announce() - broadcasts to all listeners, drops on Full
+  - register_status_sse() - registers /api/status endpoint and starts broadcast thread
 """
 import queue
 import pytest
 from unittest.mock import MagicMock, patch
+from flask import Flask
 
 from control_process.api.sse import _format_sse, _MessageAnnouncer
 
@@ -104,3 +106,64 @@ class TestMessageAnnouncer:
         ann.announce("second")  # dropped because queue is full
         assert q.get_nowait() == "first"
         assert q.empty()
+
+
+# ---------------------------------------------------------------------------
+# register_status_sse
+# ---------------------------------------------------------------------------
+
+class TestRegisterStatusSse:
+    def _make_app_with_sse(self, state_management=None):
+        from control_process.api.sse import register_status_sse
+
+        if state_management is None:
+            state_management = MagicMock()
+
+        app = Flask(__name__)
+        with patch("control_process.api.sse.threading.Thread") as mock_thread:
+            mock_thread.return_value = MagicMock()
+            register_status_sse(app, state_management)
+        app.testing = True
+        return app.test_client(), state_management
+
+    def test_status_endpoint_returns_event_stream_content_type(self):
+        """GET /api/status should respond with text/event-stream."""
+        mock_q = MagicMock()
+        mock_q.get.return_value = "data: {}\n\n"
+
+        with patch("control_process.api.sse._MessageAnnouncer.listen", return_value=mock_q):
+            c, _ = self._make_app_with_sse()
+            resp = c.get("/api/status")
+        assert "text/event-stream" in resp.content_type
+
+    def test_status_endpoint_cache_control_headers(self):
+        mock_q = MagicMock()
+        mock_q.get.return_value = "data: {}\n\n"
+
+        with patch("control_process.api.sse._MessageAnnouncer.listen", return_value=mock_q):
+            c, _ = self._make_app_with_sse()
+            resp = c.get("/api/status")
+        assert resp.headers.get("Cache-Control") == "no-cache"
+
+    def test_broadcast_thread_is_daemon(self):
+        """The status broadcast thread must be a daemon thread."""
+        from control_process.api.sse import register_status_sse
+
+        app = Flask(__name__)
+        sm = MagicMock()
+        with patch("control_process.api.sse.threading.Thread") as mock_thread:
+            register_status_sse(app, sm)
+            _, kwargs = mock_thread.call_args
+        assert kwargs.get("daemon") is True
+
+    def test_broadcast_thread_is_started(self):
+        """register_status_sse starts the broadcast thread."""
+        from control_process.api.sse import register_status_sse
+
+        app = Flask(__name__)
+        sm = MagicMock()
+        with patch("control_process.api.sse.threading.Thread") as mock_thread:
+            thread_instance = MagicMock()
+            mock_thread.return_value = thread_instance
+            register_status_sse(app, sm)
+        thread_instance.start.assert_called_once()
