@@ -85,6 +85,35 @@ netifaces_stub = _make_module(
 )
 sys.modules.setdefault("netifaces", netifaces_stub)
 
+# -- psutil stub (only needed on non-Linux where it may be missing) ----------
+try:
+    import psutil  # noqa: F401
+except ImportError:
+    psutil_stub = _make_module("psutil", cpu_percent=lambda **kw: 0.0)
+    sys.modules.setdefault("psutil", psutil_stub)
+
+# -- os.sched_* stubs for macOS (Linux-only API) ----------------------------
+import os as _os
+
+if not hasattr(_os, "sched_setscheduler"):
+    _os.SCHED_FIFO = 1
+    _os.SCHED_OTHER = 0
+    _os.SCHED_BATCH = 3
+
+    class _sched_param:  # noqa: N801
+        def __init__(self, priority):
+            self.sched_priority = priority
+
+    _os.sched_param = _sched_param
+    _os.sched_setscheduler = lambda pid, policy, param: None
+
+if not hasattr(_os, "SCHED_FIFO"):
+    _os.SCHED_FIFO = 1
+if not hasattr(_os, "SCHED_OTHER"):
+    _os.SCHED_OTHER = 0
+if not hasattr(_os, "SCHED_BATCH"):
+    _os.SCHED_BATCH = 3
+
 # -- serial stub -------------------------------------------------------------
 class _FakeSerial:
     is_open = True
