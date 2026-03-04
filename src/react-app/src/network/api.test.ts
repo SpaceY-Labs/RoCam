@@ -238,4 +238,31 @@ describe('ApiClient request methods', () => {
     }
     vi.unstubAllGlobals()
   })
+
+  it('uses statusText when response body has no error field', async () => {
+    // data.error is undefined → falls through to response.statusText
+    const fetchMock = makeFetchError(500, {})
+    vi.stubGlobal('fetch', fetchMock)
+    try {
+      await client.arm()
+    } catch (e) {
+      expect((e as ApiError).message).toBe('Error') // from statusText
+    }
+    vi.unstubAllGlobals()
+  })
+
+  it('uses "Request failed" when both data.error and statusText are empty', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: '',
+      json: async () => ({}),
+    }))
+    try {
+      await client.arm()
+    } catch (e) {
+      expect((e as ApiError).message).toBe('Request failed')
+    }
+    vi.unstubAllGlobals()
+  })
 })

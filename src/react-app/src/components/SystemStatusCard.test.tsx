@@ -92,4 +92,26 @@ describe('SystemStatusCard', () => {
     renderWithI18n(<SystemStatusCard />)
     expect(screen.getByText('30')).toBeDefined()
   })
+
+  it('displays temperature in fahrenheit when unit is fahrenheit', async () => {
+    const { useAtomValue } = await import('jotai')
+    vi.mocked(useAtomValue).mockReturnValue('fahrenheit' as unknown as never)
+    const { SystemStatusCard } = await import('./SystemStatusCard')
+    renderWithI18n(<SystemStatusCard />)
+    // 55°C = 131°F
+    const content = document.body.textContent ?? ''
+    expect(content).toContain('°F')
+  })
+
+  it('displays GPS coordinates when latitude and longitude are set', async () => {
+    const { useRocam } = await import('@/network/rocamProvider')
+    ;(useRocam as ReturnType<typeof vi.fn>).mockReturnValue({
+      status: { ...mockStatus, latitude: 48.8566, longitude: 2.3522 },
+      apiClient: null,
+      statusPollingError: null,
+    })
+    const { SystemStatusCard } = await import('./SystemStatusCard')
+    renderWithI18n(<SystemStatusCard />)
+    expect(document.body.textContent).toContain('48.856600')
+  })
 })
