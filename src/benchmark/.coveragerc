@@ -1,0 +1,12 @@
+[run]
+# Exclude hardware-dependent scripts that require TensorRT/GStreamer/NVIDIA GPU.
+# These cannot be executed in a standard CI/unit-test environment.
+omit =
+    convert_tensorrt.py
+
+[report]
+# Lines containing these patterns are excluded from branch/statement counts.
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    raise NotImplementedError

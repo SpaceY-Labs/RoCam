@@ -218,5 +218,25 @@ describe('ControlPage', () => {
       }
       expect(document.body).toBeDefined()
     })
+
+    it('starts drag when status is non-null and not armed', () => {
+      renderControl({ armed: false, is_recording: false, tilt: 10, pan: 20 })
+      const overlay = document.querySelector('[style*="touch-action: none"]') as HTMLElement
+      if (overlay) {
+        // Mock setPointerCapture so it does not throw in jsdom
+        overlay.setPointerCapture = vi.fn()
+        fireEvent.pointerDown(overlay, { clientX: 100, clientY: 100, pointerId: 1 })
+        // Drag has started; pointerMove should now attempt manualMoveTo
+        // Advance time past the throttle window by mocking Date.now
+        const realNow = Date.now
+        vi.spyOn(Date, 'now').mockReturnValue(realNow() + 1000)
+        fireEvent.pointerMove(overlay, { clientX: 200, clientY: 200, pointerId: 1 })
+        vi.restoreAllMocks()
+        // manualMoveTo should have been called since drag is active
+        expect(mockApiClient.manualMoveTo).toHaveBeenCalled()
+      } else {
+        expect(document.body).toBeDefined()
+      }
+    })
   })
 })

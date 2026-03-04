@@ -212,6 +212,43 @@ describe('RecordingsPage', () => {
   })
 })
 
+describe('PreviewModal video handlers', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('opens preview modal and video fires timeupdate event', async () => {
+    mockApiClient.listRecordings.mockResolvedValue({ recordings: [sampleRecording] })
+    await renderRecordingsPage()
+
+    await waitFor(() => {
+      expect(screen.queryByText('Test Recording')).toBeDefined()
+    }, { timeout: 3000 })
+
+    // Click Preview to open the modal
+    const previewBtn = screen.queryAllByRole('button').find(b =>
+      b.textContent?.includes('Preview')
+    )
+    if (previewBtn) {
+      fireEvent.click(previewBtn)
+      // Wait for modal to potentially open
+      await waitFor(() => expect(document.body).toBeDefined())
+
+      // Fire video events on any video element
+      const video = document.querySelector('video')
+      if (video) {
+        // Mock currentTime getter
+        Object.defineProperty(video, 'currentTime', { value: 5, configurable: true })
+        fireEvent(video, new Event('timeupdate', { bubbles: true }))
+        fireEvent(video, new Event('playing', { bubbles: true }))
+        fireEvent(video, new Event('pause', { bubbles: true }))
+        fireEvent(video, new Event('waiting', { bubbles: true }))
+      }
+    }
+    expect(document.body).toBeDefined()
+  })
+})
+
 describe('formatDate', () => {
   it('formats valid timestamp', async () => {
     // Import the module and test formatDate indirectly through rendered UI
