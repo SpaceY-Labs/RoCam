@@ -306,3 +306,4 @@ sample-data/
 # Auto-generated local env files
 .env.local
 **/.env.local
+./server_outputs/

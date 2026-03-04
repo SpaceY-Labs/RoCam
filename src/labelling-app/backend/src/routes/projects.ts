@@ -35,7 +35,7 @@ import {
 } from "../services/projects";
 import {
   parseFeatherMask,
-  parseBinMask,
+  readBinMaskRaw,
   getBaseName,
   getMaskImageBaseName,
   type ParsedMask,
@@ -314,10 +314,15 @@ router.post(
       throw new HttpError(400, "VALIDATION_ERROR", "Zip archive is empty");
     }
 
-    // Separate entries into images and masks based on folder structure
-    // Expected structure: /image/*.png and /masks/*.bin (or .feather / .arrow for backward compat)
-    const imageEntries: Array<{ entryName: string; baseName: string; data: Buffer }> = [];
-    const maskEntries: Array<{ entryName: string; baseName: string; data: Buffer }> = [];
+    // Store entry references only — no getData() here. Decompress on-demand in the image loop
+    // to avoid holding all images + all masks in memory at once.
+    type ZipEntryRef = { entryName: string; baseName: string; entry: { getData: () => Buffer } };
+    const imageEntries: ZipEntryRef[] = [];
+    const maskEntriesByBaseName = new Map<
+      string,
+      Array<{ entry: { getData: () => Buffer }; fileName: string; maskIndex: number }>
+    >();
+    let maskIndex = 0;
 
     for (const entry of entries) {
       const entryPath = entry.entryName.toLowerCase();
@@ -328,24 +333,22 @@ router.post(
         continue;
       }
 
-      const data = entry.getData();
-
       // Check if it's in the image folder
       if (entryPath.includes("/image/") || entryPath.startsWith("image/")) {
-        imageEntries.push({ entryName: entry.entryName, baseName, data });
+        imageEntries.push({ entryName: entry.entryName, baseName, entry });
       }
       // Check if it's in the masks folder and is .bin, .feather, or .arrow
-      // Note: entryPath is lowercased, check for both forward and back slashes
       else if (
         (entryPath.includes("/masks/") || entryPath.includes("\\masks\\") ||
          entryPath.startsWith("masks/") || entryPath.startsWith("masks\\")) &&
         (entryPath.endsWith(".bin") || entryPath.endsWith(".feather") || entryPath.endsWith(".arrow"))
       ) {
         console.log(`[ZIP Upload] Found mask entry: ${entry.entryName}`);
-        // Use getMaskImageBaseName to strip the _XX suffix for matching with images
-        // e.g., "image_00.bin" or "image_00.feather" -> imageBaseName="image" to match "image.png"
         const imageBaseName = getMaskImageBaseName(fileName);
-        maskEntries.push({ entryName: entry.entryName, baseName: imageBaseName, data });
+        const list = maskEntriesByBaseName.get(imageBaseName) || [];
+        list.push({ entry, fileName, maskIndex });
+        maskEntriesByBaseName.set(imageBaseName, list);
+        maskIndex++;
       }
       // Fallback: if no folder structure, treat image files as images
       else if (
@@ -354,158 +357,171 @@ router.post(
         entryPath.endsWith(".jpeg") ||
         entryPath.endsWith(".webp")
       ) {
-        imageEntries.push({ entryName: entry.entryName, baseName, data });
+        imageEntries.push({ entryName: entry.entryName, baseName, entry });
       }
     }
 
-    console.log(`[ZIP Upload] Found ${imageEntries.length} images and ${maskEntries.length} mask entries`);
-    if (maskEntries.length > 0) {
-      console.log(`[ZIP Upload] Mask entries:`, maskEntries.map(e => e.entryName));
+    const totalMaskEntries = maskIndex;
+    console.log(`[ZIP Upload] Found ${imageEntries.length} images and ${totalMaskEntries} mask entries`);
+    if (totalMaskEntries > 0) {
+      console.log(`[ZIP Upload] Mask entries by image:`, Array.from(maskEntriesByBaseName.entries()).map(([k, v]) => `${k}: ${v.length}`));
     }
 
     if (imageEntries.length === 0) {
       throw new HttpError(400, "VALIDATION_ERROR", "No images found in zip. Expected images in /image/ folder.");
     }
 
-    // Build a map of masks by image base name for quick lookup
-    // Group masks by image base name (an image can have multiple masks)
-    // maskEntry.baseName is already the image base name (e.g., "image" from "image_00.feather")
-    const masksByBaseName = new Map<string, ParsedMask[]>();
-    let maskIndex = 0;
-    for (const maskEntry of maskEntries) {
-      console.log(`[ZIP Upload] Parsing mask: ${maskEntry.entryName}, imageBaseName: ${maskEntry.baseName}, dataSize: ${maskEntry.data.length}`);
-      const isBin = maskEntry.entryName.toLowerCase().endsWith(".bin");
-      const parsed = isBin
-        ? parseBinMask(maskEntry.data, maskEntry.baseName, maskIndex)
-        : parseFeatherMask(maskEntry.data, maskEntry.baseName, maskIndex);
-      if (parsed) {
-        console.log(`[ZIP Upload] Mask parsed successfully for image: ${maskEntry.baseName}, maskIndex: ${maskIndex}`);
-        const existing = masksByBaseName.get(maskEntry.baseName) || [];
-        existing.push(parsed);
-        masksByBaseName.set(maskEntry.baseName, existing);
-        maskIndex++;
-      } else {
-        console.warn(`[ZIP Upload] Failed to parse mask: ${maskEntry.entryName}`);
-      }
-    }
-    console.log(`[ZIP Upload] Total masks parsed: ${maskIndex}, for ${masksByBaseName.size} unique images`)
-
-    // Prepare images with resizing; deduplicate file names so duplicates become NAME, NAME01, NAME02, ...
-    const prepared: Array<{
-      fileName: string;
-      baseName: string;
-      resized: { buffer: Buffer; contentType: string };
-      parsedMasks: ParsedMask[] | null;
-    }> = [];
+    // Process images one at a time: resize → upload → free buffer before moving
+    // to the next image. Previously all resized buffers were accumulated in a
+    // `prepared[]` array, holding every image in memory simultaneously before
+    // any uploads began. This single-pass approach keeps only one resized
+    // buffer alive at a time, cutting peak heap use by ~(N-1) × imageSize.
     const fileNameCount: Record<string, number> = {};
-
-    for (const imageEntry of imageEntries) {
-      const rawFileName = path.basename(imageEntry.entryName);
-      const count = fileNameCount[rawFileName] ?? 0;
-      fileNameCount[rawFileName] = count + 1;
-      const fileName =
-        count === 0
-          ? rawFileName
-          : `${getBaseName(rawFileName)}${String(count).padStart(2, "0")}${path.extname(rawFileName)}`;
-
-      const resized = await resizeImageBuffer(imageEntry.data);
-      const parsedMasks = masksByBaseName.get(imageEntry.baseName) || null;
-      prepared.push({
-        fileName,
-        baseName: imageEntry.baseName,
-        resized: { buffer: resized.buffer, contentType: resized.contentType },
-        parsedMasks,
-      });
-    }
-
     const saved: Array<{ imageId: string; storagePath: string; maskMapId: string | null }> = [];
     const imageIds: string[] = [];
+    let masksCount = 0;
 
     try {
-      for (const item of prepared) {
-        const imageId = uuidv4();
-        const storagePath = buildStoragePath(projectId, imageId, item.fileName);
+      for (const imageEntry of imageEntries) {
+        const rawFileName = path.basename(imageEntry.entryName);
+        const count = fileNameCount[rawFileName] ?? 0;
+        fileNameCount[rawFileName] = count + 1;
+        const fileName =
+          count === 0
+            ? rawFileName
+            : `${getBaseName(rawFileName)}${String(count).padStart(2, "0")}${path.extname(rawFileName)}`;
 
-        await uploadImageBuffer(storagePath, item.resized.buffer, item.resized.contentType);
+        // Decompress this image on-demand (freed after resize)
+        const imageData = imageEntry.entry.getData();
+        const resized = await resizeImageBuffer(imageData);
+        const imageId = uuidv4();
+        const storagePath = buildStoragePath(projectId, imageId, fileName);
+
+        await uploadImageBuffer(storagePath, resized.buffer, resized.contentType);
+        const resizedContentType = resized.contentType;
+        const resizedSizeBytes = resized.buffer.length;
 
         let maskMapId: string | null = null;
         const maskIds: string[] = [];
 
-        // Create masks and mask map if we have parsed masks
-        if (item.parsedMasks && item.parsedMasks.length > 0) {
-          console.log(`[zip upload] Processing ${item.parsedMasks.length} masks for image ${item.fileName}`);
+        const imageMaskEntries = maskEntriesByBaseName.get(imageEntry.baseName) || [];
+        if (imageMaskEntries.length > 0) {
+          console.log(`[zip upload] Processing ${imageMaskEntries.length} masks for image ${fileName}`);
 
-          // Collect mask data for overlay generation
           const maskDataForOverlay: Array<{ maskId: string; size: number; binaryMask: SparseBinaryMask; srcWidth: number; srcHeight: number }> = [];
           const maskSizes: Record<string, number> = {};
 
-          // Create individual mask documents and upload binary to storage
-          for (const parsedMask of item.parsedMasks) {
-            console.log(`[zip upload] Parsed mask: ${parsedMask.baseName}, dimensions: ${parsedMask.width}x${parsedMask.height}, maskIndex: ${parsedMask.maskIndex}`);
-            const maskId = uuidv4();
-            const preparedMask = prepareMaskFromParsed(maskId, parsedMask);
+          for (const me of imageMaskEntries) {
+            const maskData = me.entry.getData();
+            const isBin = me.fileName.toLowerCase().endsWith(".bin");
 
-            // Upload binary mask to Cloud Storage
-            const maskStoragePath = buildMaskStoragePath(projectId, imageId, maskId);
-            await uploadMaskBuffer(maskStoragePath, preparedMask.binary);
+            if (isBin) {
+              const raw = readBinMaskRaw(maskData, imageEntry.baseName, me.maskIndex);
+              if (!raw) {
+                console.warn(`[zip upload] Failed to read .bin mask: ${me.fileName}`);
+                continue;
+              }
+              console.log(`[zip upload] Mask .bin: ${me.fileName}, dimensions: ${raw.width}x${raw.height}, maskIndex: ${me.maskIndex}`);
+              const maskId = uuidv4();
+              const maskStoragePath = buildMaskStoragePath(projectId, imageId, maskId);
+              await uploadMaskBuffer(maskStoragePath, raw.binary);
 
-            // Save mask document to Firestore (with storagePath, not binaryMask)
-            await getProjectMasksCollection(projectId).doc(maskId).set({
-              ...preparedMask.doc,
-              storagePath: maskStoragePath,
+              await getProjectMasksCollection(projectId).doc(maskId).set({
+                maskId,
+                labelId: null,
+                color: null,
+                storagePath: maskStoragePath,
+                size: raw.size,
+                width: raw.width,
+                height: raw.height,
+                createdAt: FieldValue.serverTimestamp(),
+                updatedAt: FieldValue.serverTimestamp(),
+              });
+
+              maskIds.push(maskId);
+              maskSizes[maskId] = raw.size;
+
+              const binaryMask = rawBinaryToSparseMask(
+                raw.binary as Uint8Array,
+                raw.width,
+                raw.height
+              );
+              maskDataForOverlay.push({
+                maskId,
+                size: raw.size,
+                binaryMask,
+                srcWidth: raw.width,
+                srcHeight: raw.height,
+              });
+            } else {
+              const parsed = parseFeatherMask(maskData, imageEntry.baseName, me.maskIndex);
+              if (!parsed) {
+                console.warn(`[zip upload] Failed to parse feather mask: ${me.fileName}`);
+                continue;
+              }
+              console.log(`[zip upload] Parsed mask: ${parsed.baseName}, dimensions: ${parsed.width}x${parsed.height}, maskIndex: ${parsed.maskIndex}`);
+              const maskId = uuidv4();
+              const preparedMask = prepareMaskFromParsed(maskId, parsed);
+
+              const maskStoragePath = buildMaskStoragePath(projectId, imageId, maskId);
+              await uploadMaskBuffer(maskStoragePath, preparedMask.binary);
+
+              await getProjectMasksCollection(projectId).doc(maskId).set({
+                ...preparedMask.doc,
+                storagePath: maskStoragePath,
+                createdAt: FieldValue.serverTimestamp(),
+                updatedAt: FieldValue.serverTimestamp(),
+              });
+
+              maskIds.push(maskId);
+              maskSizes[maskId] = preparedMask.doc.size;
+
+              const binaryMask = rawBinaryToSparseMask(
+                preparedMask.binary,
+                preparedMask.doc.width,
+                preparedMask.doc.height
+              );
+              maskDataForOverlay.push({
+                maskId,
+                size: preparedMask.doc.size,
+                binaryMask,
+                srcWidth: preparedMask.doc.width,
+                srcHeight: preparedMask.doc.height,
+              });
+            }
+          }
+
+          if (maskIds.length > 0) {
+            maskMapId = uuidv4();
+            const colorMapStoragePath = buildColorMapStoragePath(projectId, maskMapId);
+            await uploadColorMap(colorMapStoragePath, {});
+
+            console.log(`[zip upload] Generating overlay: target=${TARGET_WIDTH}x${TARGET_HEIGHT}, masks=${maskDataForOverlay.length}`);
+            const maskOverlay = generateMaskOverlay(maskDataForOverlay, TARGET_WIDTH, TARGET_HEIGHT);
+            console.log(`[zip upload] Overlay generated: ${maskOverlay.width}x${maskOverlay.height}, dataBase64Len=${maskOverlay.data.length}, maskIds=${maskOverlay.maskIds.length}`);
+            const maskOverlayStoragePath = buildMaskOverlayStoragePath(projectId, maskMapId);
+            await uploadMaskOverlay(maskOverlayStoragePath, maskOverlay);
+
+            const maskMap = createMaskMapFromMasks(
+              maskMapId,
+              imageId,
+              maskIds,
+              maskSizes,
+              colorMapStoragePath,
+              maskOverlayStoragePath,
+              TARGET_WIDTH,
+              TARGET_HEIGHT
+            );
+
+            await getProjectMaskMapsCollection(projectId).doc(maskMapId).set({
+              ...maskMap,
+              maskIds,
               createdAt: FieldValue.serverTimestamp(),
               updatedAt: FieldValue.serverTimestamp(),
             });
 
-            maskIds.push(maskId);
-            maskSizes[maskId] = preparedMask.doc.size;
-
-            // Convert binary to sparse format for overlay generation
-            const binaryMask = rawBinaryToSparseMask(
-              preparedMask.binary,
-              preparedMask.doc.width,
-              preparedMask.doc.height
-            );
-            maskDataForOverlay.push({
-              maskId,
-              size: preparedMask.doc.size,
-              binaryMask,
-              srcWidth: preparedMask.doc.width,
-              srcHeight: preparedMask.doc.height,
-            });
+            masksCount += 1;
           }
-
-          // Create mask map with maskLabels dictionary
-          maskMapId = uuidv4();
-
-          // Upload empty colorMap to storage (initially no masks are labeled)
-          const colorMapStoragePath = buildColorMapStoragePath(projectId, maskMapId);
-          await uploadColorMap(colorMapStoragePath, {});
-
-          // Generate and upload maskOverlay (2D array with smallest mask at each pixel)
-          console.log(`[zip upload] Generating overlay: target=${TARGET_WIDTH}x${TARGET_HEIGHT}, masks=${maskDataForOverlay.length}`);
-          const maskOverlay = generateMaskOverlay(maskDataForOverlay, TARGET_WIDTH, TARGET_HEIGHT);
-          console.log(`[zip upload] Overlay generated: ${maskOverlay.width}x${maskOverlay.height}, dataLength=${maskOverlay.data.length}, maskIds=${maskOverlay.maskIds.length}`);
-          const maskOverlayStoragePath = buildMaskOverlayStoragePath(projectId, maskMapId);
-          await uploadMaskOverlay(maskOverlayStoragePath, maskOverlay);
-
-          const maskMap = createMaskMapFromMasks(
-            maskMapId,
-            imageId,
-            maskIds,
-            maskSizes,
-            colorMapStoragePath,
-            maskOverlayStoragePath,
-            TARGET_WIDTH,
-            TARGET_HEIGHT
-          );
-
-          await getProjectMaskMapsCollection(projectId).doc(maskMapId).set({
-            ...maskMap,
-            maskIds,
-            createdAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp(),
-          });
         }
 
         // Create image document
@@ -521,15 +537,15 @@ router.post(
             labellerId: null,
             meta: buildImageMeta(
               {
-                fileName: item.fileName,
+                fileName,
                 status: meta.data.status,
                 tags: meta.data.tags,
               },
-              item.fileName
+              fileName
             ),
             storagePath,
-            contentType: item.resized.contentType,
-            sizeBytes: item.resized.buffer.length,
+            contentType: resizedContentType,
+            sizeBytes: resizedSizeBytes,
             createdAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
           },
@@ -558,8 +574,6 @@ router.post(
       );
       throw error;
     }
-
-    const masksCount = prepared.filter(p => p.parsedMasks && p.parsedMasks.length > 0).length;
     res.status(201).json({
       imageIds: saved.map((item) => item.imageId),
       count: saved.length,
@@ -572,7 +586,8 @@ router.post(
 // ZIP DOWNLOAD ROUTE (same format as upload)
 // ============================================================================
 
-const ZIP_EXPORT_MAX_IMAGES = 100;
+const ZIP_EXPORT_MAX_IMAGES = 10000;
+const ZIP_EXPORT_MAX_MASKS = 50000;
 const ZIP_DOWNLOAD_CONCURRENCY = 10;
 
 const streamToBuffer = (stream: NodeJS.ReadableStream): Promise<Buffer> =>
@@ -615,114 +630,193 @@ router.get(
       ZIP_EXPORT_MAX_IMAGES
     );
     const cursor = req.query.cursor ? String(req.query.cursor) : null;
-
-    const collection = getProjectImagesCollection(projectId);
-    let items: FirebaseFirestore.DocumentData[];
-
-    if (ids && ids.length > 0) {
-      const chunks: string[][] = [];
-      for (let i = 0; i < ids.length; i += 10) {
-        chunks.push(ids.slice(i, i + 10));
-      }
-      const results = await Promise.all(
-        chunks.map((chunk) => collection.where("imageId", "in", chunk).get())
-      );
-      items = results.flatMap((snapshot) =>
-        snapshot.docs.map((doc) => normalizeImageData(doc.data()))
-      ).slice(0, ZIP_EXPORT_MAX_IMAGES);
-    } else {
-      let query: FirebaseFirestore.Query = collection.orderBy(
-        "createdAt",
-        "desc"
-      );
-      if (status) {
-        query = query.where("meta.status", "==", status);
-      }
-      if (cursor) {
-        const cursorDoc = await collection.doc(cursor).get();
-        if (cursorDoc.exists) {
-          query = query.startAfter(cursorDoc);
-        }
-      }
-      const snapshot = await query.limit(limit).get();
-      items = snapshot.docs.map((doc) =>
-        normalizeImageData(doc.data())
-      );
-    }
-
-    const idsDesc = ids && ids.length > 0 ? String(ids.length) : "query";
-    console.log(
-      `[images/zip] Start projectId=${projectId} limit=${limit} status=${status ?? "any"} ids=${idsDesc} imageCount=${items.length}`
-    );
+    const masksOnly = req.query.masksOnly === "true";
 
     // 1. Gather work: image entries and mask entries (with baseName, index for zip paths)
     type ImageWorkItem = { storagePath: string; fileName: string; imageId: string };
     type MaskWorkItem = { storagePath: string; width: number; height: number; baseName: string; index: number; maskId: string; imageId: string };
 
     const imageWorkItems: ImageWorkItem[] = [];
-    const maskWorkItems: MaskWorkItem[] = [];
-    const total = items.length;
+    let maskWorkItems: MaskWorkItem[] = [];
 
-    for (let imageIndex = 0; imageIndex < items.length; imageIndex++) {
-      const image = items[imageIndex];
-      const storagePath = image?.storagePath as string | undefined;
-      const fileName = (image?.meta as { fileName?: string } | undefined)?.fileName as string | undefined;
-      const imageId = image?.imageId as string | undefined;
+    if (masksOnly) {
+      // Mask-centric: all masks that are labelled (labelId set), project-wide
+      console.log(`[images/zip] masksOnly=true — querying labelled masks`);
+      const masksSnapshot = await getProjectMasksCollection(projectId)
+        .where("labelId", "!=", null)
+        .limit(ZIP_EXPORT_MAX_MASKS)
+        .get();
+      const labelledMaskDocs = masksSnapshot.docs;
+      console.log(`[images/zip] Found ${labelledMaskDocs.length} labelled mask(s)`);
 
-      if (!storagePath || !fileName) {
-        console.log(
-          `[images/zip] Skipping image ${imageIndex + 1}/${total} imageId=${imageId ?? "?"} — missing storagePath or fileName`
+      if (labelledMaskDocs.length > 0) {
+        // Resolve imageId for each mask via maskMap (maskIds array-contains maskId)
+        const maskIdToImageId = new Map<string, string>();
+        await parallelMap(labelledMaskDocs, async (doc) => {
+          const maskId = doc.id;
+          const maskMapSnap = await getProjectMaskMapsCollection(projectId)
+            .where("maskIds", "array-contains", maskId)
+            .limit(1)
+            .get();
+          if (!maskMapSnap.empty) {
+            const imageId = maskMapSnap.docs[0].data()?.imageId as string | undefined;
+            if (imageId) maskIdToImageId.set(maskId, imageId);
+          }
+        }, ZIP_DOWNLOAD_CONCURRENCY);
+
+        const imageIds = [...new Set(maskIdToImageId.values())];
+        const imagesCollection = getProjectImagesCollection(projectId);
+        const imageIdToFileName = new Map<string, string>();
+        for (let i = 0; i < imageIds.length; i += 10) {
+          const chunk = imageIds.slice(i, i + 10);
+          const snaps = await Promise.all(
+            chunk.map((id) => imagesCollection.doc(id).get())
+          );
+          for (const snap of snaps) {
+            if (snap.exists) {
+              const data = snap.data();
+              const fileName = (data?.meta as { fileName?: string } | undefined)?.fileName as string | undefined;
+              if (fileName) imageIdToFileName.set(snap.id, fileName);
+            }
+          }
+        }
+
+        const baseNameToIndex = new Map<string, number>();
+        const work: MaskWorkItem[] = [];
+        for (const doc of labelledMaskDocs) {
+          const maskId = doc.id;
+          const data = doc.data();
+          const storagePath = data?.storagePath as string | undefined;
+          const width = (data?.width as number) ?? 0;
+          const height = (data?.height as number) ?? 0;
+          if (!storagePath) {
+            console.log(`[images/zip] Mask ${maskId} has no storagePath, skipping`);
+            continue;
+          }
+          const imageId = maskIdToImageId.get(maskId);
+          if (!imageId) {
+            console.log(`[images/zip] No maskMap found for mask ${maskId}, skipping`);
+            continue;
+          }
+          const fileName = imageIdToFileName.get(imageId);
+          if (!fileName) {
+            console.log(`[images/zip] No fileName for imageId=${imageId} (mask ${maskId}), skipping`);
+            continue;
+          }
+          const baseName = getBaseName(fileName);
+          const index = baseNameToIndex.get(baseName) ?? 0;
+          baseNameToIndex.set(baseName, index + 1);
+          work.push({ storagePath, width, height, baseName, index, maskId, imageId });
+        }
+        maskWorkItems = work;
+      }
+
+      console.log(
+        `[images/zip] Gather complete (masksOnly): ${imageWorkItems.length} images, ${maskWorkItems.length} masks to download`
+      );
+    } else {
+      // Image-centric: images from query + all their masks
+      const collection = getProjectImagesCollection(projectId);
+      let items: FirebaseFirestore.DocumentData[];
+
+      if (ids && ids.length > 0) {
+        const chunks: string[][] = [];
+        for (let i = 0; i < ids.length; i += 10) {
+          chunks.push(ids.slice(i, i + 10));
+        }
+        const results = await Promise.all(
+          chunks.map((chunk) => collection.where("imageId", "in", chunk).get())
         );
-        continue;
+        items = results.flatMap((snapshot) =>
+          snapshot.docs.map((doc) => normalizeImageData(doc.data()))
+        ).slice(0, ZIP_EXPORT_MAX_IMAGES);
+      } else {
+        let query: FirebaseFirestore.Query = collection.orderBy(
+          "createdAt",
+          "desc"
+        );
+        if (status) {
+          query = query.where("meta.status", "==", status);
+        }
+        if (cursor) {
+          const cursorDoc = await collection.doc(cursor).get();
+          if (cursorDoc.exists) {
+            query = query.startAfter(cursorDoc);
+          }
+        }
+        const snapshot = await query.limit(limit).get();
+        items = snapshot.docs.map((doc) =>
+          normalizeImageData(doc.data())
+        );
       }
 
-      const current = imageIndex + 1;
+      const idsDesc = ids && ids.length > 0 ? String(ids.length) : "query";
       console.log(
-        `[images/zip] Gathering image ${current}/${total} imageId=${imageId ?? "?"} fileName=${fileName}`
+        `[images/zip] Start projectId=${projectId} limit=${limit} status=${status ?? "any"} ids=${idsDesc} imageCount=${items.length}`
       );
 
-      imageWorkItems.push({ storagePath, fileName, imageId: imageId ?? "unknown" });
+      const total = items.length;
+      for (let imageIndex = 0; imageIndex < items.length; imageIndex++) {
+        const image = items[imageIndex];
+        const storagePath = image?.storagePath as string | undefined;
+        const fileName = (image?.meta as { fileName?: string } | undefined)?.fileName as string | undefined;
+        const imageId = image?.imageId as string | undefined;
 
-      const maskMapId = image?.maskMapId as string | undefined;
-      if (!maskMapId) {
-        console.log(`[images/zip] Image ${fileName} has no maskMapId, skipping masks`);
-        continue;
+        if (!storagePath || !fileName) {
+          console.log(
+            `[images/zip] Skipping image ${imageIndex + 1}/${total} imageId=${imageId ?? "?"} — missing storagePath or fileName`
+          );
+          continue;
+        }
+
+        const current = imageIndex + 1;
+        console.log(
+          `[images/zip] Gathering image ${current}/${total} imageId=${imageId ?? "?"} fileName=${fileName}`
+        );
+
+        imageWorkItems.push({ storagePath, fileName, imageId: imageId ?? "unknown" });
+
+        const maskMapId = image?.maskMapId as string | undefined;
+        if (!maskMapId) {
+          console.log(`[images/zip] Image ${fileName} has no maskMapId, skipping masks`);
+          continue;
+        }
+
+        const maskMapDoc = await getProjectMaskMapsCollection(projectId).doc(maskMapId).get();
+        if (!maskMapDoc.exists) {
+          console.log(`[images/zip] Image ${fileName} maskMapId=${maskMapId} not found in Firestore`);
+          continue;
+        }
+        const maskMapData = maskMapDoc.data();
+        const maskIds = (maskMapData?.maskIds as string[] | undefined) || [];
+        const baseName = getBaseName(fileName);
+        console.log(
+          `[images/zip] Image ${fileName} has ${maskIds.length} mask(s) in maskMap=${maskMapId}`
+        );
+
+        for (let i = 0; i < maskIds.length; i++) {
+          const maskId = maskIds[i];
+          const maskDoc = await getProjectMasksCollection(projectId).doc(maskId).get();
+          if (!maskDoc.exists) {
+            console.log(`[images/zip] Mask ${maskId} not found in Firestore, skipping`);
+            continue;
+          }
+          const maskData = maskDoc.data();
+          const maskStoragePath = maskData?.storagePath as string | undefined;
+          const width = (maskData?.width as number) ?? 0;
+          const height = (maskData?.height as number) ?? 0;
+          if (!maskStoragePath) {
+            console.log(`[images/zip] Mask ${maskId} has no storagePath, skipping`);
+            continue;
+          }
+          maskWorkItems.push({ storagePath: maskStoragePath, width, height, baseName, index: i, maskId, imageId: imageId ?? "unknown" });
+        }
       }
 
-      const maskMapDoc = await getProjectMaskMapsCollection(projectId).doc(maskMapId).get();
-      if (!maskMapDoc.exists) {
-        console.log(`[images/zip] Image ${fileName} maskMapId=${maskMapId} not found in Firestore`);
-        continue;
-      }
-      const maskMapData = maskMapDoc.data();
-      const maskIds = (maskMapData?.maskIds as string[] | undefined) || [];
-      const baseName = getBaseName(fileName);
       console.log(
-        `[images/zip] Image ${fileName} has ${maskIds.length} mask(s) in maskMap=${maskMapId}`
+        `[images/zip] Gather complete: ${imageWorkItems.length} images, ${maskWorkItems.length} masks to download`
       );
-
-      for (let i = 0; i < maskIds.length; i++) {
-        const maskId = maskIds[i];
-        const maskDoc = await getProjectMasksCollection(projectId).doc(maskId).get();
-        if (!maskDoc.exists) {
-          console.log(`[images/zip] Mask ${maskId} not found in Firestore, skipping`);
-          continue;
-        }
-        const maskData = maskDoc.data();
-        const maskStoragePath = maskData?.storagePath as string | undefined;
-        const width = (maskData?.width as number) ?? 0;
-        const height = (maskData?.height as number) ?? 0;
-        if (!maskStoragePath) {
-          console.log(`[images/zip] Mask ${maskId} has no storagePath, skipping`);
-          continue;
-        }
-        maskWorkItems.push({ storagePath: maskStoragePath, width, height, baseName, index: i, maskId, imageId: imageId ?? "unknown" });
-      }
     }
-
-    console.log(
-      `[images/zip] Gather complete: ${imageWorkItems.length} images, ${maskWorkItems.length} masks to download`
-    );
 
     // 2. Download images and masks in parallel batches
     const downloadImageBuffer = async (item: ImageWorkItem): Promise<Buffer> => {
@@ -748,9 +842,12 @@ router.get(
       }
     };
 
-    console.log(`[images/zip] Starting parallel image download (concurrency=${ZIP_DOWNLOAD_CONCURRENCY})...`);
-    const imageBuffers = await parallelMap(imageWorkItems, downloadImageBuffer, ZIP_DOWNLOAD_CONCURRENCY);
-    console.log(`[images/zip] All image downloads complete`);
+    let imageBuffers: Buffer[] = [];
+    if (!masksOnly && imageWorkItems.length > 0) {
+      console.log(`[images/zip] Starting parallel image download (concurrency=${ZIP_DOWNLOAD_CONCURRENCY})...`);
+      imageBuffers = await parallelMap(imageWorkItems, downloadImageBuffer, ZIP_DOWNLOAD_CONCURRENCY);
+      console.log(`[images/zip] All image downloads complete`);
+    }
 
     console.log(`[images/zip] Starting parallel mask download (concurrency=${ZIP_DOWNLOAD_CONCURRENCY})...`);
     const maskBuffers = await parallelMap(maskWorkItems, downloadMaskBufferWithLog, ZIP_DOWNLOAD_CONCURRENCY);
@@ -798,9 +895,12 @@ router.get(
     );
 
     res.setHeader("Content-Type", "application/zip");
+    const zipFilename = masksOnly
+      ? `project-${projectId}-labelled-masks.zip`
+      : `project-${projectId}-export.zip`;
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="project-${projectId}-export.zip"`
+      `attachment; filename="${zipFilename}"`
     );
     res.send(zipBuffer);
   })

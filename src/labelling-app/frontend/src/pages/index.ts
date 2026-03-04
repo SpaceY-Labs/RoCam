@@ -17,3 +17,6 @@ export type { ImageUploadProps } from './ImageUpload';
 // PreviewGallery
 export { PreviewGallery } from './PreviewGallery';
 export type { PreviewGalleryProps } from './PreviewGallery';
+
+// Login
+export { Login } from './Login';

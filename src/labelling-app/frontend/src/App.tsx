@@ -5,9 +5,11 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import type { CSSProperties } from 'react';
+import type { User } from 'firebase/auth';
 import './styles/app-shell.css';
 import './styles/utilities.css';
 import type { RouteId, Project, ProjectFormData, ImageStatus } from './types';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 // ============ Components ============
 import { ConfirmModal } from './components/ui';
@@ -17,6 +19,7 @@ import {
   CreateProject,
   ImageUpload,
   PreviewGallery,
+  Login,
 } from './pages';
 
 // ============ Hooks ============
@@ -69,7 +72,12 @@ const getResponseCount = (response: { total?: number; items: unknown[] }) =>
   typeof response.total === 'number' ? response.total : response.items.length;
 
 // ============ Component ============
-function App() {
+type AuthenticatedAppProps = {
+  user: User;
+  onSignOut: () => Promise<void>;
+};
+
+function AuthenticatedApp({ user, onSignOut }: AuthenticatedAppProps) {
   // ============ Routing ============
   const [route, setRoute] = useState<RouteId>(() => getRouteFromHash());
 
@@ -101,6 +109,7 @@ function App() {
       }
     : projectFromList;
   const pageMeta = PAGE_META[route];
+  const authDisplayName = user.displayName || user.email || user.uid;
 
   // ============ Navigation ============
   const navigate = (id: RouteId) => {
@@ -301,6 +310,14 @@ function App() {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      await onSignOut();
+    } catch (err) {
+      showError(err, 'Failed to sign out');
+    }
+  };
+
   // ============ Render ============
   return (
     <div className="shell">
@@ -321,6 +338,13 @@ function App() {
             <p className="muted">{pageMeta.subtitle}</p>
           </div>
           <div className="header-actions">
+            <div className="auth-summary">
+              <p className="eyebrow">Signed in</p>
+              <p className="muted">{authDisplayName}</p>
+            </div>
+            <button className="btn btn-ghost btn-small" onClick={handleSignOut}>
+              Sign Out
+            </button>
             {route === 'projects' && (
               <button
                 className="btn btn-ghost btn-small"
@@ -420,6 +444,38 @@ function App() {
         variant="primary"
       />
     </div>
+  );
+}
+
+function AppShell() {
+  const { user, loading, signOutUser } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="shell">
+        <main className="page">
+          <section className="panel">
+            <p className="eyebrow">Authentication</p>
+            <h1>Checking session</h1>
+            <p className="muted">Please wait while we verify your sign-in status.</p>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login />;
+  }
+
+  return <AuthenticatedApp user={user} onSignOut={signOutUser} />;
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppShell />
+    </AuthProvider>
   );
 }
 

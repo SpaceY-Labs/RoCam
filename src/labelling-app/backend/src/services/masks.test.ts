@@ -11,11 +11,14 @@ import {
   isSparseDataEmpty,
   serializeMaskToFeather,
   parseBinMask,
+  readBinMaskRaw,
   serializeMaskToBin,
   addMaskAtPixel,
   removeMaskAtPixel,
   getMaskIndicesAtPixel,
   createEmptyMask,
+  generateMaskOverlay,
+  rawBinaryToSparseMask,
 } from "./masks";
 
 describe("masks", () => {
@@ -177,12 +180,131 @@ describe("masks", () => {
     });
   });
 
+  describe("readBinMaskRaw", () => {
+    it("returns null for buffer too short", () => {
+      assert.strictEqual(readBinMaskRaw(Buffer.alloc(4), "x", 0), null);
+    });
+    it("reads header and returns RawBinMask with correct fields", () => {
+      const width = 2;
+      const height = 2;
+      const raw = Buffer.from([1, 0, 0, 1]);
+      const bin = serializeMaskToBin(raw, width, height);
+      const result = readBinMaskRaw(bin, "test", 1);
+      assert.ok(result !== null);
+      assert.strictEqual(result?.baseName, "test");
+      assert.strictEqual(result?.width, width);
+      assert.strictEqual(result?.height, height);
+      assert.strictEqual(result?.maskIndex, 1);
+      assert.strictEqual(result?.size, 2);
+      assert.ok(Buffer.isBuffer(result?.binary));
+      assert.strictEqual(result?.binary.length, width * height);
+      assert.strictEqual(result?.binary[0], 1);
+      assert.strictEqual(result?.binary[3], 1);
+    });
+    it("returns null for invalid size (header + body length mismatch)", () => {
+      const bin = Buffer.alloc(8 + 10);
+      bin.writeUInt32LE(2, 0);
+      bin.writeUInt32LE(2, 4);
+      assert.strictEqual(readBinMaskRaw(bin, "x", 0), null);
+    });
+    it("roundtrip: serializeMaskToBin -> readBinMaskRaw preserves dimensions and pixel count", () => {
+      const width = 4;
+      const height = 3;
+      const raw = Buffer.alloc(width * height, 0);
+      raw[0] = 1;
+      raw[width * height - 1] = 1;
+      const bin = serializeMaskToBin(raw, width, height);
+      const result = readBinMaskRaw(bin, "img", 0);
+      assert.ok(result !== null);
+      assert.strictEqual(result?.width, width);
+      assert.strictEqual(result?.height, height);
+      assert.strictEqual(result?.size, 2);
+      assert.strictEqual(result?.binary.length, width * height);
+    });
+  });
+
   describe("createEmptyMask", () => {
     it("returns serialized mask with empty data and given dimensions", () => {
       const m = createEmptyMask(10, 20);
       assert.strictEqual(m.width, 10);
       assert.strictEqual(m.height, 20);
       assert.strictEqual(Object.keys(m.data).length, 0);
+    });
+  });
+
+  describe("generateMaskOverlay", () => {
+    it("returns data as a base64 string", () => {
+      const binary = new Uint8Array([1, 0, 0, 1]); // 2x2: TL and BR set
+      const binaryMask = rawBinaryToSparseMask(binary, 2, 2);
+      const overlay = generateMaskOverlay(
+        [{ maskId: "m1", size: 2, binaryMask, srcWidth: 2, srcHeight: 2 }],
+        2,
+        2
+      );
+      assert.strictEqual(typeof overlay.data, "string", "data must be a base64 string");
+      assert.ok(overlay.data.length > 0, "base64 string must not be empty");
+    });
+
+    it("data decodes to an Int32Array with correct values", () => {
+      const binary = new Uint8Array([1, 0, 0, 1]); // 2x2: TL=1, TR=0, BL=0, BR=1
+      const binaryMask = rawBinaryToSparseMask(binary, 2, 2);
+      const overlay = generateMaskOverlay(
+        [{ maskId: "m1", size: 2, binaryMask, srcWidth: 2, srcHeight: 2 }],
+        2,
+        2
+      );
+
+      const buf = Buffer.from(overlay.data, "base64");
+      const int32 = new Int32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4);
+
+      // TL pixel (0,0) → maskIndex 0
+      assert.strictEqual(int32[0], 0, "TL pixel should be maskIndex 0");
+      // TR pixel (0,1) → no mask (-1)
+      assert.strictEqual(int32[1], -1, "TR pixel should be -1 (no mask)");
+      // BL pixel (1,0) → no mask (-1)
+      assert.strictEqual(int32[2], -1, "BL pixel should be -1 (no mask)");
+      // BR pixel (1,1) → maskIndex 0
+      assert.strictEqual(int32[3], 0, "BR pixel should be maskIndex 0");
+    });
+
+    it("returns maskIds in overlay matching input order", () => {
+      const binary = new Uint8Array([1, 0, 0, 0]);
+      const binaryMask = rawBinaryToSparseMask(binary, 2, 2);
+      const overlay = generateMaskOverlay(
+        [{ maskId: "abc", size: 1, binaryMask, srcWidth: 2, srcHeight: 2 }],
+        2,
+        2
+      );
+      assert.deepStrictEqual(overlay.maskIds, ["abc"]);
+    });
+
+    it("smallest mask wins when two masks overlap", () => {
+      // 2x2 grid: both masks cover all 4 pixels; smaller mask (size=2) should win
+      const fullBinary = new Uint8Array([1, 1, 1, 1]);
+      const fullMask = rawBinaryToSparseMask(fullBinary, 2, 2);
+      const overlay = generateMaskOverlay(
+        [
+          { maskId: "big", size: 4, binaryMask: fullMask, srcWidth: 2, srcHeight: 2 },
+          { maskId: "small", size: 2, binaryMask: fullMask, srcWidth: 2, srcHeight: 2 },
+        ],
+        2,
+        2
+      );
+      const buf = Buffer.from(overlay.data, "base64");
+      const int32 = new Int32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4);
+      // "small" is index 1 — should win at every pixel
+      for (let i = 0; i < 4; i++) {
+        assert.strictEqual(int32[i], 1, `pixel ${i} should be maskIndex 1 (small)`);
+      }
+    });
+
+    it("empty masks array returns all -1", () => {
+      const overlay = generateMaskOverlay([], 2, 2);
+      const buf = Buffer.from(overlay.data, "base64");
+      const int32 = new Int32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4);
+      for (let i = 0; i < 4; i++) {
+        assert.strictEqual(int32[i], -1);
+      }
     });
   });
 

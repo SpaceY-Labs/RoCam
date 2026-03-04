@@ -70,16 +70,21 @@ export type MaskLabelsMap = Record<string, string | null>;
  * MaskOverlay: 2D array where each pixel stores the INDEX of the smallest
  * mask covering that pixel, or -1 if no mask covers it.
  *
- * Uses indices instead of full UUIDs to reduce payload size significantly.
- * The maskIds array maps index -> maskId.
+ * The API returns `data` as a base64-encoded Int32Array; the API helpers in
+ * API_Helps.ts decode it to an Int32Array before returning so all consumers
+ * can use efficient typed-array index access without any conversion.
  */
 export interface MaskOverlay {
   width: number;
   height: number;
   /** Array of maskIds - index in this array corresponds to index in data */
   maskIds: string[];
-  /** Flattened row-major array: data[row * width + col] = maskIndex or -1 for no mask */
-  data: number[];
+  /**
+   * Decoded flattened row-major typed array.
+   * data[row * width + col] = maskIndex (≥0) or -1 for no mask.
+   * Supports index access ([i]) and .length identical to number[].
+   */
+  data: Int32Array;
 }
 
 /**

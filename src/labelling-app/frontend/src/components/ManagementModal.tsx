@@ -103,6 +103,15 @@ export function ManagementModal({
 
   const labelPopupRef = useRef<HTMLDivElement>(null);
   const masksRequestIdRef = useRef(0);
+  const saveDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const imageIdRef = useRef(image.imageId);
+  const latestPayloadRef = useRef({
+    status: editStatus,
+    tags: editTags,
+    labelComplete: editLabelComplete,
+    reviewed: editReviewed,
+  });
+  const DEBOUNCE_MS = 450;
 
   const {
     highlightedMaskId,
@@ -216,6 +225,90 @@ export function ManagementModal({
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [labelPopup]);
 
+  const performSave = useCallback(
+    async (
+      pid: string,
+      iid: string,
+      payload: {
+        status: ImageStatus;
+        tags: string[];
+        labelComplete: boolean;
+        reviewed: boolean;
+      }
+    ) => {
+      setSaving(true);
+      setSaveError(null);
+      try {
+        await updateImage(pid, iid, {
+          meta: { status: payload.status, tags: payload.tags },
+          labelComplete: payload.labelComplete,
+          reviewed: payload.reviewed,
+        });
+        onImageUpdated(iid, {
+          meta: { status: payload.status, tags: payload.tags },
+          labelComplete: payload.labelComplete,
+          reviewed: payload.reviewed,
+        });
+      } catch (err) {
+        setSaveError(err instanceof Error ? err.message : 'Failed to save changes');
+      } finally {
+        setSaving(false);
+      }
+    },
+    [onImageUpdated]
+  );
+
+  useEffect(() => {
+    imageIdRef.current = image.imageId;
+    latestPayloadRef.current = {
+      status: editStatus,
+      tags: editTags,
+      labelComplete: editLabelComplete,
+      reviewed: editReviewed,
+    };
+
+    const tagsEqual =
+      editTags.length === (image.meta.tags?.length ?? 0) &&
+      editTags.every((t, i) => image.meta.tags?.[i] === t);
+    const unchanged =
+      editStatus === image.meta.status &&
+      tagsEqual &&
+      editLabelComplete === Boolean(image.labelComplete) &&
+      editReviewed === Boolean(image.reviewed);
+    if (unchanged) {
+      if (saveDebounceRef.current) {
+        clearTimeout(saveDebounceRef.current);
+        saveDebounceRef.current = null;
+      }
+      return;
+    }
+
+    saveDebounceRef.current = setTimeout(() => {
+      saveDebounceRef.current = null;
+      const payload = latestPayloadRef.current;
+      performSave(projectId, imageIdRef.current, payload);
+    }, DEBOUNCE_MS);
+
+    return () => {
+      if (saveDebounceRef.current) {
+        clearTimeout(saveDebounceRef.current);
+        saveDebounceRef.current = null;
+      }
+    };
+  }, [
+    editStatus,
+    editTags,
+    editLabelComplete,
+    editReviewed,
+    image.imageId,
+    image.meta.status,
+    image.meta.tags,
+    image.labelComplete,
+    image.reviewed,
+    projectId,
+    performSave,
+  ]);
+
   const handleAddTag = () => {
     const trimmed = tagInput.trim().toLowerCase();
     if (trimmed && !editTags.includes(trimmed)) {
@@ -235,28 +328,14 @@ export function ManagementModal({
     }
   };
 
-  const handleSave = async () => {
-    setSaving(true);
-    setSaveError(null);
-    try {
-      await updateImage(projectId, image.imageId, {
-        meta: { status: editStatus, tags: editTags },
-        labelComplete: editLabelComplete,
-        reviewed: editReviewed,
-      });
-
-      onImageUpdated(image.imageId, {
-        meta: { status: editStatus, tags: editTags },
-        labelComplete: editLabelComplete,
-        reviewed: editReviewed,
-      });
-      onClose();
-    } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Failed to save changes');
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handleRetrySave = useCallback(() => {
+    performSave(projectId, image.imageId, {
+      status: editStatus,
+      tags: editTags,
+      labelComplete: editLabelComplete,
+      reviewed: editReviewed,
+    });
+  }, [projectId, image.imageId, editStatus, editTags, editLabelComplete, editReviewed, performSave]);
 
   const highlightedMask = highlightedMaskId
     ? masks.find((mask) => mask.maskId === highlightedMaskId) || null
@@ -771,6 +850,11 @@ export function ManagementModal({
       {(saveError || labelError) && (
         <div className="banner error">
           <span>{saveError || labelError}</span>
+          {saveError && (
+            <Button variant="secondary" size="small" onClick={handleRetrySave} loading={saving}>
+              Retry
+            </Button>
+          )}
           <button
             className="btn btn-ghost btn-small"
             onClick={() => {
@@ -786,9 +870,6 @@ export function ManagementModal({
       <div className="management-actions">
         <Button variant="ghost" onClick={onClose}>
           Close
-        </Button>
-        <Button variant="primary" onClick={handleSave} loading={saving}>
-          Save changes
         </Button>
       </div>
 

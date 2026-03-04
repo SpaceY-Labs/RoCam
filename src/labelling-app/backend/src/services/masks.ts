@@ -363,6 +363,57 @@ export const parseBinMask = (
 };
 
 /**
+ * Lightweight raw .bin mask — no SparseMaskData conversion.
+ * Use for zip upload when processing masks on-demand to avoid holding
+ * thousands of SparseMaskData objects in memory.
+ */
+export interface RawBinMask {
+  baseName: string;
+  width: number;
+  height: number;
+  /** Raw pixel bytes (0 or 1), no sparse conversion */
+  binary: Buffer;
+  maskIndex: number;
+  /** Count of set pixels */
+  size: number;
+}
+
+/**
+ * Read .bin mask buffer: header (width, height) + raw bytes. No binaryMaskToSparse.
+ * Returns RawBinMask or null if invalid.
+ */
+export const readBinMaskRaw = (
+  buffer: Buffer,
+  baseName: string,
+  maskIndex: number
+): RawBinMask | null => {
+  if (buffer.length < BIN_MASK_HEADER_SIZE) return null;
+  const width = buffer.readUInt32LE(0);
+  const height = buffer.readUInt32LE(4);
+  const expectedSize = width * height;
+  if (
+    buffer.length !== BIN_MASK_HEADER_SIZE + expectedSize ||
+    width === 0 ||
+    height === 0
+  ) {
+    return null;
+  }
+  const body = buffer.subarray(BIN_MASK_HEADER_SIZE);
+  let size = 0;
+  for (let i = 0; i < body.length; i++) {
+    if (body[i]) size++;
+  }
+  return {
+    baseName,
+    width,
+    height,
+    binary: Buffer.from(body),
+    maskIndex,
+    size,
+  };
+};
+
+/**
  * Serialize a mask to .bin format for ZIP export: 8-byte header (width, height uint32 LE) + raw mask bytes.
  */
 export const serializeMaskToBin = (
@@ -575,16 +626,22 @@ export interface MaskMapDocument {
  * Uses indices instead of full UUIDs to reduce payload size significantly.
  * The maskIds array maps index -> maskId.
  *
- * For a 1024x1024 image, using indices instead of UUIDs reduces size from
- * ~37MB to ~4MB (still large but much more manageable).
+ * `data` is a base64-encoded little-endian Int32Array (row-major, one int32
+ * per pixel). This avoids creating a 2M-element plain JS number[] on the
+ * backend heap (which would box every element and use ~80 MB for 1920×1080).
+ * The base64 string for the same overlay is ~11 MB — a single heap object.
  */
 export interface MaskOverlay {
   width: number;
   height: number;
   /** Array of maskIds - index in this array corresponds to index in data */
   maskIds: string[];
-  /** Flattened row-major array: data[row * width + col] = maskIndex or -1 for no mask */
-  data: number[];
+  /**
+   * Base64-encoded little-endian Int32Array.
+   * data[row * width + col] = maskIndex (≥0) or -1 for no mask.
+   * Decode: Buffer.from(data, 'base64') → Int32Array
+   */
+  data: string;
 }
 
 /**
@@ -813,18 +870,23 @@ export const generateMaskOverlay = (
     }
   }
 
-  // DEBUG: Count non-empty pixels in overlay
+  // Count non-empty pixels in overlay
   let filledPixels = 0;
   for (let i = 0; i < overlayData.length; i++) {
     if (overlayData[i] >= 0) filledPixels++;
   }
   console.log(`[generateMaskOverlay] Complete: ${targetWidth}x${targetHeight}, totalPixels=${totalPixels}, filledPixels=${filledPixels}`);
 
+  // Encode as base64 instead of converting to a plain number[].
+  // Array.from(Int32Array) boxes 2M numbers onto the JS heap (~80 MB for 1920×1080).
+  // A base64 string for the same data is a single ~11 MB string object.
+  const dataBase64 = Buffer.from(overlayData.buffer).toString('base64');
+
   return {
     width: targetWidth,
     height: targetHeight,
     maskIds,
-    data: Array.from(overlayData),
+    data: dataBase64,
   };
 };
 

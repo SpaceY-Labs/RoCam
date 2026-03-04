@@ -1,4 +1,3 @@
-import { signInAnonymously } from "firebase/auth";
 import { auth } from "../firebaseconfig";
 import type {
   LockResponse,
@@ -23,7 +22,7 @@ const apiRoot = apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`;
 
 const ensureAuth = async () => {
   if (!auth.currentUser) {
-    await signInAnonymously(auth);
+    throw new Error("User is not authenticated");
   }
 };
 
@@ -320,24 +319,60 @@ export const getColorMap = async (projectId: string, maskMapId: string) =>
     method: "GET",
   }) as Promise<SparseColorMap>;
 
+// ---------------------------------------------------------------------------
+// MaskOverlay decode helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Raw shape returned by the API: data is a base64-encoded little-endian
+ * Int32Array. We decode it here so all consumers get an efficient Int32Array
+ * instead of a 2M-element plain number[] that would be allocated on the JS heap.
+ */
+interface RawMaskOverlay {
+  width: number;
+  height: number;
+  maskIds: string[];
+  /** Base64-encoded little-endian Int32Array */
+  data: string;
+}
+
+function decodeMaskOverlay(raw: RawMaskOverlay | null): MaskOverlay | null {
+  if (!raw) return null;
+  const binaryStr = atob(raw.data);
+  const bytes = new Uint8Array(binaryStr.length);
+  for (let i = 0; i < binaryStr.length; i++) {
+    bytes[i] = binaryStr.charCodeAt(i);
+  }
+  return {
+    width: raw.width,
+    height: raw.height,
+    maskIds: raw.maskIds,
+    data: new Int32Array(bytes.buffer),
+  };
+}
+
 /**
  * Get maskOverlay from storage for a mask map (by maskMapId)
  * Returns the 2D array where each pixel contains the maskId of the smallest mask
  */
-export const getMaskOverlay = async (projectId: string, maskMapId: string) =>
-  apiFetch(`/projects/${projectId}/maskmaps/${maskMapId}/maskoverlay`, {
+export const getMaskOverlay = async (projectId: string, maskMapId: string): Promise<MaskOverlay | null> => {
+  const raw = await apiFetch(`/projects/${projectId}/maskmaps/${maskMapId}/maskoverlay`, {
     method: "GET",
-  }) as Promise<MaskOverlay | null>;
+  }) as RawMaskOverlay | null;
+  return decodeMaskOverlay(raw);
+};
 
 /**
  * Get maskOverlay for an image (by imageId)
  * This is the preferred method - simpler to use since you only need the imageId
  * Returns the 2D array where each pixel contains the maskId of the smallest mask
  */
-export const getImageMaskOverlay = async (projectId: string, imageId: string) =>
-  apiFetch(`/projects/${projectId}/images/${imageId}/maskoverlay`, {
+export const getImageMaskOverlay = async (projectId: string, imageId: string): Promise<MaskOverlay | null> => {
+  const raw = await apiFetch(`/projects/${projectId}/images/${imageId}/maskoverlay`, {
     method: "GET",
-  }) as Promise<MaskOverlay | null>;
+  }) as RawMaskOverlay | null;
+  return decodeMaskOverlay(raw);
+};
 
 /**
  * Update a single mask's label

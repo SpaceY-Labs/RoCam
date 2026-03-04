@@ -184,6 +184,57 @@ const runZipUploadTest = async (projectId) => {
   return { name: "zip upload", ok: response.ok, status: response.status, body: json };
 };
 
+const runZipDownloadTest = async (projectId, masksOnly = false) => {
+  const query = masksOnly ? "?masksOnly=true" : "";
+  const response = await fetch(`${apiBase}/projects/${projectId}/images/zip${query}`, {
+    method: "GET",
+    headers: { Authorization: headers.Authorization },
+  });
+
+  const buf = Buffer.from(await response.arrayBuffer());
+  const disposition = response.headers.get("Content-Disposition") || "";
+  const expectedFilename = masksOnly ? "labelled-masks.zip" : "export.zip";
+  const hasExpectedFilename = disposition.includes(expectedFilename);
+  const isZip = (response.headers.get("Content-Type") || "").toLowerCase().includes("application/zip");
+
+  let hasImageEntries = false;
+  let hasMaskEntries = false;
+  if (response.ok && isZip && buf.length > 0) {
+    const AdmZip = (await import("adm-zip")).default;
+    const zip = new AdmZip(buf);
+    const entries = zip.getEntries();
+    for (const e of entries) {
+      const name = e.entryName.replace(/\\/g, "/");
+      if (name.startsWith("image/")) hasImageEntries = true;
+      if (name.startsWith("masks/")) hasMaskEntries = true;
+    }
+  }
+
+  const ok =
+    response.ok &&
+    response.status === 200 &&
+    isZip &&
+    hasExpectedFilename &&
+    (masksOnly ? !hasImageEntries : true);
+
+  const detail = ok
+    ? null
+    : {
+        status: response.status,
+        isZip,
+        hasExpectedFilename,
+        hasImageEntries: masksOnly ? hasImageEntries : undefined,
+        hasMaskEntries,
+      };
+
+  return {
+    name: masksOnly ? "zip download (masksOnly=true)" : "zip download (default)",
+    ok,
+    status: response.status,
+    body: detail || (response.ok ? "ok" : buf.toString("utf8").slice(0, 200)),
+  };
+};
+
 const runLockTest = async (projectId, imageId, testUserId) => {
   return runJsonTest("lock acquire", "POST", `/projects/${projectId}/locks`, {
     imageIds: [imageId],
@@ -245,6 +296,14 @@ if (projectId) {
   // Test 5: ZIP upload
   const upload = await runZipUploadTest(projectId);
   results.push(upload);
+
+  // Test 5b: ZIP download (default — images + masks)
+  const zipDownloadDefault = await runZipDownloadTest(projectId, false);
+  results.push(zipDownloadDefault);
+
+  // Test 5c: ZIP download (masksOnly=true — labelled masks only, no images)
+  const zipDownloadMasksOnly = await runZipDownloadTest(projectId, true);
+  results.push(zipDownloadMasksOnly);
 
   const imageId = upload.body?.imageIds?.[0] || process.env.IMAGE_ID;
 

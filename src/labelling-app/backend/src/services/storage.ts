@@ -144,16 +144,16 @@ export const downloadColorMap = async (
 // ============================================================================
 
 /**
- * MaskOverlay structure for storage
- * Uses indices instead of full UUIDs to reduce payload size
+ * MaskOverlay structure for storage.
+ * data is a base64-encoded little-endian Int32Array (one int32 per pixel,
+ * value = maskIndex ≥ 0 or -1 for no mask).
+ * Old files stored data as number[] — those are converted on read.
  */
 interface MaskOverlay {
   width: number;
   height: number;
-  /** Array of maskIds - index in this array corresponds to index in data */
   maskIds: string[];
-  /** Flattened row-major array: data[row * width + col] = maskIndex or -1 for no mask */
-  data: number[];
+  data: string;
 }
 
 /**
@@ -210,10 +210,19 @@ export const downloadMaskOverlay = async (
   console.log(`[storage] JSON string length: ${jsonString.length} chars`);
 
   const parsed = JSON.parse(jsonString);
-  console.log(`[storage] Parsed maskOverlay - width: ${parsed?.width}, height: ${parsed?.height}, maskIds: ${parsed?.maskIds?.length}, data length: ${parsed?.data?.length}`);
+  console.log(`[storage] Parsed maskOverlay - width: ${parsed?.width}, height: ${parsed?.height}, maskIds: ${parsed?.maskIds?.length}, data type: ${typeof parsed?.data}`);
 
-  if (parsed) {
-    maskOverlayCache.set(storagePath, parsed);
+  if (!parsed) return null;
+
+  // Backward compatibility: old files stored data as a plain number[] rather
+  // than a base64-encoded Int32Array. Detect and convert on-the-fly so
+  // existing overlays continue to work after this change is deployed.
+  if (Array.isArray(parsed.data)) {
+    console.log(`[storage] Converting legacy number[] overlay to base64 (${parsed.data.length} elements)`);
+    const int32 = new Int32Array(parsed.data);
+    parsed.data = Buffer.from(int32.buffer).toString('base64');
   }
+
+  maskOverlayCache.set(storagePath, parsed);
   return parsed;
 };

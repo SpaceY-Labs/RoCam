@@ -133,7 +133,7 @@ export const estimateColorMapSize = (
 };
 
 export const estimateMaskOverlaySize = (overlay: {
-  data: number[];
+  data: string;
   maskIds: string[];
 } | null): number => {
   if (!overlay) {
@@ -143,7 +143,8 @@ export const estimateMaskOverlaySize = (overlay: {
   for (const id of overlay.maskIds || []) {
     idsBytes += id.length;
   }
-  return overlay.data.length * 4 + idsBytes + 64;
+  // data is a base64 string; JS strings are UTF-16 so ~2 bytes per char.
+  return overlay.data.length * 2 + idsBytes + 64;
 };
 
 export const estimateBufferSize = (buffer: Buffer): number =>
@@ -159,7 +160,7 @@ export const maskOverlayCache = createLruCache<{
   width: number;
   height: number;
   maskIds: string[];
-  data: number[];
+  data: string;
 }>({
   maxBytes: toBytes(config.cacheMaskOverlayMb),
   ttlMs: config.cacheMaskOverlayTtlMs,
