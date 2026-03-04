@@ -1,75 +1,61 @@
-% !TEX program = pdflatex
-\documentclass[11pt, a4paper]{article}
+\documentclass[12pt, titlepage]{article}
+\pdfinfoomitdate=1
+\pdftrailerid{}
 
-% ──────────────────────────── Packages ────────────────────────────
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{lmodern}
-\usepackage[margin=2.2cm]{geometry}
-\usepackage{amsmath, amssymb}
 \usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=blue,
+    filecolor=black,
+    linkcolor=red,
+    urlcolor=blue
+}
+\usepackage[round]{natbib}
+\usepackage{pifont}
+\usepackage{booktabs,tabularx}
+\usepackage{float}
+\usepackage{array}
+\usepackage{amssymb}
+\usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{xcolor}
-\usepackage{hyperref}
-\usepackage{cleveref}
 \usepackage{caption, subcaption}
-\usepackage{float}
 \usepackage{enumitem}
 \usepackage{multirow}
-\usepackage{array}
-\usepackage{tabularx}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 \usepgfplotslibrary{groupplots}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
-% Bibliography handled via thebibliography (no biber required)
 
-\hypersetup{
-  colorlinks=true,
-  linkcolor=blue!60!black,
-  citecolor=green!50!black,
-  urlcolor=blue!70!black,
-}
+\input{../../Comments}
+\input{../../Common}
 
-\graphicspath{{report_figures/}}
+\graphicspath{{report_figures/}{../../../assets/logo/}}
 
-% ──────────────────────── Custom Commands ─────────────────────────
-\newcommand{\map}{\text{mAP}}
-\newcommand{\mapfifty}{\text{mAP}_{50}}
-\newcommand{\mapfull}{\text{mAP}_{50\text{-}95}}
-\newcommand{\yolobase}{\textsc{Yolo26s}}
-\newcommand{\yolop}{\textsc{Yolo26s-P2}}
-
-% No external bib file needed
-
-% ═══════════════════════════════════════════════════════════════════
 \begin{document}
 
-% ──────────────────────────── Title ───────────────────────────────
-\title{%
-  \textbf{Multi-Stage Training Strategy for Small Rocket Detection\\
-    with YOLO26s-P2 and COCO Hard Negative Mining}}
-\author{%
-  Training Report --- ROCAM Small Object Detection Pipeline
-}
+\title{Multi-Stage Training Strategy for Small Rocket Detection with YOLO26s-P2 and COCO Hard Negative Mining}
+\author{\authname}
 \date{March 2026}
+
 \maketitle
 
-% ──────────────────────────── Abstract ────────────────────────────
 \begin{abstract}
   We present a systematic, multi-stage training pipeline for detecting
-  small rockets in surveillance imagery captured by the ROCAM system.
-  Starting from a vanilla \yolobase{} baseline
-  ($\mapfull = 0.694$), we upgrade to the \yolop{} architecture---which
+  small rockets in surveillance imagery captured by the \progname{} system.
+  Starting from a vanilla \textsc{Yolo26s}{} baseline
+  ($\text{mAP}_{50\text{-}95} = 0.694$), we upgrade to the \textsc{Yolo26s-P2}{} architecture---which
   adds a stride-4 detection head tailored for small targets---and
   introduce COCO hard negative mining to suppress false positives.
   Although the architectural change and harder training distribution
-  initially \emph{degrade} $\mapfull$ to $0.614$ ($-11.5\%$), a
+  initially \emph{degrade} $\text{mAP}_{50\text{-}95}$ to $0.614$ ($-11.5\%$), a
   carefully designed three-stage fine-tuning protocol progressively
   recovers and surpasses the baseline, achieving a final
-  $\mapfull = 0.750$ ($+8.1\%$ over the original) and
-  $\mapfifty = 0.958$.  All experiments are conducted on a
+  $\text{mAP}_{50\text{-}95} = 0.750$ ($+8.1\%$ over the original) and
+  $\text{mAP}_{50} = 0.958$.  All experiments are conducted on a
   $4{\times}$NVIDIA H100~PCIe cluster using Distributed Data Parallel
   (DDP) training with mixed precision.  We analyse each stage's
   contribution, discuss failure modes encountered during the process,
@@ -77,7 +63,51 @@
   detectors.
 \end{abstract}
 
-% ═══════════════════════════════════════════════════════════════════
+\pagenumbering{roman}
+
+\section*{Revision History}
+
+\begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
+  \toprule {\bf Date} & {\bf Version} & {\bf Notes}                                        \\
+  \midrule
+  2026-03-01          & 1.0           & Initial Draft                                      \\
+  2026-03-03          & 2.0           & Added experimental results and analysis                               \\
+  \bottomrule
+\end{tabularx}
+
+~\\
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Symbols, Abbreviations, and Acronyms}
+
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{l l}
+  \toprule
+  \textbf{Symbol} & \textbf{Description}                                              \\
+  \midrule
+  mAP             & Mean Average Precision --- object detection evaluation metric          \\
+  mAP$_{50}$      & mAP at IoU threshold 0.50                                            \\
+  mAP$_{50\text{-}95}$ & mAP averaged across IoU thresholds 0.50 to 0.95               \\
+  YOLO            & You Only Look Once --- real-time object detection architecture         \\
+  COCO            & Common Objects in Context --- large-scale object detection dataset   \\
+  DDP             & Distributed Data Parallel --- multi-GPU training method              \\
+  SGD             & Stochastic Gradient Descent --- optimization algorithm               \\
+  AdamW           & Adam optimizer with weight decay                                     \\
+  GFLOPs          & Giga Floating Point Operations --- computational complexity measure  \\
+  P2 head         & Stride-4 detection head in YOLO architecture                         \\
+  FT              & Fine-Tuning                                                          \\
+  \bottomrule
+\end{tabular}\\
+
+\newpage
+
+\pagenumbering{arabic}
+
 \section{Introduction}
 \label{sec:intro}
 
@@ -88,7 +118,7 @@ at \emph{any} orientation ($0$--$360^{\circ}$), and are subject to imaging
 degradation including motion blur, compression artefacts, and varying
 illumination.
 
-The YOLO family of detectors~\cite{ultralytics2025yolo} offers an attractive
+The YOLO family of detectors~\citep{ultralytics2025yolo} offers an attractive
 balance between speed and accuracy for real-time deployment. However, vanilla
 YOLO architectures are optimised for objects at strides $\{8, 16, 32\}$, which
 may miss very small targets. The \textbf{P2 variant} introduces an additional
@@ -96,28 +126,27 @@ detection head at stride~$4$, quadrupling the spatial resolution of the finest
 feature map.
 
 In this report we document the complete training journey---from an initial
-\yolobase{} baseline through architecture upgrade, data engineering (COCO hard
+\textsc{Yolo26s} baseline through architecture upgrade, data engineering (COCO hard
 negative mining), and a three-stage fine-tuning protocol. Our contributions
 are:
 
 \begin{enumerate}[leftmargin=*]
-  \item \textbf{Architecture upgrade}: adoption of \yolop{} with a
+  \item \textbf{Architecture upgrade}: adoption of \textsc{Yolo26s-P2} with a
         stride-4 detection head, increasing small-target sensitivity
         at a modest $+22\%$ GFLOPs cost.
   \item \textbf{COCO hard negative mining}: automated injection of
-        4{,}000 background images from MS~COCO~\cite{lin2014coco} to
+        4{,}000 background images from MS~COCO~\citep{lin2014coco} to
         suppress false positives, constituting $\sim\!25\%$ of the
         training set.
   \item \textbf{Multi-stage fine-tuning}: a three-stage protocol
         (close-mosaic, ultra-fine polish) that recovers the
         performance drop caused by the harder training distribution
-        and pushes $\mapfull$ from $0.614$ to $0.750$.
+        and pushes mAP$_{50\text{-}95}$ from $0.614$ to $0.750$.
   \item \textbf{Failure analysis}: documentation of two failed
         fine-tuning attempts and the lessons learned (optimizer
         pitfalls, learning-rate scheduling).
 \end{enumerate}
 
-% ═══════════════════════════════════════════════════════════════════
 \section{Dataset}
 \label{sec:dataset}
 
@@ -125,7 +154,7 @@ are:
 
 The ROCAM dataset is a single-class (\texttt{rocket}) object detection dataset
 derived from surveillance camera footage. Key statistics are summarised
-in~\Cref{tab:dataset}.
+in~Table~\ref{tab:dataset}.
 
 \begin{table}[h]
   \centering
@@ -156,7 +185,7 @@ $[0,1]$).
 A persistent issue in small-object detection is the high false-positive rate:
 the model learns to fire on textured background regions that resemble the
 target at small scales. To address this, we inject \textbf{pure background
-  images} from MS~COCO~\cite{lin2014coco} into the training set.
+  images} from MS~COCO~\citep{lin2014coco} into the training set.
 
 \begin{algorithm}[h]
   \caption{COCO Hard Negative Mining Pipeline}
@@ -176,37 +205,36 @@ target at small scales. To address this, we inject \textbf{pure background
 The empty label files ensure YOLO treats these images as containing \emph{zero}
 objects, providing pure background supervision. At $N=4{,}000$, the negatives
 constitute $\sim\!25.3\%$ of the training set---a ratio chosen through
-iterative experimentation (see \Cref{sec:discussion}).
+iterative experimentation (see Section~\ref{sec:discussion}).
 
-% ═══════════════════════════════════════════════════════════════════
 \section{Model Architecture}
 \label{sec:arch}
 
 \subsection{YOLO26s Baseline}
 
-YOLO26~\cite{ultralytics2025yolo} is the latest generation of the Ultralytics
+YOLO26~\citep{ultralytics2025yolo} is the latest generation of the Ultralytics
 YOLO family, featuring an updated backbone and a dual-head design (one-to-one
 for end-to-end inference, one-to-many for higher-recall training). The
-\textbf{small} variant (\yolobase) has ${\sim}10$M parameters and natively
+\textbf{small} variant (\textsc{Yolo26s}) has ${\sim}10$M parameters and natively
 detects at strides $\{8, 16, 32\}$.
 
 \subsection{P2 Variant: Stride-4 Detection Head}
 
-The \yolop{} variant adds a \textbf{P2 detection head} at stride~$4$, which
+The \textsc{Yolo26s-P2} variant adds a \textbf{P2 detection head} at stride~$4$, which
 operates on a feature map with $4{\times}$ the spatial resolution of the
 standard finest level. This is critical for our application where rocket
 targets can be as small as $10{\times}10$~pixels.
 
 \begin{table}[h]
   \centering
-  \caption{Architecture comparison: \yolobase{} vs.\ \yolop{}.}
+  \caption{Architecture comparison: \textsc{Yolo26s} vs.\ \textsc{Yolo26s-P2}.}
   \label{tab:arch}
   \begin{tabular}{@{}lccc@{}}
     \toprule
     \textbf{Model} & \textbf{Parameters} & \textbf{GFLOPs} & \textbf{Detection Strides} \\
     \midrule
-    \yolobase{}    & ${\sim}10.0$M       & baseline        & $\{8, 16, 32\}$            \\
-    \yolop{}       & ${\sim}9.8$M        & $+22\%$         & $\{4, 8, 16, 32\}$         \\
+    \textsc{Yolo26s}    & ${\sim}10.0$M       & baseline        & $\{8, 16, 32\}$            \\
+    \textsc{Yolo26s-P2}       & ${\sim}9.8$M        & $+22\%$         & $\{4, 8, 16, 32\}$         \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -214,12 +242,11 @@ targets can be as small as $10{\times}10$~pixels.
 Both variants use transfer learning from COCO-pretrained \texttt{yolo26s.pt}
 weights, with matching layers automatically migrated to the P2 architecture.
 
-% ═══════════════════════════════════════════════════════════════════
 \section{Training Methodology}
 \label{sec:method}
 
 Our training pipeline consists of four distinct phases, as illustrated
-in~\Cref{fig:pipeline}.
+in~Figure~\ref{fig:pipeline}.
 
 \begin{figure}[h]
   \centering
@@ -229,8 +256,8 @@ in~\Cref{fig:pipeline}.
       arrow/.style={->, thick, >=stealth},
       label/.style={font=\scriptsize, align=center}
     ]
-    \node[stage] (s0) at (0,0) {\textbf{Baseline}\\train63\\\yolobase};
-    \node[stage] (s1) at (4.2,0) {\textbf{Stage~I}\\train77\\\yolop};
+    \node[stage] (s0) at (0,0) {\textbf{Baseline}\\train63\\\textsc{Yolo26s}};
+    \node[stage] (s1) at (4.2,0) {\textbf{Stage~I}\\train77\\\textsc{Yolo26s-P2}};
     \node[stage] (s2) at (8.4,0) {\textbf{Stage~II}\\train78\\Close-mosaic};
     \node[stage] (s3) at (12.6,0) {\textbf{Stage~III}\\train81\\Polish};
     \draw[arrow] (s0) -- node[above, label] {+P2 head\\+COCO neg} (s1);
@@ -242,16 +269,15 @@ in~\Cref{fig:pipeline}.
     \node[below=0.15cm, font=\scriptsize\bfseries] at (s3.south) {0.750};
   \end{tikzpicture}
   \caption{Training pipeline overview.  Numbers below each stage
-    indicate the best $\mapfull$ achieved. Note the initial
+    indicate the best mAP$_{50\text{-}95}$ achieved. Note the initial
     \emph{decrease} after Stage~I, which is recovered through fine-tuning.}
   \label{fig:pipeline}
 \end{figure}
 
-% ── 4.1 Baseline ──
 \subsection{Baseline: Vanilla YOLO26s (train63)}
 \label{sec:baseline}
 
-The baseline model uses the vanilla \yolobase{} architecture trained from
+The baseline model uses the vanilla \textsc{Yolo26s} architecture trained from
 COCO-pretrained weights on a single GPU. Key configuration:
 
 \begin{itemize}[leftmargin=*, itemsep=2pt]
@@ -265,17 +291,16 @@ COCO-pretrained weights on a single GPU. Key configuration:
   \item \textbf{COCO negatives}: none
 \end{itemize}
 
-\noindent\textbf{Result}: epoch~419, $\mapfifty = 0.948$,
-$\mapfull = 0.694$.
+\noindent\textbf{Result}: epoch~419, mAP$_{50} = 0.948$,
+mAP$_{50\text{-}95} = 0.694$.
 
-% ── 4.2 Stage I ──
 \subsection{Stage~I: P2 Architecture + COCO Negatives (train76/77)}
 \label{sec:stage1}
 
 Stage~I introduces two major changes simultaneously:
 
 \begin{enumerate}[leftmargin=*]
-  \item \textbf{Architecture}: upgrade from \yolobase{} to \yolop{}
+  \item \textbf{Architecture}: upgrade from \textsc{Yolo26s} to \textsc{Yolo26s-P2}
         (\texttt{yolo26s-p2.yaml}), adding the stride-4 head.
   \item \textbf{Data}: inject COCO hard negatives (initially 1{,}000
         in train76, increased to 4{,}000 in train77).
@@ -299,7 +324,7 @@ $0.1 \to 0.0$, scale $0.3 \to 0.15$.
     $\text{lrf}$       & 0.01             & 0.02             \\
     close\_mosaic      & 150              & 250              \\
     \midrule
-    Best $\mapfull$    & 0.652 (ep335)    & 0.614 (ep267)    \\
+    Best mAP$_{50\text{-}95}$    & 0.652 (ep335)    & 0.614 (ep267)    \\
     Epochs run         & 365/600          & 317/600          \\
     \bottomrule
   \end{tabular}
@@ -313,7 +338,6 @@ training stopped at epoch~317 (patience$=50$). Consequently, the model
 $\frac{1}{4}$-scale mosaic composites, severely limiting small-target
 localisation precision.
 
-% ── 4.3 Stage II ──
 \subsection{Stage~II: Close-Mosaic Fine-Tuning (train78)}
 \label{sec:stage2}
 
@@ -323,19 +347,18 @@ To address the missed close-mosaic phase, we fine-tune from
 \begin{itemize}[leftmargin=*, itemsep=2pt]
   \item \textbf{Mosaic}$= 0.0$, \textbf{mixup}$= 0.0$, cutmix$= 0.0$
   \item $\text{lr}_0 = 0.002$ ($\frac{1}{5}$ of Stage~I),
-        cosine schedule~\cite{loshchilov2016sgdr}, $\text{lrf} = 0.05$
+        cosine schedule~\citep{loshchilov2016sgdr}, $\text{lrf} = 0.05$
   \item 5-epoch warmup to smooth the distribution shift
   \item 100 epochs, patience$= 40$
   \item Erasing reduced $0.4 \to 0.2$
 \end{itemize}
 
 \noindent\textbf{Result}: The model saw full-resolution
-($960\times544$) images for the first time, and $\mapfull$ \textbf{jumped
+($960\times544$) images for the first time, and mAP$_{50\text{-}95}$ \textbf{jumped
   from $0.614$ to $0.720$} ($+17.3\%$), reaching
-$\mapfifty = 0.955$.  This is the \textbf{single largest improvement}
+mAP$_{50} = 0.955$.  This is the \textbf{single largest improvement}
 in the entire pipeline.
 
-% ── 4.4 Stage III ──
 \subsection{Stage~III: Ultra-Fine Polish (train81)}
 \label{sec:stage3}
 
@@ -343,7 +366,7 @@ The final stage applies a very low learning rate to ``polish'' the model into
 its optimal basin:
 
 \begin{itemize}[leftmargin=*, itemsep=2pt]
-  \item Resume from \texttt{train78/best.pt} (epoch~93, $\mapfull = 0.720$)
+  \item Resume from \texttt{train78/best.pt} (epoch~93, mAP$_{50\text{-}95} = 0.720$)
   \item $\text{lr}_0 = 0.0003$ ($\frac{1}{7}$ of Stage~II),
         \textbf{SGD explicitly set} (not \texttt{auto})
   \item Cosine decay to $\text{lr}_0 \times 0.2 = 6 \times 10^{-5}$
@@ -355,11 +378,10 @@ its optimal basin:
   \item 60 epochs, patience$= 25$
 \end{itemize}
 
-\noindent\textbf{Result}: $\mapfull$ improved from $0.720$ to
-$\mathbf{0.750}$ ($+4.2\%$), with $\mapfifty = 0.958$,
+\noindent\textbf{Result}: mAP$_{50\text{-}95}$ improved from $0.720$ to
+$\mathbf{0.750}$ ($+4.2\%$), with mAP$_{50} = 0.958$,
 precision $= 0.961$, recall $= 0.915$.
 
-% ── 4.5 Failed Attempts ──
 \subsection{Failed Attempts and Lessons Learned}
 \label{sec:failures}
 
@@ -375,12 +397,11 @@ prevented results from being saved.
   optimizer explicitly} (e.g., \texttt{optimizer=`SGD'}). The \texttt{auto} mode
 applies internal heuristics that can override user-specified hyperparameters.
 
-% ═══════════════════════════════════════════════════════════════════
 \section{Data Augmentation Strategy}
 \label{sec:augmentation}
 
 A distinctive aspect of this pipeline is the \textbf{progressive reduction} of
-augmentation intensity across stages, summarised in~\Cref{tab:augmentation}.
+augmentation intensity across stages, summarised in~Table~\ref{tab:augmentation}.
 
 \begin{table}[h]
   \centering
@@ -417,7 +438,7 @@ orientation---this augmentation matches the true data distribution.
 \paragraph{Albumentations integration.}
 We inject a custom imaging-degradation pipeline via a monkey-patch on
 Ultralytics' \texttt{Albumentations} class, ensuring DDP
-compatibility~\cite{buslaev2020albumentations}. The pipeline includes:
+compatibility~\citep{buslaev2020albumentations}. The pipeline includes:
 
 \begin{itemize}[leftmargin=*, itemsep=1pt]
   \item \textbf{MotionBlur} ($k{\leq}7$, $p{=}0.15$): simulates
@@ -437,13 +458,12 @@ compatibility~\cite{buslaev2020albumentations}. The pipeline includes:
 In Stage~III, all probabilities are reduced by ${\sim}30\%$ and kernel sizes
 decreased ($k{\leq}5$) to minimise perturbation during the polishing phase.
 
-% ═══════════════════════════════════════════════════════════════════
 \section{Experimental Results}
 \label{sec:results}
 
 \subsection{Overall Performance Summary}
 
-\Cref{tab:results} presents the best metrics for each training stage.
+Table~\ref{tab:results} presents the best metrics for each training stage.
 
 \begin{table}[h]
   \centering
@@ -452,24 +472,24 @@ decreased ($k{\leq}5$) to minimise perturbation during the polishing phase.
   \begin{tabular}{@{}llcccccc@{}}
     \toprule
     \textbf{Stage}     & \textbf{Run}    & \textbf{Model}       & \textbf{Best Ep.} &
-    \textbf{Precision} & \textbf{Recall} & $\mathbf{\mapfifty}$ &
-    $\mathbf{\mapfull}$                                                                                                                                 \\
+    \textbf{Precision} & \textbf{Recall} & \textbf{mAP$_{50}$} &
+    \textbf{mAP$_{50\text{-}95}$}                                                                                                                                 \\
     \midrule
-    Baseline           & train63         & \yolobase            & 419               & 0.945          & 0.897          & 0.948          & 0.694          \\
+    Baseline           & train63         & \textsc{Yolo26s}            & 419               & 0.945          & 0.897          & 0.948          & 0.694          \\
     \midrule
-    Stage~I (v1)       & train76         & \yolop               & 335               & 0.918          & 0.886          & 0.935          & 0.652          \\
-    Stage~I (v2)       & train77         & \yolop               & 267               & 0.917          & 0.857          & 0.920          & 0.614          \\
+    Stage~I (v1)       & train76         & \textsc{Yolo26s-P2}               & 335               & 0.918          & 0.886          & 0.935          & 0.652          \\
+    Stage~I (v2)       & train77         & \textsc{Yolo26s-P2}               & 267               & 0.917          & 0.857          & 0.920          & 0.614          \\
     \midrule
-    Stage~II           & train78         & \yolop               & 93                & 0.955          & 0.912          & 0.955          & 0.720          \\
+    Stage~II           & train78         & \textsc{Yolo26s-P2}               & 93                & 0.955          & 0.912          & 0.955          & 0.720          \\
     \midrule
-    Stage~III          & train81         & \yolop               & 52                & \textbf{0.961} & \textbf{0.915} & \textbf{0.958} & \textbf{0.750} \\
+    Stage~III          & train81         & \textsc{Yolo26s-P2}               & 52                & \textbf{0.961} & \textbf{0.915} & \textbf{0.958} & \textbf{0.750} \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \subsection{Training Curves}
 
-\Cref{fig:map_curves} shows the $\mapfull$ progression across all
+Figure~\ref{fig:map_curves} shows the mAP$_{50\text{-}95}$ progression across all
 stages, clearly illustrating the initial degradation and subsequent
 recovery.
 
@@ -480,7 +500,7 @@ recovery.
         width=\textwidth,
         height=7cm,
         xlabel={Epoch},
-        ylabel={$\mapfull$},
+        ylabel={mAP$_{50\text{-}95}$},
         xmin=0, xmax=420,
         ymin=0.1, ymax=0.78,
         grid=major,
@@ -501,7 +521,7 @@ recovery.
           (359, 0.6578) (369, 0.6622) (379, 0.6704) (389, 0.6771) (399, 0.6833)
           (409, 0.6884) (419, 0.6939)
         };
-      \addlegendentry{Baseline (train63, \yolobase)}
+      \addlegendentry{Baseline (train63, \textsc{Yolo26s})}
 
       % Stage I (train77)
       \addplot[red, mark=none] coordinates {
@@ -513,7 +533,7 @@ recovery.
           (259, 0.6127) (269, 0.6130) (279, 0.6126) (289, 0.6130) (299, 0.6109)
           (309, 0.6122)
         };
-      \addlegendentry{Stage~I (train77, \yolop{} + COCO neg)}
+      \addlegendentry{Stage~I (train77, \textsc{Yolo26s-P2} + COCO neg)}
 
       % Stage II (train78) -- offset by train77 epochs
       \addplot[orange, mark=*, mark size=1.2pt] coordinates {
@@ -538,7 +558,7 @@ recovery.
 
     \end{axis}
   \end{tikzpicture}
-  \caption{$\mapfull$ learning curves across all stages.  The dashed
+  \caption{mAP$_{50\text{-}95}$ learning curves across all stages.  The dashed
     blue line marks the baseline best ($0.694$).  Stage~II and III are
     plotted on their own epoch axes.  Stage~II shows the dramatic recovery
     once mosaic is disabled.}
@@ -547,7 +567,7 @@ recovery.
 
 \subsection{Validation Loss Curves}
 
-\Cref{fig:val_loss} compares the validation box loss between the
+Figure~\ref{fig:val_loss} compares the validation box loss between the
 baseline and Stage~I, revealing the convergence pattern.
 
 \begin{figure}[H]
@@ -593,8 +613,8 @@ baseline and Stage~I, revealing the convergence pattern.
     \end{axis}
   \end{tikzpicture}
   \caption{Validation box loss comparison.  The baseline (train63,
-    \yolobase) continues to decrease throughout 420 epochs, while
-    Stage~I (train77, \yolop) \emph{stagnates} around epoch~250 and
+    \textsc{Yolo26s}) continues to decrease throughout 420 epochs, while
+    Stage~I (train77, \textsc{Yolo26s-P2}) \emph{stagnates} around epoch~250 and
     begins to \emph{slightly increase}---a sign that the model benefits
     from distribution shift (disabling mosaic) rather than more of the
     same augmented data.}
@@ -611,7 +631,7 @@ baseline and Stage~I, revealing the convergence pattern.
         width=0.75\textwidth,
         height=5.5cm,
         bar width=20pt,
-        ylabel={$\mapfull$},
+        ylabel={mAP$_{50\text{-}95}$},
         symbolic x coords={Baseline, {Stage I}, {Stage II}, {Stage III}},
         xtick=data,
         xticklabel style={font=\small},
@@ -626,7 +646,7 @@ baseline and Stage~I, revealing the convergence pattern.
       \addplot coordinates {(Baseline, 0.694) ({Stage I}, 0.614) ({Stage II}, 0.720) ({Stage III}, 0.750)};
     \end{axis}
   \end{tikzpicture}
-  \caption{$\mapfull$ progression across training stages.  The initial
+  \caption{mAP$_{50\text{-}95}$ progression across training stages.  The initial
     drop from Baseline to Stage~I is due to the harder training
     distribution (COCO negatives + mosaic-only training).  Stages II and
     III progressively recover and exceed the baseline.}
@@ -635,7 +655,7 @@ baseline and Stage~I, revealing the convergence pattern.
 
 \subsection{Precision--Recall Curves}
 
-\Cref{fig:pr_curves} shows the precision--recall curves for the
+Figure~\ref{fig:pr_curves} shows the precision--recall curves for the
 baseline and the final model, generated by Ultralytics.
 
 \begin{figure}[H]
@@ -643,13 +663,13 @@ baseline and the final model, generated by Ultralytics.
   \begin{subfigure}[t]{0.48\textwidth}
     \centering
     \includegraphics[width=\textwidth]{pr_train63.png}
-    \caption{Baseline (train63): $\mapfifty = 0.948$}
+    \caption{Baseline (train63): mAP$_{50} = 0.948$}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{0.48\textwidth}
     \centering
     \includegraphics[width=\textwidth]{pr_train81.png}
-    \caption{Final model (train81): $\mapfifty = 0.958$}
+    \caption{Final model (train81): mAP$_{50} = 0.958$}
   \end{subfigure}
   \caption{Precision--Recall curves for the baseline and final model.
     The final model achieves both higher precision and higher recall.}
@@ -658,7 +678,7 @@ baseline and the final model, generated by Ultralytics.
 
 \subsection{Confusion Matrices}
 
-\Cref{fig:cm} presents the normalised confusion matrices, showing the
+Figure~\ref{fig:cm} presents the normalised confusion matrices, showing the
 reduction in false negatives and false positives.
 
 \begin{figure}[H]
@@ -681,7 +701,7 @@ reduction in false negatives and false positives.
 
 \subsection{Qualitative Results}
 
-\Cref{fig:qualitative} provides a visual comparison of detection
+Figure~\ref{fig:qualitative} provides a visual comparison of detection
 quality on validation images.
 
 \begin{figure}[H]
@@ -703,13 +723,12 @@ quality on validation images.
   \label{fig:qualitative}
 \end{figure}
 
-% ═══════════════════════════════════════════════════════════════════
 \section{Analysis and Discussion}
 \label{sec:discussion}
 
 \subsection{Why Did Stage~I Degrade Performance?}
 
-The $\mapfull$ drop from $0.694$ (baseline) to $0.614$ (Stage~I) is
+The mAP$_{50\text{-}95}$ drop from $0.694$ (baseline) to $0.614$ (Stage~I) is
 attributable to \textbf{three compounding factors}:
 
 \begin{enumerate}[leftmargin=*]
@@ -718,9 +737,9 @@ attributable to \textbf{three compounding factors}:
         harder decision boundary, trading recall for
         false-positive suppression.  While beneficial for deployment
         (fewer false alarms), this manifests as lower
-        $\mapfull$ on the validation set that contains no COCO images.
+        mAP$_{50\text{-}95}$ on the validation set that contains no COCO images.
 
-  \item \textbf{Mosaic starvation}: Mosaic augmentation~\cite{bochkovskiy2020yolov4}
+  \item \textbf{Mosaic starvation}: Mosaic augmentation~\citep{bochkovskiy2020yolov4}
         composites four images into one,
         reducing each to $\frac{1}{4}$ resolution.  For our
         already-small rockets, this pushes targets below the
@@ -764,7 +783,7 @@ We experimented with two levels of COCO negative injection:
   \label{tab:coco_count}
   \begin{tabular}{@{}lccc@{}}
     \toprule
-    \textbf{Run}       & \textbf{COCO Negatives} & \textbf{\% of Training Set} & $\mathbf{\mapfull}$ \\
+    \textbf{Run}       & \textbf{COCO Negatives} & \textbf{\% of Training Set} & \textbf{mAP$_{50\text{-}95}$} \\
     \midrule
     train63 (baseline) & 0                       & 0\%                         & 0.694               \\
     train76            & 1{,}000                 & 7.8\%                       & 0.652               \\
@@ -773,7 +792,7 @@ We experimented with two levels of COCO negative injection:
   \end{tabular}
 \end{table}
 
-More negatives produce a harder training problem (lower $\mapfull$) but are
+More negatives produce a harder training problem (lower mAP$_{50\text{-}95}$) but are
 expected to improve \emph{deployment} performance by suppressing false
 positives on unseen backgrounds. The 25\% ratio was chosen as a compromise:
 enough to provide meaningful false-positive supervision without overwhelming
@@ -781,10 +800,10 @@ the positive examples.
 
 \subsection{Diminishing Returns in Stage~III}
 
-Stage~III contributed a $+4.2\%$ improvement to $\mapfull$, compared to
+Stage~III contributed a $+4.2\%$ improvement to mAP$_{50\text{-}95}$, compared to
 Stage~II's $+17.3\%$. This is expected: as the learning rate decreases
 ($0.0003$ vs.\ $0.002$), the model makes increasingly small parameter updates.
-The $\mapfull$ curve in \Cref{fig:map_curves} shows the Stage~III plateau
+The mAP$_{50\text{-}95}$ curve in Figure~\ref{fig:map_curves} shows the Stage~III plateau
 beginning around epoch~35, suggesting the model has effectively converged.
 
 \subsection{Optimizer Selection Pitfall}
@@ -796,13 +815,12 @@ effectively \emph{overriding} the user-specified $\text{lr}_0$. For fine-tuning
 where precise learning rate control is essential, \textbf{always specify the
   optimizer explicitly}.
 
-% ═══════════════════════════════════════════════════════════════════
 \section{Conclusion}
 \label{sec:conclusion}
 
 We have presented a systematic, multi-stage training pipeline for small rocket
-detection that progresses from a vanilla \yolobase{} baseline ($\mapfull =
-  0.694$) to a final \yolop{} model achieving $\mapfull = 0.750$ and $\mapfifty =
+detection that progresses from a vanilla \textsc{Yolo26s} baseline (mAP$_{50\text{-}95} =
+  0.694$) to a final \textsc{Yolo26s-P2} model achieving mAP$_{50\text{-}95} = 0.750$ and mAP$_{50} =
   0.958$. The key insights are:
 
 \begin{enumerate}[leftmargin=*]
@@ -815,7 +833,7 @@ detection that progresses from a vanilla \yolobase{} baseline ($\mapfull =
         Training exclusively on mosaic-augmented images limits
         small-target localisation.  Disabling mosaic via a dedicated
         fine-tuning stage produced the largest single improvement
-        ($+17.3\%$ $\mapfull$).
+        ($+17.3\%$ mAP$_{50\text{-}95}$).
 
   \item \textbf{Progressive augmentation reduction} follows the
         principle of curriculum learning: heavy augmentation for
@@ -830,8 +848,14 @@ detection that progresses from a vanilla \yolobase{} baseline ($\mapfull =
 final polishing---is implemented in four Python scripts, enabling
 full reproducibility.
 
-% ═══════════════════════════════════════════════════════════════════
+\bibliographystyle{plainnat}
+
+\bibliography{../../../refs/References}
+
+\newpage
+
 \appendix
+
 \section{Hardware Configuration}
 \label{app:hardware}
 
@@ -880,7 +904,7 @@ full reproducibility.
     multi\_scale             & True              & True             & True              & False              \\
     COCO neg.                & 0                 & 4{,}000          & 4{,}000           & 4{,}000            \\
     \midrule
-    \textbf{Best $\mapfull$} & \textbf{0.694}    & \textbf{0.614}   & \textbf{0.720}    & \textbf{0.750}     \\
+    \textbf{Best mAP$_{50\text{-}95}$} & \textbf{0.694}    & \textbf{0.614}   & \textbf{0.720}    & \textbf{0.750}     \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -888,7 +912,7 @@ full reproducibility.
 \section{Training Results Plots (Ultralytics)}
 \label{app:results_plots}
 
-\Cref{fig:ultralytics_plots} shows the built-in Ultralytics training
+Figure~\ref{fig:ultralytics_plots} shows the built-in Ultralytics training
 results plots for each stage.
 
 \begin{figure}[H]
@@ -923,37 +947,5 @@ results plots for each stage.
     stage, showing train/val losses, precision, recall, and mAP metrics.}
   \label{fig:ultralytics_plots}
 \end{figure}
-
-% ──────────────────────── Bibliography ────────────────────────────
-\begin{thebibliography}{9}
-
-  \bibitem{ultralytics2025yolo}
-  Ultralytics,
-  ``Ultralytics YOLO: Real-Time Object Detection,'' 2025.
-  \url{https://github.com/ultralytics/ultralytics}
-
-  \bibitem{lin2014coco}
-  T.-Y.~Lin, M.~Maire, S.~Belongie, et~al.,
-  ``Microsoft COCO: Common Objects in Context,''
-  in \emph{European Conference on Computer Vision (ECCV)},
-  pp.~740--755, Springer, 2014.
-
-  \bibitem{buslaev2020albumentations}
-  A.~Buslaev, V.~I.~Iglovikov, E.~Khvedchenya, A.~Parinov,
-  M.~Druzhinin, and A.~A.~Kalinin,
-  ``Albumentations: Fast and Flexible Image Augmentations,''
-  \emph{Information}, vol.~11, no.~2, p.~125, 2020.
-
-  \bibitem{bochkovskiy2020yolov4}
-  A.~Bochkovskiy, C.-Y.~Wang, and H.-Y.~M.~Liao,
-  ``YOLOv4: Optimal Speed and Accuracy of Object Detection,''
-  \emph{arXiv preprint arXiv:2004.10934}, 2020.
-
-  \bibitem{loshchilov2016sgdr}
-  I.~Loshchilov and F.~Hutter,
-  ``SGDR: Stochastic Gradient Descent with Warm Restarts,''
-  \emph{arXiv preprint arXiv:1608.03983}, 2016.
-
-\end{thebibliography}
 
 \end{document}
