@@ -300,4 +300,3 @@ __pycache__/
 node_modules/
 .cursor/
 src/labelling-app/frontend/test-results/.last-run.json
-q
