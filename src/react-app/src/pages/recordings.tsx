@@ -382,13 +382,17 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
                     autoPlay
                     className="w-full rounded-lg aspect-video bg-white"
                     src={apiClient.getPreviewStabilizedUrl(recording.id)}
-                    onError={(e) =>
+                    onError={(e) => {
+                      if (e.currentTarget.error?.code === 4) {
+                        // empty src error
+                        return
+                      }
                       addToast({
                         title: t`Failed to play preview`,
                         description: getErrorMessage(e.currentTarget.error),
                         color: 'danger',
                       })
-                    }
+                    }}
                     onPause={handlePause}
                     onPlaying={handlePlaying}
                     onTimeUpdate={handleTimeUpdate}

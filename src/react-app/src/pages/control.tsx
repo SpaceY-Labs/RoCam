@@ -99,10 +99,10 @@ export default function ControlPage() {
   }, [])
 
   return (
-    <div className="relative flex flex-col h-screen">
+    <div className="relative flex flex-col items-stretch h-screen">
       <Navbar />
       <div
-        className={`min-h-0 grid gap-4 p-4 pt-0 grid-cols-[auto_1fr] min-w-0 w-full ${showDeveloperLogs ? 'grid-rows-[1fr_1fr_auto]' : 'grid-rows-[1fr_auto]'}`}
+        className={`flex-1 min-h-0 grid gap-4 p-4 pt-0 grid-cols-[auto_1fr] min-w-0 w-full ${showDeveloperLogs ? 'grid-rows-[1fr_1fr_auto]' : 'grid-rows-[1fr_auto]'}`}
       >
         <Card
           ref={streamContainerRef}
