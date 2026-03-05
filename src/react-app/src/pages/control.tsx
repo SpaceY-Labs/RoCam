@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { Spinner } from '@heroui/spinner'
 import { addToast } from '@heroui/toast'
@@ -11,39 +11,22 @@ import { LogsCard } from '@/components/LogsCard'
 import { SystemStatusCard } from '@/components/SystemStatusCard'
 import { useRocam } from '@/network/rocamProvider'
 import DefaultLayout from '@/layouts/default'
-import { invertDragAtom, dragSensitivityAtom } from '@/store/languageAtom'
+import {
+  invertDragAtom,
+  dragSensitivityAtom,
+  showLogsAtom,
+} from '@/store/settingsAtom'
 
 /** Minimum milliseconds between consecutive manualMoveTo API calls. */
 const DRAG_THROTTLE_MS = 50
-const DEV_SHOW_LOGS_STORAGE_KEY = 'app-developer-show-logs'
-const DEV_MODE_EVENT = 'developer-mode-change'
 
 export default function ControlPage() {
   const { t } = useLingui()
   const { apiClient, status, statusPollingError } = useRocam()
   const [streamContainerRef, streamBounds] = useMeasure<HTMLDivElement>()
   const { width, height } = streamBounds
-  const [showDeveloperLogs, setShowDeveloperLogs] = useState(false)
+  const showDeveloperLogs = useAtomValue(showLogsAtom)
   const lastStatusPollingErrorToastRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    const updateDeveloperMode = () => {
-      setShowDeveloperLogs(
-        localStorage.getItem(DEV_SHOW_LOGS_STORAGE_KEY) === 'true'
-      )
-    }
-
-    updateDeveloperMode()
-    window.addEventListener('storage', updateDeveloperMode)
-    window.addEventListener('focus', updateDeveloperMode)
-    window.addEventListener(DEV_MODE_EVENT, updateDeveloperMode)
-
-    return () => {
-      window.removeEventListener('storage', updateDeveloperMode)
-      window.removeEventListener('focus', updateDeveloperMode)
-      window.removeEventListener(DEV_MODE_EVENT, updateDeveloperMode)
-    }
-  }, [])
 
   useEffect(() => {
     if (!statusPollingError) {

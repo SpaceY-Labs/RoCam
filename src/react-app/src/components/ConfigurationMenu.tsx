@@ -18,9 +18,10 @@ import {
   temperatureUnitAtom,
   invertDragAtom,
   dragSensitivityAtom,
+  showLogsAtom,
   type Language,
   type TemperatureUnit,
-} from '@/store/languageAtom'
+} from '@/store/settingsAtom'
 
 const LANGUAGES: { key: Language; label: string }[] = [
   { key: 'en', label: 'EN' },
@@ -38,6 +39,7 @@ export function ConfigurationMenu() {
   const [temperatureUnit, setTemperatureUnit] = useAtom(temperatureUnitAtom)
   const [invertDrag, setInvertDrag] = useAtom(invertDragAtom)
   const [dragSensitivity, setDragSensitivity] = useAtom(dragSensitivityAtom)
+  const [showLogs, setShowLogs] = useAtom(showLogsAtom)
 
   const handleAction = (key: Key) => {
     const keyStr = String(key)
@@ -56,6 +58,12 @@ export function ConfigurationMenu() {
 
     if (keyStr === 'invert-drag') {
       setInvertDrag(!invertDrag)
+
+      return
+    }
+
+    if (keyStr === 'show-logs') {
+      setShowLogs(!showLogs)
 
       return
     }
@@ -82,6 +90,7 @@ export function ConfigurationMenu() {
             language,
             temperatureUnit,
             ...(invertDrag ? ['invert-drag'] : []),
+            ...(showLogs ? ['show-logs'] : []),
           ]}
           selectionMode="multiple"
           onAction={handleAction}
@@ -121,6 +130,10 @@ export function ConfigurationMenu() {
                 onChange={(v) => setDragSensitivity(v as number)}
               />
             </DropdownItem>
+          </DropdownSection>
+
+          <DropdownSection title={t`Developer`}>
+            <DropdownItem key="show-logs">{t`Show Logs`}</DropdownItem>
           </DropdownSection>
         </DropdownMenu>
       </Dropdown>

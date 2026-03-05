@@ -17,24 +17,24 @@ msgstr ""
 msgid "Arm"
 msgstr "Arm"
 
-#: src/pages/control.tsx:194
+#: src/pages/control.tsx:177
 msgid "ARMED"
 msgstr "ARMED"
 
-#: src/components/ConfigurationMenu.tsx:101
+#: src/components/ConfigurationMenu.tsx:110
 msgid "Camera Controls"
 msgstr "Camera Controls"
 
-#: src/pages/control.tsx:152
+#: src/pages/control.tsx:135
 msgid "Camera Preview"
 msgstr "Camera Preview"
 
-#: src/components/ConfigurationMenu.tsx:73
-#: src/components/ConfigurationMenu.tsx:77
+#: src/components/ConfigurationMenu.tsx:81
+#: src/components/ConfigurationMenu.tsx:85
 msgid "Configuration"
 msgstr "Configuration"
 
-#: src/components/navbar.tsx:78
+#: src/components/navbar.tsx:47
 msgid "Control"
 msgstr "Control"
 
@@ -59,10 +59,14 @@ msgstr "Delete \"{0}\"? This cannot be undone."
 #~ msgid "Delete \"{name}\"? This cannot be undone."
 #~ msgstr "Delete \"{name}\"? This cannot be undone."
 
+#: src/components/ConfigurationMenu.tsx:135
+msgid "Developer"
+msgstr "Developer"
+
 #: src/components/navbar.tsx:106
 #: src/components/navbar.tsx:110
-msgid "Developer Mode"
-msgstr "Developer Mode"
+#~ msgid "Developer Mode"
+#~ msgstr "Developer Mode"
 
 #: src/components/ControlsCard.tsx:112
 msgid "Disarm"
@@ -72,17 +76,17 @@ msgstr "Disarm"
 msgid "Download"
 msgstr "Download"
 
-#: src/components/ConfigurationMenu.tsx:111
-#: src/components/ConfigurationMenu.tsx:114
-#: src/components/ConfigurationMenu.tsx:115
+#: src/components/ConfigurationMenu.tsx:120
+#: src/components/ConfigurationMenu.tsx:123
+#: src/components/ConfigurationMenu.tsx:124
 msgid "Drag sensitivity"
 msgstr "Drag sensitivity"
 
-#: src/components/navbar.tsx:149
+#: src/components/navbar.tsx:96
 msgid "Emergency Stop"
 msgstr "Emergency Stop"
 
-#: src/components/navbar.tsx:135
+#: src/components/navbar.tsx:82
 msgid "Exit Fullscreen"
 msgstr "Exit Fullscreen"
 
@@ -110,7 +114,7 @@ msgstr "Failed to move {actionLabel}"
 msgid "Failed to play preview"
 msgstr "Failed to play preview"
 
-#: src/pages/control.tsx:60
+#: src/pages/control.tsx:43
 msgid "Failed to poll status"
 msgstr "Failed to poll status"
 
@@ -134,7 +138,7 @@ msgstr "Failed to stream logs"
 msgid "FPS"
 msgstr "FPS"
 
-#: src/components/navbar.tsx:137
+#: src/components/navbar.tsx:84
 msgid "Fullscreen"
 msgstr "Fullscreen"
 
@@ -146,11 +150,11 @@ msgstr "GPS Location"
 msgid "GPU"
 msgstr "GPU"
 
-#: src/components/ConfigurationMenu.tsx:103
+#: src/components/ConfigurationMenu.tsx:112
 msgid "Invert drag direction"
 msgstr "Invert drag direction"
 
-#: src/components/ConfigurationMenu.tsx:89
+#: src/components/ConfigurationMenu.tsx:98
 msgid "Language"
 msgstr "Language"
 
@@ -162,7 +166,7 @@ msgstr "Last updated: {lastUpdatedText} ago"
 msgid "Loading recordings..."
 msgstr "Loading recordings..."
 
-#: src/pages/control.tsx:158
+#: src/pages/control.tsx:141
 msgid "Loading stream..."
 msgstr "Loading stream..."
 
@@ -186,7 +190,7 @@ msgstr "N/A"
 msgid "No recordings yet. Start one from the Control page."
 msgstr "No recordings yet. Start one from the Control page."
 
-#: src/components/navbar.tsx:146
+#: src/components/navbar.tsx:93
 msgid "Not implemented"
 msgstr "Not implemented"
 
@@ -207,7 +211,7 @@ msgstr "Preview"
 msgid "Preview {0}"
 msgstr "Preview {0}"
 
-#: src/pages/control.tsx:188
+#: src/pages/control.tsx:171
 msgid "REC"
 msgstr "REC"
 
@@ -227,11 +231,11 @@ msgstr "Recording started"
 msgid "Recording stopped"
 msgstr "Recording stopped"
 
-#: src/components/navbar.tsx:91
+#: src/components/navbar.tsx:60
 msgid "Recordings"
 msgstr "Recordings"
 
-#: src/components/navbar.tsx:65
+#: src/components/navbar.tsx:34
 msgid "RoCam"
 msgstr "RoCam"
 
@@ -243,7 +247,7 @@ msgstr "Select language"
 msgid "Server Time"
 msgstr "Server Time"
 
-#: src/components/navbar.tsx:116
+#: src/components/ConfigurationMenu.tsx:136
 msgid "Show Logs"
 msgstr "Show Logs"
 
@@ -267,7 +271,7 @@ msgstr "System Status"
 msgid "Temp"
 msgstr "Temp"
 
-#: src/components/ConfigurationMenu.tsx:95
+#: src/components/ConfigurationMenu.tsx:104
 msgid "Temperature"
 msgstr "Temperature"
 

@@ -17,24 +17,24 @@ msgstr ""
 msgid "Arm"
 msgstr "Armer"
 
-#: src/pages/control.tsx:194
+#: src/pages/control.tsx:177
 msgid "ARMED"
 msgstr "ARMÉ"
 
-#: src/components/ConfigurationMenu.tsx:101
+#: src/components/ConfigurationMenu.tsx:110
 msgid "Camera Controls"
 msgstr "Contrôles caméra"
 
-#: src/pages/control.tsx:152
+#: src/pages/control.tsx:135
 msgid "Camera Preview"
 msgstr "Aperçu caméra"
 
-#: src/components/ConfigurationMenu.tsx:73
-#: src/components/ConfigurationMenu.tsx:77
+#: src/components/ConfigurationMenu.tsx:81
+#: src/components/ConfigurationMenu.tsx:85
 msgid "Configuration"
 msgstr "Configuration"
 
-#: src/components/navbar.tsx:78
+#: src/components/navbar.tsx:47
 msgid "Control"
 msgstr "Contrôle"
 
@@ -59,10 +59,9 @@ msgstr "Supprimer « {0} » ? Cette action est irréversible."
 #~ msgid "Delete \"{name}\"? This cannot be undone."
 #~ msgstr "Supprimer « {name} » ? Cette action est irréversible."
 
-#: src/components/navbar.tsx:106
-#: src/components/navbar.tsx:110
-msgid "Developer Mode"
-msgstr "Mode développeur"
+#: src/components/ConfigurationMenu.tsx:135
+msgid "Developer"
+msgstr "Développeur"
 
 #: src/components/ControlsCard.tsx:112
 msgid "Disarm"
@@ -72,17 +71,17 @@ msgstr "Désarmer"
 msgid "Download"
 msgstr "Télécharger"
 
-#: src/components/ConfigurationMenu.tsx:111
-#: src/components/ConfigurationMenu.tsx:114
-#: src/components/ConfigurationMenu.tsx:115
+#: src/components/ConfigurationMenu.tsx:120
+#: src/components/ConfigurationMenu.tsx:123
+#: src/components/ConfigurationMenu.tsx:124
 msgid "Drag sensitivity"
 msgstr "Sensibilité du glissement"
 
-#: src/components/navbar.tsx:149
+#: src/components/navbar.tsx:96
 msgid "Emergency Stop"
 msgstr "Arrêt d'urgence"
 
-#: src/components/navbar.tsx:135
+#: src/components/navbar.tsx:82
 msgid "Exit Fullscreen"
 msgstr "Quitter le plein écran"
 
@@ -110,7 +109,7 @@ msgstr "Échec du déplacement vers {actionLabel}"
 msgid "Failed to play preview"
 msgstr "Échec de la lecture de l'aperçu"
 
-#: src/pages/control.tsx:60
+#: src/pages/control.tsx:43
 msgid "Failed to poll status"
 msgstr "Échec de l'interrogation de l'état"
 
@@ -134,7 +133,7 @@ msgstr "Échec du streaming des journaux"
 msgid "FPS"
 msgstr "FPS"
 
-#: src/components/navbar.tsx:137
+#: src/components/navbar.tsx:84
 msgid "Fullscreen"
 msgstr "Plein écran"
 
@@ -146,11 +145,11 @@ msgstr "Position GPS"
 msgid "GPU"
 msgstr "GPU"
 
-#: src/components/ConfigurationMenu.tsx:103
+#: src/components/ConfigurationMenu.tsx:112
 msgid "Invert drag direction"
 msgstr "Inverser la direction du glissement"
 
-#: src/components/ConfigurationMenu.tsx:89
+#: src/components/ConfigurationMenu.tsx:98
 msgid "Language"
 msgstr "Langue"
 
@@ -162,7 +161,7 @@ msgstr "Dernière mise à jour : il y a {lastUpdatedText}"
 msgid "Loading recordings..."
 msgstr "Chargement des enregistrements..."
 
-#: src/pages/control.tsx:158
+#: src/pages/control.tsx:141
 msgid "Loading stream..."
 msgstr "Chargement du flux..."
 
@@ -186,7 +185,7 @@ msgstr "N/A"
 msgid "No recordings yet. Start one from the Control page."
 msgstr "Aucun enregistrement. Démarrez-en un depuis la page Contrôle."
 
-#: src/components/navbar.tsx:146
+#: src/components/navbar.tsx:93
 msgid "Not implemented"
 msgstr "Non implémenté"
 
@@ -207,7 +206,7 @@ msgstr "Aperçu"
 msgid "Preview {0}"
 msgstr "Aperçu {0}"
 
-#: src/pages/control.tsx:188
+#: src/pages/control.tsx:171
 msgid "REC"
 msgstr "ENR"
 
@@ -227,11 +226,11 @@ msgstr "Enregistrement démarré"
 msgid "Recording stopped"
 msgstr "Enregistrement arrêté"
 
-#: src/components/navbar.tsx:91
+#: src/components/navbar.tsx:60
 msgid "Recordings"
 msgstr "Enregistrements"
 
-#: src/components/navbar.tsx:65
+#: src/components/navbar.tsx:34
 msgid "RoCam"
 msgstr "RoCam"
 
@@ -243,7 +242,7 @@ msgstr "Choisir la langue"
 msgid "Server Time"
 msgstr "Heure serveur"
 
-#: src/components/navbar.tsx:116
+#: src/components/ConfigurationMenu.tsx:136
 msgid "Show Logs"
 msgstr "Afficher les journaux"
 
@@ -267,7 +266,7 @@ msgstr "État du système"
 msgid "Temp"
 msgstr "Temp."
 
-#: src/components/ConfigurationMenu.tsx:95
+#: src/components/ConfigurationMenu.tsx:104
 msgid "Temperature"
 msgstr "Température"
 

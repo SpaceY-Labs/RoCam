@@ -1,23 +1,13 @@
-import type { Selection } from '@react-types/shared'
-
 import { NavLink, useLocation } from 'react-router-dom'
-import { useEffect, useState } from 'react'
 import {
   Navbar as HeroUINavbar,
   NavbarContent,
   NavbarItem,
 } from '@heroui/navbar'
-import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-} from '@heroui/dropdown'
 import { link as linkStyles } from '@heroui/theme'
 import clsx from 'clsx'
 import { Button } from '@heroui/button'
 import {
-  IconBug,
   IconCancel,
   IconMaximize,
   IconMaximizeOff,
@@ -26,31 +16,10 @@ import { Trans, useLingui } from '@lingui/react/macro'
 
 import { ConfigurationMenu } from './ConfigurationMenu'
 
-const DEV_SHOW_LOGS_STORAGE_KEY = 'app-developer-show-logs'
-const DEV_MODE_EVENT = 'developer-mode-change'
-
 export const Navbar = () => {
   const { t } = useLingui()
   const location = useLocation()
   const isControlPage = location.pathname === '/'
-  const [showLogs, setShowLogs] = useState(false)
-
-  useEffect(() => {
-    const enabled = localStorage.getItem(DEV_SHOW_LOGS_STORAGE_KEY) === 'true'
-
-    setShowLogs(enabled)
-    document.body.dataset.developerMode = enabled ? 'true' : 'false'
-  }, [])
-
-  const handleDeveloperSelectionChange = (keys: Selection) => {
-    if (keys === 'all') return
-    const nextShowLogs = keys.has('show_logs')
-
-    setShowLogs(nextShowLogs)
-    localStorage.setItem(DEV_SHOW_LOGS_STORAGE_KEY, String(nextShowLogs))
-    document.body.dataset.developerMode = nextShowLogs ? 'true' : 'false'
-    window.dispatchEvent(new Event(DEV_MODE_EVENT))
-  }
 
   return (
     <HeroUINavbar
@@ -95,28 +64,6 @@ export const Navbar = () => {
       </NavbarContent>
       <NavbarContent justify="end">
         <ConfigurationMenu />
-        <Dropdown closeOnSelect={false}>
-          <DropdownTrigger>
-            <Button
-              color={showLogs ? 'warning' : 'default'}
-              radius="sm"
-              startContent={<IconBug />}
-              variant={showLogs ? 'solid' : 'bordered'}
-            >
-              <Trans>Developer Mode</Trans>
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu
-            aria-label={t`Developer Mode`}
-            selectedKeys={showLogs ? new Set(['show_logs']) : new Set()}
-            selectionMode="multiple"
-            onSelectionChange={handleDeveloperSelectionChange}
-          >
-            <DropdownItem key="show_logs">
-              <Trans>Show Logs</Trans>
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
         <Button
           radius="sm"
           startContent={
