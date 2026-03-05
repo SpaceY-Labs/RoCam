@@ -16,6 +16,7 @@ import {
   dragSensitivityAtom,
   showLogsAtom,
 } from '@/store/settingsAtom'
+import { getErrorMessage } from '@/utils'
 
 /** Minimum milliseconds between consecutive manualMoveTo API calls. */
 const DRAG_THROTTLE_MS = 50
@@ -198,10 +199,4 @@ export default function ControlPage() {
       </div>
     </DefaultLayout>
   )
-}
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error && error.message) return error.message
-
-  return String(error ?? 'Unknown error')
 }

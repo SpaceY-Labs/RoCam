@@ -12,7 +12,7 @@ import { useState, useEffect } from 'react'
 
 import { dynamicActivate } from './i18n'
 import { RocamProvider } from './network/rocamProvider'
-import { languageAtom } from './store/languageAtom'
+import { languageAtom } from './store/settingsAtom'
 
 declare module '@react-types/shared' {
   interface RouterConfig {

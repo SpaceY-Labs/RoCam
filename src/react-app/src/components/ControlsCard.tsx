@@ -13,6 +13,7 @@ import { useTimeoutFn } from 'react-use'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import { useRocam } from '@/network/rocamProvider'
+import { getErrorMessage } from '@/utils'
 
 export function ControlsCard() {
   const { t } = useLingui()
@@ -212,10 +213,4 @@ function GimbalPad() {
       <div />
     </div>
   )
-}
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error && error.message) return error.message
-
-  return String(error ?? 'Unknown error')
 }

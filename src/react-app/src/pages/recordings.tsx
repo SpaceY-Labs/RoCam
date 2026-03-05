@@ -19,6 +19,7 @@ import { Trans, useLingui } from '@lingui/react/macro'
 
 import DefaultLayout from '@/layouts/default'
 import { useRocam } from '@/network/rocamProvider'
+import { getErrorMessage } from '@/utils'
 
 export default function RecordingsPage() {
   const { t } = useLingui()
@@ -477,10 +478,4 @@ function formatBytes(bytes: number) {
   }
 
   return `${b.toFixed(i === 0 ? 0 : 1)} ${units[i]}`
-}
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error && error.message) return error.message
-
-  return String(error ?? 'Unknown error')
 }
