@@ -8,6 +8,14 @@
 ./start_backend.sh recording-management
 ```
 
+# Unit Tests
+
+```bash
+pip install -r requirements-test.txt
+
+pytest --cov=. --cov-report=term-missing
+```
+
 # How to Change the Model:
 
 All the models for this project are stored in the `<repo-root>/src/benchmark/models` directory.

@@ -54,6 +54,12 @@ python3 accuracy_benchmark.py \
     --debug-vis 50
 ```
 
+# Unit Tests
+
+```bash
+pytest --cov=. --cov-report=term-missing
+```
+
 # Benchmark Results
 
 | Path                     | Base Model | mAP@0.50:0.95 small | mAP@0.50:0.95 medium | mAP@0.50:0.95 large | Author       | Date        | Notes                       |

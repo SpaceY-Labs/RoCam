@@ -193,7 +193,7 @@ describe('RocamProvider', () => {
     })
 
     unmount()
-    expect(statusEs?.close).toHaveBeenCalledOnce()
+    expect(statusEs!.close).toHaveBeenCalledOnce()
   })
 
   it('ignores malformed SSE messages gracefully', async () => {
