@@ -78,7 +78,7 @@ This document ...
 \subsection{SRS Evaluation}
 
 \subsubsection{Abstraction}
-The SRS was reviewed to ensure requirements describe \textit{what} RoCam must do
+The \SRS{} was reviewed to ensure requirements describe \textit{what} RoCam must do
 from a stakeholder/operator perspective (camera operator, rocketry team) rather
 than \textit{how} it is implemented (specific CV models, firmware details, or UI
 framework choices). Overall, the Functional Requirements (FRs) are written at a
@@ -89,7 +89,7 @@ tracking/arming transitions, and recording management.\\
 The Non-Functional Requirements (NFRs) were also reviewed and are generally
 abstract (e.g., usability, performance, safety, reliability). Where an NFR
 implicitly assumes a particular technical solution (e.g., a specific fps target
-or a specific latency measurement method), this is acceptable if the SRS also
+or a specific latency measurement method), this is acceptable if the \SRS{} also
 defines a clear, measurable fit criterion.
 
 \subsubsection{Testability}
@@ -109,7 +109,7 @@ reduced scope, FR evaluation in this project is performed through:
 \end{itemize}
 For the NFRs, testability varies:
 \begin{itemize}
-  \item \textbf{Performance}: testable if the SRS states measurable thresholds
+  \item \textbf{Performance}: testable if the \SRS{} states measurable thresholds
         (e.g., 1080p60 I/O, latency targets), but in this project we can only
         partially test performance via unit/component tests and profiling of
         specific pipelines rather than full system measurement.
@@ -123,7 +123,7 @@ For the NFRs, testability varies:
 \end{itemize}
 
 \subsubsection{Ambiguity}
-The SRS wording is largely clear, but several items can be improved to reduce
+The \SRS{} wording is largely clear, but several items can be improved to reduce
 interpretation differences during verification:
 \begin{itemize}
   \item \textbf{Terms that need operational definitions:} phrases such as
@@ -142,19 +142,19 @@ disagreement during V\&V. Where possible, they are handled in this project by
 encoding assumptions as unit-testable acceptance criteria.
 
 \subsubsection{Completeness}
-For completeness, we reviewed whether the SRS covers the primary stakeholder
+For completeness, we reviewed whether the \SRS{} covers the primary stakeholder
 goals for RoCam: acquisition, operator control, automated tracking behaviour,
-recording workflow, and safe operation. At a high level, the SRS is close to
+recording workflow, and safe operation. At a high level, the \SRS{} is close to
 complete for Rev0 scope. The main completeness concerns arise from:
 \begin{itemize}
   \item \textbf{Out-of-scope verification constraints:} since system tests and
         field tests are not executed in this iteration, any FR/NFR that requires
         integrated hardware measurement (true end-to-end latency, outdoor
-        robustness, real launch tracking) cannot be fully verified. The SRS
+        robustness, real launch tracking) cannot be fully verified. The \SRS{}
         should explicitly mark such requirements as requiring future work or
         later verification stages.
   \item \textbf{Third-party dependencies:} camera/gimbal behaviour is assumed
-        per manufacturer documentation; the SRS should clarify which behaviours
+        per manufacturer documentation; the \SRS{} should clarify which behaviours
         are \textit{assumed} vs \textit{verified by this team}.
   \item \textbf{Safety and hazard linkage:} any hazard mitigations (e.g.,
         emergency stop, confirmation prompts, manual arm gating) should be
@@ -163,14 +163,14 @@ complete for Rev0 scope. The main completeness concerns arise from:
 \end{itemize}
 
 \subsubsection{Spelling and Grammar}
-A pass over the SRS found no major grammar defects; remaining issues are
+A pass over the \SRS{} found no major grammar defects; remaining issues are
 primarily minor consistency fixes (capitalization, hyphenation, consistent use
 of abbreviations such as ``UI'', ``fps'', ``gimbal''). In the final report, we
-standardize terminology across documents (\SRS{}/\MG{}/\MIS{}/\VnVPlan{}/VnV Report) to reduce
-confusion during traceability review.
+standardize terminology across documents (\SRS{}/\MG{}/\MIS{}/\VnVPlan{}/VnV Report)
+to reduce confusion during traceability review.
 
 \subsubsection{Ease of Understanding}
-The SRS is readable and structured, but ease-of-understanding can be improved by:
+The \SRS{} is readable and structured, but ease-of-understanding can be improved by:
 \begin{itemize}
   \item Making requirement IDs clickable links in the PDF (or ensuring the
         traceability tables include enough context so readers do not need to
@@ -185,7 +185,7 @@ The SRS is readable and structured, but ease-of-understanding can be improved by
 \subsection{Design Evaluation}
 
 \subsubsection{Consistency With Requirements}
-We reviewed \MG{}/\MIS{} against the \SRS{} to ensure that each major requirement has a
+We reviewed the \MG{}/\MIS{} against the \SRS{} to ensure that each major requirement has a
 clear design owner (vision pipeline, control firmware/interface, UI/recording).
 Overall, the decomposition is aligned with RoCam’s core functions. The main
 design-to-requirement risk is where requirements imply integrated behaviour
@@ -208,7 +208,7 @@ remain stable as features evolve.
 \subsection{Verification and Validation Plan Evaluation}
 
 \subsubsection{Completeness}
-The VnV Plan contains detailed system test descriptions; however, the finalized
+The \VnVPlan{} contains detailed system test descriptions; however, the finalized
 scope explicitly states that \textbf{only unit testing and stakeholder review are
 in scope}. Therefore, completeness in the plan must be interpreted as:
 \begin{itemize}
@@ -220,31 +220,29 @@ tests were executed and which were not, and will provide unit-test evidence that
 covers the same FR intent where feasible.
 
 \subsubsection{Unambiguous}
-The plan is mostly unambiguous, especially where checklists specify concrete
+The \VnVPlan{} is mostly unambiguous, especially where checklists specify concrete
 actions. Ambiguity exists mainly where system tests describe qualitative outcomes
 (e.g., ``smooth'', ``clear error message'') without explicit acceptance criteria.
 Where those tests are not executed, ambiguity is reduced by replacing them in the
 report with unit-testable criteria or explicit ``not executed'' markings.
 
 \subsubsection{Feasibility}
-The plan is feasible under the revised scope because it limits execution to unit
+The \VnVPlan{} is feasible under the revised scope because it limits execution to unit
 tests and stakeholder review. Any activities requiring live rocket launches,
 hardware field conditions, or external reviewers are explicitly excluded. This
 prevents over-claiming and keeps V\&V achievable within available time and access.
 
 \subsubsection{Overall Objective Accomplishment}
-Under the revised scope, the plan still supports the core objectives:
+Under the revised scope, the \VnVPlan{} still supports the core objectives:
 \begin{itemize}
   \item \textbf{Document confidence:} internal checklist-based review and
-        traceability tables improve confidence in SRS/design consistency.
+        traceability tables improve confidence in \SRS{}/design consistency.
   \item \textbf{Nonfunctional focus:} selected NFRs (e.g., usability walkthrough,
         performance characterization at module level) can be partially supported
         with evidence, with limitations clearly stated.
   \item \textbf{Implementation confidence:} unit tests provide concrete,
         repeatable evidence that critical logic behaves as expected.
 \end{itemize}
-Any objectives requiring integrated hardware validation are explicitly deferred
-and documented as future work rather than claimed as completed.
 
 \section{Functional Requirements Evaluation}
 \label{sec:fr_eval}
