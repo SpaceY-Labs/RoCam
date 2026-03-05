@@ -8,7 +8,7 @@ import { Button } from '@heroui/button'
 import { useAtom } from 'jotai'
 import { useLingui } from '@lingui/react/macro'
 
-import { languageAtom, type Language } from '@/store/languageAtom'
+import { languageAtom, type Language } from '@/store/settingsAtom'
 
 const LANGUAGES: { key: Language; label: string }[] = [
   { key: 'en', label: 'EN' },

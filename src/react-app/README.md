@@ -3,6 +3,7 @@
 # How to Run:
 
 ```bash
+cd src/react-app
 yarn
 yarn dev
 ```

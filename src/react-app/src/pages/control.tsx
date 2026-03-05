@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { Spinner } from '@heroui/spinner'
 import { useMeasure } from 'react-use'
@@ -6,26 +6,25 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { useAtomValue } from 'jotai'
 
 import { ControlsCard } from '@/components/ControlsCard'
+import { LogsCard } from '@/components/LogsCard'
 import { SystemStatusCard } from '@/components/SystemStatusCard'
 import { useRocam } from '@/network/rocamProvider'
-import DefaultLayout from '@/layouts/default'
-import { invertDragAtom, dragSensitivityAtom } from '@/store/languageAtom'
+import {
+  invertDragAtom,
+  dragSensitivityAtom,
+  showLogsAtom,
+} from '@/store/settingsAtom'
+import { Navbar } from '@/components/navbar'
 
 /** Minimum milliseconds between consecutive manualMoveTo API calls. */
 const DRAG_THROTTLE_MS = 50
 
 export default function ControlPage() {
   const { t } = useLingui()
-  const { apiClient, status, statusPollingError } = useRocam()
+  const { apiClient, status } = useRocam()
   const [streamContainerRef, streamBounds] = useMeasure<HTMLDivElement>()
   const { width, height } = streamBounds
-
-  useEffect(() => {
-    if (statusPollingError) {
-      // eslint-disable-next-line no-console
-      console.error(statusPollingError)
-    }
-  }, [statusPollingError])
+  const showDeveloperLogs = useAtomValue(showLogsAtom)
 
   const bbox = status?.bbox
   const isArmed = !!status?.armed
@@ -100,11 +99,14 @@ export default function ControlPage() {
   }, [])
 
   return (
-    <DefaultLayout className="flex items-stretch">
-      <div className="relative grid gap-4 m-4 mt-0 grid-cols-[auto_1fr] grid-rows-[1fr_auto] min-w-0 w-full">
+    <div className="relative flex flex-col items-stretch h-screen">
+      <Navbar />
+      <div
+        className={`flex-1 min-h-0 grid gap-4 p-4 pt-0 grid-cols-[auto_1fr] min-w-0 w-full ${showDeveloperLogs ? 'grid-rows-[1fr_1fr_auto]' : 'grid-rows-[1fr_auto]'}`}
+      >
         <Card
           ref={streamContainerRef}
-          className="aspect-[9/16] row-span-2"
+          className={`aspect-[9/16] ${showDeveloperLogs ? 'row-span-3' : 'row-span-2'}`}
           radius="sm"
         >
           <CardBody className="relative flex items-center justify-center overflow-hidden">
@@ -170,8 +172,10 @@ export default function ControlPage() {
 
         <SystemStatusCard />
 
+        {showDeveloperLogs && <LogsCard />}
+
         <ControlsCard />
       </div>
-    </DefaultLayout>
+    </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@heroui/button'
 import { Card, CardBody } from '@heroui/card'
+import { addToast } from '@heroui/toast'
 import {
   IconChevronLeft,
   IconChevronRight,
@@ -9,11 +10,13 @@ import {
   IconHome,
 } from '@tabler/icons-react'
 import { useTimeoutFn } from 'react-use'
-import { Trans } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 
 import { useRocam } from '@/network/rocamProvider'
+import { getErrorMessage } from '@/utils'
 
 export function ControlsCard() {
+  const { t } = useLingui()
   const { apiClient, status } = useRocam()
   const [isArmLoading, setIsArmLoading] = useState(false)
   const [isRecordLoading, setIsRecordLoading] = useState(false)
@@ -43,8 +46,12 @@ export function ControlsCard() {
       } else {
         await apiClient.arm()
       }
-    } catch {
-      console.warn(`Failed to ${isArmed ? 'disarm' : 'arm'}`)
+    } catch (error) {
+      addToast({
+        title: isArmed ? t`Failed to disarm` : t`Failed to arm`,
+        description: getErrorMessage(error),
+        color: 'danger',
+      })
     } finally {
       setIsArmLoading(false)
     }
@@ -57,11 +64,19 @@ export function ControlsCard() {
     try {
       if (isRecording) {
         await apiClient.stopRecording()
+        addToast({ title: t`Recording stopped`, color: 'success' })
       } else {
         await apiClient.startRecording()
+        addToast({ title: t`Recording started`, color: 'success' })
       }
-    } catch {
-      console.warn(`Failed to ${isRecording ? 'stop' : 'start'} recording`)
+    } catch (error) {
+      addToast({
+        title: isRecording
+          ? t`Failed to stop recording`
+          : t`Failed to start recording`,
+        description: getErrorMessage(error),
+        color: 'danger',
+      })
     } finally {
       setIsRecordLoading(false)
     }
@@ -107,8 +122,23 @@ export function ControlsCard() {
 }
 
 function GimbalPad() {
+  const { t } = useLingui()
   const { apiClient, status } = useRocam()
   const disabled = !!status?.armed
+  const handleMove = async (
+    move: () => Promise<unknown>,
+    actionLabel: string
+  ) => {
+    try {
+      await move()
+    } catch (error) {
+      addToast({
+        title: t`Failed to move ${actionLabel}`,
+        description: getErrorMessage(error),
+        color: 'danger',
+      })
+    }
+  }
 
   return (
     <div className="grid gap-2 grid-cols-3 grid-rows-3 w-fit">
@@ -119,7 +149,10 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMove('up')}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMove('up'), 'up')
+        }}
       >
         <IconChevronUp />
       </Button>
@@ -130,7 +163,10 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMove('left')}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMove('left'), 'left')
+        }}
       >
         <IconChevronLeft />
       </Button>
@@ -140,7 +176,10 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMoveTo(0, 0)}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMoveTo(0, 0), 'home')
+        }}
       >
         <IconHome />
       </Button>
@@ -150,7 +189,10 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMove('right')}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMove('right'), 'right')
+        }}
       >
         <IconChevronRight />
       </Button>
@@ -161,7 +203,10 @@ function GimbalPad() {
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => apiClient?.manualMove('down')}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMove('down'), 'down')
+        }}
       >
         <IconChevronDown />
       </Button>
