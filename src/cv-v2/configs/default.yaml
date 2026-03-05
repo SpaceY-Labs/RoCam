@@ -1,0 +1,104 @@
+# SiamMask-Lite Configuration
+# Designed for Jetson Orin Nano @ 60fps real-time mask tracking
+
+model:
+  backbone:
+    type: LiteBackbone
+    feat_channels: 64         # Uniform channel count across FPN
+    # ~300K params, MobileNetV2-style inverted residuals + SE attention
+
+  correlation:
+    type: MultiScaleCorrelation
+    corr_channels: 64         # Cross-correlation hidden dimension
+    scales: [P2, P3, P4]     # Multi-scale matching at strides 4, 8, 16
+
+  decoder:
+    type: MaskDecoder
+    mask_size: 255            # Output mask resolution
+    with_bbox_head: true      # Also predict bounding box
+    with_score_head: true     # Also predict target confidence
+
+  # Crop sizes
+  template_size: 127          # Reference image crop
+  search_size: 255            # Search region crop
+
+training:
+  # Phase 1: Pre-training on YouTube-VOS + DAVIS
+  phase1:
+    epochs: 50
+    lr: 1.0e-3
+    batch_size: 32
+    backbone_lr_mult: 0.1     # Slower backbone learning
+    weight_decay: 1.0e-4
+    scheduler: cosine
+    loss:
+      lambda_mask: 1.0
+      lambda_bbox: 5.0
+      lambda_score: 1.0
+
+  # Phase 2: Fine-tune on YOLO bbox pseudo-masks
+  phase2:
+    epochs: 30
+    lr: 1.0e-4
+    batch_size: 16
+    freeze_backbone_epochs: 10  # Freeze backbone for first N epochs
+    backbone_lr_mult: 0.01
+    data_mix:
+      rocket_ratio: 0.7
+      vos_ratio: 0.3
+
+  # Phase 3: Fine-tune on real mask annotations
+  phase3:
+    epochs: 20
+    lr: 5.0e-5
+    batch_size: 8
+    loss:
+      lambda_mask: 2.0         # Emphasize mask quality
+      lambda_bbox: 5.0
+      lambda_score: 1.0
+
+data:
+  # VOS datasets for pre-training
+  vos_datasets:
+    - name: youtube-vos
+      root: data/youtube-vos/train
+      # Download: https://youtube-vos.org/dataset/vos/
+    - name: DAVIS
+      root: data/DAVIS/trainval
+      # Download: https://davischallenge.org/davis2017/code.html
+
+  # Your existing YOLO rocket data
+  yolo_dataset:
+    images_dir: data/rockets/images/train
+    labels_dir: data/rockets/labels/train
+
+  # Custom mask annotations (after you label them)
+  mask_dataset:
+    root: data/rockets-masks/train
+    # Use CVAT, LabelMe, or SAM-assisted annotation
+
+  augmentation:
+    color_jitter: true
+    horizontal_flip: 0.5
+    random_grayscale: 0.05
+    template_jitter_translate: 0.05
+    template_jitter_scale: 0.1
+    search_jitter_translate: 0.2
+    search_jitter_scale: 0.3
+    negative_ratio: 0.1        # 10% negative pairs
+
+tracker:
+  context_factor: 4.0          # Search region = 4x target size
+  score_threshold: 0.3         # Below this = target lost
+  mask_threshold: 0.5          # Mask binarization
+  position_lr: 0.6             # Position smoothing
+  scale_lr: 0.4                # Scale smoothing
+  velocity_smooth: 0.7         # Velocity EMA factor
+  max_lost_frames: 30          # Give up after this many lost frames
+
+export:
+  fp16: true                   # FP16 quantization (2x speedup on Orin Nano)
+  split_engines: true          # Separate template encoder + tracking engine
+  # Expected performance on Orin Nano FP16:
+  #   Template encoder: ~5ms (one-time)
+  #   Per-frame tracking: ~8-12ms (60fps capable)

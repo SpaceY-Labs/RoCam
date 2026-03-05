@@ -284,9 +284,30 @@ ultralytics/
 # ignore video files
 # *.mp4
 *.pythontex
-*.pth 
+*.pth
 /runs
 *.avi
+
+# ── cv-v2: SiamMask-Lite ──────────────────────────────────────────────────
+# Training datasets (large, download locally via scripts/)
+src/cv-v2/data/DAVIS/
+src/cv-v2/data/youtube-vos/
+src/cv-v2/data/rockets/
+src/cv-v2/data/rockets-masks/
+
+# Trained model checkpoints
+src/cv-v2/checkpoints/
+src/cv-v2/engines/
+
+# TensorRT engines
+*.engine
+
+# Training logs (keep structure, not content)
+src/cv-v2/logs/
+
+# Python cache
+src/cv-v2/**/__pycache__/
+src/cv-v2/**/*.pyc
 
 #ignore temperary latex
 temp.tex
