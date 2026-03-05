@@ -55,6 +55,7 @@ describe('dynamicActivate', () => {
     }))
 
     const { dynamicActivate } = await import('./i18n')
+
     await dynamicActivate('en')
 
     expect(callOrder[0]).toBe('load')

@@ -44,8 +44,6 @@ export default function RecordingsPage() {
         description: getErrorMessage(e),
         color: 'danger',
       })
-      // eslint-disable-next-line no-console
-      console.error('Failed to load recordings:', e)
     } finally {
       setIsLoading(false)
     }
@@ -74,8 +72,6 @@ export default function RecordingsPage() {
         description: getErrorMessage(e),
         color: 'danger',
       })
-      // eslint-disable-next-line no-console
-      console.error('Failed to rename recording:', e)
       throw e
     }
   }
@@ -97,8 +93,6 @@ export default function RecordingsPage() {
         description: getErrorMessage(e),
         color: 'danger',
       })
-      // eslint-disable-next-line no-console
-      console.error('Failed to delete recording:', e)
       throw e
     }
   }

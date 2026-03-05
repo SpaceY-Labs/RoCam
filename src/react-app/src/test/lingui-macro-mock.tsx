@@ -13,6 +13,7 @@ export function useLingui() {
     t: (strings: TemplateStringsArray | string, ...values: unknown[]) => {
       if (typeof strings === 'string') return strings
       if (!strings || !strings.raw) return ''
+
       return strings.reduce(
         (acc, str, i) =>
           acc + str + (values[i] !== undefined ? String(values[i]) : ''),

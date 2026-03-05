@@ -9,6 +9,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen } from '@testing-library/react'
 import React from 'react'
+
 import { renderWithI18n } from '@/test/renderWithProviders'
 
 const mockStatus = {
@@ -39,6 +40,7 @@ vi.mock('@/network/rocamProvider', () => ({
 
 vi.mock('@/store/languageAtom', async (importOriginal) => {
   const orig = await importOriginal<typeof import('@/store/languageAtom')>()
+
   return {
     ...orig,
   }
@@ -46,6 +48,7 @@ vi.mock('@/store/languageAtom', async (importOriginal) => {
 
 vi.mock('jotai', async (importOriginal) => {
   const orig = await importOriginal<typeof import('jotai')>()
+
   return {
     ...orig,
     useAtomValue: vi.fn().mockReturnValue('celsius'),
@@ -56,6 +59,7 @@ describe('SystemStatusCard', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
     const { useRocam } = await import('@/network/rocamProvider')
+
     ;(useRocam as ReturnType<typeof vi.fn>).mockReturnValue({
       status: mockStatus,
       apiClient: null,
@@ -65,52 +69,62 @@ describe('SystemStatusCard', () => {
 
   it('renders without crashing when status is provided', async () => {
     const { SystemStatusCard } = await import('./SystemStatusCard')
+
     renderWithI18n(<SystemStatusCard />)
     expect(document.body).toBeDefined()
   })
 
   it('renders without crashing when status is null', async () => {
     const { useRocam } = await import('@/network/rocamProvider')
+
     ;(useRocam as ReturnType<typeof vi.fn>).mockReturnValue({
       status: null,
       apiClient: null,
       statusPollingError: null,
     })
     const { SystemStatusCard } = await import('./SystemStatusCard')
+
     renderWithI18n(<SystemStatusCard />)
     expect(document.body).toBeDefined()
   })
 
   it('displays CPU utilization', async () => {
     const { SystemStatusCard } = await import('./SystemStatusCard')
+
     renderWithI18n(<SystemStatusCard />)
     expect(screen.getByText(/45/)).toBeDefined()
   })
 
   it('displays FPS', async () => {
     const { SystemStatusCard } = await import('./SystemStatusCard')
+
     renderWithI18n(<SystemStatusCard />)
     expect(screen.getByText('30')).toBeDefined()
   })
 
   it('displays temperature in fahrenheit when unit is fahrenheit', async () => {
     const { useAtomValue } = await import('jotai')
+
     vi.mocked(useAtomValue).mockReturnValue('fahrenheit' as unknown as never)
     const { SystemStatusCard } = await import('./SystemStatusCard')
+
     renderWithI18n(<SystemStatusCard />)
     // 55°C = 131°F
     const content = document.body.textContent ?? ''
+
     expect(content).toContain('°F')
   })
 
   it('displays GPS coordinates when latitude and longitude are set', async () => {
     const { useRocam } = await import('@/network/rocamProvider')
+
     ;(useRocam as ReturnType<typeof vi.fn>).mockReturnValue({
       status: { ...mockStatus, latitude: 48.8566, longitude: 2.3522 },
       apiClient: null,
       statusPollingError: null,
     })
     const { SystemStatusCard } = await import('./SystemStatusCard')
+
     renderWithI18n(<SystemStatusCard />)
     expect(document.body.textContent).toContain('48.856600')
   })

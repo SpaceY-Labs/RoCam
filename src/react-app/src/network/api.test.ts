@@ -8,6 +8,7 @@
  *   - All ApiClient request methods (manualMove, arm/disarm, recording CRUD)
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import { ApiError, ApiClient } from './api'
 
 // ---------------------------------------------------------------------------
@@ -16,16 +17,19 @@ import { ApiError, ApiClient } from './api'
 describe('ApiError', () => {
   it('stores status code', () => {
     const err = new ApiError(404, 'Not Found')
+
     expect(err.status).toBe(404)
   })
 
   it('stores message', () => {
     const err = new ApiError(500, 'Internal Server Error')
+
     expect(err.message).toBe('Internal Server Error')
   })
 
   it('is an instance of Error', () => {
     const err = new ApiError(400, 'Bad Request')
+
     expect(err).toBeInstanceOf(Error)
   })
 })
@@ -62,6 +66,7 @@ describe('ApiClient URL helpers', () => {
 
   it('default baseUrl is empty string', () => {
     const defaultClient = new ApiClient()
+
     expect(defaultClient.getStatusStreamUrl()).toBe('/api/status')
   })
 })
@@ -77,21 +82,25 @@ describe('ApiClient.createAutomatic', () => {
   it('returns client when first URL responds 204', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 204 }))
     const client = await ApiClient.createAutomatic()
+
     expect(client).toBeInstanceOf(ApiClient)
     vi.unstubAllGlobals()
   })
 
   it('falls through to next URL when first fails', async () => {
     let callCount = 0
+
     vi.stubGlobal(
       'fetch',
       vi.fn().mockImplementation(() => {
         callCount++
         if (callCount === 1) throw new Error('connection refused')
+
         return Promise.resolve({ status: 204 })
       })
     )
     const client = await ApiClient.createAutomatic()
+
     expect(client).toBeInstanceOf(ApiClient)
     vi.unstubAllGlobals()
   })
@@ -106,15 +115,18 @@ describe('ApiClient.createAutomatic', () => {
 
   it('skips URL with non-204 status', async () => {
     let callCount = 0
+
     vi.stubGlobal(
       'fetch',
       vi.fn().mockImplementation(() => {
         callCount++
         if (callCount === 1) return Promise.resolve({ status: 200 })
+
         return Promise.resolve({ status: 204 })
       })
     )
     const client = await ApiClient.createAutomatic()
+
     expect(client).toBeInstanceOf(ApiClient)
     vi.unstubAllGlobals()
   })
@@ -151,9 +163,11 @@ describe('ApiClient request methods', () => {
 
   it('manualMove sends POST with direction', async () => {
     const fetchMock = makeFetchOk({})
+
     vi.stubGlobal('fetch', fetchMock)
     await client.manualMove('up')
     const [url, opts] = fetchMock.mock.calls[0]
+
     expect(url).toContain('/api/manual_move')
     expect(opts.method).toBe('POST')
     expect(JSON.parse(opts.body)).toEqual({ direction: 'up' })
@@ -162,45 +176,55 @@ describe('ApiClient request methods', () => {
 
   it('manualMoveTo sends tilt and pan', async () => {
     const fetchMock = makeFetchOk({})
+
     vi.stubGlobal('fetch', fetchMock)
     await client.manualMoveTo(30, -10)
     const [, opts] = fetchMock.mock.calls[0]
+
     expect(JSON.parse(opts.body)).toEqual({ tilt: 30, pan: -10 })
     vi.unstubAllGlobals()
   })
 
   it('arm sends POST to /api/arm', async () => {
     const fetchMock = makeFetchOk({})
+
     vi.stubGlobal('fetch', fetchMock)
     await client.arm()
     const [url] = fetchMock.mock.calls[0]
+
     expect(url).toContain('/api/arm')
     vi.unstubAllGlobals()
   })
 
   it('disarm sends POST to /api/disarm', async () => {
     const fetchMock = makeFetchOk({})
+
     vi.stubGlobal('fetch', fetchMock)
     await client.disarm()
     const [url] = fetchMock.mock.calls[0]
+
     expect(url).toContain('/api/disarm')
     vi.unstubAllGlobals()
   })
 
   it('startRecording sends POST to /api/recordings/start', async () => {
     const fetchMock = makeFetchOk({})
+
     vi.stubGlobal('fetch', fetchMock)
     await client.startRecording()
     const [url] = fetchMock.mock.calls[0]
+
     expect(url).toContain('/api/recordings/start')
     vi.unstubAllGlobals()
   })
 
   it('stopRecording sends POST to /api/recordings/stop', async () => {
     const fetchMock = makeFetchOk({})
+
     vi.stubGlobal('fetch', fetchMock)
     await client.stopRecording()
     const [url] = fetchMock.mock.calls[0]
+
     expect(url).toContain('/api/recordings/stop')
     vi.unstubAllGlobals()
   })
@@ -216,17 +240,21 @@ describe('ApiClient request methods', () => {
       },
     ]
     const fetchMock = makeFetchOk({ recordings })
+
     vi.stubGlobal('fetch', fetchMock)
     const result = await client.listRecordings()
+
     expect(result.recordings).toEqual(recordings)
     vi.unstubAllGlobals()
   })
 
   it('renameRecording sends PATCH with new_name', async () => {
     const fetchMock = makeFetchOk({})
+
     vi.stubGlobal('fetch', fetchMock)
     await client.renameRecording('rec1', 'New Name')
     const [url, opts] = fetchMock.mock.calls[0]
+
     expect(url).toContain('/api/recordings/rec1')
     expect(opts.method).toBe('PATCH')
     expect(JSON.parse(opts.body)).toEqual({ new_name: 'New Name' })
@@ -235,9 +263,11 @@ describe('ApiClient request methods', () => {
 
   it('deleteRecording sends DELETE', async () => {
     const fetchMock = makeFetchOk({})
+
     vi.stubGlobal('fetch', fetchMock)
     await client.deleteRecording('rec1')
     const [url, opts] = fetchMock.mock.calls[0]
+
     expect(url).toContain('/api/recordings/rec1')
     expect(opts.method).toBe('DELETE')
     vi.unstubAllGlobals()
@@ -245,6 +275,7 @@ describe('ApiClient request methods', () => {
 
   it('throws ApiError on non-ok response', async () => {
     const fetchMock = makeFetchError(404)
+
     vi.stubGlobal('fetch', fetchMock)
     await expect(client.arm()).rejects.toBeInstanceOf(ApiError)
     vi.unstubAllGlobals()
@@ -252,6 +283,7 @@ describe('ApiClient request methods', () => {
 
   it('ApiError status matches response status', async () => {
     const fetchMock = makeFetchError(403)
+
     vi.stubGlobal('fetch', fetchMock)
     try {
       await client.arm()
@@ -264,6 +296,7 @@ describe('ApiClient request methods', () => {
   it('uses statusText when response body has no error field', async () => {
     // data.error is undefined → falls through to response.statusText
     const fetchMock = makeFetchError(500, {})
+
     vi.stubGlobal('fetch', fetchMock)
     try {
       await client.arm()

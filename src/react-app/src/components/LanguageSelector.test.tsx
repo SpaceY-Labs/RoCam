@@ -14,6 +14,7 @@ let mockLanguage = 'en'
 
 vi.mock('jotai', async (importOriginal) => {
   const actual = await importOriginal<typeof import('jotai')>()
+
   return {
     ...actual,
     useAtom: vi.fn(() => [mockLanguage, mockSetLanguage]),
@@ -122,7 +123,8 @@ describe('LanguageSelector', () => {
 
   it('does not call setLanguage when no key is selected', () => {
     // Simulate onSelectionChange with empty Set
-    const { container } = renderSelector()
+    renderSelector()
+
     // The DropdownMenu stub won't fire with empty key; just verify no spurious call
     expect(mockSetLanguage).not.toHaveBeenCalled()
   })

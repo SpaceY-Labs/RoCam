@@ -6,7 +6,7 @@
  */
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { I18nProvider } from '@lingui/react'
 import { i18n } from '@lingui/core'
 
@@ -18,46 +18,56 @@ const mockSetLanguage = vi.fn()
 const mockSetTemperatureUnit = vi.fn()
 const mockSetInvertDrag = vi.fn()
 const mockSetDragSensitivity = vi.fn()
+const mockSetShowLogs = vi.fn()
 
 let mockLanguage = 'en'
 let mockTemperatureUnit = 'celsius'
 let mockInvertDrag = false
 let mockDragSensitivity = 0.15
+let mockShowLogs = false
 
-vi.mock('jotai', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('jotai')>()
+// Mock the settingsAtom module directly
+vi.mock('@/store/settingsAtom', () => ({
+  languageAtom: { toString: () => 'languageAtom' },
+  temperatureUnitAtom: { toString: () => 'temperatureUnitAtom' },
+  invertDragAtom: { toString: () => 'invertDragAtom' },
+  dragSensitivityAtom: { toString: () => 'dragSensitivityAtom' },
+  showLogsAtom: { toString: () => 'showLogsAtom' },
+}))
+
+// Mock jotai's useAtom to return appropriate mock values
+vi.mock('jotai', async () => {
+  const actual = await vi.importActual('jotai')
+
   return {
     ...actual,
-    useAtom: vi.fn((atom: unknown) => {
-      // Return appropriate state based on which atom is being accessed
-      // We identify atoms by the order they are called inside the component
-      const call =
-        (vi.mocked(actual.useAtom) as ReturnType<typeof vi.fn>).mock.calls
-          .length ?? 0
-      // Since we can't easily identify atoms by reference, use a call-count approach
-      return [mockLanguage, mockSetLanguage]
-    }),
-  }
-})
+    useAtom: vi.fn((atom: { toString?: () => string }) => {
+      const atomId = atom.toString?.() || ''
 
-// We need a smarter mock for multiple useAtom calls
-// Reset and use a sequential approach
-vi.mock('jotai', async () => {
-  let callIndex = 0
-  const atomResults = [
-    () => [mockLanguage, mockSetLanguage],
-    () => [mockTemperatureUnit, mockSetTemperatureUnit],
-    () => [mockInvertDrag, mockSetInvertDrag],
-    () => [mockDragSensitivity, mockSetDragSensitivity],
-  ]
-  return {
-    useAtom: vi.fn(() => {
-      const result = atomResults[callIndex % atomResults.length]()
-      callIndex++
-      return result
+      if (atomId.includes('languageAtom'))
+        return [mockLanguage, mockSetLanguage]
+      if (atomId.includes('temperatureUnitAtom'))
+        return [mockTemperatureUnit, mockSetTemperatureUnit]
+      if (atomId.includes('invertDragAtom'))
+        return [mockInvertDrag, mockSetInvertDrag]
+      if (atomId.includes('dragSensitivityAtom'))
+        return [mockDragSensitivity, mockSetDragSensitivity]
+      if (atomId.includes('showLogsAtom'))
+        return [mockShowLogs, mockSetShowLogs]
+
+      return [null, vi.fn()]
     }),
-    useAtomValue: vi.fn(() => 'en'),
-    // Jotai Provider noop
+    useAtomValue: vi.fn((atom: { toString?: () => string }) => {
+      const atomId = atom.toString?.() || ''
+
+      if (atomId.includes('languageAtom')) return mockLanguage
+      if (atomId.includes('temperatureUnitAtom')) return mockTemperatureUnit
+      if (atomId.includes('invertDragAtom')) return mockInvertDrag
+      if (atomId.includes('dragSensitivityAtom')) return mockDragSensitivity
+      if (atomId.includes('showLogsAtom')) return mockShowLogs
+
+      return null
+    }),
     Provider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   }
 })
@@ -80,6 +90,7 @@ vi.mock('@heroui/dropdown', () => ({
     onAction?: (key: React.Key) => void
   }) => {
     onActionHandler = onAction
+
     return <ul data-testid="dropdown-menu">{children}</ul>
   },
   DropdownItem: ({
@@ -113,15 +124,14 @@ vi.mock('@heroui/slider', () => ({
   Slider: ({
     onChange,
     value,
-    label,
     'aria-label': ariaLabel,
   }: {
     onChange?: (v: number | number[]) => void
     value?: number
-    label?: React.ReactNode
     'aria-label'?: string
   }) => {
     onSliderChange = onChange
+
     return (
       <input
         aria-label={ariaLabel}
@@ -153,12 +163,14 @@ describe('ConfigurationMenu', () => {
     mockTemperatureUnit = 'celsius'
     mockInvertDrag = false
     mockDragSensitivity = 0.15
+    mockShowLogs = false
     onActionHandler = undefined
     onSliderChange = undefined
     mockSetLanguage.mockReset()
     mockSetTemperatureUnit.mockReset()
     mockSetInvertDrag.mockReset()
     mockSetDragSensitivity.mockReset()
+    mockSetShowLogs.mockReset()
   })
 
   it('renders the configuration button', () => {

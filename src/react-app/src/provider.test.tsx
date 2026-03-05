@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 
 // Mock dynamicActivate to resolve immediately
 const mockDynamicActivate = vi.fn().mockResolvedValue(undefined)
+
 vi.mock('./i18n', () => ({
   dynamicActivate: (...args: unknown[]) => mockDynamicActivate(...args),
 }))
@@ -33,6 +34,7 @@ vi.mock('@lingui/react', () => ({
 // Mock jotai to avoid localStorage/AggregateError issues from atomWithStorage
 vi.mock('jotai', async (importOriginal) => {
   const actual = await importOriginal<typeof import('jotai')>()
+
   return {
     ...actual,
     // Noop Provider that just renders children
@@ -93,6 +95,7 @@ describe('Provider', () => {
 
   it('returns null while i18n is loading (before promise resolves)', async () => {
     let resolveActivate!: () => void
+
     mockDynamicActivate.mockReturnValue(
       new Promise<void>((r) => {
         resolveActivate = r

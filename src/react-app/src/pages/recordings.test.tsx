@@ -11,6 +11,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, waitFor, fireEvent } from '@testing-library/react'
 import React from 'react'
 import { MemoryRouter } from 'react-router-dom'
+
 import { renderWithI18n } from '@/test/renderWithProviders'
 
 const mockApiClient = {
@@ -36,12 +37,14 @@ vi.mock('@/layouts/default', () => ({
 
 async function renderRecordingsPage() {
   const { useRocam } = await import('@/network/rocamProvider')
+
   ;(useRocam as ReturnType<typeof vi.fn>).mockReturnValue({
     apiClient: mockApiClient,
     status: null,
     statusPollingError: null,
   })
   const { default: RecordingsPage } = await import('./recordings')
+
   return renderWithI18n(
     <MemoryRouter>
       <RecordingsPage />
@@ -99,12 +102,14 @@ describe('RecordingsPage', () => {
 
   it('renders without crashing when apiClient is null', async () => {
     const { useRocam } = await import('@/network/rocamProvider')
+
     ;(useRocam as ReturnType<typeof vi.fn>).mockReturnValue({
       apiClient: null,
       status: null,
       statusPollingError: null,
     })
     const { default: RecordingsPage } = await import('./recordings')
+
     renderWithI18n(
       <MemoryRouter>
         <RecordingsPage />
@@ -118,6 +123,7 @@ describe('RecordingsPage', () => {
       recordings: [sampleRecording],
     })
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+
     await renderRecordingsPage()
 
     await waitFor(
@@ -130,6 +136,7 @@ describe('RecordingsPage', () => {
     const deleteBtn = screen
       .queryAllByRole('button')
       .find((b) => b.textContent?.includes('Delete'))
+
     if (deleteBtn) {
       fireEvent.click(deleteBtn)
       await waitFor(() => {
@@ -144,6 +151,7 @@ describe('RecordingsPage', () => {
       recordings: [sampleRecording],
     })
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+
     await renderRecordingsPage()
 
     await waitFor(
@@ -156,6 +164,7 @@ describe('RecordingsPage', () => {
     const deleteBtn = screen
       .queryAllByRole('button')
       .find((b) => b.textContent?.includes('Delete'))
+
     if (deleteBtn) {
       fireEvent.click(deleteBtn)
       await waitFor(() => {
@@ -182,6 +191,7 @@ describe('RecordingsPage', () => {
     )
 
     const input = screen.getByDisplayValue('Test Recording')
+
     if (input) {
       fireEvent.change(input, { target: { value: 'New Name' } })
       fireEvent.blur(input)
@@ -208,6 +218,7 @@ describe('RecordingsPage', () => {
     )
 
     const input = screen.getByDisplayValue('Test Recording')
+
     if (input) {
       fireEvent.blur(input) // blur without changing
       expect(mockApiClient.renameRecording).not.toHaveBeenCalled()
@@ -228,6 +239,7 @@ describe('RecordingsPage', () => {
     )
 
     const input = screen.getByDisplayValue('Test Recording')
+
     if (input) {
       fireEvent.change(input, { target: { value: 'Draft Name' } })
       fireEvent.keyDown(input, { key: 'Escape' })
@@ -252,6 +264,7 @@ describe('RecordingsPage', () => {
     const previewBtn = screen
       .queryAllByRole('button')
       .find((b) => b.textContent?.includes('Preview'))
+
     if (previewBtn) {
       fireEvent.click(previewBtn)
     }
@@ -282,6 +295,7 @@ describe('PreviewModal video handlers', () => {
     const previewBtn = screen
       .queryAllByRole('button')
       .find((b) => b.textContent?.includes('Preview'))
+
     if (previewBtn) {
       fireEvent.click(previewBtn)
       // Wait for modal to potentially open
@@ -289,6 +303,7 @@ describe('PreviewModal video handlers', () => {
 
       // Fire video events on any video element
       const video = document.querySelector('video')
+
       if (video) {
         // Mock currentTime getter
         Object.defineProperty(video, 'currentTime', {

@@ -19,6 +19,7 @@ vi.mock('@/pages/recordings', () => ({
 // Lazy import App after mocks are set
 async function renderApp(initialPath = '/') {
   const { default: App } = await import('./App')
+
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
       <App />

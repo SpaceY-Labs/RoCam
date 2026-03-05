@@ -30,8 +30,10 @@ export function formatTemperature(
 ): string {
   if (unit === 'fahrenheit') {
     const fahrenheit = (celsius * 9) / 5 + 32
+
     return `${Math.round(fahrenheit * 10) / 10}°F`
   }
+
   return `${Math.round(celsius * 10) / 10}°C`
 }
 
@@ -56,6 +58,7 @@ export function formatDuration(durationMs: number): string {
   const totalSeconds = Math.max(0, Math.floor(durationMs / 1000))
   const hours = Math.floor(totalSeconds / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
+
   return `${hours}h ${minutes}m`
 }
 
@@ -77,6 +80,7 @@ export function formatServerTime(timestampMs: number): string {
 /** Formats a date for display in a Recording list item. */
 export function formatDate(timestampMs: number | null): string {
   if (timestampMs === null) return '—'
+
   return new Date(timestampMs).toLocaleString()
 }
 
@@ -87,5 +91,6 @@ export function formatRecordingDuration(durationMs: number | null): string {
   const h = Math.floor(totalSeconds / 3600)
   const m = Math.floor((totalSeconds % 3600) / 60)
   const s = totalSeconds % 60
+
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }

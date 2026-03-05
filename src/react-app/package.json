@@ -12,7 +12,8 @@
     "lingui:compile": "lingui compile",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@heroui/button": "2.2.27",

@@ -227,6 +227,7 @@ describe('formatDate', () => {
 
   it('returns a non-empty string for valid timestamp', () => {
     const result = formatDate(1_700_000_000_000)
+
     expect(typeof result).toBe('string')
     expect(result.length).toBeGreaterThan(0)
     expect(result).not.toBe('—')
@@ -261,12 +262,14 @@ describe('formatRecordingDuration', () => {
 describe('formatServerTime', () => {
   it('returns a non-empty string for valid timestamp', () => {
     const result = formatServerTime(1_700_000_000_000)
+
     expect(typeof result).toBe('string')
     expect(result.length).toBeGreaterThan(0)
   })
 
   it('formats epoch 0 without throwing', () => {
     const result = formatServerTime(0)
+
     expect(typeof result).toBe('string')
   })
 })

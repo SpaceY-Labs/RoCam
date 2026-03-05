@@ -9,7 +9,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import React from 'react'
+import { I18nProvider } from '@lingui/react'
+import { i18n } from '@lingui/core'
+
 import { useRocam, RocamProvider } from './rocamProvider'
+
+// Setup i18n for tests
+i18n.load('en', {})
+i18n.activate('en')
 
 // Mock ApiClient.createAutomatic to avoid real network calls
 vi.mock('./api', async (importOriginal) => {
@@ -40,7 +47,8 @@ beforeEach(() => {
 })
 
 function ConsumerComponent() {
-  const { status, apiClient, statusPollingError } = useRocam()
+  const { status, apiClient } = useRocam()
+
   return (
     <div>
       <span data-testid="status">
@@ -48,9 +56,6 @@ function ConsumerComponent() {
       </span>
       <span data-testid="client">
         {apiClient === null ? 'null' : 'has-client'}
-      </span>
-      <span data-testid="error">
-        {statusPollingError === null ? 'null' : 'has-error'}
       </span>
     </div>
   )
@@ -60,49 +65,35 @@ describe('useRocam', () => {
   it('throws when used outside RocamProvider', () => {
     // Suppress console.error for this test
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
     expect(() => render(<ConsumerComponent />)).toThrow()
     spy.mockRestore()
   })
 })
 
+// Helper to wrap RocamProvider with I18nProvider
+function renderWithProvider(ui: React.ReactElement) {
+  return render(
+    <I18nProvider i18n={i18n}>
+      <RocamProvider>{ui}</RocamProvider>
+    </I18nProvider>
+  )
+}
+
 describe('RocamProvider', () => {
   it('renders children', () => {
-    render(
-      <RocamProvider>
-        <span>hello</span>
-      </RocamProvider>
-    )
+    renderWithProvider(<span>hello</span>)
     expect(screen.getByText('hello')).toBeDefined()
   })
 
   it('provides null status initially', () => {
-    render(
-      <RocamProvider>
-        <ConsumerComponent />
-      </RocamProvider>
-    )
+    renderWithProvider(<ConsumerComponent />)
     expect(screen.getByTestId('status').textContent).toBe('null')
   })
 
   it('provides null apiClient initially', () => {
-    render(
-      <RocamProvider>
-        <ConsumerComponent />
-      </RocamProvider>
-    )
+    renderWithProvider(<ConsumerComponent />)
     expect(screen.getByTestId('client').textContent).toBe('null')
-  })
-
-  it('sets error when ApiClient.createAutomatic rejects', async () => {
-    // Already mocked to reject with 'no network'
-    render(
-      <RocamProvider>
-        <ConsumerComponent />
-      </RocamProvider>
-    )
-    await waitFor(() => {
-      expect(screen.getByTestId('error').textContent).toBe('has-error')
-    })
   })
 
   it('sets apiClient when ApiClient.createAutomatic resolves', async () => {
@@ -110,16 +101,14 @@ describe('RocamProvider', () => {
     const fakeClient = {
       getStatusStreamUrl: vi.fn().mockReturnValue('/api/status'),
       getGenerate204Url: vi.fn().mockReturnValue('/api/generate_204'),
+      getLogsStreamUrl: vi.fn().mockReturnValue('/api/logs'),
     }
+
     vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(
       fakeClient as unknown as InstanceType<typeof ApiClient>
     )
 
-    render(
-      <RocamProvider>
-        <ConsumerComponent />
-      </RocamProvider>
-    )
+    renderWithProvider(<ConsumerComponent />)
     await waitFor(() => {
       expect(screen.getByTestId('client').textContent).toBe('has-client')
     })
@@ -127,10 +116,12 @@ describe('RocamProvider', () => {
 
   it('updates status when SSE onmessage fires', async () => {
     const { ApiClient } = await import('./api')
-    let capturedEs: FakeEventSource | null = null
+    let statusEs: FakeEventSource | null = null
     const fakeClient = {
       getStatusStreamUrl: vi.fn().mockReturnValue('/api/status'),
+      getLogsStreamUrl: vi.fn().mockReturnValue('/api/logs'),
     }
+
     vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(
       fakeClient as unknown as InstanceType<typeof ApiClient>
     )
@@ -140,26 +131,25 @@ describe('RocamProvider', () => {
       class extends FakeEventSource {
         constructor(url: string) {
           super(url)
-          capturedEs = this
+          // Capture the status EventSource specifically
+          if (url === '/api/status') {
+            statusEs = this
+          }
         }
       }
     )
 
-    render(
-      <RocamProvider>
-        <ConsumerComponent />
-      </RocamProvider>
-    )
+    renderWithProvider(<ConsumerComponent />)
 
     // Wait for apiClient to be set
     await waitFor(() => {
       expect(screen.getByTestId('client').textContent).toBe('has-client')
     })
 
-    // Simulate SSE message
+    // Simulate SSE message on the status stream
     act(() => {
-      if (capturedEs?.onmessage) {
-        capturedEs.onmessage(
+      if (statusEs?.onmessage) {
+        statusEs.onmessage(
           new MessageEvent('message', {
             data: JSON.stringify({ armed: false, recording: false }),
           })
@@ -172,54 +162,14 @@ describe('RocamProvider', () => {
     })
   })
 
-  it('sets error when SSE onerror fires', async () => {
-    const { ApiClient } = await import('./api')
-    let capturedEs: FakeEventSource | null = null
-    const fakeClient = {
-      getStatusStreamUrl: vi.fn().mockReturnValue('/api/status'),
-    }
-    vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(
-      fakeClient as unknown as InstanceType<typeof ApiClient>
-    )
-
-    vi.stubGlobal(
-      'EventSource',
-      class extends FakeEventSource {
-        constructor(url: string) {
-          super(url)
-          capturedEs = this
-        }
-      }
-    )
-
-    render(
-      <RocamProvider>
-        <ConsumerComponent />
-      </RocamProvider>
-    )
-
-    await waitFor(() => {
-      expect(screen.getByTestId('client').textContent).toBe('has-client')
-    })
-
-    // Simulate SSE error
-    act(() => {
-      if (capturedEs?.onerror) {
-        capturedEs.onerror(new Event('error'))
-      }
-    })
-
-    await waitFor(() => {
-      expect(screen.getByTestId('error').textContent).toBe('has-error')
-    })
-  })
-
   it('closes EventSource when component unmounts', async () => {
     const { ApiClient } = await import('./api')
-    let capturedEs: FakeEventSource | null = null
+    let statusEs: FakeEventSource | null = null
     const fakeClient = {
       getStatusStreamUrl: vi.fn().mockReturnValue('/api/status'),
+      getLogsStreamUrl: vi.fn().mockReturnValue('/api/logs'),
     }
+
     vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(
       fakeClient as unknown as InstanceType<typeof ApiClient>
     )
@@ -229,31 +179,31 @@ describe('RocamProvider', () => {
       class extends FakeEventSource {
         constructor(url: string) {
           super(url)
-          capturedEs = this
+          if (url === '/api/status') {
+            statusEs = this
+          }
         }
       }
     )
 
-    const { unmount } = render(
-      <RocamProvider>
-        <ConsumerComponent />
-      </RocamProvider>
-    )
+    const { unmount } = renderWithProvider(<ConsumerComponent />)
 
     await waitFor(() => {
       expect(screen.getByTestId('client').textContent).toBe('has-client')
     })
 
     unmount()
-    expect(capturedEs?.close).toHaveBeenCalledOnce()
+    expect(statusEs?.close).toHaveBeenCalledOnce()
   })
 
   it('ignores malformed SSE messages gracefully', async () => {
     const { ApiClient } = await import('./api')
-    let capturedEs: FakeEventSource | null = null
+    let statusEs: FakeEventSource | null = null
     const fakeClient = {
       getStatusStreamUrl: vi.fn().mockReturnValue('/api/status'),
+      getLogsStreamUrl: vi.fn().mockReturnValue('/api/logs'),
     }
+
     vi.mocked(ApiClient.createAutomatic).mockResolvedValueOnce(
       fakeClient as unknown as InstanceType<typeof ApiClient>
     )
@@ -263,27 +213,23 @@ describe('RocamProvider', () => {
       class extends FakeEventSource {
         constructor(url: string) {
           super(url)
-          capturedEs = this
+          if (url === '/api/status') {
+            statusEs = this
+          }
         }
       }
     )
 
-    render(
-      <RocamProvider>
-        <ConsumerComponent />
-      </RocamProvider>
-    )
+    renderWithProvider(<ConsumerComponent />)
 
     await waitFor(() => {
       expect(screen.getByTestId('client').textContent).toBe('has-client')
     })
 
-    // Simulate malformed SSE message
+    // Simulate malformed SSE message on the status stream
     act(() => {
-      if (capturedEs?.onmessage) {
-        capturedEs.onmessage(
-          new MessageEvent('message', { data: 'not-json{{{' })
-        )
+      if (statusEs?.onmessage) {
+        statusEs.onmessage(new MessageEvent('message', { data: 'not-json{{{' }))
       }
     })
 

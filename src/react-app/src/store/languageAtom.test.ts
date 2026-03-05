@@ -1,16 +1,17 @@
 /**
- * Unit tests for src/store/languageAtom.ts
+ * Unit tests for src/store/settingsAtom.ts
  *
  * Tests that atoms are created with correct default values
  * and that their keys are correctly configured.
  */
 import { describe, it, expect } from 'vitest'
+
 import {
   languageAtom,
   temperatureUnitAtom,
   invertDragAtom,
   dragSensitivityAtom,
-} from './languageAtom'
+} from './settingsAtom'
 
 describe('languageAtom', () => {
   it('is defined', () => {
@@ -44,11 +45,13 @@ describe('dragSensitivityAtom', () => {
 describe('Type guards', () => {
   it('Language type accepts valid values', () => {
     const langs: Array<'en' | 'fr'> = ['en', 'fr']
+
     expect(langs).toHaveLength(2)
   })
 
   it('TemperatureUnit type accepts valid values', () => {
     const units: Array<'celsius' | 'fahrenheit'> = ['celsius', 'fahrenheit']
+
     expect(units).toHaveLength(2)
   })
 })
