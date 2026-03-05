@@ -7,11 +7,7 @@ import {
 import { link as linkStyles } from '@heroui/theme'
 import clsx from 'clsx'
 import { Button } from '@heroui/button'
-import {
-  IconCancel,
-  IconMaximize,
-  IconMaximizeOff,
-} from '@tabler/icons-react'
+import { IconCancel, IconMaximize, IconMaximizeOff } from '@tabler/icons-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import { ConfigurationMenu } from './ConfigurationMenu'

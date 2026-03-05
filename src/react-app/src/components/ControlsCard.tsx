@@ -70,7 +70,9 @@ export function ControlsCard() {
       }
     } catch (error) {
       addToast({
-        title: isRecording ? t`Failed to stop recording` : t`Failed to start recording`,
+        title: isRecording
+          ? t`Failed to stop recording`
+          : t`Failed to start recording`,
         description: getErrorMessage(error),
         color: 'danger',
       })
