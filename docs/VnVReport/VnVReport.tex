@@ -17,6 +17,11 @@
 \input{../Comments}
 \input{../Common}
 
+% Links to project documents (relative to docs/VnVReport/)
+\newcommand{\SRS}{\href{../SRS/SRS.pdf}{SRS}}
+\newcommand{\VnVPlan}{\href{../VnVPlan/VnVPlan.pdf}{VnV Plan}}
+
+
 \begin{document}
 
 \title{Verification and Validation Report: \progname}
@@ -32,7 +37,7 @@
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
   \toprule {\bf Date} & {\bf Version} & {\bf Notes} \\
   \midrule
-  Date 1              & 1.0           & Notes       \\
+  2026-03-04             & 1.0           & Add       \\
   Date 2              & 1.1           & Notes       \\
   \bottomrule
 \end{tabularx}
@@ -67,6 +72,101 @@
 This document ...
 
 \section{Functional Requirements Evaluation}
+\label{sec:fr_eval}
+
+This section reports the verification evidence for \textbf{functional requirements}
+defined in the \SRS{}. Test procedures and test case definitions are specified in
+the \VnVPlan{}; to avoid unnecessary repetition, this report focuses on
+\textbf{execution status}, \textbf{results}, and \textbf{evidence}.
+
+\subsection{Scope and Execution Policy}
+\label{sec:fr_scope}
+
+As stated in the latest \VnVPlan{} (Revision 5.0), the only testing executed for
+this project is \textbf{unit testing} and a \textbf{stakeholder review}
+(McMaster Rocketry Team). Integration/system/field tests are documented in the
+plan for traceability but are \textbf{not executed} due to resource and contact
+constraints.
+
+\subsection{Summary of Planned Functional Tests vs Execution}
+\label{sec:fr_summary_table}
+
+Table~\ref{tab:fr_exec_summary} maps the planned functional test IDs (from the
+\VnVPlan{}) to (1) their related SRS functional requirements and (2) the actual
+execution status in this project. Where tests are executed, evidence is linked
+in the final column.
+
+\begin{table}[H]
+  \centering
+  \caption{Functional Test Execution Summary (traceable to \VnVPlan{})}
+  \label{tab:fr_exec_summary}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabularx}{\textwidth}{p{3.4cm} p{3.2cm} p{3.0cm} X}
+    \toprule
+    \textbf{Test ID (VnVPlan)} & \textbf{FR(s) (SRS)} & \textbf{Execution} & \textbf{Evidence / Notes} \\
+    \midrule
+
+    test-aquire-frame & FR-1 & Not executed & Out of scope (system test). \\
+    test-disconnect-camera & FR-1 & Not executed & Out of scope (system test). \\
+    test-hdmi-output & FR-8, FR-9 & Not executed & Out of scope (system test). \\
+    test-preview-real-time & FR-10 & Not executed & Out of scope (system test). \\
+    test-network-disconnect & FR-10 & Not executed & Out of scope (system test). \\
+
+    test-recording & FR-11 & Not executed & Out of scope (system test). \\
+    test-disk-full & FR-11 & Not executed & Out of scope (system test). \\
+    test-manage-recordings & FR-12 & Not executed & Out of scope (system test). \\
+
+    test-manual-control & FR-2, FR-6 & Not executed & Out of scope (system test). \\
+    test-transition-to-tracking & FR-3, FR-4 & Not executed & Out of scope (system test). \\
+    test-tracking & FR-2, FR-3, FR-7 & Not executed & Out of scope (system test). \\
+    test-return-to-idle & FR-5 & Not executed & Out of scope (system test). \\
+    test-exit-gimbal-range & FR-2, FR-7 & Not executed & Out of scope (system test). \\
+
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\noindent
+\textbf{Note:} Functional requirements are primarily verified through unit tests
+in this project. The unit-level test suite (names, coverage, and results) is
+reported in Section~\ref{sec:unit_testing} and traced back to requirements in
+Section~\ref{sec:trace_reqs}. The above table is retained to preserve
+traceability to the \VnVPlan{} test IDs even when those tests are not executed.
+
+\subsection{Unit-Test Evidence for Functional Requirements}
+\label{sec:fr_unit_evidence}
+
+Because system-level FR tests were not executed, FR verification relies on unit
+tests that validate the underlying behavior (e.g., state transitions, command
+validation, recording pipeline logic, UI action handlers). Evidence is presented
+in two parts:
+
+\begin{enumerate}
+  \item \textbf{Requirement-to-test mapping:} Section~\ref{sec:trace_reqs} lists
+  which unit tests support each FR.
+  \item \textbf{Execution results:} Section~\ref{sec:unit_testing} reports
+  pass/fail status and, where applicable, links to CI logs or local test output.
+\end{enumerate}
+
+\subsubsection{Evidence Format and Reproducibility}
+For each functional requirement verified by unit testing, the report records:
+\begin{itemize}
+  \item The FR identifier(s) from the \SRS{}.
+  \item The unit test file(s) / test case names (self-descriptive naming).
+  \item The execution outcome (pass/fail) for the final submission revision.
+  \item A pointer to evidence (CI job log, screenshot, or attached test report).
+\end{itemize}
+
+\subsection{Stakeholder Validation Touchpoint}
+\label{sec:fr_stakeholder_touchpoint}
+
+Stakeholder validation is performed via a review session with the McMaster
+Rocketry Team as defined in the \VnVPlan{}. The outcomes of this review (action
+items, approvals, and required changes) are summarized in
+Section~\ref{sec:changes_due_testing}. Any requested changes are tracked as
+GitHub Issues and linked there to maintain traceability.
+
+
 
 \section{Nonfunctional Requirements Evaluation}
 
