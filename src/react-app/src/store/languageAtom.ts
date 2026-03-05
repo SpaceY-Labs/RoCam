@@ -10,3 +10,10 @@ export const temperatureUnitAtom = atomWithStorage<TemperatureUnit>(
   'app-temperature-unit',
   'celsius'
 )
+
+// Camera drag control preferences
+export const invertDragAtom = atomWithStorage<boolean>('app-invert-drag', false)
+export const dragSensitivityAtom = atomWithStorage<number>(
+  'app-drag-sensitivity',
+  0.15
+)
