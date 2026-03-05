@@ -1,8 +1,25 @@
-# Automated tests
+# Unit Tests
 
-The folders and files for this folder are as follows:
+## Prerequisites
 
-Describe ...
+Build the shared package first (required for backend tests):
+
+```bash
+cd src/labelling-app/shared
+npm run build
+```
+
+## Running Tests
+
+```bash
+# Backend
+cd src/labelling-app/backend
+npx vitest run --coverage
+
+# Shared
+cd src/labelling-app/shared
+npx vitest run --coverage
+```
 
 ## Labelling API Contract Check
 
