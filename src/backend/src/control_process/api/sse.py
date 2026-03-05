@@ -118,12 +118,23 @@ class _LogsSSEHandler(logging.Handler):
 
 def register_logs_sse(app) -> None:
     """Register GET /api/logs (SSE) endpoint."""
-    announcer = _MessageAnnouncer(queue_size=200)
-    handler = _LogsSSEHandler(announcer)
-    handler.setLevel(logging.INFO)
-    handler.setFormatter(logging.Formatter("%(message)s"))
-    logging.getLogger().addHandler(handler)
+    root_logger = logging.getLogger()
 
+    # Reuse existing Logs SSE handler if already registered on the root logger
+    announcer = None
+    for existing_handler in root_logger.handlers:
+        if isinstance(existing_handler, _LogsSSEHandler):
+            announcer = existing_handler._announcer  # reuse existing announcer
+            break
+
+    # If no existing handler was found, create and register a new one
+    if announcer is None:
+        announcer = _MessageAnnouncer(queue_size=200)
+        handler = _LogsSSEHandler(announcer)
+        handler.setLevel(logging.INFO)
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        root_logger.addHandler(handler)
+    
     @app.get("/api/logs")
     def logs_stream():
         def stream():

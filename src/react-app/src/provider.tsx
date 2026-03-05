@@ -29,6 +29,7 @@ function I18nLoader({ children }: { children: React.ReactNode }) {
   }, [language])
 
   if (!ready) return null
+
   return <I18nProvider i18n={i18n}>{children}</I18nProvider>
 }
 
@@ -41,7 +42,7 @@ export function Provider({ children }: { children: React.ReactNode }) {
         <HeroUIProvider navigate={navigate} useHref={useHref}>
           <RocamProvider>
             {children}
-            <ToastProvider placement="bottom-right" maxVisibleToasts={3} />
+            <ToastProvider maxVisibleToasts={3} placement="bottom-right" />
           </RocamProvider>
         </HeroUIProvider>
       </I18nLoader>
