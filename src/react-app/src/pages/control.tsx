@@ -57,12 +57,12 @@ export default function ControlPage() {
     if (lastStatusPollingErrorToastRef.current === message) return
 
     addToast({
-      title: 'Failed to poll status',
+      title: t`Failed to poll status`,
       description: message,
       color: 'danger',
     })
     lastStatusPollingErrorToastRef.current = message
-  }, [statusPollingError])
+  }, [statusPollingError, t])
 
   const bbox = status?.bbox
   const isArmed = !!status?.armed

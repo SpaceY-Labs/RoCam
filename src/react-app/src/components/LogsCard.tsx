@@ -42,11 +42,11 @@ export function LogsCard() {
       })
     }
     es.onerror = () => {
-      const message = 'Logs stream connection error'
+      const message = t`Logs stream connection error`
 
       if (lastStreamErrorToastRef.current === message) return
       addToast({
-        title: 'Failed to stream logs',
+        title: t`Failed to stream logs`,
         description: message,
         color: 'danger',
       })

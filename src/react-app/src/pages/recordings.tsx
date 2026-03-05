@@ -44,7 +44,7 @@ export default function RecordingsPage() {
 
       if (lastLoadErrorToastRef.current !== message) {
         addToast({
-          title: 'Failed to load recordings',
+          title: t`Failed to load recordings`,
           description: message,
           color: 'danger',
         })
@@ -76,7 +76,7 @@ export default function RecordingsPage() {
       }
     } catch (e) {
       addToast({
-        title: 'Failed to rename recording',
+        title: t`Failed to rename recording`,
         description: getErrorMessage(e),
         color: 'danger',
       })
@@ -94,12 +94,12 @@ export default function RecordingsPage() {
       await apiClient.deleteRecording(r.id)
       setRecordings((cur) => cur.filter((x) => x.id !== r.id))
       addToast({
-        title: 'Recording deleted',
+        title: t`Recording deleted`,
         color: 'success',
       })
     } catch (e) {
       addToast({
-        title: 'Failed to delete recording',
+        title: t`Failed to delete recording`,
         description: getErrorMessage(e),
         color: 'danger',
       })
@@ -295,6 +295,7 @@ interface PreviewModalProps {
 }
 
 function PreviewModal({ recording, onClose }: PreviewModalProps) {
+  const { t } = useLingui()
   const { apiClient } = useRocam()
   const videoRef = useRef<HTMLVideoElement>(null)
   const lastPreviewErrorToastRef = useRef<string | null>(null)
@@ -339,7 +340,7 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
 
     if (lastPreviewErrorToastRef.current === message) return
     addToast({
-      title: 'Failed to play preview',
+      title: t`Failed to play preview`,
       description: message,
       color: 'danger',
     })

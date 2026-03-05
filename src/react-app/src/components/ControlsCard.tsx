@@ -10,11 +10,12 @@ import {
   IconHome,
 } from '@tabler/icons-react'
 import { useTimeoutFn } from 'react-use'
-import { Trans } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 
 import { useRocam } from '@/network/rocamProvider'
 
 export function ControlsCard() {
+  const { t } = useLingui()
   const { apiClient, status } = useRocam()
   const [isArmLoading, setIsArmLoading] = useState(false)
   const [isRecordLoading, setIsRecordLoading] = useState(false)
@@ -46,7 +47,7 @@ export function ControlsCard() {
       }
     } catch (error) {
       addToast({
-        title: `Failed to ${isArmed ? 'disarm' : 'arm'}`,
+        title: isArmed ? t`Failed to disarm` : t`Failed to arm`,
         description: getErrorMessage(error),
         color: 'danger',
       })
@@ -62,14 +63,14 @@ export function ControlsCard() {
     try {
       if (isRecording) {
         await apiClient.stopRecording()
-        addToast({ title: 'Recording stopped', color: 'success' })
+        addToast({ title: t`Recording stopped`, color: 'success' })
       } else {
         await apiClient.startRecording()
-        addToast({ title: 'Recording started', color: 'success' })
+        addToast({ title: t`Recording started`, color: 'success' })
       }
     } catch (error) {
       addToast({
-        title: `Failed to ${isRecording ? 'stop' : 'start'} recording`,
+        title: isRecording ? t`Failed to stop recording` : t`Failed to start recording`,
         description: getErrorMessage(error),
         color: 'danger',
       })
@@ -118,6 +119,7 @@ export function ControlsCard() {
 }
 
 function GimbalPad() {
+  const { t } = useLingui()
   const { apiClient, status } = useRocam()
   const disabled = !!status?.armed
   const handleMove = async (
@@ -128,7 +130,7 @@ function GimbalPad() {
       await move()
     } catch (error) {
       addToast({
-        title: `Failed to move ${actionLabel}`,
+        title: t`Failed to move ${actionLabel}`,
         description: getErrorMessage(error),
         color: 'danger',
       })
