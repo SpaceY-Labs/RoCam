@@ -79,34 +79,36 @@ This document ...
 \subsection{SRS Evaluation}
 
 \subsubsection{Abstraction}
-The \SRS{} was reviewed to ensure requirements describe \textit{what} RoCam must do
-from a stakeholder/operator perspective (camera operator, rocketry team) rather
-than \textit{how} it is implemented (specific CV models, firmware details, or UI
-framework choices). Overall, the Functional Requirements (FRs) are written at a
-suitable level of abstraction: they describe externally observable behaviours
-such as acquiring frames, displaying a live preview, allowing manual control,
-tracking/arming transitions, and recording management.\\
+The \SRS{} was reviewed to ensure requirements describe \textit{what} RoCam
+must do from a stakeholder/operator perspective (camera operator, rocketry
+team) rather than \textit{how} it is implemented (specific CV models, firmware
+details, or UI framework choices). Overall, the Functional Requirements (FRs)
+are written at a suitable level of abstraction: they describe externally
+observable behaviours such as acquiring frames, displaying a live preview,
+allowing manual control, tracking/arming transitions, and recording
+management.\\
 
 The Non-Functional Requirements (NFRs) were also reviewed and are generally
 abstract (e.g., usability, performance, safety, reliability). Where an NFR
 implicitly assumes a particular technical solution (e.g., a specific fps target
-or a specific latency measurement method), this is acceptable if the \SRS{} also
-defines a clear, measurable fit criterion.
+or a specific latency measurement method), this is acceptable if the \SRS{}
+also defines a clear, measurable fit criterion.
 
 \subsubsection{Testability}
-The FRs are mostly testable because they describe observable outcomes that can be
-checked via logs, UI state, or recorded artifacts (e.g., a created video file).
-However, due to the final project scope constraint that \textbf{only unit testing
-is executed} (and system/field tests are out of scope), some FRs are not directly
-testable end-to-end within this iteration. To preserve testability under the
-reduced scope, FR evaluation in this project is performed through:
+The FRs are mostly testable because they describe observable outcomes that can
+be checked via logs, UI state, or recorded artifacts (e.g., a created video
+file). However, due to the final project scope constraint that \textbf{only
+  unit testing is executed} (and system/field tests are out of scope), some FRs
+are not directly testable end-to-end within this iteration. To preserve
+testability under the reduced scope, FR evaluation in this project is performed
+through:
 \begin{itemize}
   \item Unit tests for isolated logic (e.g., state transitions, validation, file
         naming/path logic, error formatting),
-  \item Component-level tests where a module boundary exists (e.g., UI state
-        reducers, API request formatting, parsing),
-  \item Stakeholder review feedback for user-facing correctness/priority (without
-        live flight validation).
+  \item Component-level tests where a module boundary exists (e.g., UI state reducers,
+        API request formatting, parsing),
+  \item Stakeholder review feedback for user-facing correctness/priority (without live
+        flight validation).
 \end{itemize}
 For the NFRs, testability varies:
 \begin{itemize}
@@ -124,8 +126,8 @@ For the NFRs, testability varies:
 \end{itemize}
 
 \subsubsection{Ambiguity}
-The \SRS{} wording is largely clear, but several items can be improved to reduce
-interpretation differences during verification:
+The \SRS{} wording is largely clear, but several items can be improved to
+reduce interpretation differences during verification:
 \begin{itemize}
   \item \textbf{Terms that need operational definitions:} phrases such as
         ``real-time'', ``smooth'', ``fluid'', ``clear error message'', and
@@ -167,18 +169,18 @@ complete for Rev0 scope. The main completeness concerns arise from:
 A pass over the \SRS{} found no major grammar defects; remaining issues are
 primarily minor consistency fixes (capitalization, hyphenation, consistent use
 of abbreviations such as ``UI'', ``fps'', ``gimbal''). In the final report, we
-standardize terminology across documents (\SRS{}/\MG{}/\MIS{}/\VnVPlan{}/VnV Report)
-to reduce confusion during traceability review.
+standardize terminology across documents (\SRS{}/\MG{}/\MIS{}/\VnVPlan{}/VnV
+Report) to reduce confusion during traceability review.
 
 \subsubsection{Ease of Understanding}
-The \SRS{} is readable and structured, but ease-of-understanding can be improved by:
+The \SRS{} is readable and structured, but ease-of-understanding can be
+improved by:
 \begin{itemize}
-  \item Making requirement IDs clickable links in the PDF (or ensuring the
-        traceability tables include enough context so readers do not need to
-        search manually).
-  \item Adding brief legends/notes to diagrams (if any) explaining symbols and
-        data flow, especially when multiple modules interact (Jetson pipeline,
-        STM32 controller, UI).
+  \item Making requirement IDs clickable links in the PDF (or ensuring the traceability
+        tables include enough context so readers do not need to search manually).
+  \item Adding brief legends/notes to diagrams (if any) explaining symbols and data
+        flow, especially when multiple modules interact (Jetson pipeline, STM32
+        controller, UI).
   \item Including a short glossary of user-facing terms (armed/tracking/idle,
         ``preview'', ``overlay'', ``recording'') so interpretation is consistent.
 \end{itemize}
@@ -186,32 +188,34 @@ The \SRS{} is readable and structured, but ease-of-understanding can be improved
 \subsection{Design Evaluation}
 
 \subsubsection{Consistency With Requirements}
-We reviewed the \MG{}/\MIS{} against the \SRS{} to ensure that each major requirement has a
-clear design owner (vision pipeline, control firmware/interface, UI/recording).
-Overall, the decomposition is aligned with RoCam’s core functions. The main
-design-to-requirement risk is where requirements imply integrated behaviour
-(e.g., tracking quality under occlusion) but the design only specifies unit-level
-behaviour without an executable integration test under the current scope.
+We reviewed the \MG{}/\MIS{} against the \SRS{} to ensure that each major
+requirement has a clear design owner (vision pipeline, control
+firmware/interface, UI/recording). Overall, the decomposition is aligned with
+RoCam’s core functions. The main design-to-requirement risk is where
+requirements imply integrated behaviour (e.g., tracking quality under
+occlusion) but the design only specifies unit-level behaviour without an
+executable integration test under the current scope.
 
 \subsubsection{Modularity and Interfaces}
-The design is modular across the main subsystems (vision, control, UI). Interfaces
-should remain stable and well-documented (commands, telemetry, timing, and error
-reporting). This modularity supports unit testing under the constrained scope by
-allowing logic verification at module boundaries even when system tests are not
-executed.
+The design is modular across the main subsystems (vision, control, UI).
+Interfaces should remain stable and well-documented (commands, telemetry,
+timing, and error reporting). This modularity supports unit testing under the
+constrained scope by allowing logic verification at module boundaries even when
+system tests are not executed.
 
 \subsubsection{Maintainability}
 Maintainability is supported by separation of concerns and internal review via
 pull requests. The main maintainability improvement opportunity is to enforce
-consistent error/telemetry schemas between backend and frontend so tests and logs
-remain stable as features evolve.
+consistent error/telemetry schemas between backend and frontend so tests and
+logs remain stable as features evolve.
 
 \subsection{Verification and Validation Plan Evaluation}
 
 \subsubsection{Completeness}
-The \VnVPlan{} contains detailed system test descriptions; however, the finalized
-scope explicitly states that \textbf{only unit testing and stakeholder review are
-in scope}. Therefore, completeness in the plan must be interpreted as:
+The \VnVPlan{} contains detailed system test descriptions; however, the
+finalized scope explicitly states that \textbf{only unit testing and
+  stakeholder review are in scope}. Therefore, completeness in the plan must be
+interpreted as:
 \begin{itemize}
   \item System tests retained for traceability/reference only (not executed),
   \item Executed evidence coming from unit tests and review artifacts.
@@ -221,17 +225,19 @@ tests were executed and which were not, and will provide unit-test evidence that
 covers the same FR intent where feasible.
 
 \subsubsection{Unambiguous}
-The \VnVPlan{} is mostly unambiguous, especially where checklists specify concrete
-actions. Ambiguity exists mainly where system tests describe qualitative outcomes
-(e.g., ``smooth'', ``clear error message'') without explicit acceptance criteria.
-Where those tests are not executed, ambiguity is reduced by replacing them in the
-report with unit-testable criteria or explicit ``not executed'' markings.
+The \VnVPlan{} is mostly unambiguous, especially where checklists specify
+concrete actions. Ambiguity exists mainly where system tests describe
+qualitative outcomes (e.g., ``smooth'', ``clear error message'') without
+explicit acceptance criteria. Where those tests are not executed, ambiguity is
+reduced by replacing them in the report with unit-testable criteria or explicit
+``not executed'' markings.
 
 \subsubsection{Feasibility}
-The \VnVPlan{} is feasible under the revised scope because it limits execution to unit
-tests and stakeholder review. Any activities requiring live rocket launches,
-hardware field conditions, or external reviewers are explicitly excluded. This
-prevents over-claiming and keeps V\&V achievable within available time and access.
+The \VnVPlan{} is feasible under the revised scope because it limits execution
+to unit tests and stakeholder review. Any activities requiring live rocket
+launches, hardware field conditions, or external reviewers are explicitly
+excluded. This prevents over-claiming and keeps V\&V achievable within
+available time and access.
 
 \subsubsection{Overall Objective Accomplishment}
 Under the revised scope, the \VnVPlan{} still supports the core objectives:
@@ -371,43 +377,50 @@ This section will not be appropriate for every project.
 
         Actual Output: File is present and used as a minimal pipeline check artifact.
 
-        Results Summary: \textcolor{green}{Pass}. CI smoke check completed without assertion failures and validated pipeline readiness.
+        Results Summary: \textcolor{green}{Pass}. CI smoke check completed without
+        assertion failures and validated pipeline readiness.
 
   \item {test\_api.py.UT1}
 
         Control: Automatic
 
-        Method: Backend HTTP API route tests, including
-        \texttt{test\_returns\_204}, manual move/arm/disarm, and recording calls.
+        Method: Backend HTTP API route tests, including \texttt{test\_returns\_204},
+        manual move/arm/disarm, and recording calls.
 
-        Input: Mock HTTP requests via test client with patched state-management dependencies.
+        Input: Mock HTTP requests via test client with patched state-management
+        dependencies.
 
-        Expected Output: Correct status codes and correct dispatch to backend control methods.
+        Expected Output: Correct status codes and correct dispatch to backend control
+        methods.
 
         Actual Output: Assertions in file validate response and invocation behavior.
 
-        Results Summary: \textcolor{green}{Pass}. API endpoints returned expected HTTP status codes and dispatched correct control operations.
+        Results Summary: \textcolor{green}{Pass}. API endpoints returned expected HTTP
+        status codes and dispatched correct control operations.
 
   \item {test\_api\_gateway.py.UT1}
 
         Control: Automatic
 
-        Method: API gateway endpoint tests, including directional move,
-        move-to coordinates, arm/disarm, and recording command forwarding.
+        Method: API gateway endpoint tests, including directional move, move-to
+        coordinates, arm/disarm, and recording command forwarding.
 
         Input: Simulated gateway requests with mock service dependencies.
 
-        Expected Output: Gateway routes forward requests correctly and return expected HTTP outcomes.
+        Expected Output: Gateway routes forward requests correctly and return expected
+        HTTP outcomes.
 
         Actual Output: Test assertions verify forwarding and response behavior.
 
-        Results Summary: \textcolor{green}{Pass}. Gateway forwarding logic correctly mapped incoming requests to backend command handlers.
+        Results Summary: \textcolor{green}{Pass}. Gateway forwarding logic correctly
+        mapped incoming requests to backend command handlers.
 
   \item {test\_cv\_main.py.UT1}
 
         Control: Automatic
 
-        Method: CV process utility and OSD tests (timestamp formatting and overlay text updates).
+        Method: CV process utility and OSD tests (timestamp formatting and overlay text
+        updates).
 
         Input: Mock OSD object and synthetic telemetry/metadata values.
 
@@ -415,52 +428,62 @@ This section will not be appropriate for every project.
 
         Actual Output: Assertions verify format structure and OSD property calls.
 
-        Results Summary: \textcolor{green}{Pass}. Timestamp/OSD formatting matched expected structure and telemetry text rendering behavior.
+        Results Summary: \textcolor{green}{Pass}. Timestamp/OSD formatting matched
+        expected structure and telemetry text rendering behavior.
 
   \item {test\_cv\_process\_mgmt.py.UT1}
 
         Control: Automatic
 
-        Method: CV process management communication tests, including queue/IPC send behavior,
-        recording start/stop messages, and safe no-connection handling.
+        Method: CV process management communication tests, including queue/IPC send
+        behavior, recording start/stop messages, and safe no-connection handling.
 
         Input: Mock IPC connections, process controls, and recording payloads.
 
-        Expected Output: Correct message emission, safe fallback paths, and controlled process behavior.
+        Expected Output: Correct message emission, safe fallback paths, and controlled
+        process behavior.
 
         Actual Output: Assertions verify send, sentinel, and failure-safe semantics.
 
-        Results Summary: \textcolor{green}{Pass}. CV process messaging covered normal, sentinel, and no-connection safety paths correctly.
+        Results Summary: \textcolor{green}{Pass}. CV process messaging covered normal,
+        sentinel, and no-connection safety paths correctly.
 
   \item {test\_database.py.UT1}
 
         Control: Automatic
 
-        Method: Recording database tests for ID validation, metadata handling,
-        CRUD operations, and error conditions.
+        Method: Recording database tests for ID validation, metadata handling, CRUD
+        operations, and error conditions.
 
-        Input: Temporary test storage paths, valid/invalid recording IDs, and mocked file metadata.
+        Input: Temporary test storage paths, valid/invalid recording IDs, and mocked
+        file metadata.
 
-        Expected Output: Valid IDs accepted, invalid IDs rejected, and storage operations handled deterministically.
+        Expected Output: Valid IDs accepted, invalid IDs rejected, and storage
+        operations handled deterministically.
 
-        Actual Output: Assertions verify raised exceptions and returned metadata/results.
+        Actual Output: Assertions verify raised exceptions and returned
+        metadata/results.
 
-        Results Summary: \textcolor{green}{Pass}. Recording ID validation and database CRUD/error handling produced expected deterministic outcomes.
+        Results Summary: \textcolor{green}{Pass}. Recording ID validation and database
+        CRUD/error handling produced expected deterministic outcomes.
 
   \item {test\_gimbal.py.UT1}
 
         Control: Automatic
 
-        Method: Gimbal communication tests covering CRC helpers, serial command encoding,
-        open/close semantics, and invalid-state guards.
+        Method: Gimbal communication tests covering CRC helpers, serial command
+        encoding, open/close semantics, and invalid-state guards.
 
         Input: Synthetic byte payloads and mocked serial interfaces.
 
-        Expected Output: Stable CRC behavior, valid command serialization, and correct runtime guards.
+        Expected Output: Stable CRC behavior, valid command serialization, and correct
+        runtime guards.
 
-        Actual Output: Assertions verify CRC outputs, write calls, and exception behavior.
+        Actual Output: Assertions verify CRC outputs, write calls, and exception
+        behavior.
 
-        Results Summary: \textcolor{green}{Pass}. CRC computation, command serialization, and invalid-state guards all behaved correctly.
+        Results Summary: \textcolor{green}{Pass}. CRC computation, command
+        serialization, and invalid-state guards all behaved correctly.
 
   \item {test\_ipc.py.UT1}
 
@@ -470,11 +493,13 @@ This section will not be appropriate for every project.
 
         Input: Synthetic bounding boxes, confidence data, and coordinate transforms.
 
-        Expected Output: Correct center/rotation transform outputs and payload consistency.
+        Expected Output: Correct center/rotation transform outputs and payload
+        consistency.
 
         Actual Output: Assertions verify transformed values and invariant preservation.
 
-        Results Summary: \textcolor{green}{Pass}. IPC transform logic preserved center/rotation correctness and payload consistency.
+        Results Summary: \textcolor{green}{Pass}. IPC transform logic preserved
+        center/rotation correctness and payload consistency.
 
   \item {test\_ipc\_buffer.py.UT1}
 
@@ -485,32 +510,39 @@ This section will not be appropriate for every project.
 
         Input: Mock shared memory and byte payloads with valid/invalid lengths.
 
-        Expected Output: Correct head movement, full/empty logic, and predictable error signaling.
+        Expected Output: Correct head movement, full/empty logic, and predictable error
+        signaling.
 
-        Actual Output: Assertions verify return flags, buffer transitions, and raised exceptions.
+        Actual Output: Assertions verify return flags, buffer transitions, and raised
+        exceptions.
 
-        Results Summary: \textcolor{green}{Pass}. Ring-buffer write length checks, head advancement, and full-buffer signaling were correct.
+        Results Summary: \textcolor{green}{Pass}. Ring-buffer write length checks, head
+        advancement, and full-buffer signaling were correct.
 
   \item {test\_livestream\_mgmt.py.UT1}
 
         Control: Automatic
 
-        Method: Livestream process manager tests including daemon-thread startup and process loop execution.
+        Method: Livestream process manager tests including daemon-thread startup and
+        process loop execution.
 
         Input: Mock subprocess calls and thread/process control signals.
 
-        Expected Output: Correct process spawning behavior and stable lifecycle handling.
+        Expected Output: Correct process spawning behavior and stable lifecycle
+        handling.
 
-        Actual Output: Assertions verify daemon setup and expected \texttt{Popen} interactions.
+        Actual Output: Assertions verify daemon setup and expected \texttt{Popen}
+        interactions.
 
-        Results Summary: \textcolor{green}{Pass}. Livestream manager startup and process-loop invocation matched expected lifecycle behavior.
+        Results Summary: \textcolor{green}{Pass}. Livestream manager startup and
+        process-loop invocation matched expected lifecycle behavior.
 
   \item {test\_main\_entry.py.UT1}
 
         Control: Automatic
 
-        Method: Main entrypoint argument routing tests for control, recording-management,
-        CV, livestream, and stabilized-preview/download modes.
+        Method: Main entrypoint argument routing tests for control,
+        recording-management, CV, livestream, and stabilized-preview/download modes.
 
         Input: Simulated CLI argument vectors.
 
@@ -518,7 +550,8 @@ This section will not be appropriate for every project.
 
         Actual Output: Assertions verify dispatch target for each mode argument.
 
-        Results Summary: \textcolor{green}{Pass}. CLI mode routing selected the correct process entrypoint for all tested arguments.
+        Results Summary: \textcolor{green}{Pass}. CLI mode routing selected the correct
+        process entrypoint for all tested arguments.
 
   \item {test\_sse.py.UT1}
 
@@ -528,84 +561,106 @@ This section will not be appropriate for every project.
 
         Input: Event names and data payloads (including empty and JSON strings).
 
-        Expected Output: Correct SSE frame formatting and stable queue/listener behavior.
+        Expected Output: Correct SSE frame formatting and stable queue/listener
+        behavior.
 
-        Actual Output: Assertions verify serialized frame text and listener object return behavior.
+        Actual Output: Assertions verify serialized frame text and listener object
+        return behavior.
 
-        Results Summary: \textcolor{green}{Pass}. SSE event/data serialization and listener queue access matched protocol expectations.
+        Results Summary: \textcolor{green}{Pass}. SSE event/data serialization and
+        listener queue access matched protocol expectations.
 
   \item {test\_state\_management.py.UT1}
 
         Control: Automatic
 
-        Method: State-history and helper utility tests (append behavior, capped history,
-        order guarantees, and lookup semantics).
+        Method: State-history and helper utility tests (append behavior, capped
+        history, order guarantees, and lookup semantics).
 
         Input: Synthetic state/event streams with boundary-case lengths and timestamps.
 
-        Expected Output: History cap enforcement, ordering correctness, and deterministic retrieval behavior.
+        Expected Output: History cap enforcement, ordering correctness, and
+        deterministic retrieval behavior.
 
-        Actual Output: Assertions verify cap-at-10 logic, ordering, and empty-case return values.
+        Actual Output: Assertions verify cap-at-10 logic, ordering, and empty-case
+        return values.
 
-        Results Summary: \textcolor{green}{Pass}. State history append/cap/order and lookup helper behavior passed boundary-condition checks.
+        Results Summary: \textcolor{green}{Pass}. State history append/cap/order and
+        lookup helper behavior passed boundary-condition checks.
 
   \item {test\_state\_management\_class.py.UT1}
 
         Control: Automatic
 
-        Method: State management class behavior tests for arm/disarm transitions, status payloads,
-        preview/recording flags, and device-interaction side effects.
+        Method: State management class behavior tests for arm/disarm transitions,
+        status payloads, preview/recording flags, and device-interaction side effects.
 
-        Input: Mocked subsystem adapters with fixture-initialized state manager instances.
+        Input: Mocked subsystem adapters with fixture-initialized state manager
+        instances.
 
-        Expected Output: Correct state transitions and consistent status snapshot generation.
+        Expected Output: Correct state transitions and consistent status snapshot
+        generation.
 
-        Actual Output: Assertions verify flags, LED interactions, and returned status structure.
+        Actual Output: Assertions verify flags, LED interactions, and returned status
+        structure.
 
-        Results Summary: \textcolor{green}{Pass}. Arm/disarm transitions and composed status payload generation behaved as specified.
+        Results Summary: \textcolor{green}{Pass}. Arm/disarm transitions and composed
+        status payload generation behaved as specified.
 
   \item {test\_state\_management\_recording\_only.py.UT1}
 
         Control: Automatic
 
-        Method: Recording-management-only mode tests ensuring non-recording controls are no-op.
+        Method: Recording-management-only mode tests ensuring non-recording controls
+        are no-op.
 
         Input: Calls to arm/disarm/move operations under recording-only mode fixtures.
 
-        Expected Output: Non-recording operations do nothing and do not mutate restricted control state.
+        Expected Output: Non-recording operations do nothing and do not mutate
+        restricted control state.
 
-        Actual Output: Assertions verify no-op semantics for restricted control commands.
+        Actual Output: Assertions verify no-op semantics for restricted control
+        commands.
 
-        Results Summary: \textcolor{green}{Pass}. Recording-only mode correctly enforced no-op behavior on restricted control commands.
+        Results Summary: \textcolor{green}{Pass}. Recording-only mode correctly
+        enforced no-op behavior on restricted control commands.
 
   \item {test\_system\_status.py.UT1}
 
         Control: Automatic
 
-        Method: System status sampler tests (CPU/GPU/temperature/power/memory initialization and updates).
+        Method: System status sampler tests (CPU/GPU/temperature/power/memory
+        initialization and updates).
 
-        Input: Mocked \texttt{psutil}/Jetson telemetry adapters and synthetic metric snapshots.
+        Input: Mocked \texttt{psutil}/Jetson telemetry adapters and synthetic metric
+        snapshots.
 
-        Expected Output: Status object initializes and reports metrics with expected fields and units.
+        Expected Output: Status object initializes and reports metrics with expected
+        fields and units.
 
-        Actual Output: Assertions verify each metric extraction and status field population.
+        Actual Output: Assertions verify each metric extraction and status field
+        population.
 
-        Results Summary: \textcolor{green}{Pass}. CPU/GPU/temperature/power/memory status sampling and field mapping were validated.
+        Results Summary: \textcolor{green}{Pass}. CPU/GPU/temperature/power/memory
+        status sampling and field mapping were validated.
 
   \item {test\_tracking.py.UT1}
 
         Control: Automatic
 
-        Method: Tracking worker/queue tests including queue replacement behavior, stop signaling,
-        worker loop behavior, and gimbal command invocation.
+        Method: Tracking worker/queue tests including queue replacement behavior, stop
+        signaling, worker loop behavior, and gimbal command invocation.
 
         Input: Mock detections, bounded queues, stop events, and gimbal stubs.
 
-        Expected Output: Correct queue policy, clean worker termination, and valid gimbal output calls.
+        Expected Output: Correct queue policy, clean worker termination, and valid
+        gimbal output calls.
 
-        Actual Output: Assertions verify queue semantics, thread stop behavior, and \texttt{set\_deg} calls.
+        Actual Output: Assertions verify queue semantics, thread stop behavior, and
+        \texttt{set\_deg} calls.
 
-        Results Summary: \textcolor{green}{Pass}. Tracking queue replacement policy, worker stop flow, and gimbal output calls passed.
+        Results Summary: \textcolor{green}{Pass}. Tracking queue replacement policy,
+        worker stop flow, and gimbal output calls passed.
 
   \item {test\_transcode\_api.py.UT1}
 
@@ -616,11 +671,14 @@ This section will not be appropriate for every project.
 
         Input: Temporary paths, mock callbacks, and simulated request IDs.
 
-        Expected Output: Robust pipe handling and correct HTTP behavior for preview/download flows.
+        Expected Output: Robust pipe handling and correct HTTP behavior for
+        preview/download flows.
 
-        Actual Output: Assertions verify unlink behavior, 404 paths, and callback invocation.
+        Actual Output: Assertions verify unlink behavior, 404 paths, and callback
+        invocation.
 
-        Results Summary: \textcolor{green}{Pass}. Pipe lifecycle and preview/download endpoint behaviors (including 404 paths) were correct.
+        Results Summary: \textcolor{green}{Pass}. Pipe lifecycle and preview/download
+        endpoint behaviors (including 404 paths) were correct.
 
   \item {test\_transcode\_main.py.UT1}
 
@@ -629,42 +687,54 @@ This section will not be appropriate for every project.
         Method: Transcode main logic tests for JSONL parsing, malformed line handling,
         empty-line handling, and transcode pipeline status behavior.
 
-        Input: Temporary JSONL artifacts with valid/invalid lines and mocked buffers/processes.
+        Input: Temporary JSONL artifacts with valid/invalid lines and mocked
+        buffers/processes.
 
-        Expected Output: Valid lines parsed, invalid entries skipped, and stable pipeline status handling.
+        Expected Output: Valid lines parsed, invalid entries skipped, and stable
+        pipeline status handling.
 
-        Actual Output: Assertions verify parsed lists, skip behavior, and status return values.
+        Actual Output: Assertions verify parsed lists, skip behavior, and status return
+        values.
 
-        Results Summary: \textcolor{green}{Pass}. JSONL parse flow handled valid, invalid, and empty-line inputs as expected.
+        Results Summary: \textcolor{green}{Pass}. JSONL parse flow handled valid,
+        invalid, and empty-line inputs as expected.
 
   \item {test\_utils.py.UT1}
 
         Control: Automatic
 
-        Method: Utility function tests for network interface IP selection and scheduler priority validation.
+        Method: Utility function tests for network interface IP selection and scheduler
+        priority validation.
 
         Input: Mocked interface tables and priority values across valid/invalid ranges.
 
-        Expected Output: Correct IPv4 discovery behavior and explicit validation errors for invalid priorities.
+        Expected Output: Correct IPv4 discovery behavior and explicit validation errors
+        for invalid priorities.
 
-        Actual Output: Assertions verify selected addresses and \texttt{ValueError} boundaries.
+        Actual Output: Assertions verify selected addresses and \texttt{ValueError}
+        boundaries.
 
-        Results Summary: \textcolor{green}{Pass}. Network-interface utility and scheduler-priority validation matched required bounds.
+        Results Summary: \textcolor{green}{Pass}. Network-interface utility and
+        scheduler-priority validation matched required bounds.
 
   \item {test\_watchdog.py.UT1}
 
         Control: Automatic
 
-        Method: Watchdog timer tests for timeout/callback storage, timer refresh behavior,
-        cancel/recreate semantics, and callback triggering.
+        Method: Watchdog timer tests for timeout/callback storage, timer refresh
+        behavior, cancel/recreate semantics, and callback triggering.
 
-        Input: Mock timers and watchdog instances with synthetic refresh/reset sequences.
+        Input: Mock timers and watchdog instances with synthetic refresh/reset
+        sequences.
 
-        Expected Output: Deterministic timer lifecycle and correct callback firing policy.
+        Expected Output: Deterministic timer lifecycle and correct callback firing
+        policy.
 
-        Actual Output: Assertions verify timer object replacement/cancel calls and callback execution.
+        Actual Output: Assertions verify timer object replacement/cancel calls and
+        callback execution.
 
-        Results Summary: \textcolor{green}{Pass}. Watchdog timeout storage, refresh/cancel semantics, and callback behavior were correct.
+        Results Summary: \textcolor{green}{Pass}. Watchdog timeout storage,
+        refresh/cancel semantics, and callback behavior were correct.
 \end{enumerate}
 
 \subsection{Frontend Unit Tests (\texttt{Vitest})}
@@ -674,21 +744,25 @@ This section will not be appropriate for every project.
 
         Control: Automatic
 
-        Method: Top-level route rendering tests for \texttt{/}, \texttt{/recordings}, and unknown-path redirect.
+        Method: Top-level route rendering tests for \texttt{/}, \texttt{/recordings},
+        and unknown-path redirect.
 
         Input: In-memory router initialization with route paths.
 
-        Expected Output: Correct page component rendered for each route and fallback redirect works.
+        Expected Output: Correct page component rendered for each route and fallback
+        redirect works.
 
         Actual Output: Assertions verify route-target rendering behavior.
 
-        Results Summary: \textcolor{green}{Pass}. Router rendering/redirect behavior produced the correct page for each route path.
+        Results Summary: \textcolor{green}{Pass}. Router rendering/redirect behavior
+        produced the correct page for each route path.
 
   \item {ConfigurationMenu.test.tsx.UT1}
 
         Control: Automatic
 
-        Method: Configuration menu interaction tests for language and unit selection actions.
+        Method: Configuration menu interaction tests for language and unit selection
+        actions.
 
         Input: User click/select events on dropdown actions with mocked setters.
 
@@ -697,64 +771,81 @@ This section will not be appropriate for every project.
 
         Actual Output: Assertions verify trigger rendering and callback invocations.
 
-        Results Summary: \textcolor{green}{Pass}. Menu interactions correctly triggered language and temperature-unit setting actions.
+        Results Summary: \textcolor{green}{Pass}. Menu interactions correctly triggered
+        language and temperature-unit setting actions.
 
   \item {ControlsCard.test.tsx.UT1}
 
         Control: Automatic
 
-        Method: Controls card tests for arm/disarm, start/stop recording, and error-swallow behavior.
+        Method: Controls card tests for arm/disarm, start/stop recording, and
+        error-swallow behavior.
 
-        Input: Simulated button clicks under armed/unarmed and recording/not-recording states.
+        Input: Simulated button clicks under armed/unarmed and recording/not-recording
+        states.
 
-        Expected Output: Correct API methods invoked and UI interactions remain stable under thrown errors.
+        Expected Output: Correct API methods invoked and UI interactions remain stable
+        under thrown errors.
 
-        Actual Output: Assertions verify method call paths and non-crashing error handling.
+        Actual Output: Assertions verify method call paths and non-crashing error
+        handling.
 
-        Results Summary: \textcolor{green}{Pass}. Arm/disarm/record actions called expected APIs and safely handled thrown errors.
+        Results Summary: \textcolor{green}{Pass}. Arm/disarm/record actions called
+        expected APIs and safely handled thrown errors.
 
   \item {LanguageSelector.test.tsx.UT1}
 
         Control: Automatic
 
-        Method: Language selector tests for trigger label and locale-switch callback behavior.
+        Method: Language selector tests for trigger label and locale-switch callback
+        behavior.
 
         Input: Locale option clicks and null-selection scenarios.
 
-        Expected Output: Upper-cased locale shown and \texttt{setLanguage} called only for valid selections.
+        Expected Output: Upper-cased locale shown and \texttt{setLanguage} called only
+        for valid selections.
 
-        Actual Output: Assertions verify displayed label and selection callback behavior.
+        Actual Output: Assertions verify displayed label and selection callback
+        behavior.
 
-        Results Summary: \textcolor{green}{Pass}. Language trigger text and locale selection callbacks behaved correctly, including null selections.
+        Results Summary: \textcolor{green}{Pass}. Language trigger text and locale
+        selection callbacks behaved correctly, including null selections.
 
   \item {navbar.test.tsx.UT1}
 
         Control: Automatic
 
-        Method: Navigation bar tests for link rendering, configuration visibility,
-        and fullscreen toggle behavior.
+        Method: Navigation bar tests for link rendering, configuration visibility, and
+        fullscreen toggle behavior.
 
         Input: Rendered navbar interactions with mocked fullscreen API methods.
 
-        Expected Output: Required navigation links exist and fullscreen requests/exit paths call correct browser API.
+        Expected Output: Required navigation links exist and fullscreen requests/exit
+        paths call correct browser API.
 
-        Actual Output: Assertions verify link presence and fullscreen function invocation.
+        Actual Output: Assertions verify link presence and fullscreen function
+        invocation.
 
-        Results Summary: \textcolor{green}{Pass}. Navbar links and fullscreen enter/exit actions matched expected UI behavior.
+        Results Summary: \textcolor{green}{Pass}. Navbar links and fullscreen
+        enter/exit actions matched expected UI behavior.
 
   \item {SystemStatusCard.test.tsx.UT1}
 
         Control: Automatic
 
-        Method: System status card tests for metric rendering and null-safe rendering behavior.
+        Method: System status card tests for metric rendering and null-safe rendering
+        behavior.
 
         Input: Status payload fixtures with CPU/FPS/temperature/GPS combinations.
 
-        Expected Output: Correct metric text rendering and safe handling when status is null.
+        Expected Output: Correct metric text rendering and safe handling when status is
+        null.
 
-        Actual Output: Assertions verify displayed values and null-path rendering stability.
+        Actual Output: Assertions verify displayed values and null-path rendering
+        stability.
 
-        Results Summary: \textcolor{green}{Pass}. Status card rendered metrics accurately and remained safe when status data was null.
+        Results Summary: \textcolor{green}{Pass}. Status card rendered metrics
+        accurately and remained safe when status data was null.
 
   \item {i18n.test.ts.UT1}
 
@@ -768,51 +859,62 @@ This section will not be appropriate for every project.
 
         Actual Output: Assertions verify call sequence and activation target.
 
-        Results Summary: \textcolor{green}{Pass}. Locale load-before-activate ordering was validated for i18n initialization.
+        Results Summary: \textcolor{green}{Pass}. Locale load-before-activate ordering
+        was validated for i18n initialization.
 
   \item {api.test.ts.UT1}
 
         Control: Automatic
 
-        Method: API client helper tests for error model semantics and URL builder correctness.
+        Method: API client helper tests for error model semantics and URL builder
+        correctness.
 
         Input: Synthetic IDs/base URLs and custom error constructor parameters.
 
-        Expected Output: URL helpers return expected endpoint strings and error object preserves fields.
+        Expected Output: URL helpers return expected endpoint strings and error object
+        preserves fields.
 
-        Actual Output: Assertions verify URL composition and \texttt{ApiError} field semantics.
+        Actual Output: Assertions verify URL composition and \texttt{ApiError} field
+        semantics.
 
-        Results Summary: \textcolor{green}{Pass}. API helper URL builders and ApiError object contract behaved as expected.
+        Results Summary: \textcolor{green}{Pass}. API helper URL builders and ApiError
+        object contract behaved as expected.
 
   \item {rocamProvider.test.tsx.UT1}
 
         Control: Automatic
 
-        Method: Provider context tests for initialization, automatic API client creation,
-        and SSE-driven status updates.
+        Method: Provider context tests for initialization, automatic API client
+        creation, and SSE-driven status updates.
 
-        Input: Provider mount with mocked \texttt{ApiClient.createAutomatic} and SSE callbacks.
+        Input: Provider mount with mocked \texttt{ApiClient.createAutomatic} and SSE
+        callbacks.
 
-        Expected Output: Context values initialize correctly and status updates propagate on SSE events.
+        Expected Output: Context values initialize correctly and status updates
+        propagate on SSE events.
 
-        Actual Output: Assertions verify context defaults, creation behavior, and update propagation.
+        Actual Output: Assertions verify context defaults, creation behavior, and
+        update propagation.
 
-        Results Summary: \textcolor{green}{Pass}. Provider initialization, automatic client creation, and SSE status updates passed.
+        Results Summary: \textcolor{green}{Pass}. Provider initialization, automatic
+        client creation, and SSE status updates passed.
 
   \item {control.test.tsx.UT1}
 
         Control: Automatic
 
-        Method: Control page tests for component composition, preview visibility,
-        and recording indicator behavior.
+        Method: Control page tests for component composition, preview visibility, and
+        recording indicator behavior.
 
         Input: Rendered page with mocked provider status variants.
 
-        Expected Output: Spinner/preview toggle works and REC indicator follows recording state.
+        Expected Output: Spinner/preview toggle works and REC indicator follows
+        recording state.
 
         Actual Output: Assertions verify conditional rendering and indicator behavior.
 
-        Results Summary: \textcolor{green}{Pass}. Control page conditional rendering for preview/spinner/REC state was correct.
+        Results Summary: \textcolor{green}{Pass}. Control page conditional rendering
+        for preview/spinner/REC state was correct.
 
   \item {recordings.test.tsx.UT1}
 
@@ -821,55 +923,69 @@ This section will not be appropriate for every project.
         Method: Recordings page tests for loading state, empty state, list rendering,
         and delete/confirm interaction.
 
-        Input: Mock API responses and simulated user clicks with confirm true/false paths.
+        Input: Mock API responses and simulated user clicks with confirm true/false
+        paths.
 
-        Expected Output: Correct state transitions across load/empty/populated views and guarded delete execution.
+        Expected Output: Correct state transitions across load/empty/populated views
+        and guarded delete execution.
 
         Actual Output: Assertions verify rendered states and delete-call conditions.
 
-        Results Summary: \textcolor{green}{Pass}. Recordings page loading, empty/populated states, and guarded delete flow were correct.
+        Results Summary: \textcolor{green}{Pass}. Recordings page loading,
+        empty/populated states, and guarded delete flow were correct.
 
   \item {provider.test.tsx.UT1}
 
         Control: Automatic
 
-        Method: Root provider composition tests for i18n bootstrapping and wrapper integration.
+        Method: Root provider composition tests for i18n bootstrapping and wrapper
+        integration.
 
         Input: Provider mount with mocked \texttt{dynamicActivate} timing behavior.
 
-        Expected Output: Null while loading; afterwards, all required providers are rendered in composition.
+        Expected Output: Null while loading; afterwards, all required providers are
+        rendered in composition.
 
-        Actual Output: Assertions verify loading behavior and wrapper presence after activation.
+        Actual Output: Assertions verify loading behavior and wrapper presence after
+        activation.
 
-        Results Summary: \textcolor{green}{Pass}. Root provider composition and i18n loading gate behavior were validated.
+        Results Summary: \textcolor{green}{Pass}. Root provider composition and i18n
+        loading gate behavior were validated.
 
   \item {languageAtom.test.ts.UT1}
 
         Control: Automatic
 
-        Method: Language atom/store definition tests including key and type validity checks.
+        Method: Language atom/store definition tests including key and type validity
+        checks.
 
         Input: Store atom inspection and type-level valid value checks.
 
-        Expected Output: Atom is defined with expected storage key and accepted language values.
+        Expected Output: Atom is defined with expected storage key and accepted
+        language values.
 
-        Actual Output: Assertions verify store constant definitions and allowed language values.
+        Actual Output: Assertions verify store constant definitions and allowed
+        language values.
 
-        Results Summary: \textcolor{green}{Pass}. Language atom definitions, storage keys, and accepted language values were correct.
+        Results Summary: \textcolor{green}{Pass}. Language atom definitions, storage
+        keys, and accepted language values were correct.
 
   \item {formatters.test.ts.UT1}
 
         Control: Automatic
 
-        Method: Formatting utility tests for degrees/fps/temperature presentation and rounding.
+        Method: Formatting utility tests for degrees/fps/temperature presentation and
+        rounding.
 
         Input: Numeric samples across positive/negative/fractional/zero edge cases.
 
-        Expected Output: Correct rounding precision and expected unit-symbol formatting.
+        Expected Output: Correct rounding precision and expected unit-symbol
+        formatting.
 
         Actual Output: Assertions verify exact formatted string outputs.
 
-        Results Summary: \textcolor{green}{Pass}. Degree/FPS/temperature formatter outputs matched expected rounded strings.
+        Results Summary: \textcolor{green}{Pass}. Degree/FPS/temperature formatter
+        outputs matched expected rounded strings.
 \end{enumerate}
 
 \section{Changes Due to Testing}
@@ -919,15 +1035,8 @@ the graduate attribute of Reflection.
 
 \end{document}
 
-   had to deviate from their original VnV Plan.)
+had to deviate from their original VnV Plan.)
 \end{enumerate}
 
 \end{document}
-
-
-
-
-
-
-
 
