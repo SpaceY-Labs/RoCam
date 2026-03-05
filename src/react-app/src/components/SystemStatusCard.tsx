@@ -20,7 +20,7 @@ import { Trans } from '@lingui/react/macro'
 import { useAtomValue } from 'jotai'
 
 import { useRocam } from '@/network/rocamProvider'
-import { temperatureUnitAtom, type TemperatureUnit } from '@/store/languageAtom'
+import { temperatureUnitAtom, type TemperatureUnit } from '@/store/settingsAtom'
 
 const STATUS_ICON_PROPS = {
   size: 18,

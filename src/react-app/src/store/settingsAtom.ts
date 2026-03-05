@@ -17,3 +17,9 @@ export const dragSensitivityAtom = atomWithStorage<number>(
   'app-drag-sensitivity',
   0.15
 )
+
+// Developer mode preference
+export const showLogsAtom = atomWithStorage<boolean>(
+  'app-developer-show-logs',
+  false
+)
