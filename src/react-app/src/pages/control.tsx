@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { Spinner } from '@heroui/spinner'
-import { addToast } from '@heroui/toast'
 import { useMeasure } from 'react-use'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useAtomValue } from 'jotai'
@@ -16,37 +15,16 @@ import {
   dragSensitivityAtom,
   showLogsAtom,
 } from '@/store/settingsAtom'
-import { getErrorMessage } from '@/utils'
 
 /** Minimum milliseconds between consecutive manualMoveTo API calls. */
 const DRAG_THROTTLE_MS = 50
 
 export default function ControlPage() {
   const { t } = useLingui()
-  const { apiClient, status, statusPollingError } = useRocam()
+  const { apiClient, status } = useRocam()
   const [streamContainerRef, streamBounds] = useMeasure<HTMLDivElement>()
   const { width, height } = streamBounds
   const showDeveloperLogs = useAtomValue(showLogsAtom)
-  const lastStatusPollingErrorToastRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    if (!statusPollingError) {
-      lastStatusPollingErrorToastRef.current = null
-
-      return
-    }
-
-    const message = getErrorMessage(statusPollingError)
-
-    if (lastStatusPollingErrorToastRef.current === message) return
-
-    addToast({
-      title: t`Failed to poll status`,
-      description: message,
-      color: 'danger',
-    })
-    lastStatusPollingErrorToastRef.current = message
-  }, [statusPollingError, t])
 
   const bbox = status?.bbox
   const isArmed = !!status?.armed

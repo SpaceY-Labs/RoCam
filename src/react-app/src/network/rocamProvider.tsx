@@ -5,12 +5,15 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { addToast } from '@heroui/toast'
+import { useLingui } from '@lingui/react/macro'
 
 import { ApiClient, type StatusResponse } from './api'
 
+import { getErrorMessage } from '@/utils'
+
 interface RocamContextType {
   apiClient: ApiClient | null
-  statusPollingError: Error | null
   status: StatusResponse | null
 }
 
@@ -21,8 +24,9 @@ interface RocamProviderProps {
 }
 
 export function RocamProvider({ children }: RocamProviderProps) {
+  const { t } = useLingui()
   const [apiClient, setApiClient] = useState<ApiClient | null>(null)
-  const [error, setError] = useState<Error | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [status, setStatus] = useState<StatusResponse | null>(null)
 
   // Initialize API client
@@ -31,7 +35,7 @@ export function RocamProvider({ children }: RocamProviderProps) {
 
     async function initializeApiClient() {
       try {
-        setError(null)
+        setErrorMessage(null)
         const client = await ApiClient.createAutomatic()
 
         if (isMounted) {
@@ -39,7 +43,7 @@ export function RocamProvider({ children }: RocamProviderProps) {
         }
       } catch (err) {
         if (isMounted) {
-          setError(err instanceof Error ? err : new Error(String(err)))
+          setErrorMessage(getErrorMessage(err))
         }
       }
     }
@@ -63,14 +67,14 @@ export function RocamProvider({ children }: RocamProviderProps) {
         const data = JSON.parse(event.data) as StatusResponse
 
         setStatus(data)
-        setError(null)
+        setErrorMessage(null)
       } catch {
         // ignore malformed messages
       }
     }
 
     es.onerror = () => {
-      setError(new Error('Status stream connection error'))
+      setErrorMessage('Status stream connection error')
     }
 
     return () => {
@@ -78,9 +82,18 @@ export function RocamProvider({ children }: RocamProviderProps) {
     }
   }, [apiClient])
 
+  useEffect(() => {
+    if (!errorMessage) return
+
+    addToast({
+      title: t`Failed to poll status`,
+      description: errorMessage,
+      color: 'danger',
+    })
+  }, [errorMessage, t])
+
   const value: RocamContextType = {
     apiClient,
-    statusPollingError: error,
     status,
   }
 
