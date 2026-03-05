@@ -9,12 +9,12 @@ import { ControlsCard } from '@/components/ControlsCard'
 import { LogsCard } from '@/components/LogsCard'
 import { SystemStatusCard } from '@/components/SystemStatusCard'
 import { useRocam } from '@/network/rocamProvider'
-import DefaultLayout from '@/layouts/default'
 import {
   invertDragAtom,
   dragSensitivityAtom,
   showLogsAtom,
 } from '@/store/settingsAtom'
+import { Navbar } from '@/components/navbar'
 
 /** Minimum milliseconds between consecutive manualMoveTo API calls. */
 const DRAG_THROTTLE_MS = 50
@@ -99,9 +99,10 @@ export default function ControlPage() {
   }, [])
 
   return (
-    <DefaultLayout className="flex items-stretch">
+    <div className="relative flex flex-col h-screen">
+      <Navbar />
       <div
-        className={`relative grid gap-4 m-4 mt-0 grid-cols-[auto_1fr] min-w-0 w-full ${showDeveloperLogs ? 'grid-rows-[1fr_auto_auto]' : 'grid-rows-[1fr_auto]'}`}
+        className={`min-h-0 grid gap-4 p-4 pt-0 grid-cols-[auto_1fr] min-w-0 w-full ${showDeveloperLogs ? 'grid-rows-[1fr_1fr_auto]' : 'grid-rows-[1fr_auto]'}`}
       >
         <Card
           ref={streamContainerRef}
@@ -171,10 +172,10 @@ export default function ControlPage() {
 
         <SystemStatusCard />
 
-        <ControlsCard />
-
         {showDeveloperLogs && <LogsCard />}
+
+        <ControlsCard />
       </div>
-    </DefaultLayout>
+    </div>
   )
 }

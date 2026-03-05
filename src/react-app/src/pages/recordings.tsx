@@ -17,9 +17,9 @@ import {
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/modal'
 import { Trans, useLingui } from '@lingui/react/macro'
 
-import DefaultLayout from '@/layouts/default'
 import { useRocam } from '@/network/rocamProvider'
 import { getErrorMessage } from '@/utils'
+import { Navbar } from '@/components/navbar'
 
 export default function RecordingsPage() {
   const { t } = useLingui()
@@ -108,41 +108,38 @@ export default function RecordingsPage() {
   }
 
   return (
-    <DefaultLayout>
-      <section className="flex flex-col">
-        <div className="divide-y divide-gray-200 px-4">
-          {isLoading ? (
-            <div className="flex justify-center py-12">
-              <Spinner label={t`Loading recordings...`} />
-            </div>
-          ) : recordings.length === 0 ? (
-            <div className="flex justify-center py-12">
-              <p className="text-sm text-gray-500">
-                <Trans>
-                  No recordings yet. Start one from the Control page.
-                </Trans>
-              </p>
-            </div>
-          ) : (
-            recordings.map((r) => (
-              <RecordingItem
-                key={r.id}
-                apiClient={apiClient!}
-                recording={r}
-                onDelete={handleDelete}
-                onPreview={handlePreview}
-                onRename={handleRename}
-              />
-            ))
-          )}
-        </div>
-      </section>
+    <div className="relative">
+      <Navbar />
+      <div className="divide-y divide-gray-200 px-4">
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Spinner label={t`Loading recordings...`} />
+          </div>
+        ) : recordings.length === 0 ? (
+          <div className="flex justify-center py-12">
+            <p className="text-sm text-gray-500">
+              <Trans>No recordings yet. Start one from the Control page.</Trans>
+            </p>
+          </div>
+        ) : (
+          recordings.map((r) => (
+            <RecordingItem
+              key={r.id}
+              apiClient={apiClient!}
+              recording={r}
+              onDelete={handleDelete}
+              onPreview={handlePreview}
+              onRename={handleRename}
+            />
+          ))
+        )}
+      </div>
 
       <PreviewModal
         recording={selectedRecording}
         onClose={() => setSelectedRecording(null)}
       />
-    </DefaultLayout>
+    </div>
   )
 }
 
