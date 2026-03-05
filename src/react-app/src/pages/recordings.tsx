@@ -30,7 +30,6 @@ export default function RecordingsPage() {
   const [selectedRecording, setSelectedRecording] = useState<Recording | null>(
     null
   )
-  const lastLoadErrorToastRef = useRef<string | null>(null)
 
   async function loadRecordings() {
     if (!apiClient) return
@@ -39,18 +38,12 @@ export default function RecordingsPage() {
       const data = await apiClient.listRecordings()
 
       setRecordings(data.recordings)
-      lastLoadErrorToastRef.current = null
     } catch (e) {
-      const message = getErrorMessage(e)
-
-      if (lastLoadErrorToastRef.current !== message) {
-        addToast({
-          title: t`Failed to load recordings`,
-          description: message,
-          color: 'danger',
-        })
-        lastLoadErrorToastRef.current = message
-      }
+      addToast({
+        title: t`Failed to load recordings`,
+        description: getErrorMessage(e),
+        color: 'danger',
+      })
       // eslint-disable-next-line no-console
       console.error('Failed to load recordings:', e)
     } finally {
@@ -299,7 +292,6 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
   const { t } = useLingui()
   const { apiClient } = useRocam()
   const videoRef = useRef<HTMLVideoElement>(null)
-  const lastPreviewErrorToastRef = useRef<string | null>(null)
   const [currentTime, setCurrentTime] = useState(0)
   const [isWaiting, setIsWaiting] = useState(true)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -310,7 +302,6 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
       setCurrentTime(0)
       setIsWaiting(true)
       setIsPlaying(false)
-      lastPreviewErrorToastRef.current = null
     } else {
       // Cancel video loading when recording is null (modal closed)
       if (videoRef.current) {
@@ -336,18 +327,6 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
     setCurrentTime(e.currentTarget.currentTime)
   }
 
-  const toastPreviewError = (error: unknown) => {
-    const message = getErrorMessage(error)
-
-    if (lastPreviewErrorToastRef.current === message) return
-    addToast({
-      title: t`Failed to play preview`,
-      description: message,
-      color: 'danger',
-    })
-    lastPreviewErrorToastRef.current = message
-  }
-
   const handlePlayPause = () => {
     if (!videoRef.current) return
 
@@ -360,7 +339,11 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
         .then(() => setIsPlaying(true))
         .catch((error) => {
           setIsPlaying(false)
-          toastPreviewError(error)
+          addToast({
+            title: t`Failed to play preview`,
+            description: getErrorMessage(error),
+            color: 'danger',
+          })
         })
     }
   }
@@ -402,7 +385,13 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
                     autoPlay
                     className="w-full rounded-lg aspect-video bg-white"
                     src={apiClient.getPreviewStabilizedUrl(recording.id)}
-                    onError={() => toastPreviewError('Preview stream error')}
+                    onError={(e) =>
+                      addToast({
+                        title: t`Failed to play preview`,
+                        description: getErrorMessage(e.currentTarget.error),
+                        color: 'danger',
+                      })
+                    }
                     onPause={handlePause}
                     onPlaying={handlePlaying}
                     onTimeUpdate={handleTimeUpdate}
@@ -423,7 +412,7 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
                       <IconPlayerPlay size={24} strokeWidth={1.5} />
                     )}
                   </Button>
-                  <div className="absolute text-lg bottom-4 right-4 bg-white/75 text-black px-3 py-2 rounded-md text-sm font-mono pointer-events-none">
+                  <div className="absolute bottom-4 right-4 bg-white/75 text-black px-3 py-2 rounded-md text-sm font-mono pointer-events-none">
                     {formatSeconds(currentTime)} /{' '}
                     {formatDuration(recording.duration_ms)}
                   </div>

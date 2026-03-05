@@ -10,6 +10,7 @@ import { addToast } from '@heroui/toast'
 import { useLingui } from '@lingui/react/macro'
 
 import { ApiClient, type StatusResponse } from './api'
+
 import { getErrorMessage } from '@/utils'
 
 export type LogEntry = {
