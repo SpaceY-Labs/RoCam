@@ -39,7 +39,7 @@
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
   \toprule {\bf Date} & {\bf Version} & {\bf Notes} \\
   \midrule
-  2026-03-04             & 1.0           & Add       \\
+  2026-03-04          & 1.0           & Add         \\
   Date 2              & 1.1           & Notes       \\
   \bottomrule
 \end{tabularx}
@@ -247,16 +247,16 @@ Under the revised scope, the \VnVPlan{} still supports the core objectives:
 \section{Functional Requirements Evaluation}
 \label{sec:fr_eval}
 
-This section reports the verification evidence for \textbf{functional requirements}
-defined in the \SRS{}. Test procedures and test case definitions are specified in
-the \VnVPlan{}; to avoid unnecessary repetition, this report focuses on
-\textbf{execution status}, \textbf{results}, and \textbf{evidence}.
+This section reports the verification evidence for \textbf{functional
+  requirements} defined in the \SRS{}. Test procedures and test case definitions
+are specified in the \VnVPlan{}; to avoid unnecessary repetition, this report
+focuses on \textbf{execution status}, \textbf{results}, and \textbf{evidence}.
 
 \subsection{Scope and Execution Policy}
 \label{sec:fr_scope}
 
-As stated in the latest \VnVPlan{} (Revision 5.0), the only testing executed for
-this project is \textbf{unit testing} and a \textbf{stakeholder review}
+As stated in the latest \VnVPlan{} (Revision 5.0), the only testing executed
+for this project is \textbf{unit testing} and a \textbf{stakeholder review}
 (McMaster Rocketry Team). Integration/system/field tests are documented in the
 plan for traceability but are \textbf{not executed} due to resource and contact
 constraints.
@@ -276,24 +276,25 @@ in the final column.
   \renewcommand{\arraystretch}{1.2}
   \begin{tabularx}{\textwidth}{p{3.4cm} p{3.2cm} p{3.0cm} X}
     \toprule
-    \textbf{Test ID (VnVPlan)} & \textbf{FR(s) (SRS)} & \textbf{Execution} & \textbf{Evidence / Notes} \\
+    \textbf{Test ID (VnVPlan)} & \textbf{FR(s) (SRS)} & \textbf{Execution} & \textbf{Evidence / Notes}   \\
     \midrule
 
-    test-aquire-frame & FR-1 & Not executed & Out of scope (system test). \\
-    test-disconnect-camera & FR-1 & Not executed & Out of scope (system test). \\
-    test-hdmi-output & FR-8, FR-9 & Not executed & Out of scope (system test). \\
-    test-preview-real-time & FR-10 & Not executed & Out of scope (system test). \\
-    test-network-disconnect & FR-10 & Not executed & Out of scope (system test). \\
+    test-aquire-frame          & FR-1                 & Not executed       & Out of scope (system test). \\
+    test-disconnect-camera     & FR-1                 & Not executed       & Out of scope (system test). \\
+    test-hdmi-output           & FR-8, FR-9           & Not executed       & Out of scope (system test). \\
+    test-preview-real-time     & FR-10                & Not executed       & Out of scope (system test). \\
+    test-network-disconnect    & FR-10                & Not executed       & Out of scope (system test). \\
 
-    test-recording & FR-11 & Not executed & Out of scope (system test). \\
-    test-disk-full & FR-11 & Not executed & Out of scope (system test). \\
-    test-manage-recordings & FR-12 & Not executed & Out of scope (system test). \\
+    test-recording             & FR-11                & Not executed       & Out of scope (system test). \\
+    test-disk-full             & FR-11                & Not executed       & Out of scope (system test). \\
+    test-manage-recordings     & FR-12                & Not executed       & Out of scope (system test). \\
 
-    test-manual-control & FR-2, FR-6 & Not executed & Out of scope (system test). \\
-    test-transition-to-tracking & FR-3, FR-4 & Not executed & Out of scope (system test). \\
-    test-tracking & FR-2, FR-3, FR-7 & Not executed & Out of scope (system test). \\
-    test-return-to-idle & FR-5 & Not executed & Out of scope (system test). \\
-    test-exit-gimbal-range & FR-2, FR-7 & Not executed & Out of scope (system test). \\
+    test-manual-control        & FR-2, FR-6           & Not executed       & Out of scope (system test).
+    \\ test-transition-to-tracking & FR-3, FR-4 & Not executed & Out of scope
+    (system test).                                                                                       \\ test-tracking & FR-2, FR-3, FR-7 & Not executed & Out of
+    scope (system test).                                                                                 \\ test-return-to-idle & FR-5 & Not executed & Out of
+    scope (system test).                                                                                 \\ test-exit-gimbal-range & FR-2, FR-7 & Not executed &
+    Out of scope (system test).                                                                          \\
 
     \bottomrule
   \end{tabularx}
@@ -311,14 +312,14 @@ traceability to the \VnVPlan{} test IDs even when those tests are not executed.
 
 Because system-level FR tests were not executed, FR verification relies on unit
 tests that validate the underlying behavior (e.g., state transitions, command
-validation, recording pipeline logic, UI action handlers). Evidence is presented
-in two parts:
+validation, recording pipeline logic, UI action handlers). Evidence is
+presented in two parts:
 
 \begin{enumerate}
   \item \textbf{Requirement-to-test mapping:} Section~\ref{sec:trace_reqs} lists
-  which unit tests support each FR.
+        which unit tests support each FR.
   \item \textbf{Execution results:} Section~\ref{sec:unit_testing} reports
-  pass/fail status and, where applicable, links to CI logs or local test output.
+        pass/fail status and, where applicable, links to CI logs or local test output.
 \end{enumerate}
 
 \subsubsection{Evidence Format and Reproducibility}
@@ -338,8 +339,6 @@ Rocketry Team as defined in the \VnVPlan{}. The outcomes of this review (action
 items, approvals, and required changes) are summarized in
 Section~\ref{sec:changes_due_testing}. Any requested changes are tracked as
 GitHub Issues and linked there to maintain traceability.
-
-
 
 \section{Nonfunctional Requirements Evaluation}
 
