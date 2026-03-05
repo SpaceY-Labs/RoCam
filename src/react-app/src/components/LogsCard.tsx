@@ -29,17 +29,21 @@ export function LogsCard() {
 
     es.onmessage = (event) => {
       const entry = parseLogEvent(event.data, nextIdRef.current++)
+
       if (!entry) return
 
       lastStreamErrorToastRef.current = null
       setEntries((prev) => {
         const next = [...prev, entry]
+
         if (next.length <= MAX_LOG_ENTRIES) return next
+
         return next.slice(next.length - MAX_LOG_ENTRIES)
       })
     }
     es.onerror = () => {
       const message = 'Logs stream connection error'
+
       if (lastStreamErrorToastRef.current === message) return
       addToast({
         title: 'Failed to stream logs',
@@ -88,7 +92,9 @@ function parseLogEvent(rawData: string, id: number): LogEntry | null {
       logger?: string
       message?: string
     }
+
     if (typeof data.message !== 'string') return null
+
     return {
       id,
       timestamp: Number.isFinite(data.timestamp)

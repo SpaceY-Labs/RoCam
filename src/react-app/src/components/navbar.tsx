@@ -1,3 +1,5 @@
+import type { Selection } from '@react-types/shared'
+
 import { NavLink, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import {
@@ -21,7 +23,6 @@ import {
   IconMaximizeOff,
 } from '@tabler/icons-react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import type { Selection } from '@react-types/shared'
 
 import { ConfigurationMenu } from './ConfigurationMenu'
 
@@ -36,6 +37,7 @@ export const Navbar = () => {
 
   useEffect(() => {
     const enabled = localStorage.getItem(DEV_SHOW_LOGS_STORAGE_KEY) === 'true'
+
     setShowLogs(enabled)
     document.body.dataset.developerMode = enabled ? 'true' : 'false'
   }, [])
@@ -43,6 +45,7 @@ export const Navbar = () => {
   const handleDeveloperSelectionChange = (keys: Selection) => {
     if (keys === 'all') return
     const nextShowLogs = keys.has('show_logs')
+
     setShowLogs(nextShowLogs)
     localStorage.setItem(DEV_SHOW_LOGS_STORAGE_KEY, String(nextShowLogs))
     document.body.dataset.developerMode = nextShowLogs ? 'true' : 'false'

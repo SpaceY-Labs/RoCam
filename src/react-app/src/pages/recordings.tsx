@@ -336,6 +336,7 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
 
   const toastPreviewError = (error: unknown) => {
     const message = getErrorMessage(error)
+
     if (lastPreviewErrorToastRef.current === message) return
     addToast({
       title: 'Failed to play preview',
@@ -399,11 +400,11 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
                     autoPlay
                     className="w-full rounded-lg aspect-video bg-white"
                     src={apiClient.getPreviewStabilizedUrl(recording.id)}
+                    onError={() => toastPreviewError('Preview stream error')}
                     onPause={handlePause}
                     onPlaying={handlePlaying}
                     onTimeUpdate={handleTimeUpdate}
                     onWaiting={() => setIsWaiting(true)}
-                    onError={() => toastPreviewError('Preview stream error')}
                   >
                     <track kind="captions" />
                     <Trans>Your browser does not support the video tag.</Trans>
@@ -479,5 +480,6 @@ function formatBytes(bytes: number) {
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) return error.message
+
   return String(error ?? 'Unknown error')
 }

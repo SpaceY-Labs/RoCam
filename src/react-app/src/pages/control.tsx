@@ -48,6 +48,7 @@ export default function ControlPage() {
   useEffect(() => {
     if (!statusPollingError) {
       lastStatusPollingErrorToastRef.current = null
+
       return
     }
 
@@ -218,5 +219,6 @@ export default function ControlPage() {
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) return error.message
+
   return String(error ?? 'Unknown error')
 }
