@@ -20,6 +20,8 @@
 % Links to project documents (relative to docs/VnVReport/)
 \newcommand{\SRS}{\href{../SRS/SRS.pdf}{SRS}}
 \newcommand{\VnVPlan}{\href{../VnVPlan/VnVPlan.pdf}{VnV Plan}}
+\newcommand{\MG}{\href{../Design/SoftArchitecture/MG.pdf}{MG}}
+\newcommand{\MIS}{\href{../Design/SoftDetailedDes/MIS.pdf}{MIS}}
 
 
 \begin{document}
@@ -164,7 +166,7 @@ complete for Rev0 scope. The main completeness concerns arise from:
 A pass over the SRS found no major grammar defects; remaining issues are
 primarily minor consistency fixes (capitalization, hyphenation, consistent use
 of abbreviations such as ``UI'', ``fps'', ``gimbal''). In the final report, we
-standardize terminology across documents (SRS/MG/MIS/VnV Plan/Report) to reduce
+standardize terminology across documents (\SRS{}/\MG{}/\MIS{}/\VnVPlan{}/VnV Report) to reduce
 confusion during traceability review.
 
 \subsubsection{Ease of Understanding}
@@ -183,7 +185,7 @@ The SRS is readable and structured, but ease-of-understanding can be improved by
 \subsection{Design Evaluation}
 
 \subsubsection{Consistency With Requirements}
-We reviewed MG/MIS against the SRS to ensure that each major requirement has a
+We reviewed \MG{}/\MIS{} against the \SRS{} to ensure that each major requirement has a
 clear design owner (vision pipeline, control firmware/interface, UI/recording).
 Overall, the decomposition is aligned with RoCam’s core functions. The main
 design-to-requirement risk is where requirements imply integrated behaviour
