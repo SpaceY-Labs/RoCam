@@ -367,19 +367,15 @@ This section will not be appropriate for every project.
 \begin{enumerate}
   \item {ci\_smoke\_pass.py.UT1}
 
-        Control: Automatic
-
-        Method: CI smoke validation entrypoint for backend test pipeline.
-
-        Input: No runtime input; executed in CI test stage.
-
-        Expected Output: Smoke check completes without assertion failures.
-
-        Actual Output: File is present and used as a minimal pipeline check artifact.
-
-        Results Summary: \textcolor{green}{Pass}. CI smoke check completed without
-        assertion failures and validated pipeline readiness.
-
+        \begin{tabularx}{\textwidth}{p{3.2cm}X}
+          \textbf{Test ID}        & ci\_smoke\_pass.py.UT1 \\
+          \textbf{Control}        & Automatic \\
+          \textbf{Method}         & CI smoke validation entrypoint for backend test pipeline. \\
+          \textbf{Input}          & No runtime input; executed in CI test stage. \\
+          \textbf{Expected Output} & Smoke check completes without assertion failures. \\
+          \textbf{Actual Output}  & File is present and used as a minimal pipeline check artifact. \\
+          \textbf{Results Summary} & \textcolor{green}{Pass}. CI smoke check completed without assertion failures and validated pipeline readiness. \\
+        \end{tabularx}
   \item {test\_api.py.UT1}
 
         Control: Automatic
