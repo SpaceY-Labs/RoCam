@@ -5,6 +5,7 @@
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{hyperref}
+\usepackage{xcolor}
 \hypersetup{
     colorlinks,
     citecolor=black,
@@ -16,6 +17,13 @@
 
 \input{../Comments}
 \input{../Common}
+
+% Links to project documents (relative to docs/VnVReport/)
+\newcommand{\SRS}{\href{../SRS/SRS.pdf}{SRS}}
+\newcommand{\VnVPlan}{\href{../VnVPlan/VnVPlan.pdf}{VnV Plan}}
+\newcommand{\MG}{\href{../Design/SoftArchitecture/MG.pdf}{MG}}
+\newcommand{\MIS}{\href{../Design/SoftDetailedDes/MIS.pdf}{MIS}}
+
 
 \begin{document}
 
@@ -30,10 +38,10 @@
 \section{Revision History}
 
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
-  \toprule {\bf Date} & {\bf Version} & {\bf Notes} \\
+  \toprule {\bf Date} & {\bf Version} & {\bf Notes}                 \\
   \midrule
-  Date 1              & 1.0           & Notes       \\
-  Date 2              & 1.1           & Notes       \\
+  2026-03-04          & 1.0           & Add Document Evaluation     \\
+  2026-03-05          & 1.1           & Add Unit Tests based on run \\
   \bottomrule
 \end{tabularx}
 
@@ -66,7 +74,278 @@
 
 This document ...
 
+\section{Document Evaluation}
+
+\subsection{SRS Evaluation}
+
+\subsubsection{Abstraction}
+The \SRS{} was reviewed to ensure requirements describe \textit{what} RoCam
+must do from a stakeholder/operator perspective (camera operator, rocketry
+team) rather than \textit{how} it is implemented (specific CV models, firmware
+details, or UI framework choices). Overall, the Functional Requirements (FRs)
+are written at a suitable level of abstraction: they describe externally
+observable behaviours such as acquiring frames, displaying a live preview,
+allowing manual control, tracking/arming transitions, and recording
+management.\\
+
+The Non-Functional Requirements (NFRs) were also reviewed and are generally
+abstract (e.g., usability, performance, safety, reliability). Where an NFR
+implicitly assumes a particular technical solution (e.g., a specific fps target
+or a specific latency measurement method), this is acceptable if the \SRS{}
+also defines a clear, measurable fit criterion.
+
+\subsubsection{Testability}
+The FRs are mostly testable because they describe observable outcomes that can
+be checked via logs, UI state, or recorded artifacts (e.g., a created video
+file). However, due to the final project scope constraint that \textbf{only
+  unit testing is executed} (and system/field tests are out of scope), some FRs
+are not directly testable end-to-end within this iteration. To preserve
+testability under the reduced scope, FR evaluation in this project is performed
+through:
+\begin{itemize}
+  \item Unit tests for isolated logic (e.g., state transitions, validation, file
+        naming/path logic, error formatting),
+  \item Component-level tests where a module boundary exists (e.g., UI state reducers,
+        API request formatting, parsing),
+  \item Stakeholder review feedback for user-facing correctness/priority (without live
+        flight validation).
+\end{itemize}
+For the NFRs, testability varies:
+\begin{itemize}
+  \item \textbf{Performance}: testable if the \SRS{} states measurable thresholds
+        (e.g., 1080p60 I/O, latency targets), but in this project we can only
+        partially test performance via unit/component tests and profiling of
+        specific pipelines rather than full system measurement.
+  \item \textbf{Usability}: testable through walkthrough protocols and checklists
+        (screenshots, task completion observations), but results are less precise
+        than instrumentation-based studies.
+  \item \textbf{Safety}: testable for software guards (confirmation prompts,
+        manual arming only, safe idle transitions) via unit tests and static
+        inspection; physical safety behaviours at the gimbal/hardware layer are
+        limited by out-of-scope hardware validation.
+\end{itemize}
+
+\subsubsection{Ambiguity}
+The \SRS{} wording is largely clear, but several items can be improved to
+reduce interpretation differences during verification:
+\begin{itemize}
+  \item \textbf{Terms that need operational definitions:} phrases such as
+        ``real-time'', ``smooth'', ``fluid'', ``clear error message'', and
+        ``maintains lock'' should map to concrete thresholds (fps, latency,
+        allowed dropped frames, maximum time-to-reacquire, required UI elements).
+  \item \textbf{State-related FRs:} FRs related to \textit{armed}, \textit{tracking},
+        and \textit{idle} benefit from explicitly defining entry/exit conditions and
+        time bounds (e.g., ``within 2\,s of sustained loss, transition to idle'').
+  \item \textbf{Recording management:} where FRs mention ``download'' or ``list'',
+        the expected metadata should be explicit (name format, timestamp source,
+        duration computation, sorting rule).
+\end{itemize}
+These ambiguities do not block implementation but do increase the risk of
+disagreement during V\&V. Where possible, they are handled in this project by
+encoding assumptions as unit-testable acceptance criteria.
+
+\subsubsection{Completeness}
+For completeness, we reviewed whether the \SRS{} covers the primary stakeholder
+goals for RoCam: acquisition, operator control, automated tracking behaviour,
+recording workflow, and safe operation. At a high level, the \SRS{} is close to
+complete for Rev0 scope. The main completeness concerns arise from:
+\begin{itemize}
+  \item \textbf{Out-of-scope verification constraints:} since system tests and
+        field tests are not executed in this iteration, any FR/NFR that requires
+        integrated hardware measurement (true end-to-end latency, outdoor
+        robustness, real launch tracking) cannot be fully verified. The \SRS{}
+        should explicitly mark such requirements as requiring future work or
+        later verification stages.
+  \item \textbf{Third-party dependencies:} camera/gimbal behaviour is assumed
+        per manufacturer documentation; the \SRS{} should clarify which behaviours
+        are \textit{assumed} vs \textit{verified by this team}.
+  \item \textbf{Safety and hazard linkage:} any hazard mitigations (e.g.,
+        emergency stop, confirmation prompts, manual arm gating) should be
+        explicitly referenced in either FRs or NFRs so that traceability from the
+        Hazard Analysis to requirements is direct.
+\end{itemize}
+
+\subsubsection{Spelling and Grammar}
+A pass over the \SRS{} found no major grammar defects; remaining issues are
+primarily minor consistency fixes (capitalization, hyphenation, consistent use
+of abbreviations such as ``UI'', ``fps'', ``gimbal''). In the final report, we
+standardize terminology across documents (\SRS{}/\MG{}/\MIS{}/\VnVPlan{}/VnV
+Report) to reduce confusion during traceability review.
+
+\subsubsection{Ease of Understanding}
+The \SRS{} is readable and structured, but ease-of-understanding can be
+improved by:
+\begin{itemize}
+  \item Making requirement IDs clickable links in the PDF (or ensuring the traceability
+        tables include enough context so readers do not need to search manually).
+  \item Adding brief legends/notes to diagrams (if any) explaining symbols and data
+        flow, especially when multiple modules interact (Jetson pipeline, STM32
+        controller, UI).
+  \item Including a short glossary of user-facing terms (armed/tracking/idle,
+        ``preview'', ``overlay'', ``recording'') so interpretation is consistent.
+\end{itemize}
+
+\subsection{Design Evaluation}
+
+\subsubsection{Consistency With Requirements}
+We reviewed the \MG{}/\MIS{} against the \SRS{} to ensure that each major
+requirement has a clear design owner (vision pipeline, control
+firmware/interface, UI/recording). Overall, the decomposition is aligned with
+RoCam’s core functions. The main design-to-requirement risk is where
+requirements imply integrated behaviour (e.g., tracking quality under
+occlusion) but the design only specifies unit-level behaviour without an
+executable integration test under the current scope.
+
+\subsubsection{Modularity and Interfaces}
+The design is modular across the main subsystems (vision, control, UI).
+Interfaces should remain stable and well-documented (commands, telemetry,
+timing, and error reporting). This modularity supports unit testing under the
+constrained scope by allowing logic verification at module boundaries even when
+system tests are not executed.
+
+\subsubsection{Maintainability}
+Maintainability is supported by separation of concerns and internal review via
+pull requests. The main maintainability improvement opportunity is to enforce
+consistent error/telemetry schemas between backend and frontend so tests and
+logs remain stable as features evolve.
+
+\subsection{Verification and Validation Plan Evaluation}
+
+\subsubsection{Completeness}
+The \VnVPlan{} contains detailed system test descriptions; however, the
+finalized scope explicitly states that \textbf{only unit testing and
+  stakeholder review are in scope}. Therefore, completeness in the plan must be
+interpreted as:
+\begin{itemize}
+  \item System tests retained for traceability/reference only (not executed),
+  \item Executed evidence coming from unit tests and review artifacts.
+\end{itemize}
+To avoid mismatch with the report, the report will clearly label which planned
+tests were executed and which were not, and will provide unit-test evidence that
+covers the same FR intent where feasible.
+
+\subsubsection{Unambiguous}
+The \VnVPlan{} is mostly unambiguous, especially where checklists specify
+concrete actions. Ambiguity exists mainly where system tests describe
+qualitative outcomes (e.g., ``smooth'', ``clear error message'') without
+explicit acceptance criteria. Where those tests are not executed, ambiguity is
+reduced by replacing them in the report with unit-testable criteria or explicit
+``not executed'' markings.
+
+\subsubsection{Feasibility}
+The \VnVPlan{} is feasible under the revised scope because it limits execution
+to unit tests and stakeholder review. Any activities requiring live rocket
+launches, hardware field conditions, or external reviewers are explicitly
+excluded. This prevents over-claiming and keeps V\&V achievable within
+available time and access.
+
+\subsubsection{Overall Objective Accomplishment}
+Under the revised scope, the \VnVPlan{} still supports the core objectives:
+\begin{itemize}
+  \item \textbf{Document confidence:} internal checklist-based review and
+        traceability tables improve confidence in \SRS{}/design consistency.
+  \item \textbf{Nonfunctional focus:} selected NFRs (e.g., usability walkthrough,
+        performance characterization at module level) can be partially supported
+        with evidence, with limitations clearly stated.
+  \item \textbf{Implementation confidence:} unit tests provide concrete,
+        repeatable evidence that critical logic behaves as expected.
+\end{itemize}
+
 \section{Functional Requirements Evaluation}
+\label{sec:fr_eval}
+
+This section reports the verification evidence for \textbf{functional
+  requirements} defined in the \SRS{}. Test procedures and test case definitions
+are specified in the \VnVPlan{}; to avoid unnecessary repetition, this report
+focuses on \textbf{execution status}, \textbf{results}, and \textbf{evidence}.
+
+\subsection{Scope and Execution Policy}
+\label{sec:fr_scope}
+
+As stated in the latest \VnVPlan{} (Revision 5.0), the only testing executed
+for this project is \textbf{unit testing} and a \textbf{stakeholder review}
+(McMaster Rocketry Team). Integration/system/field tests are documented in the
+plan for traceability but are \textbf{not executed} due to resource and contact
+constraints.
+
+\subsection{Summary of Planned Functional Tests vs Execution}
+\label{sec:fr_summary_table}
+
+Table~\ref{tab:fr_exec_summary} maps the planned functional test IDs (from the
+\VnVPlan{}) to (1) their related SRS functional requirements and (2) the actual
+execution status in this project. Where tests are executed, evidence is linked
+in the final column.
+
+\begin{table}[H]
+  \centering
+  \caption{Functional Test Execution Summary (traceable to \VnVPlan{})}
+  \label{tab:fr_exec_summary}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabularx}{\textwidth}{p{3.4cm} p{3.2cm} p{3.0cm} X}
+    \toprule
+    \textbf{Test ID (VnVPlan)} & \textbf{FR(s) (SRS)} & \textbf{Execution} & \textbf{Evidence / Notes}   \\
+    \midrule
+
+    test-aquire-frame          & FR-1                 & Not executed       & Out of scope (system test). \\
+    test-disconnect-camera     & FR-1                 & Not executed       & Out of scope (system test). \\
+    test-hdmi-output           & FR-8, FR-9           & Not executed       & Out of scope (system test). \\
+    test-preview-real-time     & FR-10                & Not executed       & Out of scope (system test). \\
+    test-network-disconnect    & FR-10                & Not executed       & Out of scope (system test). \\
+
+    test-recording             & FR-11                & Not executed       & Out of scope (system test). \\
+    test-disk-full             & FR-11                & Not executed       & Out of scope (system test). \\
+    test-manage-recordings     & FR-12                & Not executed       & Out of scope (system test). \\
+
+    test-manual-control        & FR-2, FR-6           & Not executed       & Out of scope (system test).
+    \\ test-transition-to-tracking & FR-3, FR-4 & Not executed & Out of scope
+    (system test).                                                                                       \\ test-tracking & FR-2, FR-3, FR-7 & Not executed & Out of
+    scope (system test).                                                                                 \\ test-return-to-idle & FR-5 & Not executed & Out of
+    scope (system test).                                                                                 \\ test-exit-gimbal-range & FR-2, FR-7 & Not executed &
+    Out of scope (system test).                                                                          \\
+
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\noindent
+\textbf{Note:} Functional requirements are primarily verified through unit tests
+in this project. The unit-level test suite (names, coverage, and results) is
+reported in Section~\ref{sec:unit_testing} and traced back to requirements in
+Section~\ref{sec:trace_reqs}. The above table is retained to preserve
+traceability to the \VnVPlan{} test IDs even when those tests are not executed.
+
+\subsection{Unit-Test Evidence for Functional Requirements}
+\label{sec:fr_unit_evidence}
+
+Because system-level FR tests were not executed, FR verification relies on unit
+tests that validate the underlying behavior (e.g., state transitions, command
+validation, recording pipeline logic, UI action handlers). Evidence is
+presented in two parts:
+
+\begin{enumerate}
+  \item \textbf{Requirement-to-test mapping:} Section~\ref{sec:trace_reqs} lists
+        which unit tests support each FR.
+  \item \textbf{Execution results:} Section~\ref{sec:unit_testing} reports
+        pass/fail status and, where applicable, links to CI logs or local test output.
+\end{enumerate}
+
+\subsubsection{Evidence Format and Reproducibility}
+For each functional requirement verified by unit testing, the report records:
+\begin{itemize}
+  \item The FR identifier(s) from the \SRS{}.
+  \item The unit test file(s) / test case names (self-descriptive naming).
+  \item The execution outcome (pass/fail) for the final submission revision.
+  \item A pointer to evidence (CI job log, screenshot, or attached test report).
+\end{itemize}
+
+\subsection{Stakeholder Validation Touchpoint}
+\label{sec:fr_stakeholder_touchpoint}
+
+Stakeholder validation is performed via a review session with the McMaster
+Rocketry Team as defined in the \VnVPlan{}. The outcomes of this review (action
+items, approvals, and required changes) are summarized in
+Section~\ref{sec:changes_due_testing}. Any requested changes are tracked as
+GitHub Issues and linked there to maintain traceability.
 
 \section{Nonfunctional Requirements Evaluation}
 
@@ -81,7 +360,749 @@ This document ...
 This section will not be appropriate for every project.
 
 \section{Unit Testing}
+\label{sec:unit_testing}
+\subsection{Backend Unit Tests (\texttt{pytest})}
+\begin{enumerate}
+  \item \texttt{ci\_smoke\_pass.py.UT1}
 
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{ci\_smoke\_pass.py.UT1}                                \\
+          \hline
+          \textbf{Control}         & Automatic                                                      \\
+          \hline
+          \textbf{Method}          & CI smoke validation entrypoint for backend test pipeline.      \\
+          \hline
+          \textbf{Input}           & No runtime input; executed in CI test stage.                   \\
+          \hline
+          \textbf{Expected Output} & Smoke check completes without assertion failures.              \\
+          \hline
+          \textbf{Actual Output}   & File is present and used as a minimal pipeline check artifact. \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}                                        \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_api.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_api.py.UT1}                                                                                             \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                             \\
+          \hline
+          \textbf{Method}          & Backend HTTP API route tests, including \texttt{test\_returns\_204}, manual move/arm/disarm, and recording calls.     \\
+          \hline
+          \textbf{Input}           & Mock HTTP requests via test client with patched state-management dependencies.                                        \\
+          \hline
+          \textbf{Expected Output} & Correct status codes and correct dispatch to backend control methods.                                                 \\
+          \hline
+          \textbf{Actual Output}   & Assertions in file validate response and invocation behavior.                                                         \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. API endpoints returned expected HTTP status codes and dispatched correct control operations. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_api\_gateway.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_api\_gateway.py.UT1}                                                                                         \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                                  \\
+          \hline
+          \textbf{Method}          & API gateway endpoint tests, including directional move, move-to coordinates, arm/disarm, and recording command forwarding. \\
+          \hline
+          \textbf{Input}           & Simulated gateway requests with mock service dependencies.                                                                 \\
+          \hline
+          \textbf{Expected Output} & Gateway routes forward requests correctly and return expected HTTP outcomes.                                               \\
+          \hline
+          \textbf{Actual Output}   & Test assertions verify forwarding and response behavior.                                                                   \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Gateway forwarding logic correctly mapped incoming requests to backend command handlers.          \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_cv\_main.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_cv\_main.py.UT1}                                                                                      \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                           \\
+          \hline
+          \textbf{Method}          & CV process utility and OSD tests (timestamp formatting and overlay text updates).                                   \\
+          \hline
+          \textbf{Input}           & Mock OSD object and synthetic telemetry/metadata values.                                                            \\
+          \hline
+          \textbf{Expected Output} & Correct timestamp format and expected OSD property updates.                                                         \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify format structure and OSD property calls.                                                          \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Timestamp/OSD formatting matched expected structure and telemetry text rendering behavior. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_cv\_process\_mgmt.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_cv\_process\_mgmt.py.UT1}                                                                                                       \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                                                     \\
+          \hline
+          \textbf{Method}          & CV process management communication tests, including queue/IPC send behavior, recording start/stop messages, and safe no-connection handling. \\
+          \hline
+          \textbf{Input}           & Mock IPC connections, process controls, and recording payloads.                                                                               \\
+          \hline
+          \textbf{Expected Output} & Correct message emission, safe fallback paths, and controlled process behavior.                                                               \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify send, sentinel, and failure-safe semantics.                                                                                 \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. CV process messaging covered normal, sentinel, and no-connection safety paths correctly.                             \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_database.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_database.py.UT1}                                                                                              \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                                   \\
+          \hline
+          \textbf{Method}          & Recording database tests for ID validation, metadata handling, CRUD operations, and error conditions.                       \\
+          \hline
+          \textbf{Input}           & Temporary test storage paths, valid/invalid recording IDs, and mocked file metadata.                                        \\
+          \hline
+          \textbf{Expected Output} & Valid IDs accepted, invalid IDs rejected, and storage operations handled deterministically.                                 \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify raised exceptions and returned metadata/results.                                                          \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Recording ID validation and database CRUD/error handling produced expected deterministic outcomes. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_gimbal.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_gimbal.py.UT1}                                                                                              \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                                 \\
+          \hline
+          \textbf{Method}          & Gimbal communication tests covering CRC helpers, serial command encoding, open/close semantics, and invalid-state guards. \\
+          \hline
+          \textbf{Input}           & Synthetic byte payloads and mocked serial interfaces.                                                                     \\
+          \hline
+          \textbf{Expected Output} & Stable CRC behavior, valid command serialization, and correct runtime guards.                                             \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify CRC outputs, write calls, and exception behavior.                                                       \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. CRC computation, command serialization, and invalid-state guards all behaved correctly.          \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_ipc.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_ipc.py.UT1}                                                                                   \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                   \\
+          \hline
+          \textbf{Method}          & IPC transform/geometry and payload handling tests.                                                          \\
+          \hline
+          \textbf{Input}           & Synthetic bounding boxes, confidence data, and coordinate transforms.                                       \\
+          \hline
+          \textbf{Expected Output} & Correct center/rotation transform outputs and payload consistency.                                          \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify transformed values and invariant preservation.                                            \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. IPC transform logic preserved center/rotation correctness and payload consistency. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_ipc\_buffer.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_ipc\_buffer.py.UT1}                                                                                   \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                           \\
+          \hline
+          \textbf{Method}          & IPC ring-buffer tests for cleanup, fixed-width frame write semantics, head advancement, and full-buffer handling.   \\
+          \hline
+          \textbf{Input}           & Mock shared memory and byte payloads with valid/invalid lengths.                                                    \\
+          \hline
+          \textbf{Expected Output} & Correct head movement, full/empty logic, and predictable error signaling.                                           \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify return flags, buffer transitions, and raised exceptions.                                          \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Ring-buffer write length checks, head advancement, and full-buffer signaling were correct. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_livestream\_mgmt.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_livestream\_mgmt.py.UT1}                                                                               \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                            \\
+          \hline
+          \textbf{Method}          & Livestream process manager tests including daemon-thread startup and process loop execution.                         \\
+          \hline
+          \textbf{Input}           & Mock subprocess calls and thread/process control signals.                                                            \\
+          \hline
+          \textbf{Expected Output} & Correct process spawning behavior and stable lifecycle handling.                                                     \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify daemon setup and expected \texttt{Popen} interactions.                                             \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Livestream manager startup and process-loop invocation matched expected lifecycle behavior. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_main\_entry.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_main\_entry.py.UT1}                                                                                                \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                                        \\
+          \hline
+          \textbf{Method}          & Main entrypoint argument routing tests for control, recording-management, CV, livestream, and stabilized-preview/download modes. \\
+          \hline
+          \textbf{Input}           & Simulated CLI argument vectors.                                                                                                  \\
+          \hline
+          \textbf{Expected Output} & Correct process mode selected for each command-line path.                                                                        \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify dispatch target for each mode argument.                                                                        \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. CLI mode routing selected the correct process entrypoint for all tested arguments.                      \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_sse.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_sse.py.UT1}                                                                                      \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                      \\
+          \hline
+          \textbf{Method}          & Server-Sent Events serialization and listener queue tests.                                                     \\
+          \hline
+          \textbf{Input}           & Event names and data payloads (including empty and JSON strings).                                              \\
+          \hline
+          \textbf{Expected Output} & Correct SSE frame formatting and stable queue/listener behavior.                                               \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify serialized frame text and listener object return behavior.                                   \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. SSE event/data serialization and listener queue access matched protocol expectations. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_state\_management.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_state\_management.py.UT1}                                                                              \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                            \\
+          \hline
+          \textbf{Method}          & State-history and helper utility tests (append behavior, capped history, order guarantees, and lookup semantics).    \\
+          \hline
+          \textbf{Input}           & Synthetic state/event streams with boundary-case lengths and timestamps.                                             \\
+          \hline
+          \textbf{Expected Output} & History cap enforcement, ordering correctness, and deterministic retrieval behavior.                                 \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify cap-at-10 logic, ordering, and empty-case return values.                                           \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. State history append/cap/order and lookup helper behavior passed boundary-condition checks. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_state\_management\_class.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_state\_management\_class.py.UT1}                                                                                                   \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                                                        \\
+          \hline
+          \textbf{Method}          & State management class behavior tests for arm/disarm transitions, status payloads, preview/recording flags, and device-interaction side effects. \\
+          \hline
+          \textbf{Input}           & Mocked subsystem adapters with fixture-initialized state manager instances.                                                                      \\
+          \hline
+          \textbf{Expected Output} & Correct state transitions and consistent status snapshot generation.                                                                             \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify flags, LED interactions, and returned status structure.                                                                        \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Arm/disarm transitions and composed status payload generation behaved as specified.                                     \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_state\_management\_recording\_only.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_state\_management\_recording\_only.py.UT1}                                                       \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                      \\
+          \hline
+          \textbf{Method}          & Recording-management-only mode tests ensuring non-recording controls are no-op.                                \\
+          \hline
+          \textbf{Input}           & Calls to arm/disarm/move operations under recording-only mode fixtures.                                        \\
+          \hline
+          \textbf{Expected Output} & Non-recording operations do nothing and do not mutate restricted control state.                                \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify no-op semantics for restricted control commands.                                             \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Recording-only mode correctly enforced no-op behavior on restricted control commands. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_system\_status.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_system\_status.py.UT1}                                                                        \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                   \\
+          \hline
+          \textbf{Method}          & System status sampler tests (CPU/GPU/temperature/power/memory initialization and updates).                  \\
+          \hline
+          \textbf{Input}           & Mocked \texttt{psutil}/Jetson telemetry adapters and synthetic metric snapshots.                            \\
+          \hline
+          \textbf{Expected Output} & Status object initializes and reports metrics with expected fields and units.                               \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify each metric extraction and status field population.                                       \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. CPU/GPU/temperature/power/memory status sampling and field mapping were validated. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_tracking.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_tracking.py.UT1}                                                                                                         \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                                              \\
+          \hline
+          \textbf{Method}          & Tracking worker/queue tests including queue replacement behavior, stop signaling, worker loop behavior, and gimbal command invocation. \\
+          \hline
+          \textbf{Input}           & Mock detections, bounded queues, stop events, and gimbal stubs.                                                                        \\
+          \hline
+          \textbf{Expected Output} & Correct queue policy, clean worker termination, and valid gimbal output calls.                                                         \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify queue semantics, thread stop behavior, and \texttt{set\_deg} calls.                                                  \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Tracking queue replacement policy, worker stop flow, and gimbal output calls passed.                          \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_transcode\_api.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_transcode\_api.py.UT1}                                                                                        \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                                   \\
+          \hline
+          \textbf{Method}          & Transcode API tests for pipe lifecycle, preview/download endpoints, file-not-found handling, and callback trigger behavior. \\
+          \hline
+          \textbf{Input}           & Temporary paths, mock callbacks, and simulated request IDs.                                                                 \\
+          \hline
+          \textbf{Expected Output} & Robust pipe handling and correct HTTP behavior for preview/download flows.                                                  \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify unlink behavior, 404 paths, and callback invocation.                                                      \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Pipe lifecycle and preview/download endpoint behaviors (including 404 paths) were correct.         \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_transcode\_main.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_transcode\_main.py.UT1}                                                                                               \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                                           \\
+          \hline
+          \textbf{Method}          & Transcode main logic tests for JSONL parsing, malformed line handling, empty-line handling, and transcode pipeline status behavior. \\
+          \hline
+          \textbf{Input}           & Temporary JSONL artifacts with valid/invalid lines and mocked buffers/processes.                                                    \\
+          \hline
+          \textbf{Expected Output} & Valid lines parsed, invalid entries skipped, and stable pipeline status handling.                                                   \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify parsed lists, skip behavior, and status return values.                                                            \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. JSONL parse flow handled valid, invalid, and empty-line inputs as expected.                                \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_utils.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_utils.py.UT1}                                                                                   \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                     \\
+          \hline
+          \textbf{Method}          & Utility function tests for network interface IP selection and scheduler priority validation.                  \\
+          \hline
+          \textbf{Input}           & Mocked interface tables and priority values across valid/invalid ranges.                                      \\
+          \hline
+          \textbf{Expected Output} & Correct IPv4 discovery behavior and explicit validation errors for invalid priorities.                        \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify selected addresses and \texttt{ValueError} boundaries.                                      \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Network-interface utility and scheduler-priority validation matched required bounds. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{test\_watchdog.py.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{test\_watchdog.py.UT1}                                                                                                 \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                                      \\
+          \hline
+          \textbf{Method}          & Watchdog timer tests for timeout/callback storage, timer refresh behavior, cancel/recreate semantics, and callback triggering. \\
+          \hline
+          \textbf{Input}           & Mock timers and watchdog instances with synthetic refresh/reset sequences.                                                     \\
+          \hline
+          \textbf{Expected Output} & Deterministic timer lifecycle and correct callback firing policy.                                                              \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify timer object replacement/cancel calls and callback execution.                                                \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Watchdog timeout storage, refresh/cancel semantics, and callback behavior were correct.               \\
+          \hline
+        \end{tabularx}
+
+\end{enumerate}
+
+\subsection{Frontend Unit Tests (\texttt{Vitest})}
+\begin{enumerate}
+  \item \texttt{App.test.tsx.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{App.test.tsx.UT1}                                                                                  \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                  \\
+          \hline
+          \textbf{Method}          & Top-level route rendering tests for \texttt{/}, \texttt{/recordings}, and unknown-path redirect.           \\
+          \hline
+          \textbf{Input}           & In-memory router initialization with route paths.                                                          \\
+          \hline
+          \textbf{Expected Output} & Correct page component rendered for each route and fallback redirect works.                                \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify route-target rendering behavior.                                                         \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Router rendering/redirect behavior produced the correct page for each route path. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{ConfigurationMenu.test.tsx.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{ConfigurationMenu.test.tsx.UT1}                                                                       \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                     \\
+          \hline
+          \textbf{Method}          & Configuration menu interaction tests for language and unit selection actions.                                 \\
+          \hline
+          \textbf{Input}           & User click/select events on dropdown actions with mocked setters.                                             \\
+          \hline
+          \textbf{Expected Output} & Correct UI rendering and correct action dispatch (\texttt{setLanguage}, \texttt{setTemperatureUnit}).         \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify trigger rendering and callback invocations.                                                 \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Menu interactions correctly triggered language and temperature-unit setting actions. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{ControlsCard.test.tsx.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{ControlsCard.test.tsx.UT1}                                                                        \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                 \\
+          \hline
+          \textbf{Method}          & Controls card tests for arm/disarm, start/stop recording, and error-swallow behavior.                     \\
+          \hline
+          \textbf{Input}           & Simulated button clicks under armed/unarmed and recording/not-recording states.                           \\
+          \hline
+          \textbf{Expected Output} & Correct API methods invoked and UI interactions remain stable under thrown errors.                        \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify method call paths and non-crashing error handling.                                      \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Arm/disarm/record actions called expected APIs and safely handled thrown errors. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{LanguageSelector.test.tsx.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{LanguageSelector.test.tsx.UT1}                                                                                      \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                                   \\
+          \hline
+          \textbf{Method}          & Language selector tests for trigger label and locale-switch callback behavior.                                              \\
+          \hline
+          \textbf{Input}           & Locale option clicks and null-selection scenarios.                                                                          \\
+          \hline
+          \textbf{Expected Output} & Upper-cased locale shown and \texttt{setLanguage} called only for valid selections.                                         \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify displayed label and selection callback behavior.                                                          \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Language trigger text and locale selection callbacks behaved correctly, including null selections. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{navbar.test.tsx.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{navbar.test.tsx.UT1}                                                                          \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                             \\
+          \hline
+          \textbf{Method}          & Navigation bar tests for link rendering, configuration visibility, and fullscreen toggle behavior.    \\
+          \hline
+          \textbf{Input}           & Rendered navbar interactions with mocked fullscreen API methods.                                      \\
+          \hline
+          \textbf{Expected Output} & Required navigation links exist and fullscreen requests/exit paths call correct browser API.          \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify link presence and fullscreen function invocation.                                   \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Navbar links and fullscreen enter/exit actions matched expected UI behavior. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{SystemStatusCard.test.tsx.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{SystemStatusCard.test.tsx.UT1}                                                                        \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                     \\
+          \hline
+          \textbf{Method}          & System status card tests for metric rendering and null-safe rendering behavior.                               \\
+          \hline
+          \textbf{Input}           & Status payload fixtures with CPU/FPS/temperature/GPS combinations.                                            \\
+          \hline
+          \textbf{Expected Output} & Correct metric text rendering and safe handling when status is null.                                          \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify displayed values and null-path rendering stability.                                         \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Status card rendered metrics accurately and remained safe when status data was null. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{i18n.test.ts.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{i18n.test.ts.UT1}                                                                            \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                            \\
+          \hline
+          \textbf{Method}          & i18n initialization tests for locale load/activate sequence.                                         \\
+          \hline
+          \textbf{Input}           & Locale activation requests with mocked i18n loader/activator.                                        \\
+          \hline
+          \textbf{Expected Output} & Requested locale is loaded and activated in correct order.                                           \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify call sequence and activation target.                                               \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Locale load-before-activate ordering was validated for i18n initialization. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{api.test.ts.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{api.test.ts.UT1}                                                                           \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                          \\
+          \hline
+          \textbf{Method}          & API client helper tests for error model semantics and URL builder correctness.                     \\
+          \hline
+          \textbf{Input}           & Synthetic IDs/base URLs and custom error constructor parameters.                                   \\
+          \hline
+          \textbf{Expected Output} & URL helpers return expected endpoint strings and error object preserves fields.                    \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify URL composition and \texttt{ApiError} field semantics.                           \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. API helper URL builders and ApiError object contract behaved as expected. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{rocamProvider.test.tsx.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{rocamProvider.test.tsx.UT1}                                                                         \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                   \\
+          \hline
+          \textbf{Method}          & Provider context tests for initialization, automatic API client creation, and SSE-driven status updates.    \\
+          \hline
+          \textbf{Input}           & Provider mount with mocked \texttt{ApiClient.createAutomatic} and SSE callbacks.                            \\
+          \hline
+          \textbf{Expected Output} & Context values initialize correctly and status updates propagate on SSE events.                             \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify context defaults, creation behavior, and update propagation.                              \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Provider initialization, automatic client creation, and SSE status updates passed. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{control.test.tsx.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{control.test.tsx.UT1}                                                                          \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                              \\
+          \hline
+          \textbf{Method}          & Control page tests for component composition, preview visibility, and recording indicator behavior.    \\
+          \hline
+          \textbf{Input}           & Rendered page with mocked provider status variants.                                                    \\
+          \hline
+          \textbf{Expected Output} & Spinner/preview toggle works and REC indicator follows recording state.                                \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify conditional rendering and indicator behavior.                                        \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Control page conditional rendering for preview/spinner/REC state was correct. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{recordings.test.tsx.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{recordings.test.tsx.UT1}                                                                                \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                       \\
+          \hline
+          \textbf{Method}          & Recordings page tests for loading state, empty state, list rendering, and delete/confirm interaction.           \\
+          \hline
+          \textbf{Input}           & Mock API responses and simulated user clicks with confirm true/false paths.                                     \\
+          \hline
+          \textbf{Expected Output} & Correct state transitions across load/empty/populated views and guarded delete execution.                       \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify rendered states and delete-call conditions.                                                   \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Recordings page loading, empty/populated states, and guarded delete flow were correct. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{provider.test.tsx.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{provider.test.tsx.UT1}                                                                    \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                         \\
+          \hline
+          \textbf{Method}          & Root provider composition tests for i18n bootstrapping and wrapper integration.                   \\
+          \hline
+          \textbf{Input}           & Provider mount with mocked \texttt{dynamicActivate} timing behavior.                              \\
+          \hline
+          \textbf{Expected Output} & Null while loading; afterwards, all required providers are rendered in composition.               \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify loading behavior and wrapper presence after activation.                         \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Root provider composition and i18n loading gate behavior were validated. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{languageAtom.test.ts.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{languageAtom.test.ts.UT1}                                                                            \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                                    \\
+          \hline
+          \textbf{Method}          & Language atom/store definition tests including key and type validity checks.                                 \\
+          \hline
+          \textbf{Input}           & Store atom inspection and type-level valid value checks.                                                     \\
+          \hline
+          \textbf{Expected Output} & Atom is defined with expected storage key and accepted language values.                                      \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify store constant definitions and allowed language values.                                    \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Language atom definitions, storage keys, and accepted language values were correct. \\
+          \hline
+        \end{tabularx}
+
+  \item \texttt{formatters.test.ts.UT1}
+
+        \noindent
+        \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
+          \hline
+          \textbf{Test ID}         & \texttt{formatters.test.ts.UT1}                                                                     \\
+          \hline
+          \textbf{Control}         & Automatic                                                                                           \\
+          \hline
+          \textbf{Method}          & Formatting utility tests for degrees/fps/temperature presentation and rounding.                     \\
+          \hline
+          \textbf{Input}           & Numeric samples across positive/negative/fractional/zero edge cases.                                \\
+          \hline
+          \textbf{Expected Output} & Correct rounding precision and expected unit-symbol formatting.                                     \\
+          \hline
+          \textbf{Actual Output}   & Assertions verify exact formatted string outputs.                                                   \\
+          \hline
+          \textbf{Results}         & \textcolor{green}{Pass}. Degree/FPS/temperature formatter outputs matched expected rounded strings. \\
+          \hline
+        \end{tabularx}
+
+\end{enumerate}
 \section{Changes Due to Testing}
 
 \wss{This section should highlight how feedback from the users and from
@@ -90,12 +1111,15 @@ This section will not be appropriate for every project.
   should be highlighted.}
 
 \section{Automated Testing}
+\label{sec:automated_testing}
 
 \section{Trace to Requirements}
+\label{sec:trace_reqs}
 
 \section{Trace to Modules}
 
 \section{Code Coverage Metrics}
+\label{sec:coverage_metrics}
 
 \bibliographystyle{plainnat}
 \bibliography{../../refs/References}
@@ -125,3 +1149,9 @@ the graduate attribute of Reflection.
 \end{enumerate}
 
 \end{document}
+
+had to deviate from their original VnV Plan.)
+\end{enumerate}
+
+\end{document}
+
