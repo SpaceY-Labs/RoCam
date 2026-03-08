@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { Button } from '@heroui/button'
 import { Card, CardBody } from '@heroui/card'
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+} from '@heroui/modal'
 import { addToast } from '@heroui/toast'
 import {
   IconChevronLeft,
@@ -23,6 +30,7 @@ export function ControlsCard() {
   const [isArmLoading, setIsArmLoading] = useState(false)
   const [isRecordLoading, setIsRecordLoading] = useState(false)
   const [isCooldownActive, setIsCooldownActive] = useState(false)
+  const [showDisarmConfirm, setShowDisarmConfirm] = useState(false)
 
   const isArmed = !!status?.armed
   const isRecording = !!status?.is_recording
@@ -40,22 +48,43 @@ export function ControlsCard() {
 
   const handleToggleArm = async () => {
     if (!apiClient || cooldownOrLoading) return
+
+    if (isArmed) {
+      setShowDisarmConfirm(true)
+
+      return
+    }
     setIsArmLoading(true)
     startCooldown()
     try {
-      if (isArmed) {
-        await apiClient.disarm()
-      } else {
-        await apiClient.arm()
-      }
+      await apiClient.arm()
     } catch (error) {
       addToast({
-        title: isArmed ? t`Failed to disarm` : t`Failed to arm`,
+        title: t`Failed to arm`,
         description: getErrorMessage(error),
         color: 'danger',
       })
     } finally {
       setIsArmLoading(false)
+    }
+  }
+
+  const handleConfirmDisarm = async () => {
+    if (!apiClient || cooldownOrLoading) return
+
+    setIsArmLoading(true)
+    startCooldown()
+    try {
+      await apiClient.disarm()
+    } catch (error) {
+      addToast({
+        title: t`Failed to disarm`,
+        description: getErrorMessage(error),
+        color: 'danger',
+      })
+    } finally {
+      setIsArmLoading(false)
+      setShowDisarmConfirm(false)
     }
   }
 
@@ -85,42 +114,86 @@ export function ControlsCard() {
   }
 
   return (
-    <Card radius="sm">
-      <CardBody className="px-6 py-5">
-        <p className="text-xs font-semibold uppercase text-gray-800 tracking-widest">
-          <Trans>Controls</Trans>
-        </p>
-        <div className="flex gap-8 mt-4">
-          <GimbalPad />
-          <ZoomControls />
-          <div className="flex flex-col justify-center gap-3">
-            <Button
-              color="danger"
-              isDisabled={!apiClient || cooldownOrLoading}
-              radius="sm"
-              variant="bordered"
-              onPress={handleToggleRecording}
-            >
-              {isRecording ? (
-                <Trans>Stop Recording</Trans>
-              ) : (
-                <Trans>Start Recording</Trans>
-              )}
-            </Button>
-            <Button
-              className="border-amber-500 text-amber-600"
-              color="warning"
-              isDisabled={!apiClient || cooldownOrLoading}
-              radius="sm"
-              variant="bordered"
-              onPress={handleToggleArm}
-            >
-              {isArmed ? <Trans>Disarm</Trans> : <Trans>Arm</Trans>}
-            </Button>
+    <>
+      <Card radius="sm">
+        <CardBody className="px-6 py-5">
+          <p className="text-xs font-semibold uppercase text-gray-800 tracking-widest">
+            <Trans>Controls</Trans>
+          </p>
+          <div className="flex gap-8 mt-4">
+            <GimbalPad />
+            <div className="flex flex-col justify-center gap-3">
+              <Button
+                color="danger"
+                isDisabled={!apiClient || cooldownOrLoading}
+                radius="sm"
+                variant="bordered"
+                onPress={handleToggleRecording}
+              >
+                {isRecording ? (
+                  <Trans>Stop Recording</Trans>
+                ) : (
+                  <Trans>Start Recording</Trans>
+                )}
+              </Button>
+              <Button
+                className="border-amber-500 text-amber-600"
+                color="warning"
+                isDisabled={!apiClient || cooldownOrLoading}
+                radius="sm"
+                variant="bordered"
+                onPress={handleToggleArm}
+              >
+                {isArmed ? <Trans>Disarm</Trans> : <Trans>Arm</Trans>}
+              </Button>
+            </div>
           </div>
-        </div>
-      </CardBody>
-    </Card>
+        </CardBody>
+      </Card>
+
+      <Modal
+        isDismissable={!isArmLoading}
+        isOpen={showDisarmConfirm}
+        onOpenChange={(open) => setShowDisarmConfirm(open)}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader>
+                <Trans>Disarm and switch to manual control?</Trans>
+              </ModalHeader>
+              <ModalBody>
+                <p className="text-sm text-gray-600">
+                  <Trans>
+                    Disarming will exit armed mode and re-enable manual gimbal
+                    controls.
+                  </Trans>
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  isDisabled={isArmLoading}
+                  radius="sm"
+                  variant="light"
+                  onPress={onClose}
+                >
+                  <Trans>Cancel</Trans>
+                </Button>
+                <Button
+                  color="warning"
+                  isLoading={isArmLoading}
+                  radius="sm"
+                  variant="solid"
+                  onPress={handleConfirmDisarm}
+                >
+                  <Trans>Disarm and Manual Control</Trans>
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </>
   )
 }
 
