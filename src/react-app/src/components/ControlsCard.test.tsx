@@ -90,6 +90,11 @@ describe('ControlsCard', () => {
 
     if (disarmBtn) {
       fireEvent.click(disarmBtn)
+      const confirmBtn = await screen.findByRole('button', {
+        name: /Disarm and Manual Control/i,
+      })
+
+      fireEvent.click(confirmBtn)
       await waitFor(() => {
         expect(mockApiClient.disarm).toHaveBeenCalledTimes(1)
       })
