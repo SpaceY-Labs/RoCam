@@ -105,22 +105,21 @@ This Verification and Validation (V\&V) plan outlines how the RoCam project
 will demonstrate that the system is built correctly (verification) and fits
 stakeholder needs (validation). It anchors testing to the SRS, architecture
 (MG), and detailed design (MIS), ensuring every requirement is traceable where
-possible. \textbf{Unit testing and system testing are
-  performed;} only field testing is out of scope. Verification relies on
-structured internal reviews and checklists, plus unit tests and system tests,
-to confirm functional behavior and safety assumptions.
-Validation is limited to a planned review with the McMaster Rocketry Team
-(stakeholders) to collect feedback; no task-based inspection, classmate review,
-or supervisor validation is conducted. Roles and responsibilities are assigned
-to team members only, with feedback from the rocketry team captured and
-tracked. Priorities emphasize correctness, performance, reliability, and
-safety; lower-priority or out-of-scope items (e.g., exhaustive usability
-studies, independent verification of third-party components, and field testing)
-are noted to keep the plan feasible. The document concludes with traceability
-tables, placeholders for unit-level details after design finalization, and
-appendices for parameters and optional surveys---forming a clear, practical
-roadmap for the evidence of quality that can be gathered under these
-constraints.
+possible. \textbf{Unit testing and system testing are performed;} only field
+testing is out of scope. Verification relies on structured internal reviews and
+checklists, plus unit tests and system tests, to confirm functional behavior
+and safety assumptions. Validation is limited to a planned review with the
+McMaster Rocketry Team (stakeholders) to collect feedback; no task-based
+inspection, classmate review, or supervisor validation is conducted. Roles and
+responsibilities are assigned to team members only, with feedback from the
+rocketry team captured and tracked. Priorities emphasize correctness,
+performance, reliability, and safety; lower-priority or out-of-scope items
+(e.g., exhaustive usability studies, independent verification of third-party
+components, and field testing) are noted to keep the plan feasible. The
+document concludes with traceability tables, placeholders for unit-level
+details after design finalization, and appendices for parameters and optional
+surveys---forming a clear, practical roadmap for the evidence of quality that
+can be gathered under these constraints.
 
 \wss{provide an introductory blurb and roadmap of the
   Verification and Validation plan}
@@ -150,17 +149,17 @@ The primary objective of this Verification and Validation V\&V Plan is to
 establish confidence in the correctness, performance, and reliability of the
 RoCam system by ensuring that all verification and validation activities are
 thorough, traceable, and aligned with project requirements. The plan emphasizes
-unit testing, system testing, and internal review to
-confirm that functional and performance criteria are addressed where possible,
-with improvements tracked through GitHub Issues. Validation focuses on a
-planned review with the McMaster Rocketry Team (stakeholders) to collect
-feedback; no field testing or supervisor validation is performed. These
-qualities—correctness, performance, reliability, and traceability—are
-fundamental to the success of the V\&V process, ensuring that the RoCam system
-is both technically sound and operationally dependable. Certain objectives,
-such as independent verification of third-party hardware and extended usability
-testing, are excluded due to scope and resource limitations, with reliance
-placed on manufacturer and stakeholder validation.
+unit testing, system testing, and internal review to confirm that functional
+and performance criteria are addressed where possible, with improvements
+tracked through GitHub Issues. Validation focuses on a planned review with the
+McMaster Rocketry Team (stakeholders) to collect feedback; no field testing or
+supervisor validation is performed. These qualities—correctness, performance,
+reliability, and traceability—are fundamental to the success of the V\&V
+process, ensuring that the RoCam system is both technically sound and
+operationally dependable. Certain objectives, such as independent verification
+of third-party hardware and extended usability testing, are excluded due to
+scope and resource limitations, with reliance placed on manufacturer and
+stakeholder validation.
 
 \subsection{In-Scope Objectives}
 Verification and validation efforts will prioritize the following qualities:
@@ -278,12 +277,12 @@ the \textbf{RoCam} project. It defines the structure, responsibilities, and
 methods used to verify that the system meets its functional and non-functional
 requirements and to validate that it fulfills stakeholder needs. The section
 covers the verification of the SRS, design, and implementation via internal
-reviews, unit testing, and system testing, as well as the
-validation strategy through a planned stakeholder review with the McMaster
-Rocketry Team (no field testing). Its purpose is to provide a clear, organized
-framework ensuring that all aspects of RoCam are systematically tested,
-reviewed, and proven reliable before final deployment. \wss{Introduce this
-  section. You can provide a roadmap of the sections to come.}
+reviews, unit testing, and system testing, as well as the validation strategy
+through a planned stakeholder review with the McMaster Rocketry Team (no field
+testing). Its purpose is to provide a clear, organized framework ensuring that
+all aspects of RoCam are systematically tested, reviewed, and proven reliable
+before final deployment. \wss{Introduce this section. You can provide a roadmap
+  of the sections to come.}
 
 \subsection{Verification and Validation Team}
 
@@ -293,23 +292,23 @@ reviewed, and proven reliable before final deployment. \wss{Introduce this
   \label{tab:vnv_team}
   \begin{tabular}{|p{3.5cm}|p{3.5cm}|p{8cm}|}
     \hline
-    \textbf{Name}         & \textbf{Role}                                    & \textbf{V\&V Responsibilities} \\ \hline
+    \textbf{Name}         & \textbf{Role}              & \textbf{V\&V Responsibilities} \\ \hline
 
-    \textbf{Zifan Si}     & Front End Interface Tester                       &
+    \textbf{Zifan Si}     & Front End Interface Tester &
     Responsible for verifying and validating the usability and functionality of the
     react frontend interface.
-    Ensure usability, robustness of frontend features.                                                        \\ \hline
+    Ensure usability, robustness of frontend features.                                  \\ \hline
 
-    \textbf{Jianqing Liu} & Team Lead                                        &
+    \textbf{Jianqing Liu} & Team Lead                  &
     Conduct system validation. Validate the functionality and
     performance of the system against requirements and use cases. Validate system
-    design and functionality.                                                                                 \\ \hline
+    design and functionality.                                                           \\ \hline
 
-    \textbf{Mike Chen}    & CV Tester                                        &
+    \textbf{Mike Chen}    & CV Tester                  &
     Verify and validate computer vision pipeline performance, including object detection
-    and tracking accuracy.                                                                                    \\ \hline
+    and tracking accuracy.                                                              \\ \hline
 
-    \textbf{Xiaotian Lou} & Test automation developer                        &
+    \textbf{Xiaotian Lou} & Test automation developer  &
     Implement automated testing frameworks in all software components. Implement
     API tests across different modules.
     \\ \hline
@@ -372,10 +371,10 @@ specified in the SRS document.
                                                     & $\square$ \; Review design against timeline and budget limits                                 \\[-2pt]
                                                     & $\square$ \; Update records if scope or constraints change                                    \\ \hline
 
-    System Verification                             & $\square$ \; Conduct system tests covering all
-    system components                                                                                                                               \\[-2pt]
+    System Verification                             & $\square$ \; Conduct system tests covering all system
+    components                                                                                                                                      \\[-2pt]
                                                     & $\square$ \; Validate full system behavior against SRS requirements                           \\[-2pt]
-                                                    & $\square$ \; Log and resolve all system test issues                                            \\[-2pt]
+                                                    & $\square$ \; Log and resolve all system test issues                                           \\[-2pt]
                                                     & $\square$ \; Prepare final verification report for stakeholder review                         \\ \hline
 
     Safety Review                                   & $\square$ \; Review safety requirements against Hazard Analysis
@@ -473,7 +472,8 @@ and performance metrics are adequately covered in design where possible.
 
 For the validation plan, the only validation activity is a planned review with
 the McMaster Rocketry Team (stakeholders) to collect feedback. No field tests
-or supervisor validation are performed; unit testing and system testing are conducted.
+or supervisor validation are performed; unit testing and system testing are
+conducted.
 
 % Preamble:
 % \usepackage{array}
@@ -878,8 +878,8 @@ Rocketry Team (client), who would be provided with the manual and would operate
 the system at a model rocket launch event. The development team would be
 present to assist. After the event, the client could fill out a survey
 (Appendix 6.2). Under the current plan, no field testing is performed; unit
-testing, system testing, and a planned stakeholder review
-with the rocketry team are conducted.
+testing, system testing, and a planned stakeholder review with the rocketry
+team are conducted.
 
 \subsection{Tests for Nonfunctional Requirements}
 
@@ -1041,8 +1041,8 @@ before the field test.
 
 \subsubsection{Field Testing (Out of Scope)}
 
-Field testing and user surveys are out of scope; unit testing, system
-testing, and the stakeholder review are performed.
+Field testing and user surveys are out of scope; unit testing, system testing,
+and the stakeholder review are performed.
 
 \subsubsection*{test-user-survey: User Survey (Out of Scope)}
 \begin{itemize}
@@ -1059,36 +1059,36 @@ testing, and the stakeholder review are performed.
   requirements.}
 
 \begin{tabularx}{\textwidth}{p{5cm}X}
-  \toprule {\bf Test ID}       & {\bf Requirements}                                                                                \\
+  \toprule {\bf Test ID}       & {\bf Requirements}       \\
   \midrule
-  test-acquire-frame           & FR-1, SLR-2                                                                                       \\
-  test-disconnect-camera       & FR-1                                                                                              \\
-  test-hdmi-output             & FR-8, FR-9, INT-1, SLR-3                                                                          \\
-  test-disconnect-hdmi         & FR-8                                                                                              \\
-  test-preview-real-time       & FR-10                                                                                             \\
-  test-network-disconnect      & FR-10                                                                                             \\
-  test-recording               & FR-11                                                                                             \\
-  test-disk-full               & FR-11                                                                                             \\
-  test-manage-recordings       & FR-12                                                                                             \\
-  test-manual-control          & FR-2, FR-6                                                                                        \\
-  test-transition-to-tracking  & FR-3, FR-4                                                                                        \\
-  test-tracking                & FR-2, FR-3, FR-7                                                                                  \\
-  test-return-to-idle          & FR-5                                                                                              \\
-  test-exit-gimbal-range       & FR-2, FR-7                                                                                        \\
-  test-consistent-units        & EZ-1, PI-1                                                                                        \\
-  test-bilingual-ui            & PI-2                                                                                              \\
-  test-immediate-ui-feedback   & EZ-2                                                                                              \\
-  test-visual-indicators       & EZ-3                                                                                              \\
-  test-confirmation-prompts    & EZ-4, UPR-3                                                                                       \\
-  test-manual-idle-mode        & SCR-1                                                                                             \\
-  test-no-collection-pii       & LR-1                                                                                              \\
-  test-color-vision-deficiency & AR-1                                                                                              \\
-  test-manual-arm-mode         & SCR-4                                                                                             \\
-  test-gimbal-interface        & INT-2                                                                                             \\
-  test-report-errors           & RFR-1                                                                                             \\
-  test-stop-immediately        & RFR-2                                                                                             \\
-  test-validate-commands       & IR-1                                                                                              \\
-  test-log-operations          & AUR-1                                                                                             \\
+  test-acquire-frame           & FR-1, SLR-2              \\
+  test-disconnect-camera       & FR-1                     \\
+  test-hdmi-output             & FR-8, FR-9, INT-1, SLR-3 \\
+  test-disconnect-hdmi         & FR-8                     \\
+  test-preview-real-time       & FR-10                    \\
+  test-network-disconnect      & FR-10                    \\
+  test-recording               & FR-11                    \\
+  test-disk-full               & FR-11                    \\
+  test-manage-recordings       & FR-12                    \\
+  test-manual-control          & FR-2, FR-6               \\
+  test-transition-to-tracking  & FR-3, FR-4               \\
+  test-tracking                & FR-2, FR-3, FR-7         \\
+  test-return-to-idle          & FR-5                     \\
+  test-exit-gimbal-range       & FR-2, FR-7               \\
+  test-consistent-units        & EZ-1, PI-1               \\
+  test-bilingual-ui            & PI-2                     \\
+  test-immediate-ui-feedback   & EZ-2                     \\
+  test-visual-indicators       & EZ-3                     \\
+  test-confirmation-prompts    & EZ-4, UPR-3              \\
+  test-manual-idle-mode        & SCR-1                    \\
+  test-no-collection-pii       & LR-1                     \\
+  test-color-vision-deficiency & AR-1                     \\
+  test-manual-arm-mode         & SCR-4                    \\
+  test-gimbal-interface        & INT-2                    \\
+  test-report-errors           & RFR-1                    \\
+  test-stop-immediately        & RFR-2                    \\
+  test-validate-commands       & IR-1                     \\
+  test-log-operations          & AUR-1                    \\
   \bottomrule
 \end{tabularx}
 
