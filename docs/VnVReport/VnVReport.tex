@@ -85,12 +85,12 @@
 \renewcommand{\arraystretch}{1.2}
 \begin{tabularx}{\textwidth}{p{3cm}X}
   \toprule
-  \textbf{Symbol} & \textbf{Description} \\
+  \textbf{Symbol} & \textbf{Description}                                                                  \\
   \midrule
-  T               & Test \\
-  YOLO            & You only look once -- an existing object detection model \\
-  CNN             & Convolutional Neural Network \\
-  Jetson          & Abbreviation for Jetson Nano Orin, the proposed board for this project \\
+  T               & Test                                                                                  \\
+  YOLO            & You only look once -- an existing object detection model                              \\
+  CNN             & Convolutional Neural Network                                                          \\
+  Jetson          & Abbreviation for Jetson Nano Orin, the proposed board for this project                \\
   STM32           & Abbreviation for STM32 microcontroller, the proposed microcontroller for this project \\
   \bottomrule
 \end{tabularx}\\
@@ -455,7 +455,7 @@ tests \textbf{passed}.
 
 \subsubsection*{Area: Video Acquisition and Output}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-acquire-frame}                                       \\
+  \hline \textbf{Test ID}          & \tid{test-acquire-frame}                                          \\
   \hline \textbf{Initial State}    & System powered off; camera connected; HDMI monitor attached       \\
   \hline \textbf{Input}            & Power on the system and allow it to fully initialize              \\
   \hline \textbf{Expected Results} & Within 10s of boot, logs show that the camera is acquiring frames \\
@@ -465,7 +465,7 @@ tests \textbf{passed}.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-disconnect-camera}                         \\
+  \hline \textbf{Test ID}          & \tid{test-disconnect-camera}                            \\
   \hline \textbf{Initial State}    & System initialized; preview and HDMI output active      \\
   \hline \textbf{Input}            & Physically disconnect the camera from the system        \\
   \hline \textbf{Expected Results} & UI and HDMI output show a clear error message; no crash \\
@@ -475,7 +475,7 @@ tests \textbf{passed}.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-disconnect-hdmi}                      \\
+  \hline \textbf{Test ID}          & \tid{test-disconnect-hdmi}                         \\
   \hline \textbf{Initial State}    & System initialized; preview and HDMI output active \\
   \hline \textbf{Input}            & Physically disconnect the HDMI cable               \\
   \hline \textbf{Expected Results} & UI shows a clear error message; no crash           \\
@@ -485,7 +485,7 @@ tests \textbf{passed}.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-hdmi-output}                                           \\
+  \hline \textbf{Test ID}          & \tid{test-hdmi-output}                                              \\
   \hline \textbf{Initial State}    & System initialized; idle state; preview and HDMI output active      \\
   \hline \textbf{Input}            & Move the gimbal manually through the UI                             \\
   \hline \textbf{Expected Results} & HDMI shows 1080p60 camera feed with text overlay of pan/tilt angles \\
@@ -495,7 +495,7 @@ tests \textbf{passed}.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-preview-real-time}                                         \\
+  \hline \textbf{Test ID}          & \tid{test-preview-real-time}                                            \\
   \hline \textbf{Initial State}    & System initialized; idle state; preview and HDMI output active          \\
   \hline \textbf{Input}            & Move the gimbal manually through the UI                                 \\
   \hline \textbf{Expected Results} & Preview updates fluidly ($\geq$15fps); displays current pan/tilt angles \\
@@ -505,7 +505,7 @@ tests \textbf{passed}.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-network-disconnect}                                                        \\
+  \hline \textbf{Test ID}          & \tid{test-network-disconnect}                                                           \\
   \hline \textbf{Initial State}    & System initialized; preview and HDMI output active                                      \\
   \hline \textbf{Input}            & Disconnect the system from the network for 30s; reconnect                               \\
   \hline \textbf{Expected Results} & System keeps functioning; UI shows clear error; session restores within 5s on reconnect \\
@@ -516,7 +516,7 @@ tests \textbf{passed}.
 
 \subsubsection*{Area: Recording}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-recording}                                            \\
+  \hline \textbf{Test ID}          & \tid{test-recording}                                               \\
   \hline \textbf{Initial State}    & System initialized; idle state; sufficient disk space              \\
   \hline \textbf{Input}            & Press ``Start Recording'', wait 10s, then press ``Stop Recording'' \\
   \hline \textbf{Expected Results} & A 10 second 1080p60 video file is created and saved to disk        \\
@@ -526,7 +526,7 @@ tests \textbf{passed}.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-disk-full}                                                     \\
+  \hline \textbf{Test ID}          & \tid{test-disk-full}                                                        \\
   \hline \textbf{Initial State}    & System initialized; idle state; storage nearly full                         \\
   \hline \textbf{Input}            & Start recording and allow disk to fill                                      \\
   \hline \textbf{Expected Results} & UI shows ``Storage Full'' alert; recording stopped and file saved; no crash \\
@@ -536,7 +536,7 @@ tests \textbf{passed}.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-manage-recordings}                                                  \\
+  \hline \textbf{Test ID}          & \tid{test-manage-recordings}                                                     \\
   \hline \textbf{Initial State}    & At least two prior recordings exist                                              \\
   \hline \textbf{Input}            & Open recordings list; download latest and older file; delete a test clip         \\
   \hline \textbf{Expected Results} & List shows correct entries; downloads succeed; delete removes selected item only \\
@@ -547,7 +547,7 @@ tests \textbf{passed}.
 
 \subsubsection*{Area: Tracking}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-manual-control}                                   \\
+  \hline \textbf{Test ID}          & \tid{test-manual-control}                                      \\
   \hline \textbf{Initial State}    & System initialized; idle state; preview and HDMI output active \\
   \hline \textbf{Input}            & Issue manual pan and tilt commands via UI                      \\
   \hline \textbf{Expected Results} & Gimbal follows commands smoothly                               \\
@@ -557,7 +557,7 @@ tests \textbf{passed}.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-transition-to-tracking}                                         \\
+  \hline \textbf{Test ID}          & \tid{test-transition-to-tracking}                                            \\
   \hline \textbf{Initial State}    & System initialized; idle state; preview and HDMI output active               \\
   \hline \textbf{Input}            & Arm the system via UI; wave a model rocket in front of the camera            \\
   \hline \textbf{Expected Results} & System transitions to tracking when rocket detected; UI shows tracking state \\
@@ -567,7 +567,7 @@ tests \textbf{passed}.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-tracking}                                             \\
+  \hline \textbf{Test ID}          & \tid{test-tracking}                                                \\
   \hline \textbf{Initial State}    & System initialized; tracking state; preview and HDMI output active \\
   \hline \textbf{Input}            & Continue waving the model rocket in front of the camera            \\
   \hline \textbf{Expected Results} & Gimbal continuously adjusts to keep rocket in frame                \\
@@ -577,7 +577,7 @@ tests \textbf{passed}.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-return-to-idle}                                                          \\
+  \hline \textbf{Test ID}          & \tid{test-return-to-idle}                                                             \\
   \hline \textbf{Initial State}    & System initialized; tracking state; preview and HDMI output active                    \\
   \hline \textbf{Input}            & Occlude the model rocket                                                              \\
   \hline \textbf{Expected Results} & Within 2s of sustained loss, system transitions to idle; UI indicates ``target lost'' \\
@@ -587,7 +587,7 @@ tests \textbf{passed}.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-exit-gimbal-range}                                                  \\
+  \hline \textbf{Test ID}          & \tid{test-exit-gimbal-range}                                                     \\
   \hline \textbf{Initial State}    & System initialized; tracking state; preview and HDMI output active               \\
   \hline \textbf{Input}            & Move the model rocket outside of the gimbal's range of motion                    \\
   \hline \textbf{Expected Results} & Gimbal moves to mechanical limit and stops; no errors; system remains responsive \\
@@ -615,7 +615,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 
 \subsubsection*{Unit Tests}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-ui-loading-states}                     \\
+  \hline \textbf{Test ID}          & \tid{test-ui-loading-states}                        \\
   \hline \textbf{Initial State}    & Components with loading/null states                 \\
   \hline \textbf{Input}            & Null or undefined data                              \\
   \hline \textbf{Expected Results} & Loading spinners or placeholder content; no crashes \\
@@ -625,7 +625,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-language-selector}       \\
+  \hline \textbf{Test ID}          & \tid{test-language-selector}          \\
   \hline \textbf{Initial State}    & LanguageSelector component            \\
   \hline \textbf{Input}            & Language selection change             \\
   \hline \textbf{Expected Results} & Language atom updated; i18n activated \\
@@ -635,7 +635,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-configuration-menu}                                   \\
+  \hline \textbf{Test ID}          & \tid{test-configuration-menu}                                      \\
   \hline \textbf{Initial State}    & ConfigurationMenu component                                        \\
   \hline \textbf{Input}            & Settings changes (temperature unit, drag sensitivity, invert drag) \\
   \hline \textbf{Expected Results} & Setting atoms updated with new values                              \\
@@ -646,7 +646,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 
 \subsubsection*{Manual Walkthrough Tests}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-consistent-units}                                            \\
+  \hline \textbf{Test ID}          & \tid{test-consistent-units}                                               \\
   \hline \textbf{Initial State}    & System initialized; idle state; preview and HDMI output active            \\
   \hline \textbf{Input}            & Go through the UI twice, once with metric units, once with imperial units \\
   \hline \textbf{Expected Results} & Units are consistent and changeable                                       \\
@@ -656,7 +656,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-bilingual-ui}                                                                 \\
+  \hline \textbf{Test ID}          & \tid{test-bilingual-ui}                                                                    \\
   \hline \textbf{Initial State}    & System initialized; language = English                                                     \\
   \hline \textbf{Input}            & Switch UI language to French and back; navigate all UI sections                            \\
   \hline \textbf{Expected Results} & All visible strings appear in selected language; no truncation; formats localize correctly \\
@@ -666,7 +666,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-immediate-ui-feedback}                                      \\
+  \hline \textbf{Test ID}          & \tid{test-immediate-ui-feedback}                                         \\
   \hline \textbf{Initial State}    & System idle; UI ready                                                    \\
   \hline \textbf{Input}            & Trigger actions: button press, toggle, menu selection, recording, arming \\
   \hline \textbf{Expected Results} & Visible confirmation within 0.2s for each action                         \\
@@ -676,7 +676,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-visual-indicators}                                                                           \\
+  \hline \textbf{Test ID}          & \tid{test-visual-indicators}                                                                              \\
   \hline \textbf{Initial State}    & System initialized; speakers muted or disconnected                                                        \\
   \hline \textbf{Input}            & Trigger statuses/alerts: armed, tracking, target lost, storage low/full, network disconnect, device error \\
   \hline \textbf{Expected Results} & Every status/alert presented visually; no action-critical info is audio-only                              \\
@@ -686,7 +686,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-confirmation-prompts}                                                                                                              \\
+  \hline \textbf{Test ID}          & \tid{test-confirmation-prompts}                                                                                                                 \\
   \hline \textbf{Initial State}    & System idle; gimbal powered                                                                                                                     \\
   \hline \textbf{Input}            & Attempt potentially hazardous actions: force home while tracking, hard stop, high-speed slew, firmware update during armed state, factory reset \\
   \hline \textbf{Expected Results} & Blocking confirmation dialog for each action; default is ``Cancel''; action proceeds only after explicit confirmation                           \\
@@ -696,7 +696,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-manual-idle-mode}                                                               \\
+  \hline \textbf{Test ID}          & \tid{test-manual-idle-mode}                                                                  \\
   \hline \textbf{Initial State}    & System armed or tracking                                                                     \\
   \hline \textbf{Input}            & Press ``Idle'' control while tracking                                                        \\
   \hline \textbf{Expected Results} & System transitions to idle within 1\,s; autonomous commands cease; manual controls available \\
@@ -706,7 +706,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-no-collection-pii}                                                              \\
+  \hline \textbf{Test ID}          & \tid{test-no-collection-pii}                                                                 \\
   \hline \textbf{Initial State}    & System initialized; default configuration                                                    \\
   \hline \textbf{Input}            & Inspect all settings, logs, exported files, filenames/paths, and network-configurable fields \\
   \hline \textbf{Expected Results} & No fields request or store personal identifiers; logs contain only technical data            \\
@@ -716,7 +716,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-color-vision-deficiency}                                                \\
+  \hline \textbf{Test ID}          & \tid{test-color-vision-deficiency}                                                   \\
   \hline \textbf{Initial State}    & System initialized; all status indicators visible                                    \\
   \hline \textbf{Input}            & Review all status/alert states under simulated Protanopia/Deuteranopia/Tritanopia    \\
   \hline \textbf{Expected Results} & Each state distinguishable without relying on hue alone; contrast ratio $\geq$ 4.5:1 \\
@@ -727,7 +727,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 
 \subsubsection*{Code and Documentation Walkthrough}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-manual-arm-mode}                                                        \\
+  \hline \textbf{Test ID}          & \tid{test-manual-arm-mode}                                                           \\
   \hline \textbf{Initial State}    & N/A                                                                                  \\
   \hline \textbf{Input}            & Inspect all state transition code and configuration defaults                         \\
   \hline \textbf{Expected Results} & System only enters armed mode when explicitly commanded by user, never automatically \\
@@ -737,7 +737,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-gimbal-interface}                                                           \\
+  \hline \textbf{Test ID}          & \tid{test-gimbal-interface}                                                              \\
   \hline \textbf{Initial State}    & N/A                                                                                      \\
   \hline \textbf{Input}            & Review interface specification with client: command set, telemetry, timing, safety notes \\
   \hline \textbf{Expected Results} & Client confirms interface documentation is complete, clear, and suitable                 \\
@@ -748,7 +748,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 
 \subsubsection*{Error Handling and Logging}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-report-errors}                                      \\
+  \hline \textbf{Test ID}          & \tid{test-report-errors}                                         \\
   \hline \textbf{Initial State}    & System initialized and idle                                      \\
   \hline \textbf{Input}            & Manually trigger hardware, communication, and software faults    \\
   \hline \textbf{Expected Results} & Each error generates a visible and descriptive message on the UI \\
@@ -758,7 +758,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-stop-immediately}                                                       \\
+  \hline \textbf{Test ID}          & \tid{test-stop-immediately}                                                          \\
   \hline \textbf{Initial State}    & System operating in tracking mode                                                    \\
   \hline \textbf{Input}            & Introduce fatal condition (gimbal communication loss or corrupted control process)   \\
   \hline \textbf{Expected Results} & System immediately stops all automated operations and transitions to safe idle state \\
@@ -768,7 +768,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-validate-commands}                                                         \\
+  \hline \textbf{Test ID}          & \tid{test-validate-commands}                                                            \\
   \hline \textbf{Initial State}    & System idle                                                                             \\
   \hline \textbf{Input}            & Enter invalid or out-of-range user commands through UI or API                           \\
   \hline \textbf{Expected Results} & System rejects invalid commands and displays validation error without sending to gimbal \\
@@ -778,7 +778,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-log-operations}                                          \\
+  \hline \textbf{Test ID}          & \tid{test-log-operations}                                             \\
   \hline \textbf{Initial State}    & System initialized                                                    \\
   \hline \textbf{Input}            & Perform user operations: arming, tracking, recording                  \\
   \hline \textbf{Expected Results} & Each action logged with timestamp and operation details in system log \\
@@ -793,7 +793,7 @@ Unit tests verify performance-related behaviour (status caching, SSE broadcast,
 watchdog timing).
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-state-status-performance}                                   \\
+  \hline \textbf{Test ID}          & \tid{test-state-status-performance}                                      \\
   \hline \textbf{Initial State}    & StateManagement with mocked dependencies and cached metrics              \\
   \hline \textbf{Input}            & status() called repeatedly                                               \\
   \hline \textbf{Expected Results} & Status returned within milliseconds; cached values without recalculation \\
@@ -803,7 +803,7 @@ watchdog timing).
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-sse-broadcast-performance}                            \\
+  \hline \textbf{Test ID}          & \tid{test-sse-broadcast-performance}                               \\
   \hline \textbf{Initial State}    & MessageAnnouncer with multiple listeners registered                \\
   \hline \textbf{Input}            & Rapid announce() calls with status updates                         \\
   \hline \textbf{Expected Results} & All listeners receive messages; full queues drop messages silently \\
@@ -813,7 +813,7 @@ watchdog timing).
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-system-status-caching}                               \\
+  \hline \textbf{Test ID}          & \tid{test-system-status-caching}                                  \\
   \hline \textbf{Initial State}    & SystemStatusMonitor with mocked jtop                              \\
   \hline \textbf{Input}            & Multiple getter calls between updates                             \\
   \hline \textbf{Expected Results} & Cached values returned immediately; no redundant hardware queries \\
@@ -823,7 +823,7 @@ watchdog timing).
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-watchdog-timeout-accuracy}                              \\
+  \hline \textbf{Test ID}          & \tid{test-watchdog-timeout-accuracy}                                 \\
   \hline \textbf{Initial State}    & Watchdog with specific timeout value                                 \\
   \hline \textbf{Input}            & refresh() calls at various intervals                                 \\
   \hline \textbf{Expected Results} & Timer created with correct timeout; callback triggered after timeout \\
@@ -837,7 +837,7 @@ watchdog timing).
 Unit tests verify error handling, fault tolerance, and thread safety.
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-state-error-handling}                                \\
+  \hline \textbf{Test ID}          & \tid{test-state-error-handling}                                   \\
   \hline \textbf{Initial State}    & StateManagement with mocked components that may raise exceptions  \\
   \hline \textbf{Input}            & Various operations with components configured to raise exceptions \\
   \hline \textbf{Expected Results} & Operations fail gracefully; no unhandled exceptions propagate     \\
@@ -847,7 +847,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-api-error-responses}                           \\
+  \hline \textbf{Test ID}          & \tid{test-api-error-responses}                              \\
   \hline \textbf{Initial State}    & Flask test client                                           \\
   \hline \textbf{Input}            & Invalid JSON, missing required fields, malformed requests   \\
   \hline \textbf{Expected Results} & HTTP 400 with descriptive error messages; no server crashes \\
@@ -857,7 +857,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-sse-thread-safety}                                       \\
+  \hline \textbf{Test ID}          & \tid{test-sse-thread-safety}                                          \\
   \hline \textbf{Initial State}    & MessageAnnouncer with concurrent operations                           \\
   \hline \textbf{Input}            & Simultaneous listen(), remove(), and announce() from multiple threads \\
   \hline \textbf{Expected Results} & No race conditions; all operations complete safely                    \\
@@ -867,7 +867,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-ipc-buffer-overrun-handling}                     \\
+  \hline \textbf{Test ID}          & \tid{test-ipc-buffer-overrun-handling}                        \\
   \hline \textbf{Initial State}    & IPCBufferReceiver with head ahead of tail (overrun condition) \\
   \hline \textbf{Input}            & receive() call during overrun                                 \\
   \hline \textbf{Expected Results} & Tail advanced to catch up; data retrieved without corruption  \\
@@ -877,7 +877,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-cv-management-exception-safety}                   \\
+  \hline \textbf{Test ID}          & \tid{test-cv-management-exception-safety}                      \\
   \hline \textbf{Initial State}    & CVProcessManagement with connection in various states          \\
   \hline \textbf{Input}            & Operations during broken pipe, EOF, and other error conditions \\
   \hline \textbf{Expected Results} & Exceptions caught and swallowed; component continues operating \\
@@ -887,7 +887,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-database-error-handling}                                \\
+  \hline \textbf{Test ID}          & \tid{test-database-error-handling}                                   \\
   \hline \textbf{Initial State}    & Database with simulated filesystem errors                            \\
   \hline \textbf{Input}            & Operations with mocked os/path functions raising OSError             \\
   \hline \textbf{Expected Results} & Graceful degradation; sensible defaults returned; exceptions handled \\
@@ -897,7 +897,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-rocam-provider-error-handling}                        \\
+  \hline \textbf{Test ID}          & \tid{test-rocam-provider-error-handling}                           \\
   \hline \textbf{Initial State}    & RocamProvider with mocked API that fails to connect                \\
   \hline \textbf{Input}            & API initialization failure                                         \\
   \hline \textbf{Expected Results} & Error state set; error message displayed; component does not crash \\
@@ -907,7 +907,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-ui-error-handling}                       \\
+  \hline \textbf{Test ID}          & \tid{test-ui-error-handling}                          \\
   \hline \textbf{Initial State}    & Components with mocked API that returns errors        \\
   \hline \textbf{Input}            & API errors, network failures, malformed responses     \\
   \hline \textbf{Expected Results} & Graceful error display; component remains interactive \\
@@ -917,7 +917,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-formatters-edge-cases}                               \\
+  \hline \textbf{Test ID}          & \tid{test-formatters-edge-cases}                                  \\
   \hline \textbf{Initial State}    & Formatter functions loaded                                        \\
   \hline \textbf{Input}            & Edge values (null, undefined, negative, zero, very large numbers) \\
   \hline \textbf{Expected Results} & Sensible defaults; no crashes; formatted output for all inputs    \\
@@ -935,7 +935,7 @@ Not applicable, there is no existing implementation.
 
 \subsubsection{Module: State Management}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-state-management-arm-disarm}                         \\
+  \hline \textbf{Test ID}          & \tid{test-state-management-arm-disarm}                            \\
   \hline \textbf{Initial State}    & StateManagement instance with mocked dependencies                 \\
   \hline \textbf{Input}            & Call arm() and disarm() methods                                   \\
   \hline \textbf{Expected Results} & Internal armed flag set appropriately; gimbal LED commands issued \\
@@ -945,7 +945,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-state-management-manual-move}              \\
+  \hline \textbf{Test ID}          & \tid{test-state-management-manual-move}                 \\
   \hline \textbf{Initial State}    & Disarmed system with gimbal at known position           \\
   \hline \textbf{Input}            & manual\_move() with directions up/down/left/right       \\
   \hline \textbf{Expected Results} & Gimbal set\_deg() called with correctly adjusted angles \\
@@ -955,7 +955,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-state-management-manual-move-clamped}            \\
+  \hline \textbf{Test ID}          & \tid{test-state-management-manual-move-clamped}               \\
   \hline \textbf{Initial State}    & Disarmed system with gimbal near limits                       \\
   \hline \textbf{Input}            & manual\_move() commands that would exceed gimbal limits       \\
   \hline \textbf{Expected Results} & Angles clamped to valid ranges (tilt 0--90°, pan -45° to 45°) \\
@@ -965,7 +965,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-state-management-recording}                                   \\
+  \hline \textbf{Test ID}          & \tid{test-state-management-recording}                                      \\
   \hline \textbf{Initial State}    & System with mocked database and CV process                                 \\
   \hline \textbf{Input}            & start\_recording() and stop\_recording() calls                             \\
   \hline \textbf{Expected Results} & Recording allocated in database; CV process notified; recording ID tracked \\
@@ -975,7 +975,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-state-management-download-pause}                          \\
+  \hline \textbf{Test ID}          & \tid{test-state-management-download-pause}                             \\
   \hline \textbf{Initial State}    & Active recording session                                               \\
   \hline \textbf{Input}            & on\_download\_start() and on\_download\_end() calls during recording   \\
   \hline \textbf{Expected Results} & CV pipeline paused on first download, resumed after last download ends \\
@@ -985,7 +985,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-bounding-box-collection}                                                          \\
+  \hline \textbf{Test ID}          & \tid{test-bounding-box-collection}                                                             \\
   \hline \textbf{Initial State}    & Empty BoundingBoxCollection                                                                    \\
   \hline \textbf{Input}            & Sequential CVData with bounding boxes and timestamps                                           \\
   \hline \textbf{Expected Results} & Correct bbox retrieval within 40ms window; latest valid bbox returned; max 10 entries enforced \\
@@ -995,7 +995,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-state-status-performance}                                            \\
+  \hline \textbf{Test ID}          & \tid{test-state-status-performance}                                               \\
   \hline \textbf{Initial State}    & StateManagement with mocked dependencies and cached metrics                       \\
   \hline \textbf{Input}            & status() called repeatedly                                                        \\
   \hline \textbf{Expected Results} & Status returned within milliseconds; cached values returned without recalculation \\
@@ -1005,7 +1005,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-state-error-handling}                                \\
+  \hline \textbf{Test ID}          & \tid{test-state-error-handling}                                   \\
   \hline \textbf{Initial State}    & StateManagement with mocked components that may raise exceptions  \\
   \hline \textbf{Input}            & Various operations with components configured to raise exceptions \\
   \hline \textbf{Expected Results} & Operations fail gracefully; no unhandled exceptions propagate     \\
@@ -1014,7 +1014,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: API Gateway}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-api-endpoints-exist}                                                                                             \\
+  \hline \textbf{Test ID}          & \tid{test-api-endpoints-exist}                                                                                                \\
   \hline \textbf{Initial State}    & Flask test client with mocked StateManagement                                                                                 \\
   \hline \textbf{Input}            & HTTP requests to /api/arm, /api/disarm, /api/manual\_move, /api/manual\_move\_to, /api/recordings/start, /api/recordings/stop \\
   \hline \textbf{Expected Results} & HTTP 200 responses; correct methods called on StateManagement                                                                 \\
@@ -1024,7 +1024,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-api-recordings-crud}                                            \\
+  \hline \textbf{Test ID}          & \tid{test-api-recordings-crud}                                               \\
   \hline \textbf{Initial State}    & Flask test client with mocked database                                       \\
   \hline \textbf{Input}            & GET /api/recordings, PATCH /api/recordings/<id>, DELETE /api/recordings/<id> \\
   \hline \textbf{Expected Results} & Recording list returned; rename and delete operations delegated to database  \\
@@ -1034,7 +1034,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-api-validation}                                 \\
+  \hline \textbf{Test ID}          & \tid{test-api-validation}                                    \\
   \hline \textbf{Initial State}    & Flask test client                                            \\
   \hline \textbf{Input}            & PATCH /api/recordings/<id> with missing or invalid new\_name \\
   \hline \textbf{Expected Results} & HTTP 400 Bad Request with appropriate error message          \\
@@ -1044,7 +1044,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-api-error-responses}                           \\
+  \hline \textbf{Test ID}          & \tid{test-api-error-responses}                              \\
   \hline \textbf{Initial State}    & Flask test client                                           \\
   \hline \textbf{Input}            & Invalid JSON, missing required fields, malformed requests   \\
   \hline \textbf{Expected Results} & HTTP 400 with descriptive error messages; no server crashes \\
@@ -1053,7 +1053,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: Recording Database}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-database-allocate}                                                     \\
+  \hline \textbf{Test ID}          & \tid{test-database-allocate}                                                        \\
   \hline \textbf{Initial State}    & Empty temporary directory                                                           \\
   \hline \textbf{Input}            & allocate\_recording() call                                                          \\
   \hline \textbf{Expected Results} & Recording directory created with meta.json; RecordingInfo returned with valid paths \\
@@ -1063,7 +1063,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-database-list-recordings}              \\
+  \hline \textbf{Test ID}          & \tid{test-database-list-recordings}                 \\
   \hline \textbf{Initial State}    & Database with multiple recordings                   \\
   \hline \textbf{Input}            & list\_all\_recordings() call                        \\
   \hline \textbf{Expected Results} & Sorted list of RecordingInfo objects (newest first) \\
@@ -1073,7 +1073,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-database-rename-delete}                         \\
+  \hline \textbf{Test ID}          & \tid{test-database-rename-delete}                            \\
   \hline \textbf{Initial State}    & Database with existing recording                             \\
   \hline \textbf{Input}            & rename\_recording() and delete\_recording() calls            \\
   \hline \textbf{Expected Results} & meta.json updated with new name; directory removed on delete \\
@@ -1083,7 +1083,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-database-path-traversal-protection}                 \\
+  \hline \textbf{Test ID}          & \tid{test-database-path-traversal-protection}                    \\
   \hline \textbf{Initial State}    & Database with validation enabled                                 \\
   \hline \textbf{Input}            & Recording IDs containing path traversal patterns (../etc/passwd) \\
   \hline \textbf{Expected Results} & ValueError raised; no filesystem access outside base path        \\
@@ -1093,7 +1093,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-database-space-usage}                                         \\
+  \hline \textbf{Test ID}          & \tid{test-database-space-usage}                                            \\
   \hline \textbf{Initial State}    & Mocked disk usage                                                          \\
   \hline \textbf{Input}            & space\_usage\_bytes() and recording\_duration\_left\_s() calls             \\
   \hline \textbf{Expected Results} & Correct used/total bytes; estimated recording duration based on free space \\
@@ -1103,7 +1103,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-database-error-handling}                                \\
+  \hline \textbf{Test ID}          & \tid{test-database-error-handling}                                   \\
   \hline \textbf{Initial State}    & Database with simulated filesystem errors                            \\
   \hline \textbf{Input}            & Operations with mocked os/path functions raising OSError             \\
   \hline \textbf{Expected Results} & Graceful degradation; sensible defaults returned; exceptions handled \\
@@ -1112,7 +1112,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: Gimbal Abstraction}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-gimbal-crc8}                                           \\
+  \hline \textbf{Test ID}          & \tid{test-gimbal-crc8}                                              \\
   \hline \textbf{Initial State}    & GimbalSerial instance                                               \\
   \hline \textbf{Input}            & Various byte sequences for CRC calculation                          \\
   \hline \textbf{Expected Results} & Correct CRC-8 values; consistent results; valid byte range (0--255) \\
@@ -1122,7 +1122,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-gimbal-packet-construction}                            \\
+  \hline \textbf{Test ID}          & \tid{test-gimbal-packet-construction}                               \\
   \hline \textbf{Initial State}    & GimbalSerial with mocked serial port                                \\
   \hline \textbf{Input}            & create\_request\_data() with various request IDs and payloads       \\
   \hline \textbf{Expected Results} & Properly formatted packets with CRC at byte 0, request ID at byte 1 \\
@@ -1132,7 +1132,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-gimbal-angle-commands}                        \\
+  \hline \textbf{Test ID}          & \tid{test-gimbal-angle-commands}                           \\
   \hline \textbf{Initial State}    & GimbalSerial with mocked serial port returning ACK         \\
   \hline \textbf{Input}            & set\_deg(tilt, pan) and get\_deg() calls                   \\
   \hline \textbf{Expected Results} & True on success; correct angle values parsed from response \\
@@ -1142,7 +1142,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-gimbal-led-control}                           \\
+  \hline \textbf{Test ID}          & \tid{test-gimbal-led-control}                              \\
   \hline \textbf{Initial State}    & GimbalSerial with mocked serial port                       \\
   \hline \textbf{Input}            & set\_arm\_led(True/False) and set\_status\_led(True/False) \\
   \hline \textbf{Expected Results} & True on success; serial write called with correct packets  \\
@@ -1152,7 +1152,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-gimbal-info-query}                                \\
+  \hline \textbf{Test ID}          & \tid{test-gimbal-info-query}                                   \\
   \hline \textbf{Initial State}    & GimbalSerial with mocked response                              \\
   \hline \textbf{Input}            & gimbal\_info() call                                            \\
   \hline \textbf{Expected Results} & Tilt range, pan range, and focal length range parsed correctly \\
@@ -1161,7 +1161,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: Tracking}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-tracking-queue-behavior}                            \\
+  \hline \textbf{Test ID}          & \tid{test-tracking-queue-behavior}                               \\
   \hline \textbf{Initial State}    & Tracking instance with mocked gimbal                             \\
   \hline \textbf{Input}            & Sequential on\_detection() calls with bounding box coordinates   \\
   \hline \textbf{Expected Results} & Detections queued; oldest dropped when queue full; None accepted \\
@@ -1171,7 +1171,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-tracking-worker-control-law}                                    \\
+  \hline \textbf{Test ID}          & \tid{test-tracking-worker-control-law}                                       \\
   \hline \textbf{Initial State}    & Tracking instance with mocked gimbal at known position                       \\
   \hline \textbf{Input}            & Detection coordinates off-center from frame                                  \\
   \hline \textbf{Expected Results} & gimbal.set\_deg() called with corrected angles based on proportional control \\
@@ -1181,7 +1181,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-tracking-angle-clamping}                  \\
+  \hline \textbf{Test ID}          & \tid{test-tracking-angle-clamping}                     \\
   \hline \textbf{Initial State}    & Tracking instance with mocked gimbal near angle limits \\
   \hline \textbf{Input}            & Detection that would push angles beyond valid range    \\
   \hline \textbf{Expected Results} & New angles clamped to valid tilt/pan ranges            \\
@@ -1191,7 +1191,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-tracking-stop}                       \\
+  \hline \textbf{Test ID}          & \tid{test-tracking-stop}                          \\
   \hline \textbf{Initial State}    & Running Tracking instance                         \\
   \hline \textbf{Input}            & stop() call                                       \\
   \hline \textbf{Expected Results} & Stop event set; worker thread joined successfully \\
@@ -1200,7 +1200,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: CV Process Management}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-cv-management-osd-send}            \\
+  \hline \textbf{Test ID}          & \tid{test-cv-management-osd-send}               \\
   \hline \textbf{Initial State}    & CVProcessManagement with open IPC connection    \\
   \hline \textbf{Input}            & send\_osd\_data() with OSDData                  \\
   \hline \textbf{Expected Results} & Data sent over IPC; exceptions swallowed safely \\
@@ -1210,7 +1210,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-cv-management-recording-commands}           \\
+  \hline \textbf{Test ID}          & \tid{test-cv-management-recording-commands}              \\
   \hline \textbf{Initial State}    & CVProcessManagement with open IPC connection             \\
   \hline \textbf{Input}            & start\_recording() with RecordingInfo; stop\_recording() \\
   \hline \textbf{Expected Results} & Recording info sent; StopRecording sentinel sent         \\
@@ -1220,7 +1220,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-cv-management-pause-resume}                \\
+  \hline \textbf{Test ID}          & \tid{test-cv-management-pause-resume}                   \\
   \hline \textbf{Initial State}    & CVProcessManagement with active process                 \\
   \hline \textbf{Input}            & pause\_pipeline() and resume\_pipeline() calls          \\
   \hline \textbf{Expected Results} & Process terminated on pause; resume event set on resume \\
@@ -1230,7 +1230,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-cv-management-recv-loop}                    \\
+  \hline \textbf{Test ID}          & \tid{test-cv-management-recv-loop}                       \\
   \hline \textbf{Initial State}    & CVProcessManagement with mocked connection               \\
   \hline \textbf{Input}            & Simulated CVData and PreviewData via recv loop           \\
   \hline \textbf{Expected Results} & Callbacks dispatched correctly; connection closed on EOF \\
@@ -1240,7 +1240,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-cv-management-exception-safety}                   \\
+  \hline \textbf{Test ID}          & \tid{test-cv-management-exception-safety}                      \\
   \hline \textbf{Initial State}    & CVProcessManagement with connection in various states          \\
   \hline \textbf{Input}            & Operations during broken pipe, EOF, and other error conditions \\
   \hline \textbf{Expected Results} & Exceptions caught and swallowed; component continues operating \\
@@ -1249,7 +1249,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: Live Video Process Management}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-livestream-construction}         \\
+  \hline \textbf{Test ID}          & \tid{test-livestream-construction}            \\
   \hline \textbf{Initial State}    & System ready for process management           \\
   \hline \textbf{Input}            & LivestreamProcessManagement instantiation     \\
   \hline \textbf{Expected Results} & Daemon thread started for process supervision \\
@@ -1259,7 +1259,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-livestream-process-loop}                              \\
+  \hline \textbf{Test ID}          & \tid{test-livestream-process-loop}                                 \\
   \hline \textbf{Initial State}    & LivestreamProcessManagement instance                               \\
   \hline \textbf{Input}            & Simulated process loop iteration                                   \\
   \hline \textbf{Expected Results} & subprocess.Popen called with livestream command; process monitored \\
@@ -1268,7 +1268,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: Transcode API}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-transcode-routes-404}                                   \\
+  \hline \textbf{Test ID}          & \tid{test-transcode-routes-404}                                      \\
   \hline \textbf{Initial State}    & Flask app with transcode routes registered; recording not found      \\
   \hline \textbf{Input}            & GET /api/recordings/<id>/preview-stabilized and /download-stabilized \\
   \hline \textbf{Expected Results} & HTTP 404 when recording not found                                    \\
@@ -1278,7 +1278,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-transcode-streaming}                                     \\
+  \hline \textbf{Test ID}          & \tid{test-transcode-streaming}                                        \\
   \hline \textbf{Initial State}    & Flask app with valid recording                                        \\
   \hline \textbf{Input}            & GET preview-stabilized or download-stabilized with valid recording ID \\
   \hline \textbf{Expected Results} & HTTP 200 with video/webm content type; on\_download\_start/end called \\
@@ -1288,7 +1288,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-transcode-pipe-cleanup}                           \\
+  \hline \textbf{Test ID}          & \tid{test-transcode-pipe-cleanup}                              \\
   \hline \textbf{Initial State}    & Named pipe exists on filesystem                                \\
   \hline \textbf{Input}            & \_cleanup\_pipe() call                                         \\
   \hline \textbf{Expected Results} & Pipe file removed; no error if pipe missing; OSError swallowed \\
@@ -1297,7 +1297,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: Transcode Process}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-transcode-read-log}                                \\
+  \hline \textbf{Test ID}          & \tid{test-transcode-read-log}                                   \\
   \hline \textbf{Initial State}    & TranscodeProcess instance with mocked GStreamer                 \\
   \hline \textbf{Input}            & JSONL log file with OSD entries                                 \\
   \hline \textbf{Expected Results} & List of OSDData objects parsed correctly; invalid lines skipped \\
@@ -1307,7 +1307,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-transcode-shader-probe}                                                    \\
+  \hline \textbf{Test ID}          & \tid{test-transcode-shader-probe}                                                       \\
   \hline \textbf{Initial State}    & TranscodeProcess with OSD data list                                                     \\
   \hline \textbf{Input}            & Shader probe calls with various PTS values                                              \\
   \hline \textbf{Expected Results} & Correct OSD data selected; pointer advanced appropriately for preview vs download modes \\
@@ -1317,7 +1317,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-transcode-bus-call}                 \\
+  \hline \textbf{Test ID}          & \tid{test-transcode-bus-call}                    \\
   \hline \textbf{Initial State}    & TranscodeProcess with mocked GStreamer bus       \\
   \hline \textbf{Input}            & EOS, WARNING, and ERROR messages                 \\
   \hline \textbf{Expected Results} & Loop quit on EOS and ERROR; continued on WARNING \\
@@ -1326,7 +1326,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: CV Process}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-cv-format-time}                            \\
+  \hline \textbf{Test ID}          & \tid{test-cv-format-time}                               \\
   \hline \textbf{Initial State}    & CV process utilities loaded                             \\
   \hline \textbf{Input}            & Millisecond timestamps                                  \\
   \hline \textbf{Expected Results} & Human-readable formatted time strings with milliseconds \\
@@ -1336,7 +1336,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-cv-update-osd}                                   \\
+  \hline \textbf{Test ID}          & \tid{test-cv-update-osd}                                      \\
   \hline \textbf{Initial State}    & Mocked GStreamer osd and shader elements                      \\
   \hline \textbf{Input}            & OSDData with gimbal angles, GPS coordinates, IP addresses     \\
   \hline \textbf{Expected Results} & Text property set with formatted OSD; shader uniforms updated \\
@@ -1345,7 +1345,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: Common IPC}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-bounding-box-center}        \\
+  \hline \textbf{Test ID}          & \tid{test-bounding-box-center}           \\
   \hline \textbf{Initial State}    & BoundingBox instance                     \\
   \hline \textbf{Input}            & Various bounding box coordinates         \\
   \hline \textbf{Expected Results} & Correct center point (cx, cy) calculated \\
@@ -1355,7 +1355,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-bounding-box-rotate-90}     \\
+  \hline \textbf{Test ID}          & \tid{test-bounding-box-rotate-90}        \\
   \hline \textbf{Initial State}    & BoundingBox instance                     \\
   \hline \textbf{Input}            & Bounding box for 90-degree rotated frame \\
   \hline \textbf{Expected Results} & Correctly transformed bounding box       \\
@@ -1365,7 +1365,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-dataclass-construction}                                       \\
+  \hline \textbf{Test ID}          & \tid{test-dataclass-construction}                                          \\
   \hline \textbf{Initial State}    & IPC module loaded                                                          \\
   \hline \textbf{Input}            & Construction of CVData, OSDData, PreviewData, RecordingInfo, StopRecording \\
   \hline \textbf{Expected Results} & Objects created with correct field values                                  \\
@@ -1374,7 +1374,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: Common IPC Buffer}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-ipc-buffer-sender}                                        \\
+  \hline \textbf{Test ID}          & \tid{test-ipc-buffer-sender}                                           \\
   \hline \textbf{Initial State}    & IPCBufferSender with mocked shared memory                              \\
   \hline \textbf{Input}            & send() calls with fixed-size payloads                                  \\
   \hline \textbf{Expected Results} & Head advanced; data written at correct offset; returns False when full \\
@@ -1384,7 +1384,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-ipc-buffer-receiver}                                   \\
+  \hline \textbf{Test ID}          & \tid{test-ipc-buffer-receiver}                                      \\
   \hline \textbf{Initial State}    & IPCBufferReceiver with mocked shared memory containing data         \\
   \hline \textbf{Input}            & receive() calls with various head/tail positions                    \\
   \hline \textbf{Expected Results} & Data retrieved correctly; tail advanced; overrun handled gracefully \\
@@ -1394,7 +1394,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-ipc-buffer-overrun-handling}                                   \\
+  \hline \textbf{Test ID}          & \tid{test-ipc-buffer-overrun-handling}                                      \\
   \hline \textbf{Initial State}    & IPCBufferReceiver with head significantly ahead of tail (overrun condition) \\
   \hline \textbf{Input}            & receive() call during overrun                                               \\
   \hline \textbf{Expected Results} & Tail advanced to catch up; data retrieved without corruption                \\
@@ -1404,7 +1404,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-ipc-buffer-memory-safety}                          \\
+  \hline \textbf{Test ID}          & \tid{test-ipc-buffer-memory-safety}                             \\
   \hline \textbf{Initial State}    & IPCBuffer with various head/tail positions including edge cases \\
   \hline \textbf{Input}            & Operations at buffer boundaries                                 \\
   \hline \textbf{Expected Results} & No out-of-bounds access; proper ring buffer wrapping            \\
@@ -1413,7 +1413,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: Common Watchdog}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-watchdog-refresh}                      \\
+  \hline \textbf{Test ID}          & \tid{test-watchdog-refresh}                         \\
   \hline \textbf{Initial State}    & Watchdog instance with timeout and callback         \\
   \hline \textbf{Input}            & refresh() calls                                     \\
   \hline \textbf{Expected Results} & Timer created and started; previous timer cancelled \\
@@ -1423,7 +1423,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-watchdog-clear}                                 \\
+  \hline \textbf{Test ID}          & \tid{test-watchdog-clear}                                    \\
   \hline \textbf{Initial State}    & Watchdog with active timer                                   \\
   \hline \textbf{Input}            & clear() call                                                 \\
   \hline \textbf{Expected Results} & Timer cancelled; reference cleared; idempotent when no timer \\
@@ -1433,7 +1433,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-watchdog-timeout-accuracy}                              \\
+  \hline \textbf{Test ID}          & \tid{test-watchdog-timeout-accuracy}                                 \\
   \hline \textbf{Initial State}    & Watchdog with specific timeout value                                 \\
   \hline \textbf{Input}            & refresh() calls at various intervals                                 \\
   \hline \textbf{Expected Results} & Timer created with correct timeout; callback triggered after timeout \\
@@ -1442,7 +1442,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: System Status}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-system-status-caching}                               \\
+  \hline \textbf{Test ID}          & \tid{test-system-status-caching}                                  \\
   \hline \textbf{Initial State}    & SystemStatusMonitor with mocked jtop                              \\
   \hline \textbf{Input}            & Multiple getter calls between updates                             \\
   \hline \textbf{Expected Results} & Cached values returned immediately; no redundant hardware queries \\
@@ -1453,15 +1453,15 @@ Not applicable, there is no existing implementation.
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
   \hline \textbf{Test ID}          & \tid{test-system-status-callback-updates} \\
-  \hline \textbf{Initial State}    & SystemStatusMonitor with initial readings    \\
-  \hline \textbf{Input}            & jtop callback with updated sensor values     \\
-  \hline \textbf{Expected Results} & All cached metrics updated to new values     \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                      \\
+  \hline \textbf{Initial State}    & SystemStatusMonitor with initial readings \\
+  \hline \textbf{Input}            & jtop callback with updated sensor values  \\
+  \hline \textbf{Expected Results} & All cached metrics updated to new values  \\
+  \hline \textbf{Success}          & \textcolor{green}{Pass}                   \\
   \hline
 \end{tabularx}
 \subsubsection{Module: Common Utils}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-ip4-addresses}                                             \\
+  \hline \textbf{Test ID}          & \tid{test-ip4-addresses}                                                \\
   \hline \textbf{Initial State}    & Utils module with mocked netifaces                                      \\
   \hline \textbf{Input}            & Network interface configurations with various IPv4 addresses            \\
   \hline \textbf{Expected Results} & List of IP addresses extracted correctly; empty list when no interfaces \\
@@ -1471,7 +1471,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-scheduler-validation}                                                \\
+  \hline \textbf{Test ID}          & \tid{test-scheduler-validation}                                                   \\
   \hline \textbf{Initial State}    & Scheduler functions with mocked OS calls                                          \\
   \hline \textbf{Input}            & Various priority values (valid and invalid) for FIFO, OTHER, and BATCH schedulers \\
   \hline \textbf{Expected Results} & ValueError raised for out-of-range priorities; successful calls for valid values  \\
@@ -1480,7 +1480,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: Recording-Only State Management}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-state-management-recording-only-noops}                                                 \\
+  \hline \textbf{Test ID}          & \tid{test-state-management-recording-only-noops}                                                    \\
   \hline \textbf{Initial State}    & StateManagementRecordingManagementOnly instance                                                     \\
   \hline \textbf{Input}            & Calls to arm(), disarm(), manual\_move(), manual\_move\_to(), start\_recording(), stop\_recording() \\
   \hline \textbf{Expected Results} & All operations are no-ops (do not raise exceptions)                                                 \\
@@ -1490,7 +1490,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-state-management-recording-only-status}                           \\
+  \hline \textbf{Test ID}          & \tid{test-state-management-recording-only-status}                              \\
   \hline \textbf{Initial State}    & StateManagementRecordingManagementOnly with mocked database and system status  \\
   \hline \textbf{Input}            & status() call                                                                  \\
   \hline \textbf{Expected Results} & StatusResponse with is\_recording=False, armed=False, system metrics populated \\
@@ -1500,7 +1500,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-control-process-main-entry}                       \\
+  \hline \textbf{Test ID}          & \tid{test-control-process-main-entry}                          \\
   \hline \textbf{Initial State}    & Mocked StateManagement and threading                           \\
   \hline \textbf{Input}            & run\_control\_process() and run\_recording\_management() calls \\
   \hline \textbf{Expected Results} & API thread started and joined; StateManagement instantiated    \\
@@ -1509,7 +1509,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: Main Entry Point}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-main-dispatch-control}      \\
+  \hline \textbf{Test ID}          & \tid{test-main-dispatch-control}         \\
   \hline \textbf{Initial State}    & Mocked sys.argv with no arguments        \\
   \hline \textbf{Input}            & Default execution (no command line args) \\
   \hline \textbf{Expected Results} & run\_control\_process() called           \\
@@ -1519,7 +1519,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-main-dispatch-cv}         \\
+  \hline \textbf{Test ID}          & \tid{test-main-dispatch-cv}            \\
   \hline \textbf{Initial State}    & Mocked sys.argv with [``cv''] argument \\
   \hline \textbf{Input}            & CV process launch command              \\
   \hline \textbf{Expected Results} & run\_cv\_process() called              \\
@@ -1529,7 +1529,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-main-dispatch-livestream}         \\
+  \hline \textbf{Test ID}          & \tid{test-main-dispatch-livestream}            \\
   \hline \textbf{Initial State}    & Mocked sys.argv with [``livestream''] argument \\
   \hline \textbf{Input}            & Livestream process launch command              \\
   \hline \textbf{Expected Results} & run\_livestream\_process() called              \\
@@ -1539,7 +1539,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-main-dispatch-transcode}                                                \\
+  \hline \textbf{Test ID}          & \tid{test-main-dispatch-transcode}                                                   \\
   \hline \textbf{Initial State}    & Mocked sys.argv with [``download-stabilized''] or [``preview-stabilized''] arguments \\
   \hline \textbf{Input}            & Transcode process launch command with video and log paths                            \\
   \hline \textbf{Expected Results} & start\_transcode\_process() called with correct mode and paths                       \\
@@ -1549,7 +1549,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-main-dispatch-unknown}  \\
+  \hline \textbf{Test ID}          & \tid{test-main-dispatch-unknown}     \\
   \hline \textbf{Initial State}    & Mocked sys.argv with unknown command \\
   \hline \textbf{Input}            & Unknown command line argument        \\
   \hline \textbf{Expected Results} & System exits with code 1             \\
@@ -1558,7 +1558,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsubsection{Module: SSE}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-sse-broadcast-performance}                                          \\
+  \hline \textbf{Test ID}          & \tid{test-sse-broadcast-performance}                                             \\
   \hline \textbf{Initial State}    & MessageAnnouncer with multiple listeners registered                              \\
   \hline \textbf{Input}            & Rapid announce() calls with status updates                                       \\
   \hline \textbf{Expected Results} & All listeners receive messages; full queues drop messages silently (no blocking) \\
@@ -1568,7 +1568,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-sse-thread-safety}                                       \\
+  \hline \textbf{Test ID}          & \tid{test-sse-thread-safety}                                          \\
   \hline \textbf{Initial State}    & MessageAnnouncer with concurrent operations                           \\
   \hline \textbf{Input}            & Simultaneous listen(), remove(), and announce() from multiple threads \\
   \hline \textbf{Expected Results} & No race conditions; all operations complete safely                    \\
@@ -1577,7 +1577,7 @@ Not applicable, there is no existing implementation.
 \end{tabularx}
 \subsection{Frontend Unit Tests (\texttt{Vitest})}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-control-page-render}                                                                           \\
+  \hline \textbf{Test ID}          & \tid{test-control-page-render}                                                                              \\
   \hline \textbf{Initial State}    & React component with mocked dependencies                                                                    \\
   \hline \textbf{Input}            & Various status states (null, with/without preview, armed/disarmed, recording)                               \\
   \hline \textbf{Expected Results} & Preview image rendered when available; spinner shown when loading; REC/ARMED indicators displayed correctly \\
@@ -1587,7 +1587,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-control-page-bbox-overlay}             \\
+  \hline \textbf{Test ID}          & \tid{test-control-page-bbox-overlay}                \\
   \hline \textbf{Initial State}    & Control page with status containing bbox            \\
   \hline \textbf{Input}            & Status with bounding box coordinates and confidence \\
   \hline \textbf{Expected Results} & Bounding box overlay rendered with confidence value \\
@@ -1597,7 +1597,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-controls-card-render}                                   \\
+  \hline \textbf{Test ID}          & \tid{test-controls-card-render}                                      \\
   \hline \textbf{Initial State}    & ControlsCard component with mocked API                               \\
   \hline \textbf{Input}            & Various system states (armed/disarmed)                               \\
   \hline \textbf{Expected Results} & Directional controls rendered; manual move API called on interaction \\
@@ -1607,7 +1607,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-control-page-drag}                         \\
+  \hline \textbf{Test ID}          & \tid{test-control-page-drag}                            \\
   \hline \textbf{Initial State}    & Control page in disarmed mode                           \\
   \hline \textbf{Input}            & Pointer drag gestures on preview area                   \\
   \hline \textbf{Expected Results} & manualMoveTo API called with calculated tilt/pan values \\
@@ -1617,7 +1617,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-system-status-card}                                    \\
+  \hline \textbf{Test ID}          & \tid{test-system-status-card}                                       \\
   \hline \textbf{Initial State}    & SystemStatusCard component with status payload fixtures             \\
   \hline \textbf{Input}            & Status payload fixtures with CPU/FPS/temperature/GPS combinations   \\
   \hline \textbf{Expected Results} & Correct metric text rendering and safe handling when status is null \\
@@ -1627,7 +1627,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-navbar}                                                               \\
+  \hline \textbf{Test ID}          & \tid{test-navbar}                                                                  \\
   \hline \textbf{Initial State}    & Rendered navbar with mocked fullscreen API                                         \\
   \hline \textbf{Input}            & Navbar interactions (link clicks, configuration toggle, fullscreen)                \\
   \hline \textbf{Expected Results} & Required navigation links exist; fullscreen requests/exit call correct browser API \\
@@ -1638,16 +1638,16 @@ Not applicable, there is no existing implementation.
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
   \hline \textbf{Test ID}          & \tid{test-recordings-page-loading} \\
-  \hline \textbf{Initial State}    & Recordings page mounted               \\
-  \hline \textbf{Input}            & API loading state                     \\
-  \hline \textbf{Expected Results} & Loading spinner displayed             \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}               \\
+  \hline \textbf{Initial State}    & Recordings page mounted            \\
+  \hline \textbf{Input}            & API loading state                  \\
+  \hline \textbf{Expected Results} & Loading spinner displayed          \\
+  \hline \textbf{Success}          & \textcolor{green}{Pass}            \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-recordings-page-empty} \\
+  \hline \textbf{Test ID}          & \tid{test-recordings-page-empty}    \\
   \hline \textbf{Initial State}    & Recordings page with empty list     \\
   \hline \textbf{Input}            & API returns empty recordings array  \\
   \hline \textbf{Expected Results} & ``No recordings'' message displayed \\
@@ -1657,7 +1657,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-recordings-page-list}                      \\
+  \hline \textbf{Test ID}          & \tid{test-recordings-page-list}                         \\
   \hline \textbf{Initial State}    & Recordings page with sample data                        \\
   \hline \textbf{Input}            & API returns list of recordings                          \\
   \hline \textbf{Expected Results} & Recording names rendered; dates and durations formatted \\
@@ -1667,7 +1667,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-recordings-delete}            \\
+  \hline \textbf{Test ID}          & \tid{test-recordings-delete}               \\
   \hline \textbf{Initial State}    & Recordings page with sample recording      \\
   \hline \textbf{Input}            & Delete button clicked with confirmation    \\
   \hline \textbf{Expected Results} & deleteRecording API called with correct ID \\
@@ -1677,7 +1677,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-recordings-rename}                               \\
+  \hline \textbf{Test ID}          & \tid{test-recordings-rename}                                  \\
   \hline \textbf{Initial State}    & Recordings page with editable name                            \\
   \hline \textbf{Input}            & Name changed and blurred (or Escape pressed)                  \\
   \hline \textbf{Expected Results} & renameRecording API called with new name; cancelled on Escape \\
@@ -1687,7 +1687,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-language-selector}       \\
+  \hline \textbf{Test ID}          & \tid{test-language-selector}          \\
   \hline \textbf{Initial State}    & LanguageSelector component            \\
   \hline \textbf{Input}            & Language selection change             \\
   \hline \textbf{Expected Results} & Language atom updated; i18n activated \\
@@ -1697,7 +1697,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-configuration-menu}                                   \\
+  \hline \textbf{Test ID}          & \tid{test-configuration-menu}                                      \\
   \hline \textbf{Initial State}    & ConfigurationMenu component                                        \\
   \hline \textbf{Input}            & Settings changes (temperature unit, drag sensitivity, invert drag) \\
   \hline \textbf{Expected Results} & Setting atoms updated with new values                              \\
@@ -1707,7 +1707,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-api-client-urls}                                           \\
+  \hline \textbf{Test ID}          & \tid{test-api-client-urls}                                              \\
   \hline \textbf{Initial State}    & ApiClient instance                                                      \\
   \hline \textbf{Input}            & Base URL configuration                                                  \\
   \hline \textbf{Expected Results} & Correct endpoint URLs generated for status stream, recordings, previews \\
@@ -1717,7 +1717,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-api-client-automatic-discovery}                 \\
+  \hline \textbf{Test ID}          & \tid{test-api-client-automatic-discovery}                    \\
   \hline \textbf{Initial State}    & Network with multiple potential server URLs                  \\
   \hline \textbf{Input}            & createAutomatic() with probe URLs                            \\
   \hline \textbf{Expected Results} & Client created with first responding URL; throws if all fail \\
@@ -1727,7 +1727,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-api-client-methods}                                                                                         \\
+  \hline \textbf{Test ID}          & \tid{test-api-client-methods}                                                                                            \\
   \hline \textbf{Initial State}    & ApiClient with mocked fetch                                                                                              \\
   \hline \textbf{Input}            & manualMove(), arm(), disarm(), startRecording(), stopRecording(), listRecordings(), renameRecording(), deleteRecording() \\
   \hline \textbf{Expected Results} & Correct HTTP methods and URLs; proper request bodies; ApiError thrown on failure                                         \\
@@ -1737,7 +1737,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-rocam-provider-initialization}                       \\
+  \hline \textbf{Test ID}          & \tid{test-rocam-provider-initialization}                          \\
   \hline \textbf{Initial State}    & RocamProvider component with mocked createAutomatic               \\
   \hline \textbf{Input}            & Provider mounted with children                                    \\
   \hline \textbf{Expected Results} & API client created; status polling started; loading state managed \\
@@ -1747,7 +1747,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-rocam-provider-error-handling}                       \\
+  \hline \textbf{Test ID}          & \tid{test-rocam-provider-error-handling}                          \\
   \hline \textbf{Initial State}    & RocamProvider with mocked API that fails to connect               \\
   \hline \textbf{Input}            & API initialization failure                                        \\
   \hline \textbf{Expected Results} & Error state set; error message displayed; component doesn't crash \\
@@ -1757,7 +1757,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-rocam-provider-polling}                                   \\
+  \hline \textbf{Test ID}          & \tid{test-rocam-provider-polling}                                      \\
   \hline \textbf{Initial State}    & RocamProvider with mocked API client                                   \\
   \hline \textbf{Input}            & Status stream events and polling intervals                             \\
   \hline \textbf{Expected Results} & Status state updated; polling continues with proper cleanup on unmount \\
@@ -1767,7 +1767,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-use-rocam-hook}                             \\
+  \hline \textbf{Test ID}          & \tid{test-use-rocam-hook}                                \\
   \hline \textbf{Initial State}    & Component wrapped in RocamProvider                       \\
   \hline \textbf{Input}            & useRocam() hook called                                   \\
   \hline \textbf{Expected Results} & API client and status accessible to consuming components \\
@@ -1777,7 +1777,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-formatters-degrees}                                 \\
+  \hline \textbf{Test ID}          & \tid{test-formatters-degrees}                                    \\
   \hline \textbf{Initial State}    & Formatter functions loaded                                       \\
   \hline \textbf{Input}            & Various numeric values for degrees, FPS, percentages             \\
   \hline \textbf{Expected Results} & Correctly formatted strings with appropriate precision and units \\
@@ -1787,7 +1787,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-formatters-temperature}                 \\
+  \hline \textbf{Test ID}          & \tid{test-formatters-temperature}                    \\
   \hline \textbf{Initial State}    & Formatter functions loaded                           \\
   \hline \textbf{Input}            & Celsius temperatures; Fahrenheit unit preference     \\
   \hline \textbf{Expected Results} & Correct conversion and formatting with degree symbol \\
@@ -1797,7 +1797,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-formatters-bytes}       \\
+  \hline \textbf{Test ID}          & \tid{test-formatters-bytes}          \\
   \hline \textbf{Initial State}    & Formatter functions loaded           \\
   \hline \textbf{Input}            & Byte counts of various magnitudes    \\
   \hline \textbf{Expected Results} & Human-readable sizes (B, KB, MB, GB) \\
@@ -1807,7 +1807,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-formatters-duration}           \\
+  \hline \textbf{Test ID}          & \tid{test-formatters-duration}              \\
   \hline \textbf{Initial State}    & Formatter functions loaded                  \\
   \hline \textbf{Input}            & Millisecond durations                       \\
   \hline \textbf{Expected Results} & Formatted HH:MM:SS or relative time strings \\
@@ -1817,7 +1817,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-i18n-activation}                       \\
+  \hline \textbf{Test ID}          & \tid{test-i18n-activation}                          \\
   \hline \textbf{Initial State}    & i18n module with mocked lingui                      \\
   \hline \textbf{Input}            & dynamicActivate() with locale string                \\
   \hline \textbf{Expected Results} & Messages loaded; i18n activated with correct locale \\
@@ -1827,7 +1827,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-app-routing}                                     \\
+  \hline \textbf{Test ID}          & \tid{test-app-routing}                                        \\
   \hline \textbf{Initial State}    & App component with MemoryRouter                               \\
   \hline \textbf{Input}            & Navigation to / and /recordings routes                        \\
   \hline \textbf{Expected Results} & Correct page components rendered; unknown paths redirect to / \\
@@ -1837,7 +1837,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-formatters-edge-cases}                               \\
+  \hline \textbf{Test ID}          & \tid{test-formatters-edge-cases}                                  \\
   \hline \textbf{Initial State}    & Formatter functions loaded                                        \\
   \hline \textbf{Input}            & Edge values (null, undefined, negative, zero, very large numbers) \\
   \hline \textbf{Expected Results} & Sensible defaults; no crashes; formatted output for all inputs    \\
@@ -1847,7 +1847,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-formatters-internationalization}     \\
+  \hline \textbf{Test ID}          & \tid{test-formatters-internationalization}        \\
   \hline \textbf{Initial State}    & Formatters with various locale considerations     \\
   \hline \textbf{Input}            & Values requiring locale-specific formatting       \\
   \hline \textbf{Expected Results} & Consistent formatting regardless of system locale \\
@@ -1857,7 +1857,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-ui-loading-states}                     \\
+  \hline \textbf{Test ID}          & \tid{test-ui-loading-states}                        \\
   \hline \textbf{Initial State}    & Components with loading/null states                 \\
   \hline \textbf{Input}            & Null or undefined data                              \\
   \hline \textbf{Expected Results} & Loading spinners or placeholder content; no crashes \\
@@ -1867,7 +1867,7 @@ Not applicable, there is no existing implementation.
 \vspace{0.75em}
 
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-  \hline \textbf{Test ID}          & \tid{test-ui-error-handling}                       \\
+  \hline \textbf{Test ID}          & \tid{test-ui-error-handling}                          \\
   \hline \textbf{Initial State}    & Components with mocked API that returns errors        \\
   \hline \textbf{Input}            & API errors, network failures, malformed responses     \\
   \hline \textbf{Expected Results} & Graceful error display; component remains interactive \\
@@ -1888,18 +1888,18 @@ resulting changes, and their impact on project quality.
   \label{TblChangesDueToTestingA}
   \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{5cm}|X|}
     \hline
-    \textbf{V\&V Evidence} & \textbf{Change, and Impact on Quality} \\
+    \textbf{V\&V Evidence}                                            & \textbf{Change, and Impact on Quality} \\
     \hline
-    Stakeholder walkthrough feedback + \tControlPageDrag\ (pass) &
+    Stakeholder walkthrough feedback + \tControlPageDrag\ (pass)      &
     Added drag-to-move gimbal control on the preview area, in addition to the
     directional buttons. This improved usability and operator efficiency by
-    enabling more direct camera framing and faster manual setup. \\
+    enabling more direct camera framing and faster manual setup.                                               \\
     \hline
     \tConfirmationPrompts\ (pass) and safety walkthrough observations &
     Added and standardized blocking confirmation prompts for hazardous actions
     such as force home, hard stop, high-speed slew, and reset/update paths.
     This reduced the risk of accidental unsafe operations and made
-    safety-critical actions more explicit and deliberate. \\
+    safety-critical actions more explicit and deliberate.                                                      \\
     \hline
   \end{tabularx}
 \end{table}
@@ -1910,19 +1910,19 @@ resulting changes, and their impact on project quality.
   \label{TblChangesDueToTestingB}
   \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{5cm}|X|}
     \hline
-    \textbf{V\&V Evidence} & \textbf{Change, and Impact on Quality} \\
+    \textbf{V\&V Evidence}                                                            & \textbf{Change, and Impact on Quality} \\
     \hline
     \tVisualIndicators\ (pass), \tReportErrors\ (pass), and \tUIErrorHandling\ (pass) &
     Improved UI status and error messaging for armed, tracking, target-lost,
     network, storage, and device-error states; ensured failures are visible to
     the operator. This increased operational awareness and robustness by making
-    failures visible, actionable, and non-crashing. \\
+    failures visible, actionable, and non-crashing.                                                                            \\
     \hline
     \tStateRecording\ (pass), \tDownloadPause\ (pass), and \tManageRecordings\ (pass) &
     Refined recording-state behaviour so downloads pause and resume correctly
     and the recording workflow remains stable during concurrent actions. This
     improved reliability of recording management and reduced the risk of
-    recording interruption or data loss during operator interaction. \\
+    recording interruption or data loss during operator interaction.                                                           \\
     \hline
   \end{tabularx}
 \end{table}
@@ -1933,13 +1933,13 @@ resulting changes, and their impact on project quality.
   \label{TblChangesDueToTestingC}
   \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{5cm}|X|}
     \hline
-    \textbf{V\&V Evidence} & \textbf{Change, and Impact on Quality} \\
+    \textbf{V\&V Evidence}                                                               & \textbf{Change, and Impact on Quality} \\
     \hline
     \tAPIValidation\ (pass), \tValidateCommands\ (pass), and \tAPIErrorResponses\ (pass) &
     Strengthened backend request and command validation, with consistent HTTP
     400 responses for malformed or invalid inputs. This improved robustness and
     safety by rejecting invalid commands before they can propagate into control
-    paths. \\
+    paths.                                                                                                                        \\
     \hline
   \end{tabularx}
 \end{table}
@@ -1960,7 +1960,7 @@ request can be merged.
 \label{sec:trace_reqs}
 
 \begin{tabularx}{\textwidth}{p{5cm}X}
-  \toprule {\bf Test ID}       & {\bf Requirements}       \\
+  \toprule {\bf Test ID}             & {\bf Requirements}       \\
   \midrule
   \tid{test-acquire-frame}           & FR-1, SLR-2              \\
   \tid{test-disconnect-camera}       & FR-1                     \\
@@ -1997,60 +1997,60 @@ request can be merged.
 
 \small
 \begin{longtable}{|p{4.5cm}|p{10cm}|}
-  \caption{Traceability Between Unit Test Cases and Backend Modules} \label{TblUTM-Backend}                                                                                                                                                                                         \\
+  \caption{Traceability Between Unit Test Cases and Backend Modules} \label{TblUTM-Backend}                                                                                                                                                                                                                                   \\
   \hline
-  \textbf{Module}                 & \textbf{Unit Test Cases}                                                                                                                                                                                                                        \\
+  \textbf{Module}                 & \textbf{Unit Test Cases}                                                                                                                                                                                                                                                                  \\
   \hline
   \endfirsthead
-  \multicolumn{2}{c}{\tablename\ \thetable{} -- Continued from previous page}                                                                                                                                                                                                       \\
+  \multicolumn{2}{c}{\tablename\ \thetable{} -- Continued from previous page}                                                                                                                                                                                                                                                 \\
   \hline
-  \textbf{Module}                 & \textbf{Unit Test Cases}                                                                                                                                                                                                                        \\
+  \textbf{Module}                 & \textbf{Unit Test Cases}                                                                                                                                                                                                                                                                  \\
   \hline
   \endhead
   \hline
-  \multicolumn{2}{r}{Continued on next page}                                                                                                                                                                                                                                        \\
+  \multicolumn{2}{r}{Continued on next page}                                                                                                                                                                                                                                                                                  \\
   \endfoot
   \hline
   \endlastfoot
   State Management                & \tid{test-state-management-arm-disarm}; \tid{test-state-management-manual-move}; \tid{test-state-management-manual-move-clamped}; \tid{test-state-management-recording}; \tid{test-state-management-download-pause}; \tid{test-state-status-performance}; \tid{test-state-error-handling} \\
   \hline
-  API Gateway                     & \tid{test-api-endpoints-exist}; \tid{test-api-recordings-crud}; \tid{test-api-validation}; \tid{test-api-error-responses}                                                                                                                                               \\
+  API Gateway                     & \tid{test-api-endpoints-exist}; \tid{test-api-recordings-crud}; \tid{test-api-validation}; \tid{test-api-error-responses}                                                                                                                                                                 \\
   \hline
-  Recording Database              & \tid{test-database-allocate}; \tid{test-database-list-recordings}; \tid{test-database-rename-delete}; \tid{test-database-path-traversal-protection}; \tid{test-database-space-usage}; \tid{test-database-error-handling}                                                            \\
+  Recording Database              & \tid{test-database-allocate}; \tid{test-database-list-recordings}; \tid{test-database-rename-delete}; \tid{test-database-path-traversal-protection}; \tid{test-database-space-usage}; \tid{test-database-error-handling}                                                                  \\
   \hline
-  Gimbal Abstraction              & \tid{test-gimbal-crc8}; \tid{test-gimbal-packet-construction}; \tid{test-gimbal-angle-commands}; \tid{test-gimbal-led-control}; \tid{test-gimbal-info-query}                                                                                                                  \\
+  Gimbal Abstraction              & \tid{test-gimbal-crc8}; \tid{test-gimbal-packet-construction}; \tid{test-gimbal-angle-commands}; \tid{test-gimbal-led-control}; \tid{test-gimbal-info-query}                                                                                                                              \\
   \hline
-  Tracking                        & \tid{test-tracking-queue-behavior}; \tid{test-tracking-worker-control-law}; \tid{test-tracking-angle-clamping}; \tid{test-tracking-stop}                                                                                                                                \\
+  Tracking                        & \tid{test-tracking-queue-behavior}; \tid{test-tracking-worker-control-law}; \tid{test-tracking-angle-clamping}; \tid{test-tracking-stop}                                                                                                                                                  \\
   \hline
-  CV Process Management           & \tid{test-cv-management-osd-send}; \tid{test-cv-management-recording-commands}; \tid{test-cv-management-pause-resume}; \tid{test-cv-management-recv-loop}; \tid{test-cv-management-exception-safety}                                                                          \\
+  CV Process Management           & \tid{test-cv-management-osd-send}; \tid{test-cv-management-recording-commands}; \tid{test-cv-management-pause-resume}; \tid{test-cv-management-recv-loop}; \tid{test-cv-management-exception-safety}                                                                                      \\
   \hline
-  Live Video Management           & \tid{test-livestream-construction}; \tid{test-livestream-process-loop}                                                                                                                                                                                      \\
+  Live Video Management           & \tid{test-livestream-construction}; \tid{test-livestream-process-loop}                                                                                                                                                                                                                    \\
   \hline
-  Transcode Management            & \tid{test-transcode-read-log}; \tid{test-transcode-shader-probe}; \tid{test-transcode-bus-call}                                                                                                                                                                   \\
+  Transcode Management            & \tid{test-transcode-read-log}; \tid{test-transcode-shader-probe}; \tid{test-transcode-bus-call}                                                                                                                                                                                           \\
   \hline
-  Transcode Process               & \tid{test-transcode-read-log}; \tid{test-transcode-shader-probe}; \tid{test-transcode-bus-call}                                                                                                                                                                   \\
+  Transcode Process               & \tid{test-transcode-read-log}; \tid{test-transcode-shader-probe}; \tid{test-transcode-bus-call}                                                                                                                                                                                           \\
   \hline
-  CV Process                      & \tid{test-cv-format-time}; \tid{test-cv-update-osd}                                                                                                                                                                                                         \\
+  CV Process                      & \tid{test-cv-format-time}; \tid{test-cv-update-osd}                                                                                                                                                                                                                                       \\
   \hline
-  Live Video Process              & \tid{test-livestream-construction}; \tid{test-livestream-process-loop}                                                                                                                                                                                      \\
+  Live Video Process              & \tid{test-livestream-construction}; \tid{test-livestream-process-loop}                                                                                                                                                                                                                    \\
   \hline
-  Common IPC                      & \tid{test-bounding-box-center}; \tid{test-bounding-box-rotate-90}; \tid{test-dataclass-construction}                                                                                                                                                              \\
+  Common IPC                      & \tid{test-bounding-box-center}; \tid{test-bounding-box-rotate-90}; \tid{test-dataclass-construction}                                                                                                                                                                                      \\
   \hline
-  Common IPC Buffer               & \tid{test-ipc-buffer-sender}; \tid{test-ipc-buffer-receiver}; \tid{test-ipc-buffer-overrun-handling}; \tid{test-ipc-buffer-memory-safety}                                                                                                                               \\
+  Common IPC Buffer               & \tid{test-ipc-buffer-sender}; \tid{test-ipc-buffer-receiver}; \tid{test-ipc-buffer-overrun-handling}; \tid{test-ipc-buffer-memory-safety}                                                                                                                                                 \\
   \hline
-  Common Watchdog                 & \tid{test-watchdog-refresh}; \tid{test-watchdog-clear}; \tid{test-watchdog-timeout-accuracy}                                                                                                                                                                      \\
+  Common Watchdog                 & \tid{test-watchdog-refresh}; \tid{test-watchdog-clear}; \tid{test-watchdog-timeout-accuracy}                                                                                                                                                                                              \\
   \hline
-  Common System Status            & \tid{test-system-status-caching}; \tid{test-system-status-callback-updates}                                                                                                                                                                                 \\
+  Common System Status            & \tid{test-system-status-caching}; \tid{test-system-status-callback-updates}                                                                                                                                                                                                               \\
   \hline
-  Common Utils                    & \tid{test-ip4-addresses}; \tid{test-scheduler-validation}                                                                                                                                                                                                   \\
+  Common Utils                    & \tid{test-ip4-addresses}; \tid{test-scheduler-validation}                                                                                                                                                                                                                                 \\
   \hline
-  Recording-Only State Management & \tid{test-state-management-recording-only-noops}; \tid{test-state-management-recording-only-status}; \tid{test-control-process-main-entry}                                                                                                                        \\
+  Recording-Only State Management & \tid{test-state-management-recording-only-noops}; \tid{test-state-management-recording-only-status}; \tid{test-control-process-main-entry}                                                                                                                                                \\
   \hline
-  Main Entry Point                & \tid{test-main-dispatch-control}; \tid{test-main-dispatch-cv}; \tid{test-main-dispatch-livestream}; \tid{test-main-dispatch-transcode}; \tid{test-main-dispatch-unknown}                                                                                                      \\
+  Main Entry Point                & \tid{test-main-dispatch-control}; \tid{test-main-dispatch-cv}; \tid{test-main-dispatch-livestream}; \tid{test-main-dispatch-transcode}; \tid{test-main-dispatch-unknown}                                                                                                                  \\
   \hline
-  Transcode API                   & \tid{test-transcode-routes-404}; \tid{test-transcode-streaming}; \tid{test-transcode-pipe-cleanup}                                                                                                                                                                \\
+  Transcode API                   & \tid{test-transcode-routes-404}; \tid{test-transcode-streaming}; \tid{test-transcode-pipe-cleanup}                                                                                                                                                                                        \\
   \hline
-  SSE                             & \tid{test-sse-broadcast-performance}; \tid{test-sse-thread-safety}                                                                                                                                                                                          \\
+  SSE                             & \tid{test-sse-broadcast-performance}; \tid{test-sse-thread-safety}                                                                                                                                                                                                                        \\
 \end{longtable}
 \normalsize
 
@@ -2061,27 +2061,27 @@ request can be merged.
   \small
   \begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
     \hline
-    \textbf{Module}            & \textbf{Unit Test Cases}                                                                                                                                                \\
+    \textbf{Module}            & \textbf{Unit Test Cases}                                                                                                                                                                                    \\
     \hline
-    Preview                    & \tid{test-control-page-render}; \tid{test-control-page-bbox-overlay}                                                                                                                \\
+    Preview                    & \tid{test-control-page-render}; \tid{test-control-page-bbox-overlay}                                                                                                                                        \\
     \hline
-    Manual Control             & \tid{test-controls-card-render}; \tid{test-control-page-drag}                                                                                                                       \\
+    Manual Control             & \tid{test-controls-card-render}; \tid{test-control-page-drag}                                                                                                                                               \\
     \hline
-    Recording Management       & \tid{test-recordings-page-loading}; \tid{test-recordings-page-empty}; \tid{test-recordings-page-list}; \tid{test-recordings-delete}; \tid{test-recordings-rename}                                     \\
+    Recording Management       & \tid{test-recordings-page-loading}; \tid{test-recordings-page-empty}; \tid{test-recordings-page-list}; \tid{test-recordings-delete}; \tid{test-recordings-rename}                                           \\
     \hline
-    Configuration              & \tid{test-language-selector}; \tid{test-configuration-menu}                                                                                                                         \\
+    Configuration              & \tid{test-language-selector}; \tid{test-configuration-menu}                                                                                                                                                 \\
     \hline
-    API Client                 & \tid{test-api-client-urls}; \tid{test-api-client-automatic-discovery}; \tid{test-api-client-methods}                                                                                      \\
+    API Client                 & \tid{test-api-client-urls}; \tid{test-api-client-automatic-discovery}; \tid{test-api-client-methods}                                                                                                        \\
     \hline
-    Rocam Provider             & \tid{test-rocam-provider-initialization}; \tid{test-rocam-provider-error-handling}; \tid{test-rocam-provider-polling}; \tid{test-use-rocam-hook}                                                \\
+    Rocam Provider             & \tid{test-rocam-provider-initialization}; \tid{test-rocam-provider-error-handling}; \tid{test-rocam-provider-polling}; \tid{test-use-rocam-hook}                                                            \\
     \hline
     Utility Formatters         & \tid{test-formatters-degrees}; \tid{test-formatters-temperature}; \tid{test-formatters-bytes}; \tid{test-formatters-duration}; \tid{test-formatters-edge-cases}; \tid{test-formatters-internationalization} \\
     \hline
-    Internationalization       & \tid{test-i18n-activation}                                                                                                                                                    \\
+    Internationalization       & \tid{test-i18n-activation}                                                                                                                                                                                  \\
     \hline
-    App (Routing)              & \tid{test-app-routing}                                                                                                                                                        \\
+    App (Routing)              & \tid{test-app-routing}                                                                                                                                                                                      \\
     \hline
-    UI Components (Individual) & \tid{test-system-status-card}; \tid{test-navbar}; \tid{test-controls-card}; \tid{test-language-selector}; \tid{test-configuration-menu}; \tid{test-ui-loading-states}; \tid{test-ui-error-handling}               \\
+    UI Components (Individual) & \tid{test-system-status-card}; \tid{test-navbar}; \tid{test-controls-card}; \tid{test-language-selector}; \tid{test-configuration-menu}; \tid{test-ui-loading-states}; \tid{test-ui-error-handling}         \\
     \hline
   \end{tabularx}
   \normalsize
