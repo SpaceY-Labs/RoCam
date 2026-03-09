@@ -5,6 +5,7 @@
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{longtable}
+\usepackage{hyperref}
 \usepackage{xcolor}
 \hypersetup{
     colorlinks,
@@ -23,12 +24,144 @@
 
 \input{../Comments}
 \input{../Common}
+\newcommand{\mref}[1]{\texttt{#1}}
 
 \newcommand{\tidanchor}[1]{\hypertarget{tid:#1}{}}
 \newcommand{\tid}[1]{\hyperlink{tid:#1}{\textcolor{blue}{\texttt{#1}}}}
-\newcommand{\tiddef}[1]{\hypertarget{tid:#1}{\textcolor{blue}{\texttt{#1}}}}
+\newcommand{\tiddef}[1]{\textcolor{blue}{\texttt{#1}}}
+\newcommand{\tidallanchors}{%
+  \tidanchor{test-acquire-frame}%
+  \tidanchor{test-api-client-automatic-discovery}%
+  \tidanchor{test-api-client-methods}%
+  \tidanchor{test-api-client-urls}%
+  \tidanchor{test-api-endpoints-exist}%
+  \tidanchor{test-api-error-responses}%
+  \tidanchor{test-api-recordings-crud}%
+  \tidanchor{test-api-validation}%
+  \tidanchor{test-app-routing}%
+  \tidanchor{test-bilingual-ui}%
+  \tidanchor{test-bounding-box-center}%
+  \tidanchor{test-bounding-box-collection}%
+  \tidanchor{test-bounding-box-rotate-90}%
+  \tidanchor{test-color-vision-deficiency}%
+  \tidanchor{test-configuration-menu}%
+  \tidanchor{test-confirmation-prompts}%
+  \tidanchor{test-consistent-units}%
+  \tidanchor{test-control-page-bbox-overlay}%
+  \tidanchor{test-control-page-drag}%
+  \tidanchor{test-control-page-render}%
+  \tidanchor{test-control-process-main-entry}%
+  \tidanchor{test-controls-card}%
+  \tidanchor{test-controls-card-render}%
+  \tidanchor{test-cv-format-time}%
+  \tidanchor{test-cv-management-exception-safety}%
+  \tidanchor{test-cv-management-osd-send}%
+  \tidanchor{test-cv-management-pause-resume}%
+  \tidanchor{test-cv-management-recording-commands}%
+  \tidanchor{test-cv-management-recv-loop}%
+  \tidanchor{test-cv-update-osd}%
+  \tidanchor{test-database-allocate}%
+  \tidanchor{test-database-error-handling}%
+  \tidanchor{test-database-list-recordings}%
+  \tidanchor{test-database-path-traversal-protection}%
+  \tidanchor{test-database-rename-delete}%
+  \tidanchor{test-database-space-usage}%
+  \tidanchor{test-dataclass-construction}%
+  \tidanchor{test-disconnect-camera}%
+  \tidanchor{test-disconnect-hdmi}%
+  \tidanchor{test-disk-full}%
+  \tidanchor{test-exit-gimbal-range}%
+  \tidanchor{test-formatters-bytes}%
+  \tidanchor{test-formatters-degrees}%
+  \tidanchor{test-formatters-duration}%
+  \tidanchor{test-formatters-edge-cases}%
+  \tidanchor{test-formatters-internationalization}%
+  \tidanchor{test-formatters-temperature}%
+  \tidanchor{test-gimbal-angle-commands}%
+  \tidanchor{test-gimbal-crc8}%
+  \tidanchor{test-gimbal-info-query}%
+  \tidanchor{test-gimbal-interface}%
+  \tidanchor{test-gimbal-led-control}%
+  \tidanchor{test-gimbal-packet-construction}%
+  \tidanchor{test-hdmi-output}%
+  \tidanchor{test-i18n-activation}%
+  \tidanchor{test-immediate-ui-feedback}%
+  \tidanchor{test-ip4-addresses}%
+  \tidanchor{test-ipc-buffer-memory-safety}%
+  \tidanchor{test-ipc-buffer-overrun-handling}%
+  \tidanchor{test-ipc-buffer-receiver}%
+  \tidanchor{test-ipc-buffer-sender}%
+  \tidanchor{test-language-selector}%
+  \tidanchor{test-livestream-construction}%
+  \tidanchor{test-livestream-process-loop}%
+  \tidanchor{test-log-operations}%
+  \tidanchor{test-main-dispatch-control}%
+  \tidanchor{test-main-dispatch-cv}%
+  \tidanchor{test-main-dispatch-livestream}%
+  \tidanchor{test-main-dispatch-transcode}%
+  \tidanchor{test-main-dispatch-unknown}%
+  \tidanchor{test-manage-recordings}%
+  \tidanchor{test-manual-arm-mode}%
+  \tidanchor{test-manual-control}%
+  \tidanchor{test-manual-idle-mode}%
+  \tidanchor{test-navbar}%
+  \tidanchor{test-network-disconnect}%
+  \tidanchor{test-no-collection-pii}%
+  \tidanchor{test-preview-real-time}%
+  \tidanchor{test-recording}%
+  \tidanchor{test-recordings-delete}%
+  \tidanchor{test-recordings-page-empty}%
+  \tidanchor{test-recordings-page-list}%
+  \tidanchor{test-recordings-page-loading}%
+  \tidanchor{test-recordings-rename}%
+  \tidanchor{test-report-errors}%
+  \tidanchor{test-return-to-idle}%
+  \tidanchor{test-rocam-provider-error-handling}%
+  \tidanchor{test-rocam-provider-initialization}%
+  \tidanchor{test-rocam-provider-polling}%
+  \tidanchor{test-scheduler-validation}%
+  \tidanchor{test-sse-broadcast-performance}%
+  \tidanchor{test-sse-thread-safety}%
+  \tidanchor{test-state-error-handling}%
+  \tidanchor{test-state-management-arm-disarm}%
+  \tidanchor{test-state-management-download-pause}%
+  \tidanchor{test-state-management-manual-move}%
+  \tidanchor{test-state-management-manual-move-clamped}%
+  \tidanchor{test-state-management-recording}%
+  \tidanchor{test-state-management-recording-only-noops}%
+  \tidanchor{test-state-management-recording-only-status}%
+  \tidanchor{test-state-status-performance}%
+  \tidanchor{test-stop-immediately}%
+  \tidanchor{test-system-status-caching}%
+  \tidanchor{test-system-status-callback-updates}%
+  \tidanchor{test-system-status-card}%
+  \tidanchor{test-tracking}%
+  \tidanchor{test-tracking-angle-clamping}%
+  \tidanchor{test-tracking-queue-behavior}%
+  \tidanchor{test-tracking-stop}%
+  \tidanchor{test-tracking-worker-control-law}%
+  \tidanchor{test-transcode-bus-call}%
+  \tidanchor{test-transcode-pipe-cleanup}%
+  \tidanchor{test-transcode-read-log}%
+  \tidanchor{test-transcode-routes-404}%
+  \tidanchor{test-transcode-shader-probe}%
+  \tidanchor{test-transcode-streaming}%
+  \tidanchor{test-transition-to-tracking}%
+  \tidanchor{test-ui-error-handling}%
+  \tidanchor{test-ui-loading-states}%
+  \tidanchor{test-use-rocam-hook}%
+  \tidanchor{test-user-survey}%
+  \tidanchor{test-validate-commands}%
+  \tidanchor{test-visual-indicators}%
+  \tidanchor{test-watchdog-clear}%
+  \tidanchor{test-watchdog-refresh}%
+  \tidanchor{test-watchdog-timeout-accuracy}%
+}
+
 
 \begin{document}
+% Initialize hidden anchors for all Test IDs
+\tidallanchors
 
 % Links to project documents (relative to docs/VnVPlan/); cite keys in References.bib
 \newcommand{\SRS}{\href{../SRS/SRS.pdf}{SRS}}
@@ -3108,3 +3241,4 @@ the graduate attribute of Lifelong Learning.
 \end{enumerate}
 
 \end{document}
+
