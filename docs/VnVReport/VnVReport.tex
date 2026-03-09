@@ -15,7 +15,6 @@
     urlcolor=blue
 }
 \usepackage[round]{natbib}
-\usepackage{makecell}
 
 \input{../Comments}
 \input{../Common}
@@ -55,6 +54,7 @@
 \newcommand{\tAPIValidation}{\tid{test-api-validation}}
 \newcommand{\tValidateCommands}{\tid{test-validate-commands}}
 \newcommand{\tAPIErrorResponses}{\tid{test-api-error-responses}}
+\setlength{\tabcolsep}{4pt}
 
 \begin{document}
 
@@ -82,23 +82,18 @@
 \section{Symbols, Abbreviations, and Acronyms}
 
 \renewcommand{\arraystretch}{1.2}
-\begin{tabular}{l l}
+\begin{tabularx}{\textwidth}{p{3cm}X}
   \toprule
-  \textbf{symbol} & \textbf{description}                                              \\
+  \textbf{Symbol} & \textbf{Description} \\
   \midrule
-  T               & Test                                                              \\
-  Yolo            & You only look once -- an existing object detection model          \\
-  CNN             & Convolutional Neural Network                                      \\
-  Jetson          & abbreviation for specifically Jetson Nano Orin, which is the
-  proposed board for this project
-  \\
-  STM32           & abbreviation for specifically STM32 microcontroller, which is the
-  proposed microcontroller for this project                                           \\
+  T               & Test \\
+  YOLO            & You only look once -- an existing object detection model \\
+  CNN             & Convolutional Neural Network \\
+  Jetson          & Abbreviation for Jetson Nano Orin, the proposed board for this project \\
+  STM32           & Abbreviation for STM32 microcontroller, the proposed microcontroller for this project \\
   \bottomrule
-\end{tabular}\\
+\end{tabularx}\\
 
-
-\wss{symbols, abbreviations or acronyms -- you can reference the \citep{SRS} tables if needed}
 
 \newpage
 
@@ -1731,33 +1726,73 @@ Not applicable, there is no existing implementation.
 \section{Changes Due to Testing}
 
 The V\&V process directly changed implementation details in both the frontend
-and backend. Table~\ref{TblChangesDueToTesting} summarizes the verification
-evidence, the resulting change, and the quality impact.
+and backend. The following tables summarize the verification evidence, the
+resulting changes, and their impact on project quality.
 
 \begin{table}[H]
   \centering
-  \caption{Changes Implemented in Response to Verification and Validation Evidence}
-  \label{TblChangesDueToTesting}
-  \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{4.3cm}|>{\raggedright\arraybackslash}p{4.4cm}|>{\raggedright\arraybackslash}X|}
+  \caption{Usability and Safety Changes from V\&V}
+  \label{TblChangesDueToTestingA}
+  \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{5cm}|X|}
     \hline
-    \textbf{V\&V Evidence} & \textbf{Change Implemented} & \textbf{Impact on Quality} \\
+    \textbf{V\&V Evidence} & \textbf{Change, and Impact on Quality} \\
     \hline
-    Stakeholder walkthrough feedback + \tControlPageDrag\ (pass) & Added drag-to-move gimbal control on the preview area, in addition to the directional buttons & Improved usability and operator efficiency by enabling more direct camera framing and faster manual setup. \\
+    Stakeholder walkthrough feedback + \tControlPageDrag\ (pass) &
+    Added drag-to-move gimbal control on the preview area, in addition to the
+    directional buttons. This improved usability and operator efficiency by
+    enabling more direct camera framing and faster manual setup. \\
     \hline
-    \tConfirmationPrompts\ (pass) and safety walkthrough observations & Added and standardized blocking confirmation prompts for hazardous actions such as force home, hard stop, high-speed slew, and reset/update paths & Reduced the risk of accidental unsafe operations and made safety-critical actions more explicit and deliberate. \\
+    \tConfirmationPrompts\ (pass) and safety walkthrough observations &
+    Added and standardized blocking confirmation prompts for hazardous actions
+    such as force home, hard stop, high-speed slew, and reset/update paths.
+    This reduced the risk of accidental unsafe operations and made
+    safety-critical actions more explicit and deliberate. \\
     \hline
-    \tVisualIndicators\ (pass), \tReportErrors\ (pass), and \tUIErrorHandling\ (pass) & Improved UI status and error messaging for armed, tracking, target-lost, network, storage, and device-error states; ensured failures are visible to the operator & Increased operational awareness and robustness by making failures visible, actionable, and non-crashing. \\
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{UI and Recording Changes from V\&V}
+  \label{TblChangesDueToTestingB}
+  \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{5cm}|X|}
     \hline
-    \tStateRecording\ (pass), \tDownloadPause\ (pass), and \tManageRecordings\ (pass) & Refined recording-state behaviour so downloads pause and resume correctly and the recording workflow remains stable during concurrent actions & Improved reliability of recording management and reduced the risk of recording interruption or data loss during operator interaction. \\
+    \textbf{V\&V Evidence} & \textbf{Change, and Impact on Quality} \\
     \hline
-    \tAPIValidation\ (pass), \tValidateCommands\ (pass), and \tAPIErrorResponses\ (pass) & Strengthened backend request and command validation, with consistent HTTP 400 responses for malformed or invalid inputs & Improved robustness and safety by rejecting invalid commands before they can propagate into control paths. \\
+    \tVisualIndicators\ (pass), \tReportErrors\ (pass), and \tUIErrorHandling\ (pass) &
+    Improved UI status and error messaging for armed, tracking, target-lost,
+    network, storage, and device-error states; ensured failures are visible to
+    the operator. This increased operational awareness and robustness by making
+    failures visible, actionable, and non-crashing. \\
+    \hline
+    \tStateRecording\ (pass), \tDownloadPause\ (pass), and \tManageRecordings\ (pass) &
+    Refined recording-state behaviour so downloads pause and resume correctly
+    and the recording workflow remains stable during concurrent actions. This
+    improved reliability of recording management and reduced the risk of
+    recording interruption or data loss during operator interaction. \\
+    \hline
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Backend Validation Changes from V\&V}
+  \label{TblChangesDueToTestingC}
+  \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{5cm}|X|}
+    \hline
+    \textbf{V\&V Evidence} & \textbf{Change, and Impact on Quality} \\
+    \hline
+    \tAPIValidation\ (pass), \tValidateCommands\ (pass), and \tAPIErrorResponses\ (pass) &
+    Strengthened backend request and command validation, with consistent HTTP
+    400 responses for malformed or invalid inputs. This improved robustness and
+    safety by rejecting invalid commands before they can propagate into control
+    paths. \\
     \hline
   \end{tabularx}
 \end{table}
 
 Overall, these updates show that verification results were used to make
 concrete product improvements, not only to report pass/fail status.
-
 
 \section{Automated Testing}
 \label{sec:automated_testing}
@@ -1807,6 +1842,7 @@ request can be merged.
 
 \section{Trace to Modules}
 
+\small
 \begin{longtable}{|p{4.5cm}|p{10cm}|}
   \caption{Traceability Between Unit Test Cases and Backend Modules} \label{TblUTM-Backend}                                                                                                                                                                                         \\
   \hline
@@ -1863,12 +1899,14 @@ request can be merged.
   \hline
   SSE                             & \tid{test-sse-broadcast-performance}; \tid{test-sse-thread-safety}                                                                                                                                                                                          \\
 \end{longtable}
+\normalsize
 
 \begin{table}[H]
   \centering
   \caption{Traceability Between Unit Test Cases and Frontend Modules}
   \label{TblUTM3}
-  \begin{tabular}{|p{4.5cm}|p{10cm}|}
+  \small
+  \begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
     \hline
     \textbf{Module}            & \textbf{Unit Test Cases}                                                                                                                                                \\
     \hline
@@ -1892,7 +1930,8 @@ request can be merged.
     \hline
     UI Components (Individual) & \tid{test-system-status-card}; \tid{test-navbar}; \tid{test-controls-card}; \tid{test-language-selector}; \tid{test-configuration-menu}; \tid{test-ui-loading-states}; \tid{test-ui-error-handling}               \\
     \hline
-  \end{tabular}
+  \end{tabularx}
+  \normalsize
 \end{table}
 
 \section{Code Coverage Metrics}
