@@ -83,7 +83,7 @@
   \midrule
   Yolo            & You only look once -- an existing object detection model          \\
   CNN             & Convolutional Neural Network                                      \\
-  Jetson          & abbreviatio for specifcally Jetson Nano Orin, which is the
+  Jetson          & abbreviation for specifically Jetson Nano Orin, which is the
   proposed board for this project
   \\
   STM32           & abbreviation for specifically STM32 microcontroller, which is the
@@ -105,18 +105,18 @@ This Verification and Validation (V\&V) plan outlines how the RoCam project
 will demonstrate that the system is built correctly (verification) and fits
 stakeholder needs (validation). It anchors testing to the SRS, architecture
 (MG), and detailed design (MIS), ensuring every requirement is traceable where
-possible. \textbf{The only testing performed is unit testing;} integration,
-system, and field testing are out of scope. Verification relies on structured
-internal reviews and checklists, plus unit tests, to confirm functional
-behavior and safety assumptions. Validation is limited to a planned review with
-the McMaster Rocketry Team (stakeholders) to collect feedback; no task-based
-inspection, classmate review, or supervisor validation is conducted. Roles and
-responsibilities are assigned to team members only, with feedback from the
-rocketry team captured and tracked. Priorities emphasize correctness,
-performance, reliability, and safety; lower-priority or out-of-scope items
-(e.g., exhaustive usability studies, independent verification of third-party
-components, and all testing beyond unit tests) are noted to keep the plan
-feasible. The document concludes with traceability tables, placeholders for
+possible. \textbf{Unit testing, integration testing, and system testing are
+performed;} only field testing is out of scope. Verification relies on
+structured internal reviews and checklists, plus unit tests, integration tests,
+and system tests, to confirm functional behavior and safety assumptions.
+Validation is limited to a planned review with the McMaster Rocketry Team
+(stakeholders) to collect feedback; no task-based inspection, classmate
+review, or supervisor validation is conducted. Roles and responsibilities are
+assigned to team members only, with feedback from the rocketry team captured
+and tracked. Priorities emphasize correctness, performance, reliability, and
+safety; lower-priority or out-of-scope items (e.g., exhaustive usability
+studies, independent verification of third-party components, and field
+testing) are noted to keep the plan feasible. The document concludes with traceability tables, placeholders for
 unit-level details after design finalization, and appendices for parameters and
 optional surveys---forming a clear, practical roadmap for the evidence of
 quality that can be gathered under these constraints.
@@ -148,10 +148,10 @@ easily track launching movements.
 The primary objective of this Verification and Validation V\&V Plan is to
 establish confidence in the correctness, performance, and reliability of the
 RoCam system by ensuring that all verification and validation activities are
-thorough, traceable, and aligned with project requirements. The plan emphasizes
-unit testing and internal review to confirm that functional and performance
-criteria are addressed where possible, with improvements tracked through GitHub
-Issues. Validation focuses on a planned review with the McMaster Rocketry Team
+thorough, traceable, and aligned with project requirements. The plan emphasizes unit testing, integration testing, system testing, and
+internal review to confirm that functional and performance criteria are
+addressed where possible, with improvements tracked through GitHub Issues.
+Validation focuses on a planned review with the McMaster Rocketry Team
 (stakeholders) to collect feedback; no field testing or supervisor validation
 is performed. These qualities—correctness, performance, reliability, and
 traceability—are fundamental to the success of the V\&V process, ensuring that
@@ -175,6 +175,8 @@ Verification and validation efforts will prioritize the following qualities:
 The following objectives are excluded from this project due to time, budget,
 and resource constraints:
 \begin{itemize}
+  \item \textbf{Field Testing:} Live rocket launches, hardware field conditions,
+        and external reviewer validation at launch sites are out of scope.
   \item \textbf{Third-Party Component Verification:} External hardware such as the
         gimbal controller and camera are assumed to perform according to their
         manufacturer specifications.
@@ -274,7 +276,8 @@ the \textbf{RoCam} project. It defines the structure, responsibilities, and
 methods used to verify that the system meets its functional and non-functional
 requirements and to validate that it fulfills stakeholder needs. The section
 covers the verification of the SRS, design, and implementation via internal
-reviews and unit testing only, as well as the validation strategy through a
+reviews, unit testing, integration testing, and system testing, as well as the
+validation strategy through a
 planned stakeholder review with the McMaster Rocketry Team (no field testing).
 Its purpose is to provide a clear, organized framework ensuring that all
 aspects of RoCam are systematically tested, reviewed, and proven reliable
@@ -468,9 +471,9 @@ GitHub Issues. The focus of the verification plan is to ensure functionality
 and performance metrics are adequately covered in design where possible.
 
 For the validation plan, the only validation activity is a planned review with
-the McMaster Rocketry Team (stakeholders) to collect feedback. No field tests,
-integration tests, or supervisor validation are performed; the only testing
-conducted is unit testing.
+the McMaster Rocketry Team (stakeholders) to collect feedback. No field tests
+or supervisor validation are performed; unit testing, integration testing, and
+system testing are conducted.
 
 % Preamble:
 % \usepackage{array}
@@ -529,9 +532,8 @@ functional and non-functional requirements defined in the SRS through a
 combination of structured testing, static verification, and peer review.
 
 \subsubsection*{Dynamic Verification}
-Due to resource and contact limitations, \textbf{only unit testing} is
-performed. Integration testing, system testing, and field testing are out of
-scope.
+Due to resource and contact limitations, \textbf{only field testing} is out of
+scope. Unit testing, integration testing, and system testing are performed.
 
 \begin{itemize}
   \item \textbf{Unit Testing:}
@@ -541,13 +543,13 @@ scope.
         dynamic testing conducted.
 \end{itemize}
 
-\noindent\textit{Out of scope:} Integration testing, system testing, and
-field testing are not performed due to the constraints noted in this plan.
+\noindent\textit{Out of scope:} Field testing is not performed due to the
+constraints noted in this plan.
 
 \subsubsection*{Static Verification}
 Static verification will be performed throughout the implementation
 phase to ensure that the codebase meets quality, safety,
-nd maintainability standards before execution.
+and maintainability standards before execution.
 Planned techniques include:
 
 \begin{itemize}
@@ -665,7 +667,7 @@ and resource limitations.
   \item \textbf{Acceptance Criteria:} Derived from the SRS (e.g.,
         sustained 1080p\,60\,fps I/O, end-to-end latency $\leq 120$\,ms,
         successful tracking through nominal flight phases, recording with a
-        ngle overlays).
+        angle overlays).
   \item \textbf{Traceability:} Validation tests map to SRS goals and
         stakeholder needs; a table links each validation activity to the
         corresponding SRS item(s) and planned evidence (videos, logs, checklists).
@@ -698,12 +700,11 @@ consistency checks between validated behaviors and specified requirements.
 
 \section{System Tests}
 
-\textbf{Scope note:} Due to resource and contact limitations, the only testing
-actually performed in this project is \textbf{unit testing}. The system tests
-and field tests described in this section are documented for reference and
-traceability but are \textbf{out of scope} and will not be executed. Evidence
-of correctness will come from unit tests and from the planned stakeholder
-review with the McMaster Rocketry Team.
+\textbf{Scope note:} Due to resource and contact limitations, \textbf{only field
+testing} is out of scope. Unit tests, integration tests, and system tests
+described in this section are executed. Evidence of correctness comes from unit
+tests, integration tests, system tests, and the planned stakeholder review
+with the McMaster Rocketry Team.
 
 \subsection{Tests for Functional Requirements}
 
@@ -723,7 +724,7 @@ edge cases.
 
 \subsubsection{Area of Testing: Video Acquisition and Output}
 
-\subsubsection*{test-aquire-frame: Camera Frames are Acquired at Startup}
+\subsubsection*{test-acquire-frame: Camera Frames are Acquired at Startup}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System powered off; camera connected; HDMI monitor attached.
@@ -876,9 +877,9 @@ If field testing were to be conducted, it would be done by the McMaster
 Rocketry Team (client), who would be provided with the manual and would operate
 the system at a model rocket launch event. The development team would be
 present to assist. After the event, the client could fill out a survey
-(Appendix 6.2). Under the current plan, no field testing is performed; only
-unit testing and a planned stakeholder review with the rocketry team are
-conducted.
+(Appendix 6.2). Under the current plan, no field testing is performed; unit testing,
+integration testing, system testing, and a planned stakeholder review with the
+rocketry team are conducted.
 
 \subsection{Tests for Nonfunctional Requirements}
 
@@ -1040,8 +1041,8 @@ before the field test.
 
 \subsubsection{Field Testing (Out of Scope)}
 
-Field testing and user surveys are out of scope; only unit testing and the
-stakeholder review are performed.
+Field testing and user surveys are out of scope; unit testing, integration
+testing, system testing, and the stakeholder review are performed.
 
 \subsubsection*{test-user-survey: User Survey (Out of Scope)}
 \begin{itemize}
@@ -1049,7 +1050,7 @@ stakeholder review are performed.
   \item \textbf{Initial State:} N/A
   \item \textbf{Input/Condition:} N/A
   \item \textbf{Output/Result:} Completed user survey.
-  \item \textbf{How Test Will Be Performed:} Not performed. If field testing were in scope, the client would fill out the survey after the field test. Under the current plan, only unit testing and stakeholder review are conducted.
+  \item \textbf{How Test Will Be Performed:} Not performed. If field testing were in scope, the client would fill out the survey after the field test. Under the current plan, unit testing, integration testing, system testing, and stakeholder review are conducted.
 \end{itemize}
 
 \subsection{Traceability Between Test Cases and Requirements}
@@ -1060,7 +1061,7 @@ stakeholder review are performed.
 \begin{tabularx}{\textwidth}{p{5cm}X}
   \toprule {\bf Test ID}       & {\bf Requirements}                                                                                \\
   \midrule
-  test-aquire-frame            & FR-1, SLR-2                                                                                       \\
+  test-acquire-frame            & FR-1, SLR-2                                                                                       \\
   test-disconnect-camera       & FR-1                                                                                              \\
   test-hdmi-output             & FR-8, FR-9, INT-1, SLR-3                                                                          \\
   test-disconnect-hdmi         & FR-8                                                                                              \\
@@ -2880,7 +2881,7 @@ modules have adequate test coverage.
   \hline
   \mref{mVideoManagement} (Live Video Management)    & test-livestream-construction; test-livestream-process-loop                                                                                                                                                                                      \\
   \hline
-  \mref{mTranscodeManagement} (Transcode Management) & test-livestream-construction; test-livestream-process-loop                                                                                                                                                                                      \\
+  \mref{mTranscodeManagement} (Transcode Management) & test-transcode-read-log; test-transcode-shader-probe; test-transcode-bus-call                                                                                                                                                                     \\
   \hline
   \mref{mTranscode} (Transcode Process)              & test-transcode-read-log; test-transcode-shader-probe; test-transcode-bus-call                                                                                                                                                                   \\
   \hline

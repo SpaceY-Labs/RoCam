@@ -304,3 +304,4 @@ src/labelling-app/frontend/test-results/.last-run.json
 .coverage
 coverage/
 coverage.xml
+coverage.json
