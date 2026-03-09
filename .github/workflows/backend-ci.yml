@@ -46,4 +46,4 @@ jobs:
           pip install -r requirements-ci.txt
           pip install -r requirements-test.txt
       - name: Run unit tests with coverage
-        run: pytest --cov=src --cov-report=term-missing --cov-report=xml -q
+        run: pytest --cov=src --cov-branch --cov-report=term-missing --cov-report=xml -q
