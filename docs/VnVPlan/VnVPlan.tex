@@ -1194,7 +1194,7 @@ and the stakeholder review are performed.
   requirements.}
 
 \begin{tabularx}{\textwidth}{p{5cm}X}
-  \toprule {\bf Test ID}       & {\bf Requirements}       \\
+  \toprule {\bf Test ID}             & {\bf Requirements}       \\
   \midrule
   \tid{test-acquire-frame}           & FR-1, SLR-2              \\
   \tid{test-disconnect-camera}       & FR-1                     \\
@@ -2986,60 +2986,60 @@ functionality of its corresponding module, ensuring that all implemented leaf
 modules have adequate test coverage.
 
 \begin{longtable}{|p{4.5cm}|p{10cm}|}
-  \caption{Traceability Between Unit Test Cases and Backend Modules} \label{TblUTM-Backend}                                                                                                                                                                                                            \\
+  \caption{Traceability Between Unit Test Cases and Backend Modules} \label{TblUTM-Backend}                                                                                                                                                                                                                                                      \\
   \hline
-  \textbf{Module}                                    & \textbf{Unit Test Cases}                                                                                                                                                                                                                        \\
+  \textbf{Module}                                    & \textbf{Unit Test Cases}                                                                                                                                                                                                                                                                  \\
   \hline
   \endfirsthead
-  \multicolumn{2}{c}{\tablename\ \thetable{} -- Continued from previous page}                                                                                                                                                                                                                          \\
+  \multicolumn{2}{c}{\tablename\ \thetable{} -- Continued from previous page}                                                                                                                                                                                                                                                                    \\
   \hline
-  \textbf{Module}                                    & \textbf{Unit Test Cases}                                                                                                                                                                                                                        \\
+  \textbf{Module}                                    & \textbf{Unit Test Cases}                                                                                                                                                                                                                                                                  \\
   \hline
   \endhead
   \hline
-  \multicolumn{2}{r}{Continued on next page}                                                                                                                                                                                                                                                           \\
+  \multicolumn{2}{r}{Continued on next page}                                                                                                                                                                                                                                                                                                     \\
   \endfoot
   \hline
   \endlastfoot
   \mref{mState} (State Management)                   & \tid{test-state-management-arm-disarm}; \tid{test-state-management-manual-move}; \tid{test-state-management-manual-move-clamped}; \tid{test-state-management-recording}; \tid{test-state-management-download-pause}; \tid{test-state-status-performance}; \tid{test-state-error-handling} \\
   \hline
-  \mref{mAPI} (API Gateway)                          & \tid{test-api-endpoints-exist}; \tid{test-api-recordings-crud}; \tid{test-api-validation}; \tid{test-api-error-responses}                                                                                                                                               \\
+  \mref{mAPI} (API Gateway)                          & \tid{test-api-endpoints-exist}; \tid{test-api-recordings-crud}; \tid{test-api-validation}; \tid{test-api-error-responses}                                                                                                                                                                 \\
   \hline
-  \mref{mRecord} (Recording Database)                & \tid{test-database-allocate}; \tid{test-database-list-recordings}; \tid{test-database-rename-delete}; \tid{test-database-path-traversal-protection}; \tid{test-database-space-usage}; \tid{test-database-error-handling}                                                            \\
+  \mref{mRecord} (Recording Database)                & \tid{test-database-allocate}; \tid{test-database-list-recordings}; \tid{test-database-rename-delete}; \tid{test-database-path-traversal-protection}; \tid{test-database-space-usage}; \tid{test-database-error-handling}                                                                  \\
   \hline
-  \mref{mGimbal} (Gimbal Abstraction)                & \tid{test-gimbal-crc8}; \tid{test-gimbal-packet-construction}; \tid{test-gimbal-angle-commands}; \tid{test-gimbal-led-control}; \tid{test-gimbal-info-query}                                                                                                                  \\
+  \mref{mGimbal} (Gimbal Abstraction)                & \tid{test-gimbal-crc8}; \tid{test-gimbal-packet-construction}; \tid{test-gimbal-angle-commands}; \tid{test-gimbal-led-control}; \tid{test-gimbal-info-query}                                                                                                                              \\
   \hline
-  \mref{mTrack} (Tracking)                           & \tid{test-tracking-queue-behavior}; \tid{test-tracking-worker-control-law}; \tid{test-tracking-angle-clamping}; \tid{test-tracking-stop}                                                                                                                                \\
+  \mref{mTrack} (Tracking)                           & \tid{test-tracking-queue-behavior}; \tid{test-tracking-worker-control-law}; \tid{test-tracking-angle-clamping}; \tid{test-tracking-stop}                                                                                                                                                  \\
   \hline
-  \mref{mCVManagement} (CV Process Management)       & \tid{test-cv-management-osd-send}; \tid{test-cv-management-recording-commands}; \tid{test-cv-management-pause-resume}; \tid{test-cv-management-recv-loop}; \tid{test-cv-management-exception-safety}                                                                          \\
+  \mref{mCVManagement} (CV Process Management)       & \tid{test-cv-management-osd-send}; \tid{test-cv-management-recording-commands}; \tid{test-cv-management-pause-resume}; \tid{test-cv-management-recv-loop}; \tid{test-cv-management-exception-safety}                                                                                      \\
   \hline
-  \mref{mVideoManagement} (Live Video Management)    & \tid{test-livestream-construction}; \tid{test-livestream-process-loop}                                                                                                                                                                                      \\
+  \mref{mVideoManagement} (Live Video Management)    & \tid{test-livestream-construction}; \tid{test-livestream-process-loop}                                                                                                                                                                                                                    \\
   \hline
-  \mref{mTranscodeManagement} (Transcode Management) & \tid{test-transcode-read-log}; \tid{test-transcode-shader-probe}; \tid{test-transcode-bus-call}                                                                                                                                                                   \\
+  \mref{mTranscodeManagement} (Transcode Management) & \tid{test-transcode-read-log}; \tid{test-transcode-shader-probe}; \tid{test-transcode-bus-call}                                                                                                                                                                                           \\
   \hline
-  \mref{mTranscode} (Transcode Process)              & \tid{test-transcode-read-log}; \tid{test-transcode-shader-probe}; \tid{test-transcode-bus-call}                                                                                                                                                                   \\
+  \mref{mTranscode} (Transcode Process)              & \tid{test-transcode-read-log}; \tid{test-transcode-shader-probe}; \tid{test-transcode-bus-call}                                                                                                                                                                                           \\
   \hline
-  \mref{mCV} (CV Process)                            & \tid{test-cv-format-time}; \tid{test-cv-update-osd}                                                                                                                                                                                                         \\
+  \mref{mCV} (CV Process)                            & \tid{test-cv-format-time}; \tid{test-cv-update-osd}                                                                                                                                                                                                                                       \\
   \hline
-  \mref{mVideo} (Live Video Process)                 & \tid{test-livestream-construction}; \tid{test-livestream-process-loop}                                                                                                                                                                                      \\
+  \mref{mVideo} (Live Video Process)                 & \tid{test-livestream-construction}; \tid{test-livestream-process-loop}                                                                                                                                                                                                                    \\
   \hline
-  Common IPC                                         & \tid{test-bounding-box-center}; \tid{test-bounding-box-rotate-90}; \tid{test-dataclass-construction}                                                                                                                                                              \\
+  Common IPC                                         & \tid{test-bounding-box-center}; \tid{test-bounding-box-rotate-90}; \tid{test-dataclass-construction}                                                                                                                                                                                      \\
   \hline
-  Common IPC Buffer                                  & \tid{test-ipc-buffer-sender}; \tid{test-ipc-buffer-receiver}; \tid{test-ipc-buffer-overrun-handling}; \tid{test-ipc-buffer-memory-safety}                                                                                                                               \\
+  Common IPC Buffer                                  & \tid{test-ipc-buffer-sender}; \tid{test-ipc-buffer-receiver}; \tid{test-ipc-buffer-overrun-handling}; \tid{test-ipc-buffer-memory-safety}                                                                                                                                                 \\
   \hline
-  Common Watchdog                                    & \tid{test-watchdog-refresh}; \tid{test-watchdog-clear}; \tid{test-watchdog-timeout-accuracy}                                                                                                                                                                      \\
+  Common Watchdog                                    & \tid{test-watchdog-refresh}; \tid{test-watchdog-clear}; \tid{test-watchdog-timeout-accuracy}                                                                                                                                                                                              \\
   \hline
-  Common System Status                               & \tid{test-system-status-caching}; \tid{test-system-status-callback-updates}                                                                                                                                                                                 \\
+  Common System Status                               & \tid{test-system-status-caching}; \tid{test-system-status-callback-updates}                                                                                                                                                                                                               \\
   \hline
-  Common Utils                                       & \tid{test-ip4-addresses}; \tid{test-scheduler-validation}                                                                                                                                                                                                   \\
+  Common Utils                                       & \tid{test-ip4-addresses}; \tid{test-scheduler-validation}                                                                                                                                                                                                                                 \\
   \hline
-  Recording-Only State Management                    & \tid{test-state-management-recording-only-noops}; \tid{test-state-management-recording-only-status}; \tid{test-control-process-main-entry}                                                                                                                        \\
+  Recording-Only State Management                    & \tid{test-state-management-recording-only-noops}; \tid{test-state-management-recording-only-status}; \tid{test-control-process-main-entry}                                                                                                                                                \\
   \hline
-  Main Entry Point                                   & \tid{test-main-dispatch-control}; \tid{test-main-dispatch-cv}; \tid{test-main-dispatch-livestream}; \tid{test-main-dispatch-transcode}; \tid{test-main-dispatch-unknown}                                                                                                      \\
+  Main Entry Point                                   & \tid{test-main-dispatch-control}; \tid{test-main-dispatch-cv}; \tid{test-main-dispatch-livestream}; \tid{test-main-dispatch-transcode}; \tid{test-main-dispatch-unknown}                                                                                                                  \\
   \hline
-  Transcode API (\mref{mAPI})                        & \tid{test-transcode-routes-404}; \tid{test-transcode-streaming}; \tid{test-transcode-pipe-cleanup}                                                                                                                                                                \\
+  Transcode API (\mref{mAPI})                        & \tid{test-transcode-routes-404}; \tid{test-transcode-streaming}; \tid{test-transcode-pipe-cleanup}                                                                                                                                                                                        \\
   \hline
-  SSE (\mref{mAPI})                                  & \tid{test-sse-broadcast-performance}; \tid{test-sse-thread-safety}                                                                                                                                                                                          \\
+  SSE (\mref{mAPI})                                  & \tid{test-sse-broadcast-performance}; \tid{test-sse-thread-safety}                                                                                                                                                                                                                        \\
 \end{longtable}
 
 \begin{table}[H]
@@ -3048,27 +3048,27 @@ modules have adequate test coverage.
   \label{TblUTM3}
   \begin{tabular}{|p{4.5cm}|p{10cm}|}
     \hline
-    \textbf{Module}                          & \textbf{Unit Test Cases}                                                                                                                                                \\
+    \textbf{Module}                          & \textbf{Unit Test Cases}                                                                                                                                                                                    \\
     \hline
-    \mref{mPreview} (Preview)                & \tid{test-control-page-render}; \tid{test-control-page-bbox-overlay}                                                                                                                \\
+    \mref{mPreview} (Preview)                & \tid{test-control-page-render}; \tid{test-control-page-bbox-overlay}                                                                                                                                        \\
     \hline
-    \mref{mManual} (Manual Control)          & \tid{test-controls-card-render}; \tid{test-control-page-drag}                                                                                                                       \\
+    \mref{mManual} (Manual Control)          & \tid{test-controls-card-render}; \tid{test-control-page-drag}                                                                                                                                               \\
     \hline
-    \mref{mRecordMng} (Recording Management) & \tid{test-recordings-page-loading}; \tid{test-recordings-page-empty}; \tid{test-recordings-page-list}; \tid{test-recordings-delete}; \tid{test-recordings-rename}                                     \\
+    \mref{mRecordMng} (Recording Management) & \tid{test-recordings-page-loading}; \tid{test-recordings-page-empty}; \tid{test-recordings-page-list}; \tid{test-recordings-delete}; \tid{test-recordings-rename}                                           \\
     \hline
-    \mref{mConfig} (Configuration)           & \tid{test-language-selector}; \tid{test-configuration-menu}                                                                                                                         \\
+    \mref{mConfig} (Configuration)           & \tid{test-language-selector}; \tid{test-configuration-menu}                                                                                                                                                 \\
     \hline
-    API Client                               & \tid{test-api-client-urls}; \tid{test-api-client-automatic-discovery}; \tid{test-api-client-methods}                                                                                      \\
+    API Client                               & \tid{test-api-client-urls}; \tid{test-api-client-automatic-discovery}; \tid{test-api-client-methods}                                                                                                        \\
     \hline
-    Rocam Provider                           & \tid{test-rocam-provider-initialization}; \tid{test-rocam-provider-error-handling}; \tid{test-rocam-provider-polling}; \tid{test-use-rocam-hook}                                                \\
+    Rocam Provider                           & \tid{test-rocam-provider-initialization}; \tid{test-rocam-provider-error-handling}; \tid{test-rocam-provider-polling}; \tid{test-use-rocam-hook}                                                            \\
     \hline
     Utility Formatters                       & \tid{test-formatters-degrees}; \tid{test-formatters-temperature}; \tid{test-formatters-bytes}; \tid{test-formatters-duration}; \tid{test-formatters-edge-cases}; \tid{test-formatters-internationalization} \\
     \hline
-    Internationalization                     & \tid{test-i18n-activation}                                                                                                                                                    \\
+    Internationalization                     & \tid{test-i18n-activation}                                                                                                                                                                                  \\
     \hline
-    App (Routing)                            & \tid{test-app-routing}                                                                                                                                                        \\
+    App (Routing)                            & \tid{test-app-routing}                                                                                                                                                                                      \\
     \hline
-    UI Components (Individual)               & \tid{test-system-status-card}; \tid{test-navbar}; \tid{test-controls-card}; \tid{test-language-selector}; \tid{test-configuration-menu}; \tid{test-ui-loading-states}; \tid{test-ui-error-handling}               \\
+    UI Components (Individual)               & \tid{test-system-status-card}; \tid{test-navbar}; \tid{test-controls-card}; \tid{test-language-selector}; \tid{test-configuration-menu}; \tid{test-ui-loading-states}; \tid{test-ui-error-handling}         \\
     \hline
   \end{tabular}
 \end{table}
