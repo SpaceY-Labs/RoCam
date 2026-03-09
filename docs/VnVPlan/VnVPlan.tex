@@ -106,20 +106,21 @@ will demonstrate that the system is built correctly (verification) and fits
 stakeholder needs (validation). It anchors testing to the SRS, architecture
 (MG), and detailed design (MIS), ensuring every requirement is traceable where
 possible. \textbf{Unit testing, integration testing, and system testing are
-performed;} only field testing is out of scope. Verification relies on
+  performed;} only field testing is out of scope. Verification relies on
 structured internal reviews and checklists, plus unit tests, integration tests,
 and system tests, to confirm functional behavior and safety assumptions.
 Validation is limited to a planned review with the McMaster Rocketry Team
-(stakeholders) to collect feedback; no task-based inspection, classmate
-review, or supervisor validation is conducted. Roles and responsibilities are
-assigned to team members only, with feedback from the rocketry team captured
-and tracked. Priorities emphasize correctness, performance, reliability, and
+(stakeholders) to collect feedback; no task-based inspection, classmate review,
+or supervisor validation is conducted. Roles and responsibilities are assigned
+to team members only, with feedback from the rocketry team captured and
+tracked. Priorities emphasize correctness, performance, reliability, and
 safety; lower-priority or out-of-scope items (e.g., exhaustive usability
-studies, independent verification of third-party components, and field
-testing) are noted to keep the plan feasible. The document concludes with traceability tables, placeholders for
-unit-level details after design finalization, and appendices for parameters and
-optional surveys---forming a clear, practical roadmap for the evidence of
-quality that can be gathered under these constraints.
+studies, independent verification of third-party components, and field testing)
+are noted to keep the plan feasible. The document concludes with traceability
+tables, placeholders for unit-level details after design finalization, and
+appendices for parameters and optional surveys---forming a clear, practical
+roadmap for the evidence of quality that can be gathered under these
+constraints.
 
 \wss{provide an introductory blurb and roadmap of the
   Verification and Validation plan}
@@ -148,17 +149,18 @@ easily track launching movements.
 The primary objective of this Verification and Validation V\&V Plan is to
 establish confidence in the correctness, performance, and reliability of the
 RoCam system by ensuring that all verification and validation activities are
-thorough, traceable, and aligned with project requirements. The plan emphasizes unit testing, integration testing, system testing, and
-internal review to confirm that functional and performance criteria are
-addressed where possible, with improvements tracked through GitHub Issues.
-Validation focuses on a planned review with the McMaster Rocketry Team
-(stakeholders) to collect feedback; no field testing or supervisor validation
-is performed. These qualities—correctness, performance, reliability, and
-traceability—are fundamental to the success of the V\&V process, ensuring that
-the RoCam system is both technically sound and operationally dependable.
-Certain objectives, such as independent verification of third-party hardware
-and extended usability testing, are excluded due to scope and resource
-limitations, with reliance placed on manufacturer and stakeholder validation.
+thorough, traceable, and aligned with project requirements. The plan emphasizes
+unit testing, integration testing, system testing, and internal review to
+confirm that functional and performance criteria are addressed where possible,
+with improvements tracked through GitHub Issues. Validation focuses on a
+planned review with the McMaster Rocketry Team (stakeholders) to collect
+feedback; no field testing or supervisor validation is performed. These
+qualities—correctness, performance, reliability, and traceability—are
+fundamental to the success of the V\&V process, ensuring that the RoCam system
+is both technically sound and operationally dependable. Certain objectives,
+such as independent verification of third-party hardware and extended usability
+testing, are excluded due to scope and resource limitations, with reliance
+placed on manufacturer and stakeholder validation.
 
 \subsection{In-Scope Objectives}
 Verification and validation efforts will prioritize the following qualities:
@@ -277,12 +279,11 @@ methods used to verify that the system meets its functional and non-functional
 requirements and to validate that it fulfills stakeholder needs. The section
 covers the verification of the SRS, design, and implementation via internal
 reviews, unit testing, integration testing, and system testing, as well as the
-validation strategy through a
-planned stakeholder review with the McMaster Rocketry Team (no field testing).
-Its purpose is to provide a clear, organized framework ensuring that all
-aspects of RoCam are systematically tested, reviewed, and proven reliable
-before final deployment. \wss{Introduce this section. You can provide a roadmap
-  of the sections to come.}
+validation strategy through a planned stakeholder review with the McMaster
+Rocketry Team (no field testing). Its purpose is to provide a clear, organized
+framework ensuring that all aspects of RoCam are systematically tested,
+reviewed, and proven reliable before final deployment. \wss{Introduce this
+  section. You can provide a roadmap of the sections to come.}
 
 \subsection{Verification and Validation Team}
 
@@ -701,7 +702,7 @@ consistency checks between validated behaviors and specified requirements.
 \section{System Tests}
 
 \textbf{Scope note:} Due to resource and contact limitations, \textbf{only field
-testing} is out of scope. Unit tests, integration tests, and system tests
+  testing} is out of scope. Unit tests, integration tests, and system tests
 described in this section are executed. Evidence of correctness comes from unit
 tests, integration tests, system tests, and the planned stakeholder review
 with the McMaster Rocketry Team.
@@ -877,9 +878,9 @@ If field testing were to be conducted, it would be done by the McMaster
 Rocketry Team (client), who would be provided with the manual and would operate
 the system at a model rocket launch event. The development team would be
 present to assist. After the event, the client could fill out a survey
-(Appendix 6.2). Under the current plan, no field testing is performed; unit testing,
-integration testing, system testing, and a planned stakeholder review with the
-rocketry team are conducted.
+(Appendix 6.2). Under the current plan, no field testing is performed; unit
+testing, integration testing, system testing, and a planned stakeholder review
+with the rocketry team are conducted.
 
 \subsection{Tests for Nonfunctional Requirements}
 
@@ -1061,7 +1062,7 @@ testing, system testing, and the stakeholder review are performed.
 \begin{tabularx}{\textwidth}{p{5cm}X}
   \toprule {\bf Test ID}       & {\bf Requirements}                                                                                \\
   \midrule
-  test-acquire-frame            & FR-1, SLR-2                                                                                       \\
+  test-acquire-frame           & FR-1, SLR-2                                                                                       \\
   test-disconnect-camera       & FR-1                                                                                              \\
   test-hdmi-output             & FR-8, FR-9, INT-1, SLR-3                                                                          \\
   test-disconnect-hdmi         & FR-8                                                                                              \\
@@ -2881,7 +2882,7 @@ modules have adequate test coverage.
   \hline
   \mref{mVideoManagement} (Live Video Management)    & test-livestream-construction; test-livestream-process-loop                                                                                                                                                                                      \\
   \hline
-  \mref{mTranscodeManagement} (Transcode Management) & test-transcode-read-log; test-transcode-shader-probe; test-transcode-bus-call                                                                                                                                                                     \\
+  \mref{mTranscodeManagement} (Transcode Management) & test-transcode-read-log; test-transcode-shader-probe; test-transcode-bus-call                                                                                                                                                                   \\
   \hline
   \mref{mTranscode} (Transcode Process)              & test-transcode-read-log; test-transcode-shader-probe; test-transcode-bus-call                                                                                                                                                                   \\
   \hline
