@@ -6,6 +6,7 @@
 \usepackage{tabularx}
 \usepackage{longtable}
 \usepackage{hyperref}
+\usepackage{xcolor}
 \hypersetup{
     colorlinks,
     citecolor=blue,
@@ -23,10 +24,144 @@
 
 \input{../Comments}
 \input{../Common}
-
 \newcommand{\mref}[1]{\texttt{#1}}
 
+\newcommand{\tidanchor}[1]{\hypertarget{tid:#1}{}}
+\newcommand{\tid}[1]{\hyperlink{tid:#1}{\textcolor{blue}{\texttt{#1}}}}
+\newcommand{\tiddef}[1]{\textcolor{blue}{\texttt{#1}}}
+\newcommand{\tidallanchors}{%
+  \tidanchor{test-acquire-frame}%
+  \tidanchor{test-api-client-automatic-discovery}%
+  \tidanchor{test-api-client-methods}%
+  \tidanchor{test-api-client-urls}%
+  \tidanchor{test-api-endpoints-exist}%
+  \tidanchor{test-api-error-responses}%
+  \tidanchor{test-api-recordings-crud}%
+  \tidanchor{test-api-validation}%
+  \tidanchor{test-app-routing}%
+  \tidanchor{test-bilingual-ui}%
+  \tidanchor{test-bounding-box-center}%
+  \tidanchor{test-bounding-box-collection}%
+  \tidanchor{test-bounding-box-rotate-90}%
+  \tidanchor{test-color-vision-deficiency}%
+  \tidanchor{test-configuration-menu}%
+  \tidanchor{test-confirmation-prompts}%
+  \tidanchor{test-consistent-units}%
+  \tidanchor{test-control-page-bbox-overlay}%
+  \tidanchor{test-control-page-drag}%
+  \tidanchor{test-control-page-render}%
+  \tidanchor{test-control-process-main-entry}%
+  \tidanchor{test-controls-card}%
+  \tidanchor{test-controls-card-render}%
+  \tidanchor{test-cv-format-time}%
+  \tidanchor{test-cv-management-exception-safety}%
+  \tidanchor{test-cv-management-osd-send}%
+  \tidanchor{test-cv-management-pause-resume}%
+  \tidanchor{test-cv-management-recording-commands}%
+  \tidanchor{test-cv-management-recv-loop}%
+  \tidanchor{test-cv-update-osd}%
+  \tidanchor{test-database-allocate}%
+  \tidanchor{test-database-error-handling}%
+  \tidanchor{test-database-list-recordings}%
+  \tidanchor{test-database-path-traversal-protection}%
+  \tidanchor{test-database-rename-delete}%
+  \tidanchor{test-database-space-usage}%
+  \tidanchor{test-dataclass-construction}%
+  \tidanchor{test-disconnect-camera}%
+  \tidanchor{test-disconnect-hdmi}%
+  \tidanchor{test-disk-full}%
+  \tidanchor{test-exit-gimbal-range}%
+  \tidanchor{test-formatters-bytes}%
+  \tidanchor{test-formatters-degrees}%
+  \tidanchor{test-formatters-duration}%
+  \tidanchor{test-formatters-edge-cases}%
+  \tidanchor{test-formatters-internationalization}%
+  \tidanchor{test-formatters-temperature}%
+  \tidanchor{test-gimbal-angle-commands}%
+  \tidanchor{test-gimbal-crc8}%
+  \tidanchor{test-gimbal-info-query}%
+  \tidanchor{test-gimbal-interface}%
+  \tidanchor{test-gimbal-led-control}%
+  \tidanchor{test-gimbal-packet-construction}%
+  \tidanchor{test-hdmi-output}%
+  \tidanchor{test-i18n-activation}%
+  \tidanchor{test-immediate-ui-feedback}%
+  \tidanchor{test-ip4-addresses}%
+  \tidanchor{test-ipc-buffer-memory-safety}%
+  \tidanchor{test-ipc-buffer-overrun-handling}%
+  \tidanchor{test-ipc-buffer-receiver}%
+  \tidanchor{test-ipc-buffer-sender}%
+  \tidanchor{test-language-selector}%
+  \tidanchor{test-livestream-construction}%
+  \tidanchor{test-livestream-process-loop}%
+  \tidanchor{test-log-operations}%
+  \tidanchor{test-main-dispatch-control}%
+  \tidanchor{test-main-dispatch-cv}%
+  \tidanchor{test-main-dispatch-livestream}%
+  \tidanchor{test-main-dispatch-transcode}%
+  \tidanchor{test-main-dispatch-unknown}%
+  \tidanchor{test-manage-recordings}%
+  \tidanchor{test-manual-arm-mode}%
+  \tidanchor{test-manual-control}%
+  \tidanchor{test-manual-idle-mode}%
+  \tidanchor{test-navbar}%
+  \tidanchor{test-network-disconnect}%
+  \tidanchor{test-no-collection-pii}%
+  \tidanchor{test-preview-real-time}%
+  \tidanchor{test-recording}%
+  \tidanchor{test-recordings-delete}%
+  \tidanchor{test-recordings-page-empty}%
+  \tidanchor{test-recordings-page-list}%
+  \tidanchor{test-recordings-page-loading}%
+  \tidanchor{test-recordings-rename}%
+  \tidanchor{test-report-errors}%
+  \tidanchor{test-return-to-idle}%
+  \tidanchor{test-rocam-provider-error-handling}%
+  \tidanchor{test-rocam-provider-initialization}%
+  \tidanchor{test-rocam-provider-polling}%
+  \tidanchor{test-scheduler-validation}%
+  \tidanchor{test-sse-broadcast-performance}%
+  \tidanchor{test-sse-thread-safety}%
+  \tidanchor{test-state-error-handling}%
+  \tidanchor{test-state-management-arm-disarm}%
+  \tidanchor{test-state-management-download-pause}%
+  \tidanchor{test-state-management-manual-move}%
+  \tidanchor{test-state-management-manual-move-clamped}%
+  \tidanchor{test-state-management-recording}%
+  \tidanchor{test-state-management-recording-only-noops}%
+  \tidanchor{test-state-management-recording-only-status}%
+  \tidanchor{test-state-status-performance}%
+  \tidanchor{test-stop-immediately}%
+  \tidanchor{test-system-status-caching}%
+  \tidanchor{test-system-status-callback-updates}%
+  \tidanchor{test-system-status-card}%
+  \tidanchor{test-tracking}%
+  \tidanchor{test-tracking-angle-clamping}%
+  \tidanchor{test-tracking-queue-behavior}%
+  \tidanchor{test-tracking-stop}%
+  \tidanchor{test-tracking-worker-control-law}%
+  \tidanchor{test-transcode-bus-call}%
+  \tidanchor{test-transcode-pipe-cleanup}%
+  \tidanchor{test-transcode-read-log}%
+  \tidanchor{test-transcode-routes-404}%
+  \tidanchor{test-transcode-shader-probe}%
+  \tidanchor{test-transcode-streaming}%
+  \tidanchor{test-transition-to-tracking}%
+  \tidanchor{test-ui-error-handling}%
+  \tidanchor{test-ui-loading-states}%
+  \tidanchor{test-use-rocam-hook}%
+  \tidanchor{test-user-survey}%
+  \tidanchor{test-validate-commands}%
+  \tidanchor{test-visual-indicators}%
+  \tidanchor{test-watchdog-clear}%
+  \tidanchor{test-watchdog-refresh}%
+  \tidanchor{test-watchdog-timeout-accuracy}%
+}
+
+
 \begin{document}
+% Initialize hidden anchors for all Test IDs
+\tidallanchors
 
 % Links to project documents (relative to docs/VnVPlan/); cite keys in References.bib
 \newcommand{\SRS}{\href{../SRS/SRS.pdf}{SRS}}
@@ -35,7 +170,7 @@
 
 \title{System Verification and Validation Plan for \progname{}}
 \author{\authname}
-\date{March 5, 2026}
+\date{March 9, 2026}
 
 \maketitle
 
@@ -83,7 +218,7 @@
   \midrule
   Yolo            & You only look once -- an existing object detection model          \\
   CNN             & Convolutional Neural Network                                      \\
-  Jetson          & abbreviatio for specifcally Jetson Nano Orin, which is the
+  Jetson          & abbreviation for specifically Jetson Nano Orin, which is the
   proposed board for this project
   \\
   STM32           & abbreviation for specifically STM32 microcontroller, which is the
@@ -105,21 +240,21 @@ This Verification and Validation (V\&V) plan outlines how the RoCam project
 will demonstrate that the system is built correctly (verification) and fits
 stakeholder needs (validation). It anchors testing to the SRS, architecture
 (MG), and detailed design (MIS), ensuring every requirement is traceable where
-possible. \textbf{The only testing performed is unit testing;} integration,
-system, and field testing are out of scope. Verification relies on structured
-internal reviews and checklists, plus unit tests, to confirm functional
-behavior and safety assumptions. Validation is limited to a planned review with
-the McMaster Rocketry Team (stakeholders) to collect feedback; no task-based
+possible. \textbf{Unit testing and system testing are performed;} only field
+testing is out of scope. Verification relies on structured internal reviews and
+checklists, plus unit tests and system tests, to confirm functional behavior
+and safety assumptions. Validation is limited to a planned review with the
+McMaster Rocketry Team (stakeholders) to collect feedback; no task-based
 inspection, classmate review, or supervisor validation is conducted. Roles and
 responsibilities are assigned to team members only, with feedback from the
 rocketry team captured and tracked. Priorities emphasize correctness,
 performance, reliability, and safety; lower-priority or out-of-scope items
 (e.g., exhaustive usability studies, independent verification of third-party
-components, and all testing beyond unit tests) are noted to keep the plan
-feasible. The document concludes with traceability tables, placeholders for
-unit-level details after design finalization, and appendices for parameters and
-optional surveys---forming a clear, practical roadmap for the evidence of
-quality that can be gathered under these constraints.
+components, and field testing) are noted to keep the plan feasible. The
+document concludes with traceability tables, placeholders for unit-level
+details after design finalization, and appendices for parameters and optional
+surveys---forming a clear, practical roadmap for the evidence of quality that
+can be gathered under these constraints.
 
 \wss{provide an introductory blurb and roadmap of the
   Verification and Validation plan}
@@ -149,16 +284,17 @@ The primary objective of this Verification and Validation V\&V Plan is to
 establish confidence in the correctness, performance, and reliability of the
 RoCam system by ensuring that all verification and validation activities are
 thorough, traceable, and aligned with project requirements. The plan emphasizes
-unit testing and internal review to confirm that functional and performance
-criteria are addressed where possible, with improvements tracked through GitHub
-Issues. Validation focuses on a planned review with the McMaster Rocketry Team
-(stakeholders) to collect feedback; no field testing or supervisor validation
-is performed. These qualities—correctness, performance, reliability, and
-traceability—are fundamental to the success of the V\&V process, ensuring that
-the RoCam system is both technically sound and operationally dependable.
-Certain objectives, such as independent verification of third-party hardware
-and extended usability testing, are excluded due to scope and resource
-limitations, with reliance placed on manufacturer and stakeholder validation.
+unit testing, system testing, and internal review to confirm that functional
+and performance criteria are addressed where possible, with improvements
+tracked through GitHub Issues. Validation focuses on a planned review with the
+McMaster Rocketry Team (stakeholders) to collect feedback; no field testing or
+supervisor validation is performed. These qualities—correctness, performance,
+reliability, and traceability—are fundamental to the success of the V\&V
+process, ensuring that the RoCam system is both technically sound and
+operationally dependable. Certain objectives, such as independent verification
+of third-party hardware and extended usability testing, are excluded due to
+scope and resource limitations, with reliance placed on manufacturer and
+stakeholder validation.
 
 \subsection{In-Scope Objectives}
 Verification and validation efforts will prioritize the following qualities:
@@ -175,6 +311,8 @@ Verification and validation efforts will prioritize the following qualities:
 The following objectives are excluded from this project due to time, budget,
 and resource constraints:
 \begin{itemize}
+  \item \textbf{Field Testing:} Live rocket launches, hardware field conditions,
+        and external reviewer validation at launch sites are out of scope.
   \item \textbf{Third-Party Component Verification:} External hardware such as the
         gimbal controller and camera are assumed to perform according to their
         manufacturer specifications.
@@ -274,10 +412,10 @@ the \textbf{RoCam} project. It defines the structure, responsibilities, and
 methods used to verify that the system meets its functional and non-functional
 requirements and to validate that it fulfills stakeholder needs. The section
 covers the verification of the SRS, design, and implementation via internal
-reviews and unit testing only, as well as the validation strategy through a
-planned stakeholder review with the McMaster Rocketry Team (no field testing).
-Its purpose is to provide a clear, organized framework ensuring that all
-aspects of RoCam are systematically tested, reviewed, and proven reliable
+reviews, unit testing, and system testing, as well as the validation strategy
+through a planned stakeholder review with the McMaster Rocketry Team (no field
+testing). Its purpose is to provide a clear, organized framework ensuring that
+all aspects of RoCam are systematically tested, reviewed, and proven reliable
 before final deployment. \wss{Introduce this section. You can provide a roadmap
   of the sections to come.}
 
@@ -289,25 +427,25 @@ before final deployment. \wss{Introduce this section. You can provide a roadmap
   \label{tab:vnv_team}
   \begin{tabular}{|p{3.5cm}|p{3.5cm}|p{8cm}|}
     \hline
-    \textbf{Name}         & \textbf{Role}                                    & \textbf{V\&V Responsibilities} \\ \hline
+    \textbf{Name}         & \textbf{Role}              & \textbf{V\&V Responsibilities} \\ \hline
 
-    \textbf{Zifan Si}     & Front End Interface Tester                       &
+    \textbf{Zifan Si}     & Front End Interface Tester &
     Responsible for verifying and validating the usability and functionality of the
     react frontend interface.
-    Ensure usability, robustness of frontend features.                                                        \\ \hline
+    Ensure usability, robustness of frontend features.                                  \\ \hline
 
-    \textbf{Jianqing Liu} & Team Lead                                        &
-    Conduct integration test and system validation. Validate the functionality and
+    \textbf{Jianqing Liu} & Team Lead                  &
+    Conduct system validation. Validate the functionality and
     performance of the system against requirements and use cases. Validate system
-    design and functionality.                                                                                 \\ \hline
+    design and functionality.                                                           \\ \hline
 
-    \textbf{Mike Chen}    & CV Tester                                        &
+    \textbf{Mike Chen}    & CV Tester                  &
     Verify and validate computer vision pipeline performance, including object detection
-    and tracking accuracy.                                                                                    \\ \hline
+    and tracking accuracy.                                                              \\ \hline
 
-    \textbf{Xiaotian Lou} & Integration Tester and test automation developer &
+    \textbf{Xiaotian Lou} & Test automation developer  &
     Implement automated testing frameworks in all software components. Implement
-    API, and integration test across different modules.
+    API tests across different modules.
     \\ \hline
 
   \end{tabular}
@@ -328,7 +466,7 @@ following steps:
 Since the Design function will evaluate in detail whether the system align with
 the functional and non-functional requirements. The SRS verification will focus
 on verify the system design as a whole against the requirements. It will be
-implemented as integration test in the final stages of development.
+implemented as system tests in the final stages of development.
 
 \subsubsection{Stakeholder Review}
 Since our team leader is the control team lead of the McMaster Rocketry Team,
@@ -368,10 +506,10 @@ specified in the SRS document.
                                                     & $\square$ \; Review design against timeline and budget limits                                 \\[-2pt]
                                                     & $\square$ \; Update records if scope or constraints change                                    \\ \hline
 
-    Integration Verification                        & $\square$ \; Conduct integration tests covering all
-    system components                                                                                                                               \\[-2pt]
+    System Verification                             & $\square$ \; Conduct system tests covering all system
+    components                                                                                                                                      \\[-2pt]
                                                     & $\square$ \; Validate full system behavior against SRS requirements                           \\[-2pt]
-                                                    & $\square$ \; Log and resolve all integration issues                                           \\[-2pt]
+                                                    & $\square$ \; Log and resolve all system test issues                                           \\[-2pt]
                                                     & $\square$ \; Prepare final verification report for stakeholder review                         \\ \hline
 
     Safety Review                                   & $\square$ \; Review safety requirements against Hazard Analysis
@@ -468,9 +606,9 @@ GitHub Issues. The focus of the verification plan is to ensure functionality
 and performance metrics are adequately covered in design where possible.
 
 For the validation plan, the only validation activity is a planned review with
-the McMaster Rocketry Team (stakeholders) to collect feedback. No field tests,
-integration tests, or supervisor validation are performed; the only testing
-conducted is unit testing.
+the McMaster Rocketry Team (stakeholders) to collect feedback. No field tests
+or supervisor validation are performed; unit testing and system testing are
+conducted.
 
 % Preamble:
 % \usepackage{array}
@@ -529,9 +667,8 @@ functional and non-functional requirements defined in the SRS through a
 combination of structured testing, static verification, and peer review.
 
 \subsubsection*{Dynamic Verification}
-Due to resource and contact limitations, \textbf{only unit testing} is
-performed. Integration testing, system testing, and field testing are out of
-scope.
+Due to resource and contact limitations, \textbf{only field testing} is out of
+scope. Unit testing and system testing are performed.
 
 \begin{itemize}
   \item \textbf{Unit Testing:}
@@ -541,13 +678,13 @@ scope.
         dynamic testing conducted.
 \end{itemize}
 
-\noindent\textit{Out of scope:} Integration testing, system testing, and
-field testing are not performed due to the constraints noted in this plan.
+\noindent\textit{Out of scope:} Field testing is not performed due to the
+constraints noted in this plan.
 
 \subsubsection*{Static Verification}
 Static verification will be performed throughout the implementation
 phase to ensure that the codebase meets quality, safety,
-nd maintainability standards before execution.
+and maintainability standards before execution.
 Planned techniques include:
 
 \begin{itemize}
@@ -665,7 +802,7 @@ and resource limitations.
   \item \textbf{Acceptance Criteria:} Derived from the SRS (e.g.,
         sustained 1080p\,60\,fps I/O, end-to-end latency $\leq 120$\,ms,
         successful tracking through nominal flight phases, recording with a
-        ngle overlays).
+        angle overlays).
   \item \textbf{Traceability:} Validation tests map to SRS goals and
         stakeholder needs; a table links each validation activity to the
         corresponding SRS item(s) and planned evidence (videos, logs, checklists).
@@ -698,12 +835,11 @@ consistency checks between validated behaviors and specified requirements.
 
 \section{System Tests}
 
-\textbf{Scope note:} Due to resource and contact limitations, the only testing
-actually performed in this project is \textbf{unit testing}. The system tests
-and field tests described in this section are documented for reference and
-traceability but are \textbf{out of scope} and will not be executed. Evidence
-of correctness will come from unit tests and from the planned stakeholder
-review with the McMaster Rocketry Team.
+\textbf{Scope note:} Due to resource and contact limitations, \textbf{only field
+  testing} is out of scope. Unit tests and system tests
+described in this section are executed. Evidence of correctness comes from unit
+tests, system tests, and the planned stakeholder review
+with the McMaster Rocketry Team.
 
 \subsection{Tests for Functional Requirements}
 
@@ -723,7 +859,7 @@ edge cases.
 
 \subsubsection{Area of Testing: Video Acquisition and Output}
 
-\subsubsection*{test-aquire-frame: Camera Frames are Acquired at Startup}
+\subsubsection*{\tid{test-acquire-frame}: Camera Frames are Acquired at Startup}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System powered off; camera connected; HDMI monitor attached.
@@ -733,7 +869,7 @@ edge cases.
   \item \textbf{How Test Will Be Performed:} Boot the device; observe the program logs.
 \end{itemize}
 
-\subsubsection*{test-disconnect-camera: Camera Disconnect During Operation}
+\subsubsection*{\tid{test-disconnect-camera}: Camera Disconnect During Operation}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System initialized; preview and HDMI output active.
@@ -743,7 +879,7 @@ edge cases.
   \item \textbf{How Test Will Be Performed:} Disconnect the camera from the system; observe the UI and HDMI output for error messages.
 \end{itemize}
 
-\subsubsection*{test-hdmi-output: HDMI Output with Info Overlay}
+\subsubsection*{\tid{test-hdmi-output}: HDMI Output with Info Overlay}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System initialized; idle state; preview and HDMI output active.
@@ -753,7 +889,7 @@ edge cases.
   \item \textbf{How Test Will Be Performed:} Move the gimbal manually, and visually verify overlay values change smoothly and match commanded motion
 \end{itemize}
 
-\subsubsection*{test-disconnect-hdmi: HDMI Disconnect}
+\subsubsection*{\tid{test-disconnect-hdmi}: HDMI Disconnect}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System initialized; preview and HDMI output active.
@@ -763,7 +899,7 @@ edge cases.
   \item \textbf{How Test Will Be Performed:} Disconnect the HDMI cable from the system; observe the UI for error messages.
 \end{itemize}
 
-\subsubsection*{test-preview-real-time: Preview with Real-Time Info}
+\subsubsection*{\tid{test-preview-real-time}: Preview with Real-Time Info}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System initialized; idle state; preview and HDMI output active.
@@ -773,7 +909,7 @@ edge cases.
   \item \textbf{How Test Will Be Performed:} Move the gimbal manually, and visually verify the preview in the UI updates fluidly and displays the current pan/tilt angles.
 \end{itemize}
 
-\subsubsection*{test-network-disconnect: Network Disconnect While Viewing UI}
+\subsubsection*{\tid{test-network-disconnect}: Network Disconnect While Viewing UI}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System initialized; preview and HDMI output active.
@@ -785,7 +921,7 @@ edge cases.
 
 \subsubsection{Area of Testing: Recording}
 
-\subsubsection*{test-recording: Start and Stop Recording}
+\subsubsection*{\tid{test-recording}: Start and Stop Recording}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System initialized; idle state; sufficient disk space.
@@ -795,7 +931,7 @@ edge cases.
   \item \textbf{How Test Will Be Performed:} Press "Start Recording", wait 10s, then press "Stop Recording".
 \end{itemize}
 
-\subsubsection*{test-disk-full: Disk Full Behavior During Recording}
+\subsubsection*{\tid{test-disk-full}: Disk Full Behavior During Recording}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System initialized; idle state; storage nearly full (simulate by filling disk leaving $<1$min recording capacity).
@@ -805,7 +941,7 @@ edge cases.
   \item \textbf{How Test Will Be Performed:} Fill the disk with data until it is nearly full; start recording; observe the UI for the "Storage Full" alert; check the disk for the saved file.
 \end{itemize}
 
-\subsubsection*{test-manage-recordings: List and Download Recordings}
+\subsubsection*{\tid{test-manage-recordings}: List and Download Recordings}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} At least two prior recordings exist.
@@ -817,7 +953,7 @@ edge cases.
 
 \subsubsection{Area of Testing: Tracking}
 
-\subsubsection*{test-manual-control: Manual Gimbal Control in Idle}
+\subsubsection*{\tid{test-manual-control}: Manual Gimbal Control in Idle}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System initialized; idle state; preview and HDMI output active.
@@ -827,7 +963,7 @@ edge cases.
   \item \textbf{How Test Will Be Performed:} Issue manual pan and tilt commands via UI; observe the gimbal movement.
 \end{itemize}
 
-\subsubsection*{test-transition-to-tracking: Transition to Tracking When Rocket Detected}
+\subsubsection*{\tid{test-transition-to-tracking}: Transition to Tracking When Rocket Detected}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System initialized; idle state; preview and HDMI output active.
@@ -837,7 +973,7 @@ edge cases.
   \item \textbf{How Test Will Be Performed:} Arm the system via UI, and waving a model rocket in front of the camera; observe the UI for the system to transition to tracking state.
 \end{itemize}
 
-\subsubsection*{test-tracking: Keep Rocket in Frame While Tracking}
+\subsubsection*{\tid{test-tracking}: Keep Rocket in Frame While Tracking}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System initialized; tracking state; preview and HDMI output active.
@@ -847,7 +983,7 @@ edge cases.
   \item \textbf{How Test Will Be Performed:} Wave the model rocket in front of the camera; observe the gimbal movement; observe the preview in the UI.
 \end{itemize}
 
-\subsubsection*{test-return-to-idle: Return to Idle When Rocket is Lost}
+\subsubsection*{\tid{test-return-to-idle}: Return to Idle When Rocket is Lost}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System initialized; tracking state; preview and HDMI output active.
@@ -857,7 +993,7 @@ edge cases.
   \item \textbf{How Test Will Be Performed:} Occlude the model rocket; observe the UI for the system to transition to idle state.
 \end{itemize}
 
-\subsubsection*{test-exit-gimbal-range: Rocket Exits Gimbal Range}
+\subsubsection*{\tid{test-exit-gimbal-range}: Rocket Exits Gimbal Range}
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System initialized; tracking state; preview and HDMI output active.
@@ -876,9 +1012,9 @@ If field testing were to be conducted, it would be done by the McMaster
 Rocketry Team (client), who would be provided with the manual and would operate
 the system at a model rocket launch event. The development team would be
 present to assist. After the event, the client could fill out a survey
-(Appendix 6.2). Under the current plan, no field testing is performed; only
-unit testing and a planned stakeholder review with the rocketry team are
-conducted.
+(Appendix 6.2). Under the current plan, no field testing is performed; unit
+testing, system testing, and a planned stakeholder review with the rocketry
+team are conducted.
 
 \subsection{Tests for Nonfunctional Requirements}
 
@@ -908,7 +1044,7 @@ conducted.
 The UI walkthrough will be conducted by the capstone team members themselves
 before the field test.
 
-\subsubsection*{test-consistent-units: Consistent and Changeable Units}
+\subsubsection*{\tid{test-consistent-units}: Consistent and Changeable Units}
 \begin{itemize}
   \item \textbf{Type:} Manual
   \item \textbf{Initial State:} System initialized; idle state; preview and HDMI output active.
@@ -917,7 +1053,7 @@ before the field test.
   \item \textbf{How Test Will Be Performed:} The capstone team members will go through the UI twice, once with metric units, once with imperial units; observe the units in the UI.
 \end{itemize}
 
-\subsubsection*{test-bilingual-ui: Bilingual UI}
+\subsubsection*{\tid{test-bilingual-ui}: Bilingual UI}
 \begin{itemize}
   \item \textbf{Type:} Manual
   \item \textbf{Initial State:} System initialized; language = English.
@@ -926,7 +1062,7 @@ before the field test.
   \item \textbf{How Test Will Be Performed:} Perform a complete UI walkthrough in French; capture screenshots of each page/dialog; switch back to English and repeat spot checks.
 \end{itemize}
 
-\subsubsection*{test-immediate-ui-feedback: Immediate UI Feedback}
+\subsubsection*{\tid{test-immediate-ui-feedback}: Immediate UI Feedback}
 \begin{itemize}
   \item \textbf{Type:} Manual
   \item \textbf{Initial State:} System idle; UI ready.
@@ -935,7 +1071,7 @@ before the field test.
   \item \textbf{How Test Will Be Performed:} Observe the UI while performing each action
 \end{itemize}
 
-\subsubsection*{test-visual-indicators: Rely on Visual Indicators}
+\subsubsection*{\tid{test-visual-indicators}: Rely on Visual Indicators}
 \begin{itemize}
   \item \textbf{Type:} Manual
   \item \textbf{Initial State:} System initialized; speakers muted or disconnected.
@@ -944,7 +1080,7 @@ before the field test.
   \item \textbf{How Test Will Be Performed:} With audio disabled, induce each state/fault; verify a visible indicator appears and remains long enough to be noticed.
 \end{itemize}
 
-\subsubsection*{test-confirmation-prompts: Confirmation Prompts for Safety-Critical Actions}
+\subsubsection*{\tid{test-confirmation-prompts}: Confirmation Prompts for Safety-Critical Actions}
 \begin{itemize}
   \item \textbf{Type:} Manual
   \item \textbf{Initial State:} System idle; gimbal powered.
@@ -953,7 +1089,7 @@ before the field test.
   \item \textbf{How Test Will Be Performed:} Trigger each action; capture screenshots of the prompt; verify risk wording is specific (not generic); verify no motion/change occurs until “Confirm” is pressed.
 \end{itemize}
 
-\subsubsection*{test-manual-idle-mode: Manual Idle Mode / Override}
+\subsubsection*{\tid{test-manual-idle-mode}: Manual Idle Mode / Override}
 \begin{itemize}
   \item \textbf{Type:} Manual
   \item \textbf{Initial State:} System armed or tracking.
@@ -962,7 +1098,7 @@ before the field test.
   \item \textbf{How Test Will Be Performed:} Enter tracking, then invoke manual idle; observe immediate cessation of gimbal motion; verify state banner change and manual jog controls responsiveness.
 \end{itemize}
 
-\subsubsection*{test-no-collection-pii: No Collection of PII}
+\subsubsection*{\tid{test-no-collection-pii}: No Collection of PII}
 \begin{itemize}
   \item \textbf{Type:} Manual
   \item \textbf{Initial State:} System initialized; default configuration.
@@ -971,7 +1107,7 @@ before the field test.
   \item \textbf{How Test Will Be Performed:} Open each settings and log panel; download logs/recordings; inspect metadata (EXIF/JSON/CSV) for PII keys; verify any optional labels are device/session IDs, not personal data.
 \end{itemize}
 
-\subsubsection*{test-color-vision-deficiency: Color-Vision Deficiency Accessibility}
+\subsubsection*{\tid{test-color-vision-deficiency}: Color-Vision Deficiency Accessibility}
 \begin{itemize}
   \item \textbf{Type:} Manual
   \item \textbf{Initial State:} System initialized; all status indicators visible.
@@ -982,7 +1118,7 @@ before the field test.
 
 \subsubsection{Code and Documentation Walkthrough}
 
-\subsubsection*{test-manual-arm-mode: Manual Arm Mode Only}
+\subsubsection*{\tid{test-manual-arm-mode}: Manual Arm Mode Only}
 \begin{itemize}
   \item \textbf{Type:} Static
   \item \textbf{Initial State:} N/A
@@ -991,7 +1127,7 @@ before the field test.
   \item \textbf{How Test Will Be Performed:} Review code for all references to the armed state, verify guards require user input.
 \end{itemize}
 
-\subsubsection*{test-gimbal-interface: Gimbal Interface Documentation Review}
+\subsubsection*{\tid{test-gimbal-interface}: Gimbal Interface Documentation Review}
 \begin{itemize}
   \item \textbf{Type:} Static
   \item \textbf{Initial State:} N/A
@@ -1002,7 +1138,7 @@ before the field test.
 
 \subsubsection{Error Handling and Logging}
 
-\subsubsection*{test-report-errors: Report All Errors to the User}
+\subsubsection*{\tid{test-report-errors}: Report All Errors to the User}
 \begin{itemize}
   \item \textbf{Type:} Manual
   \item \textbf{Initial State:} System initialized and idle.
@@ -1011,7 +1147,7 @@ before the field test.
   \item \textbf{How Test Will Be Performed:} Disconnect devices, kill processes, and simulate faults while observing the UI for clear error reporting.
 \end{itemize}
 
-\subsubsection*{test-stop-immediately: Stop Immediately on Unrecoverable Error}
+\subsubsection*{\tid{test-stop-immediately}: Stop Immediately on Unrecoverable Error}
 \begin{itemize}
   \item \textbf{Type:} Manual
   \item \textbf{Initial State:} System operating in tracking mode.
@@ -1020,7 +1156,7 @@ before the field test.
   \item \textbf{How Test Will Be Performed:} Disconnect the gimbal or crash the tracking process, verify that motion stops and the system displays a clear unrecoverable error message.
 \end{itemize}
 
-\subsubsection*{test-validate-commands: Validate All Commands}
+\subsubsection*{\tid{test-validate-commands}: Validate All Commands}
 \begin{itemize}
   \item \textbf{Type:} Manual
   \item \textbf{Initial State:} System idle.
@@ -1029,7 +1165,7 @@ before the field test.
   \item \textbf{How Test Will Be Performed:} Attempt to send commands beyond gimbal limits or in unsupported formats and confirm that they are blocked with clear feedback.
 \end{itemize}
 
-\subsubsection*{test-log-operations: Log All Operations}
+\subsubsection*{\tid{test-log-operations}: Log All Operations}
 \begin{itemize}
   \item \textbf{Type:} Manual
   \item \textbf{Initial State:} System initialized and user logged in.
@@ -1040,16 +1176,16 @@ before the field test.
 
 \subsubsection{Field Testing (Out of Scope)}
 
-Field testing and user surveys are out of scope; only unit testing and the
-stakeholder review are performed.
+Field testing and user surveys are out of scope; unit testing, system testing,
+and the stakeholder review are performed.
 
-\subsubsection*{test-user-survey: User Survey (Out of Scope)}
+\subsubsection*{\tid{test-user-survey}: User Survey (Out of Scope)}
 \begin{itemize}
   \item \textbf{Type:} Static (out of scope)
   \item \textbf{Initial State:} N/A
   \item \textbf{Input/Condition:} N/A
   \item \textbf{Output/Result:} Completed user survey.
-  \item \textbf{How Test Will Be Performed:} Not performed. If field testing were in scope, the client would fill out the survey after the field test. Under the current plan, only unit testing and stakeholder review are conducted.
+  \item \textbf{How Test Will Be Performed:} Not performed. If field testing were in scope, the client would fill out the survey after the field test. Under the current plan, unit testing, system testing, and stakeholder review are conducted.
 \end{itemize}
 
 \subsection{Traceability Between Test Cases and Requirements}
@@ -1058,37 +1194,36 @@ stakeholder review are performed.
   requirements.}
 
 \begin{tabularx}{\textwidth}{p{5cm}X}
-  \toprule {\bf Test ID}       & {\bf Requirements}                                                                                \\
+  \toprule {\bf Test ID}             & {\bf Requirements}       \\
   \midrule
-  test-aquire-frame            & FR-1, SLR-2                                                                                       \\
-  test-disconnect-camera       & FR-1                                                                                              \\
-  test-hdmi-output             & FR-8, FR-9, INT-1, SLR-3                                                                          \\
-  test-disconnect-hdmi         & FR-8                                                                                              \\
-  test-preview-real-time       & FR-10                                                                                             \\
-  test-network-disconnect      & FR-10                                                                                             \\
-  test-recording               & FR-11                                                                                             \\
-  test-disk-full               & FR-11                                                                                             \\
-  test-manage-recordings       & FR-12                                                                                             \\
-  test-manual-control          & FR-2, FR-6                                                                                        \\
-  test-transition-to-tracking  & FR-3, FR-4                                                                                        \\
-  test-tracking                & FR-2, FR-3, FR-7                                                                                  \\
-  test-return-to-idle          & FR-5                                                                                              \\
-  test-exit-gimbal-range       & FR-2, FR-7                                                                                        \\
-  test-consistent-units        & EZ-1, PI-1                                                                                        \\
-  test-bilingual-ui            & PI-2                                                                                              \\
-  test-immediate-ui-feedback   & EZ-2                                                                                              \\
-  test-visual-indicators       & EZ-3                                                                                              \\
-  test-confirmation-prompts    & EZ-4, UPR-3                                                                                       \\
-  test-manual-idle-mode        & SCR-1                                                                                             \\
-  test-no-collection-pii       & LR-1                                                                                              \\
-  test-color-vision-deficiency & AR-1                                                                                              \\
-  test-manual-arm-mode         & SCR-4                                                                                             \\
-  test-gimbal-interface        & INT-2                                                                                             \\
-  test-report-errors           & RFR-1                                                                                             \\
-  test-stop-immediately        & RFR-2                                                                                             \\
-  test-validate-commands       & IR-1                                                                                              \\
-  test-log-operations          & AUR-1                                                                                             \\
-  test-user-survey             & AR-1, AR-2, SR-1, LR-1, UPR-1, UPR-2, PAR-1, SLR-1, RFR-5, CR-1, CR-2, SCR-2, SCR-3, RFR-3, EPE-1 \\
+  \tid{test-acquire-frame}           & FR-1, SLR-2              \\
+  \tid{test-disconnect-camera}       & FR-1                     \\
+  \tid{test-hdmi-output}             & FR-8, FR-9, INT-1, SLR-3 \\
+  \tid{test-disconnect-hdmi}         & FR-8                     \\
+  \tid{test-preview-real-time}       & FR-10                    \\
+  \tid{test-network-disconnect}      & FR-10                    \\
+  \tid{test-recording}               & FR-11                    \\
+  \tid{test-disk-full}               & FR-11                    \\
+  \tid{test-manage-recordings}       & FR-12                    \\
+  \tid{test-manual-control}          & FR-2, FR-6               \\
+  \tid{test-transition-to-tracking}  & FR-3, FR-4               \\
+  \tid{test-tracking}                & FR-2, FR-3, FR-7         \\
+  \tid{test-return-to-idle}          & FR-5                     \\
+  \tid{test-exit-gimbal-range}       & FR-2, FR-7               \\
+  \tid{test-consistent-units}        & EZ-1, PI-1               \\
+  \tid{test-bilingual-ui}            & PI-2                     \\
+  \tid{test-immediate-ui-feedback}   & EZ-2                     \\
+  \tid{test-visual-indicators}       & EZ-3                     \\
+  \tid{test-confirmation-prompts}    & EZ-4, UPR-3              \\
+  \tid{test-manual-idle-mode}        & SCR-1                    \\
+  \tid{test-no-collection-pii}       & LR-1                     \\
+  \tid{test-color-vision-deficiency} & AR-1                     \\
+  \tid{test-manual-arm-mode}         & SCR-4                    \\
+  \tid{test-gimbal-interface}        & INT-2                    \\
+  \tid{test-report-errors}           & RFR-1                    \\
+  \tid{test-stop-immediately}        & RFR-2                    \\
+  \tid{test-validate-commands}       & IR-1                     \\
+  \tid{test-log-operations}          & AUR-1                    \\
   \bottomrule
 \end{tabularx}
 
@@ -1146,7 +1281,7 @@ project team. The following modules are within the scope of unit testing:
   \item \mref{mStream} (Video Stream Abstraction Module) --- Implemented by Nvidia Deepstream SDK (third-party)
   \item \mref{mSerial} (Serial Abstraction Module) --- Implemented by pyserial library (third-party)
   \item \mref{mStatus} (System Status Module) --- Hardware-dependent library (jetson-stats)
-  \item Hardware-specific integration tests (require actual Jetson hardware)
+  \item Hardware-specific system tests (require actual Jetson hardware)
 \end{itemize}
 
 The unit testing strategy employs pytest for Python backend modules and Vitest
@@ -1170,7 +1305,7 @@ machine behavior, command validation, and data management.
 
 \begin{enumerate}
 
-  \item{test-state-management-arm-disarm\\}
+  \item{\tid{test-state-management-arm-disarm}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1186,7 +1321,7 @@ machine behavior, command validation, and data management.
         How test will be performed: Automated via
         test\_state\_management\_class.py::TestArmDisarm
 
-  \item{test-state-management-manual-move\\}
+  \item{\tid{test-state-management-manual-move}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1202,7 +1337,7 @@ machine behavior, command validation, and data management.
         How test will be performed: Automated via
         test\_state\_management\_class.py::TestManualMove
 
-  \item{test-state-management-manual-move-clamped\\}
+  \item{\tid{test-state-management-manual-move-clamped}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1217,7 +1352,7 @@ machine behavior, command validation, and data management.
         How test will be performed: Automated via
         test\_state\_management\_class.py::TestManualMove
 
-  \item{test-state-management-recording\\}
+  \item{\tid{test-state-management-recording}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1233,7 +1368,7 @@ machine behavior, command validation, and data management.
         How test will be performed: Automated via
         test\_state\_management\_class.py::TestRecording
 
-  \item{test-state-management-download-pause\\}
+  \item{\tid{test-state-management-download-pause}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1249,7 +1384,7 @@ machine behavior, command validation, and data management.
         How test will be performed: Automated via
         test\_state\_management\_class.py::TestDownloadHandlers
 
-  \item{test-bounding-box-collection\\}
+  \item{\tid{test-bounding-box-collection}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1275,7 +1410,7 @@ StateManagement.
 
 \begin{enumerate}
 
-  \item{test-api-endpoints-exist\\}
+  \item{\tid{test-api-endpoints-exist}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1292,7 +1427,7 @@ StateManagement.
         How test will be performed: Automated via test\_api.py and
         test\_api\_gateway.py
 
-  \item{test-api-recordings-crud\\}
+  \item{\tid{test-api-recordings-crud}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1309,7 +1444,7 @@ StateManagement.
         How test will be performed: Automated via test\_api.py::TestRecordingsList,
         TestRecordingsRename, TestRecordingsDelete
 
-  \item{test-api-validation\\}
+  \item{\tid{test-api-validation}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1332,7 +1467,7 @@ retrieval operations.
 
 \begin{enumerate}
 
-  \item{test-database-allocate\\}
+  \item{\tid{test-database-allocate}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1348,7 +1483,7 @@ retrieval operations.
         How test will be performed: Automated via
         test\_database.py::TestAllocateRecording
 
-  \item{test-database-list-recordings\\}
+  \item{\tid{test-database-list-recordings}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1363,7 +1498,7 @@ retrieval operations.
         How test will be performed: Automated via
         test\_database.py::TestListAllRecordings
 
-  \item{test-database-rename-delete\\}
+  \item{\tid{test-database-rename-delete}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1378,7 +1513,7 @@ retrieval operations.
         How test will be performed: Automated via
         test\_database.py::TestRenameRecording, TestDeleteRecording
 
-  \item{test-database-path-traversal-protection\\}
+  \item{\tid{test-database-path-traversal-protection}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1392,7 +1527,7 @@ retrieval operations.
 
         How test will be performed: Automated via test\_database.py::TestValidateId
 
-  \item{test-database-space-usage\\}
+  \item{\tid{test-database-space-usage}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1416,7 +1551,7 @@ hardware.
 
 \begin{enumerate}
 
-  \item{test-gimbal-crc8\\}
+  \item{\tid{test-gimbal-crc8}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1430,7 +1565,7 @@ hardware.
 
         How test will be performed: Automated via test\_gimbal.py::TestCrc8Smbus
 
-  \item{test-gimbal-packet-construction\\}
+  \item{\tid{test-gimbal-packet-construction}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1445,7 +1580,7 @@ hardware.
         How test will be performed: Automated via
         test\_gimbal.py::TestCreateRequestData
 
-  \item{test-gimbal-angle-commands\\}
+  \item{\tid{test-gimbal-angle-commands}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1460,7 +1595,7 @@ hardware.
         How test will be performed: Automated via test\_gimbal.py::TestSetDeg,
         TestGetDeg
 
-  \item{test-gimbal-led-control\\}
+  \item{\tid{test-gimbal-led-control}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1474,7 +1609,7 @@ hardware.
 
         How test will be performed: Automated via test\_gimbal.py::TestLedCommands
 
-  \item{test-gimbal-info-query\\}
+  \item{\tid{test-gimbal-info-query}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1496,7 +1631,7 @@ The Tracking module implements the control law for automatic rocket tracking.
 
 \begin{enumerate}
 
-  \item{test-tracking-queue-behavior\\}
+  \item{\tid{test-tracking-queue-behavior}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1510,7 +1645,7 @@ The Tracking module implements the control law for automatic rocket tracking.
 
         How test will be performed: Automated via test\_tracking.py::TestOnDetection
 
-  \item{test-tracking-worker-control-law\\}
+  \item{\tid{test-tracking-worker-control-law}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1526,7 +1661,7 @@ The Tracking module implements the control law for automatic rocket tracking.
         How test will be performed: Automated via
         test\_tracking.py::TestWorkerControlLaw
 
-  \item{test-tracking-angle-clamping\\}
+  \item{\tid{test-tracking-angle-clamping}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1541,7 +1676,7 @@ The Tracking module implements the control law for automatic rocket tracking.
         How test will be performed: Automated via
         test\_tracking.py::TestWorkerControlLaw
 
-  \item{test-tracking-stop\\}
+  \item{\tid{test-tracking-stop}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1564,7 +1699,7 @@ worker process.
 
 \begin{enumerate}
 
-  \item{test-cv-management-osd-send\\}
+  \item{\tid{test-cv-management-osd-send}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1579,7 +1714,7 @@ worker process.
         How test will be performed: Automated via
         test\_cv\_process\_mgmt.py::TestSendOsdData
 
-  \item{test-cv-management-recording-commands\\}
+  \item{\tid{test-cv-management-recording-commands}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1594,7 +1729,7 @@ worker process.
         How test will be performed: Automated via
         test\_cv\_process\_mgmt.py::TestRecordingCommands
 
-  \item{test-cv-management-pause-resume\\}
+  \item{\tid{test-cv-management-pause-resume}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1609,7 +1744,7 @@ worker process.
         How test will be performed: Automated via
         test\_cv\_process\_mgmt.py::TestPauseResume
 
-  \item{test-cv-management-recv-loop\\}
+  \item{\tid{test-cv-management-recv-loop}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1633,7 +1768,7 @@ process.
 
 \begin{enumerate}
 
-  \item{test-livestream-construction\\}
+  \item{\tid{test-livestream-construction}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1647,7 +1782,7 @@ process.
 
         How test will be performed: Automated via test\_livestream\_mgmt.py
 
-  \item{test-livestream-process-loop\\}
+  \item{\tid{test-livestream-process-loop}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1669,7 +1804,7 @@ The Transcode API provides endpoints for stabilized video preview and download.
 
 \begin{enumerate}
 
-  \item{test-transcode-routes-404\\}
+  \item{\tid{test-transcode-routes-404}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1685,7 +1820,7 @@ The Transcode API provides endpoints for stabilized video preview and download.
         How test will be performed: Automated via
         test\_transcode\_api.py::TestTranscodeRoutes
 
-  \item{test-transcode-streaming\\}
+  \item{\tid{test-transcode-streaming}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1700,7 +1835,7 @@ The Transcode API provides endpoints for stabilized video preview and download.
         How test will be performed: Automated via
         test\_transcode\_api.py::TestTranscodeRoutes
 
-  \item{test-transcode-pipe-cleanup\\}
+  \item{\tid{test-transcode-pipe-cleanup}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1724,7 +1859,7 @@ stabilization.
 
 \begin{enumerate}
 
-  \item{test-transcode-read-log\\}
+  \item{\tid{test-transcode-read-log}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1739,7 +1874,7 @@ stabilization.
         How test will be performed: Automated via
         test\_transcode\_main.py::TestTranscodeProcessReadLog
 
-  \item{test-transcode-shader-probe\\}
+  \item{\tid{test-transcode-shader-probe}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1755,7 +1890,7 @@ stabilization.
         How test will be performed: Automated via
         test\_transcode\_main.py::TestTranscodeProcessShaderProbe
 
-  \item{test-transcode-bus-call\\}
+  \item{\tid{test-transcode-bus-call}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1779,7 +1914,7 @@ recording.
 
 \begin{enumerate}
 
-  \item{test-cv-format-time\\}
+  \item{\tid{test-cv-format-time}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1794,7 +1929,7 @@ recording.
 
         How test will be performed: Automated via test\_cv\_main.py::TestFormatTime
 
-  \item{test-cv-update-osd\\}
+  \item{\tid{test-cv-update-osd}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1816,7 +1951,7 @@ The Common IPC module provides data structures and communication utilities.
 
 \begin{enumerate}
 
-  \item{test-bounding-box-center\\}
+  \item{\tid{test-bounding-box-center}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1830,7 +1965,7 @@ The Common IPC module provides data structures and communication utilities.
 
         How test will be performed: Automated via test\_ipc.py::TestBoundingBoxCenter
 
-  \item{test-bounding-box-rotate-90\\}
+  \item{\tid{test-bounding-box-rotate-90}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1844,7 +1979,7 @@ The Common IPC module provides data structures and communication utilities.
 
         How test will be performed: Automated via test\_ipc.py::TestBoundingBoxRotate90
 
-  \item{test-dataclass-construction\\}
+  \item{\tid{test-dataclass-construction}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1868,7 +2003,7 @@ high-throughput video data.
 
 \begin{enumerate}
 
-  \item{test-ipc-buffer-sender\\}
+  \item{\tid{test-ipc-buffer-sender}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1883,7 +2018,7 @@ high-throughput video data.
         How test will be performed: Automated via
         test\_ipc\_buffer.py::TestIPCBufferSender
 
-  \item{test-ipc-buffer-receiver\\}
+  \item{\tid{test-ipc-buffer-receiver}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1906,7 +2041,7 @@ The Watchdog module provides timeout-based process monitoring.
 
 \begin{enumerate}
 
-  \item{test-watchdog-refresh\\}
+  \item{\tid{test-watchdog-refresh}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1922,7 +2057,7 @@ The Watchdog module provides timeout-based process monitoring.
         How test will be performed: Automated via
         test\_watchdog.py::TestWatchdogRefresh
 
-  \item{test-watchdog-clear\\}
+  \item{\tid{test-watchdog-clear}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1944,7 +2079,7 @@ The Preview module displays live video feed in the UI.
 
 \begin{enumerate}
 
-  \item{test-control-page-render\\}
+  \item{\tid{test-control-page-render}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1960,7 +2095,7 @@ The Preview module displays live video feed in the UI.
 
         How test will be performed: Automated via test\_pages/control.test.tsx
 
-  \item{test-control-page-bbox-overlay\\}
+  \item{\tid{test-control-page-bbox-overlay}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1982,7 +2117,7 @@ The Manual Control module provides UI for gimbal control.
 
 \begin{enumerate}
 
-  \item{test-controls-card-render\\}
+  \item{\tid{test-controls-card-render}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -1997,7 +2132,7 @@ The Manual Control module provides UI for gimbal control.
         How test will be performed: Automated via
         test\_components/ControlsCard.test.tsx
 
-  \item{test-control-page-drag\\}
+  \item{\tid{test-control-page-drag}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2020,7 +2155,7 @@ and previewing recordings.
 
 \begin{enumerate}
 
-  \item{test-recordings-page-loading\\}
+  \item{\tid{test-recordings-page-loading}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2034,7 +2169,7 @@ and previewing recordings.
 
         How test will be performed: Automated via test\_pages/recordings.test.tsx
 
-  \item{test-recordings-page-empty\\}
+  \item{\tid{test-recordings-page-empty}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2048,7 +2183,7 @@ and previewing recordings.
 
         How test will be performed: Automated via test\_pages/recordings.test.tsx
 
-  \item{test-recordings-page-list\\}
+  \item{\tid{test-recordings-page-list}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2062,7 +2197,7 @@ and previewing recordings.
 
         How test will be performed: Automated via test\_pages/recordings.test.tsx
 
-  \item{test-recordings-delete\\}
+  \item{\tid{test-recordings-delete}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2076,7 +2211,7 @@ and previewing recordings.
 
         How test will be performed: Automated via test\_pages/recordings.test.tsx
 
-  \item{test-recordings-rename\\}
+  \item{\tid{test-recordings-rename}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2098,7 +2233,7 @@ The Configuration module provides UI for system settings.
 
 \begin{enumerate}
 
-  \item{test-language-selector\\}
+  \item{\tid{test-language-selector}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2113,7 +2248,7 @@ The Configuration module provides UI for system settings.
         How test will be performed: Automated via
         test\_components/LanguageSelector.test.tsx
 
-  \item{test-configuration-menu\\}
+  \item{\tid{test-configuration-menu}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2136,7 +2271,7 @@ The API Client module provides HTTP communication with the backend.
 
 \begin{enumerate}
 
-  \item{test-api-client-urls\\}
+  \item{\tid{test-api-client-urls}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2150,7 +2285,7 @@ The API Client module provides HTTP communication with the backend.
 
         How test will be performed: Automated via test\_network/api.test.ts
 
-  \item{test-api-client-automatic-discovery\\}
+  \item{\tid{test-api-client-automatic-discovery}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2164,7 +2299,7 @@ The API Client module provides HTTP communication with the backend.
 
         How test will be performed: Automated via test\_network/api.test.ts
 
-  \item{test-api-client-methods\\}
+  \item{\tid{test-api-client-methods}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2189,7 +2324,7 @@ React components.
 
 \begin{enumerate}
 
-  \item{test-rocam-provider-initialization\\}
+  \item{\tid{test-rocam-provider-initialization}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2204,7 +2339,7 @@ React components.
 
         How test will be performed: Automated via test\_network/rocamProvider.test.tsx
 
-  \item{test-rocam-provider-error-handling\\}
+  \item{\tid{test-rocam-provider-error-handling}\\}
 
         Type: Nonfunctional, Robustness, Automatic
 
@@ -2218,7 +2353,7 @@ React components.
 
         How test will be performed: Automated via test\_network/rocamProvider.test.tsx
 
-  \item{test-rocam-provider-polling\\}
+  \item{\tid{test-rocam-provider-polling}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2232,7 +2367,7 @@ React components.
 
         How test will be performed: Automated via test\_network/rocamProvider.test.tsx
 
-  \item{test-use-rocam-hook\\}
+  \item{\tid{test-use-rocam-hook}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2254,7 +2389,7 @@ The Utility Formatters module provides data formatting functions.
 
 \begin{enumerate}
 
-  \item{test-formatters-degrees\\}
+  \item{\tid{test-formatters-degrees}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2268,7 +2403,7 @@ The Utility Formatters module provides data formatting functions.
 
         How test will be performed: Automated via test\_utils/formatters.test.ts
 
-  \item{test-formatters-temperature\\}
+  \item{\tid{test-formatters-temperature}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2282,7 +2417,7 @@ The Utility Formatters module provides data formatting functions.
 
         How test will be performed: Automated via test\_utils/formatters.test.ts
 
-  \item{test-formatters-bytes\\}
+  \item{\tid{test-formatters-bytes}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2296,7 +2431,7 @@ The Utility Formatters module provides data formatting functions.
 
         How test will be performed: Automated via test\_utils/formatters.test.ts
 
-  \item{test-formatters-duration\\}
+  \item{\tid{test-formatters-duration}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2318,7 +2453,7 @@ The Internationalization module provides multi-language support.
 
 \begin{enumerate}
 
-  \item{test-i18n-activation\\}
+  \item{\tid{test-i18n-activation}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2340,7 +2475,7 @@ The App module handles page routing and navigation.
 
 \begin{enumerate}
 
-  \item{test-app-routing\\}
+  \item{\tid{test-app-routing}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2367,7 +2502,7 @@ robustness.
 
 \begin{enumerate}
 
-  \item{test-state-status-performance\\}
+  \item{\tid{test-state-status-performance}\\}
 
         Type: Nonfunctional, Performance, Automatic
 
@@ -2384,7 +2519,7 @@ robustness.
         How test will be performed: Automated via
         test\_state\_management\_class.py::TestStatus
 
-  \item{test-state-error-handling\\}
+  \item{\tid{test-state-error-handling}\\}
 
         Type: Nonfunctional, Robustness, Automatic
 
@@ -2404,7 +2539,7 @@ robustness.
 
 \begin{enumerate}
 
-  \item{test-api-error-responses\\}
+  \item{\tid{test-api-error-responses}\\}
 
         Type: Nonfunctional, Robustness, Automatic
 
@@ -2424,7 +2559,7 @@ robustness.
 
 \begin{enumerate}
 
-  \item{test-sse-broadcast-performance\\}
+  \item{\tid{test-sse-broadcast-performance}\\}
 
         Type: Nonfunctional, Performance, Automatic
 
@@ -2440,7 +2575,7 @@ robustness.
 
         How test will be performed: Automated via test\_sse.py::TestMessageAnnouncer
 
-  \item{test-sse-thread-safety\\}
+  \item{\tid{test-sse-thread-safety}\\}
 
         Type: Nonfunctional, Robustness, Automatic
 
@@ -2460,7 +2595,7 @@ robustness.
 
 \begin{enumerate}
 
-  \item{test-ipc-buffer-overrun-handling\\}
+  \item{\tid{test-ipc-buffer-overrun-handling}\\}
 
         Type: Nonfunctional, Robustness, Automatic
 
@@ -2477,7 +2612,7 @@ robustness.
         How test will be performed: Automated via
         test\_ipc\_buffer.py::TestIPCBufferReceiver
 
-  \item{test-ipc-buffer-memory-safety\\}
+  \item{\tid{test-ipc-buffer-memory-safety}\\}
 
         Type: Nonfunctional, Robustness, Automatic
 
@@ -2497,7 +2632,7 @@ robustness.
 
 \begin{enumerate}
 
-  \item{test-cv-management-exception-safety\\}
+  \item{\tid{test-cv-management-exception-safety}\\}
 
         Type: Nonfunctional, Robustness, Automatic
 
@@ -2519,7 +2654,7 @@ robustness.
 
 \begin{enumerate}
 
-  \item{test-database-error-handling\\}
+  \item{\tid{test-database-error-handling}\\}
 
         Type: Nonfunctional, Robustness, Automatic
 
@@ -2539,7 +2674,7 @@ robustness.
 
 \begin{enumerate}
 
-  \item{test-watchdog-timeout-accuracy\\}
+  \item{\tid{test-watchdog-timeout-accuracy}\\}
 
         Type: Nonfunctional, Performance, Automatic
 
@@ -2559,7 +2694,7 @@ robustness.
 
 \begin{enumerate}
 
-  \item{test-system-status-caching\\}
+  \item{\tid{test-system-status-caching}\\}
 
         Type: Nonfunctional, Performance, Automatic
 
@@ -2573,7 +2708,7 @@ robustness.
 
         How test will be performed: Automated via test\_system\_status.py
 
-  \item{test-system-status-callback-updates\\}
+  \item{\tid{test-system-status-callback-updates}\\}
 
         Type: Nonfunctional, Correctness, Automatic
 
@@ -2596,7 +2731,7 @@ The Utils module provides network and scheduling utilities.
 
 \begin{enumerate}
 
-  \item{test-ip4-addresses\\}
+  \item{\tid{test-ip4-addresses}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2610,7 +2745,7 @@ The Utils module provides network and scheduling utilities.
 
         How test will be performed: Automated via test\_utils.py::TestIp4Addresses
 
-  \item{test-scheduler-validation\\}
+  \item{\tid{test-scheduler-validation}\\}
 
         Type: Nonfunctional, Robustness, Automatic
 
@@ -2636,7 +2771,7 @@ implementation for recording management mode.
 
 \begin{enumerate}
 
-  \item{test-state-management-recording-only-noops\\}
+  \item{\tid{test-state-management-recording-only-noops}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2653,7 +2788,7 @@ implementation for recording management mode.
         How test will be performed: Automated via
         test\_state\_management\_recording\_only.py::TestStateManagementRecordingOnly
 
-  \item{test-state-management-recording-only-status\\}
+  \item{\tid{test-state-management-recording-only-status}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2670,7 +2805,7 @@ implementation for recording management mode.
         How test will be performed: Automated via
         test\_state\_management\_recording\_only.py::TestStateManagementRecordingOnly
 
-  \item{test-control-process-main-entry\\}
+  \item{\tid{test-control-process-main-entry}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2695,7 +2830,7 @@ modes.
 
 \begin{enumerate}
 
-  \item{test-main-dispatch-control\\}
+  \item{\tid{test-main-dispatch-control}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2710,7 +2845,7 @@ modes.
         How test will be performed: Automated via
         test\_main\_entry.py::TestMainDispatch
 
-  \item{test-main-dispatch-cv\\}
+  \item{\tid{test-main-dispatch-cv}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2725,7 +2860,7 @@ modes.
         How test will be performed: Automated via
         test\_main\_entry.py::TestMainDispatch
 
-  \item{test-main-dispatch-livestream\\}
+  \item{\tid{test-main-dispatch-livestream}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2740,7 +2875,7 @@ modes.
         How test will be performed: Automated via
         test\_main\_entry.py::TestMainDispatch
 
-  \item{test-main-dispatch-transcode\\}
+  \item{\tid{test-main-dispatch-transcode}\\}
 
         Type: Functional, Dynamic, Automatic
 
@@ -2757,7 +2892,7 @@ modes.
         How test will be performed: Automated via
         test\_main\_entry.py::TestMainDispatch
 
-  \item{test-main-dispatch-unknown\\}
+  \item{\tid{test-main-dispatch-unknown}\\}
 
         Type: Nonfunctional, Robustness, Automatic
 
@@ -2778,7 +2913,7 @@ modes.
 
 \begin{enumerate}
 
-  \item{test-formatters-edge-cases\\}
+  \item{\tid{test-formatters-edge-cases}\\}
 
         Type: Nonfunctional, Robustness, Automatic
 
@@ -2792,7 +2927,7 @@ modes.
 
         How test will be performed: Automated via test\_utils/formatters.test.ts
 
-  \item{test-formatters-internationalization\\}
+  \item{\tid{test-formatters-internationalization}\\}
 
         Type: Nonfunctional, Internationalization, Automatic
 
@@ -2812,7 +2947,7 @@ modes.
 
 \begin{enumerate}
 
-  \item{test-ui-loading-states\\}
+  \item{\tid{test-ui-loading-states}\\}
 
         Type: Nonfunctional, Usability, Automatic
 
@@ -2827,7 +2962,7 @@ modes.
         How test will be performed: Automated via component test files (e.g.,
         test\_pages/control.test.tsx)
 
-  \item{test-ui-error-handling\\}
+  \item{\tid{test-ui-error-handling}\\}
 
         Type: Nonfunctional, Robustness, Automatic
 
@@ -2851,60 +2986,60 @@ functionality of its corresponding module, ensuring that all implemented leaf
 modules have adequate test coverage.
 
 \begin{longtable}{|p{4.5cm}|p{10cm}|}
-  \caption{Traceability Between Unit Test Cases and Backend Modules} \label{TblUTM-Backend}                                                                                                                                                                                                            \\
+  \caption{Traceability Between Unit Test Cases and Backend Modules} \label{TblUTM-Backend}                                                                                                                                                                                                                                                      \\
   \hline
-  \textbf{Module}                                    & \textbf{Unit Test Cases}                                                                                                                                                                                                                        \\
+  \textbf{Module}                                    & \textbf{Unit Test Cases}                                                                                                                                                                                                                                                                  \\
   \hline
   \endfirsthead
-  \multicolumn{2}{c}{\tablename\ \thetable{} -- Continued from previous page}                                                                                                                                                                                                                          \\
+  \multicolumn{2}{c}{\tablename\ \thetable{} -- Continued from previous page}                                                                                                                                                                                                                                                                    \\
   \hline
-  \textbf{Module}                                    & \textbf{Unit Test Cases}                                                                                                                                                                                                                        \\
+  \textbf{Module}                                    & \textbf{Unit Test Cases}                                                                                                                                                                                                                                                                  \\
   \hline
   \endhead
   \hline
-  \multicolumn{2}{r}{Continued on next page}                                                                                                                                                                                                                                                           \\
+  \multicolumn{2}{r}{Continued on next page}                                                                                                                                                                                                                                                                                                     \\
   \endfoot
   \hline
   \endlastfoot
-  \mref{mState} (State Management)                   & test-state-management-arm-disarm; test-state-management-manual-move; test-state-management-manual-move-clamped; test-state-management-recording; test-state-management-download-pause; test-state-status-performance; test-state-error-handling \\
+  \mref{mState} (State Management)                   & \tid{test-state-management-arm-disarm}; \tid{test-state-management-manual-move}; \tid{test-state-management-manual-move-clamped}; \tid{test-state-management-recording}; \tid{test-state-management-download-pause}; \tid{test-state-status-performance}; \tid{test-state-error-handling} \\
   \hline
-  \mref{mAPI} (API Gateway)                          & test-api-endpoints-exist; test-api-recordings-crud; test-api-validation; test-api-error-responses                                                                                                                                               \\
+  \mref{mAPI} (API Gateway)                          & \tid{test-api-endpoints-exist}; \tid{test-api-recordings-crud}; \tid{test-api-validation}; \tid{test-api-error-responses}                                                                                                                                                                 \\
   \hline
-  \mref{mRecord} (Recording Database)                & test-database-allocate; test-database-list-recordings; test-database-rename-delete; test-database-path-traversal-protection; test-database-space-usage; test-database-error-handling                                                            \\
+  \mref{mRecord} (Recording Database)                & \tid{test-database-allocate}; \tid{test-database-list-recordings}; \tid{test-database-rename-delete}; \tid{test-database-path-traversal-protection}; \tid{test-database-space-usage}; \tid{test-database-error-handling}                                                                  \\
   \hline
-  \mref{mGimbal} (Gimbal Abstraction)                & test-gimbal-crc8; test-gimbal-packet-construction; test-gimbal-angle-commands; test-gimbal-led-control; test-gimbal-info-query                                                                                                                  \\
+  \mref{mGimbal} (Gimbal Abstraction)                & \tid{test-gimbal-crc8}; \tid{test-gimbal-packet-construction}; \tid{test-gimbal-angle-commands}; \tid{test-gimbal-led-control}; \tid{test-gimbal-info-query}                                                                                                                              \\
   \hline
-  \mref{mTrack} (Tracking)                           & test-tracking-queue-behavior; test-tracking-worker-control-law; test-tracking-angle-clamping; test-tracking-stop                                                                                                                                \\
+  \mref{mTrack} (Tracking)                           & \tid{test-tracking-queue-behavior}; \tid{test-tracking-worker-control-law}; \tid{test-tracking-angle-clamping}; \tid{test-tracking-stop}                                                                                                                                                  \\
   \hline
-  \mref{mCVManagement} (CV Process Management)       & test-cv-management-osd-send; test-cv-management-recording-commands; test-cv-management-pause-resume; test-cv-management-recv-loop; test-cv-management-exception-safety                                                                          \\
+  \mref{mCVManagement} (CV Process Management)       & \tid{test-cv-management-osd-send}; \tid{test-cv-management-recording-commands}; \tid{test-cv-management-pause-resume}; \tid{test-cv-management-recv-loop}; \tid{test-cv-management-exception-safety}                                                                                      \\
   \hline
-  \mref{mVideoManagement} (Live Video Management)    & test-livestream-construction; test-livestream-process-loop                                                                                                                                                                                      \\
+  \mref{mVideoManagement} (Live Video Management)    & \tid{test-livestream-construction}; \tid{test-livestream-process-loop}                                                                                                                                                                                                                    \\
   \hline
-  \mref{mTranscodeManagement} (Transcode Management) & test-livestream-construction; test-livestream-process-loop                                                                                                                                                                                      \\
+  \mref{mTranscodeManagement} (Transcode Management) & \tid{test-transcode-read-log}; \tid{test-transcode-shader-probe}; \tid{test-transcode-bus-call}                                                                                                                                                                                           \\
   \hline
-  \mref{mTranscode} (Transcode Process)              & test-transcode-read-log; test-transcode-shader-probe; test-transcode-bus-call                                                                                                                                                                   \\
+  \mref{mTranscode} (Transcode Process)              & \tid{test-transcode-read-log}; \tid{test-transcode-shader-probe}; \tid{test-transcode-bus-call}                                                                                                                                                                                           \\
   \hline
-  \mref{mCV} (CV Process)                            & test-cv-format-time; test-cv-update-osd                                                                                                                                                                                                         \\
+  \mref{mCV} (CV Process)                            & \tid{test-cv-format-time}; \tid{test-cv-update-osd}                                                                                                                                                                                                                                       \\
   \hline
-  \mref{mVideo} (Live Video Process)                 & test-livestream-construction; test-livestream-process-loop                                                                                                                                                                                      \\
+  \mref{mVideo} (Live Video Process)                 & \tid{test-livestream-construction}; \tid{test-livestream-process-loop}                                                                                                                                                                                                                    \\
   \hline
-  Common IPC                                         & test-bounding-box-center; test-bounding-box-rotate-90; test-dataclass-construction                                                                                                                                                              \\
+  Common IPC                                         & \tid{test-bounding-box-center}; \tid{test-bounding-box-rotate-90}; \tid{test-dataclass-construction}                                                                                                                                                                                      \\
   \hline
-  Common IPC Buffer                                  & test-ipc-buffer-sender; test-ipc-buffer-receiver; test-ipc-buffer-overrun-handling; test-ipc-buffer-memory-safety                                                                                                                               \\
+  Common IPC Buffer                                  & \tid{test-ipc-buffer-sender}; \tid{test-ipc-buffer-receiver}; \tid{test-ipc-buffer-overrun-handling}; \tid{test-ipc-buffer-memory-safety}                                                                                                                                                 \\
   \hline
-  Common Watchdog                                    & test-watchdog-refresh; test-watchdog-clear; test-watchdog-timeout-accuracy                                                                                                                                                                      \\
+  Common Watchdog                                    & \tid{test-watchdog-refresh}; \tid{test-watchdog-clear}; \tid{test-watchdog-timeout-accuracy}                                                                                                                                                                                              \\
   \hline
-  Common System Status                               & test-system-status-caching; test-system-status-callback-updates                                                                                                                                                                                 \\
+  Common System Status                               & \tid{test-system-status-caching}; \tid{test-system-status-callback-updates}                                                                                                                                                                                                               \\
   \hline
-  Common Utils                                       & test-ip4-addresses; test-scheduler-validation                                                                                                                                                                                                   \\
+  Common Utils                                       & \tid{test-ip4-addresses}; \tid{test-scheduler-validation}                                                                                                                                                                                                                                 \\
   \hline
-  Recording-Only State Management                    & test-state-management-recording-only-noops; test-state-management-recording-only-status; test-control-process-main-entry                                                                                                                        \\
+  Recording-Only State Management                    & \tid{test-state-management-recording-only-noops}; \tid{test-state-management-recording-only-status}; \tid{test-control-process-main-entry}                                                                                                                                                \\
   \hline
-  Main Entry Point                                   & test-main-dispatch-control; test-main-dispatch-cv; test-main-dispatch-livestream; test-main-dispatch-transcode; test-main-dispatch-unknown                                                                                                      \\
+  Main Entry Point                                   & \tid{test-main-dispatch-control}; \tid{test-main-dispatch-cv}; \tid{test-main-dispatch-livestream}; \tid{test-main-dispatch-transcode}; \tid{test-main-dispatch-unknown}                                                                                                                  \\
   \hline
-  Transcode API (\mref{mAPI})                        & test-transcode-routes-404; test-transcode-streaming; test-transcode-pipe-cleanup                                                                                                                                                                \\
+  Transcode API (\mref{mAPI})                        & \tid{test-transcode-routes-404}; \tid{test-transcode-streaming}; \tid{test-transcode-pipe-cleanup}                                                                                                                                                                                        \\
   \hline
-  SSE (\mref{mAPI})                                  & test-sse-broadcast-performance; test-sse-thread-safety                                                                                                                                                                                          \\
+  SSE (\mref{mAPI})                                  & \tid{test-sse-broadcast-performance}; \tid{test-sse-thread-safety}                                                                                                                                                                                                                        \\
 \end{longtable}
 
 \begin{table}[H]
@@ -2913,27 +3048,27 @@ modules have adequate test coverage.
   \label{TblUTM3}
   \begin{tabular}{|p{4.5cm}|p{10cm}|}
     \hline
-    \textbf{Module}                          & \textbf{Unit Test Cases}                                                                                                                                                \\
+    \textbf{Module}                          & \textbf{Unit Test Cases}                                                                                                                                                                                    \\
     \hline
-    \mref{mPreview} (Preview)                & test-control-page-render; test-control-page-bbox-overlay                                                                                                                \\
+    \mref{mPreview} (Preview)                & \tid{test-control-page-render}; \tid{test-control-page-bbox-overlay}                                                                                                                                        \\
     \hline
-    \mref{mManual} (Manual Control)          & test-controls-card-render; test-control-page-drag                                                                                                                       \\
+    \mref{mManual} (Manual Control)          & \tid{test-controls-card-render}; \tid{test-control-page-drag}                                                                                                                                               \\
     \hline
-    \mref{mRecordMng} (Recording Management) & test-recordings-page-loading; test-recordings-page-empty; test-recordings-page-list; test-recordings-delete; test-recordings-rename                                     \\
+    \mref{mRecordMng} (Recording Management) & \tid{test-recordings-page-loading}; \tid{test-recordings-page-empty}; \tid{test-recordings-page-list}; \tid{test-recordings-delete}; \tid{test-recordings-rename}                                           \\
     \hline
-    \mref{mConfig} (Configuration)           & test-language-selector; test-configuration-menu                                                                                                                         \\
+    \mref{mConfig} (Configuration)           & \tid{test-language-selector}; \tid{test-configuration-menu}                                                                                                                                                 \\
     \hline
-    API Client                               & test-api-client-urls; test-api-client-automatic-discovery; test-api-client-methods                                                                                      \\
+    API Client                               & \tid{test-api-client-urls}; \tid{test-api-client-automatic-discovery}; \tid{test-api-client-methods}                                                                                                        \\
     \hline
-    Rocam Provider                           & test-rocam-provider-initialization; test-rocam-provider-error-handling; test-rocam-provider-polling; test-use-rocam-hook                                                \\
+    Rocam Provider                           & \tid{test-rocam-provider-initialization}; \tid{test-rocam-provider-error-handling}; \tid{test-rocam-provider-polling}; \tid{test-use-rocam-hook}                                                            \\
     \hline
-    Utility Formatters                       & test-formatters-degrees; test-formatters-temperature; test-formatters-bytes; test-formatters-duration; test-formatters-edge-cases; test-formatters-internationalization \\
+    Utility Formatters                       & \tid{test-formatters-degrees}; \tid{test-formatters-temperature}; \tid{test-formatters-bytes}; \tid{test-formatters-duration}; \tid{test-formatters-edge-cases}; \tid{test-formatters-internationalization} \\
     \hline
-    Internationalization                     & test-i18n-activation                                                                                                                                                    \\
+    Internationalization                     & \tid{test-i18n-activation}                                                                                                                                                                                  \\
     \hline
-    App (Routing)                            & test-app-routing                                                                                                                                                        \\
+    App (Routing)                            & \tid{test-app-routing}                                                                                                                                                                                      \\
     \hline
-    UI Components (Individual)               & test-system-status-card; test-navbar; test-controls-card; test-language-selector; test-configuration-menu; test-ui-loading-states; test-ui-error-handling               \\
+    UI Components (Individual)               & \tid{test-system-status-card}; \tid{test-navbar}; \tid{test-controls-card}; \tid{test-language-selector}; \tid{test-configuration-menu}; \tid{test-ui-loading-states}; \tid{test-ui-error-handling}         \\
     \hline
   \end{tabular}
 \end{table}
@@ -3079,7 +3214,7 @@ the graduate attribute of Lifelong Learning.
 
   \item \textbf{Approaches to acquire skills:}
         I will (1) review documentation on structured traceability mapping and (2) develop example UI
-        and integration tests that link directly to specific SRS requirements. I chose the second approach
+        and system tests that link directly to specific SRS requirements. I chose the second approach
         because applying traceability in practice will reinforce both documentation and test alignment.
 \end{enumerate}
 
@@ -3106,3 +3241,4 @@ the graduate attribute of Lifelong Learning.
 \end{enumerate}
 
 \end{document}
+

@@ -13,7 +13,7 @@
 ```bash
 pip install -r requirements-test.txt
 
-pytest --cov=. --cov-report=term-missing
+pytest --cov=src --cov-branch --cov-report=term-missing
 ```
 
 # How to Change the Model:
