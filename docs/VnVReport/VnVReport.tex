@@ -30,7 +30,7 @@
 
 \title{Verification and Validation Report: \progname}
 \author{\authname}
-\date{}
+\date{March 9, 2026}
 
 \maketitle
 
@@ -83,7 +83,7 @@
 This document reports on the verification and validation activities for RoCam,
 evaluating the \SRS~\cite{SRS}, design documents (\MG~\cite{MG},
 \MIS~\cite{MIS}), and \VnVPlan~\cite{VnVPlan}, and presenting the results of
-unit tests, integration tests, and system tests.
+unit tests and system tests.
 
 \section{Document Evaluation}
 
@@ -207,7 +207,7 @@ control firmware/interface, UI/recording). Overall, the decomposition is
 aligned with RoCam’s core functions. The main design-to-requirement risk is
 where requirements imply integrated behaviour (e.g., tracking quality under
 occlusion) but the design only specifies unit-level behaviour without an
-executable integration test under the current scope.
+executable system test under the current scope.
 
 \subsubsection{Modularity and Interfaces}
 The design is modular across the main subsystems (vision, control, UI).
@@ -1748,7 +1748,6 @@ request can be merged.
   test-stop-immediately        & RFR-2                                                                                             \\
   test-validate-commands       & IR-1                                                                                              \\
   test-log-operations          & AUR-1                                                                                             \\
-  test-user-survey             & AR-1, AR-2, SR-1, LR-1, UPR-1, UPR-2, PAR-1, SLR-1, RFR-5, CR-1, CR-2, SCR-2, SCR-3, RFR-3, EPE-1 \\
   \bottomrule
 \end{tabularx}
 

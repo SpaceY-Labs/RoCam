@@ -35,7 +35,7 @@
 
 \title{System Verification and Validation Plan for \progname{}}
 \author{\authname}
-\date{March 5, 2026}
+\date{March 9, 2026}
 
 \maketitle
 
@@ -105,10 +105,10 @@ This Verification and Validation (V\&V) plan outlines how the RoCam project
 will demonstrate that the system is built correctly (verification) and fits
 stakeholder needs (validation). It anchors testing to the SRS, architecture
 (MG), and detailed design (MIS), ensuring every requirement is traceable where
-possible. \textbf{Unit testing, integration testing, and system testing are
+possible. \textbf{Unit testing and system testing are
   performed;} only field testing is out of scope. Verification relies on
-structured internal reviews and checklists, plus unit tests, integration tests,
-and system tests, to confirm functional behavior and safety assumptions.
+structured internal reviews and checklists, plus unit tests and system tests,
+to confirm functional behavior and safety assumptions.
 Validation is limited to a planned review with the McMaster Rocketry Team
 (stakeholders) to collect feedback; no task-based inspection, classmate review,
 or supervisor validation is conducted. Roles and responsibilities are assigned
@@ -150,7 +150,7 @@ The primary objective of this Verification and Validation V\&V Plan is to
 establish confidence in the correctness, performance, and reliability of the
 RoCam system by ensuring that all verification and validation activities are
 thorough, traceable, and aligned with project requirements. The plan emphasizes
-unit testing, integration testing, system testing, and internal review to
+unit testing, system testing, and internal review to
 confirm that functional and performance criteria are addressed where possible,
 with improvements tracked through GitHub Issues. Validation focuses on a
 planned review with the McMaster Rocketry Team (stakeholders) to collect
@@ -278,7 +278,7 @@ the \textbf{RoCam} project. It defines the structure, responsibilities, and
 methods used to verify that the system meets its functional and non-functional
 requirements and to validate that it fulfills stakeholder needs. The section
 covers the verification of the SRS, design, and implementation via internal
-reviews, unit testing, integration testing, and system testing, as well as the
+reviews, unit testing, and system testing, as well as the
 validation strategy through a planned stakeholder review with the McMaster
 Rocketry Team (no field testing). Its purpose is to provide a clear, organized
 framework ensuring that all aspects of RoCam are systematically tested,
@@ -301,7 +301,7 @@ reviewed, and proven reliable before final deployment. \wss{Introduce this
     Ensure usability, robustness of frontend features.                                                        \\ \hline
 
     \textbf{Jianqing Liu} & Team Lead                                        &
-    Conduct integration test and system validation. Validate the functionality and
+    Conduct system validation. Validate the functionality and
     performance of the system against requirements and use cases. Validate system
     design and functionality.                                                                                 \\ \hline
 
@@ -309,9 +309,9 @@ reviewed, and proven reliable before final deployment. \wss{Introduce this
     Verify and validate computer vision pipeline performance, including object detection
     and tracking accuracy.                                                                                    \\ \hline
 
-    \textbf{Xiaotian Lou} & Integration Tester and test automation developer &
+    \textbf{Xiaotian Lou} & Test automation developer                        &
     Implement automated testing frameworks in all software components. Implement
-    API, and integration test across different modules.
+    API tests across different modules.
     \\ \hline
 
   \end{tabular}
@@ -332,7 +332,7 @@ following steps:
 Since the Design function will evaluate in detail whether the system align with
 the functional and non-functional requirements. The SRS verification will focus
 on verify the system design as a whole against the requirements. It will be
-implemented as integration test in the final stages of development.
+implemented as system tests in the final stages of development.
 
 \subsubsection{Stakeholder Review}
 Since our team leader is the control team lead of the McMaster Rocketry Team,
@@ -372,10 +372,10 @@ specified in the SRS document.
                                                     & $\square$ \; Review design against timeline and budget limits                                 \\[-2pt]
                                                     & $\square$ \; Update records if scope or constraints change                                    \\ \hline
 
-    Integration Verification                        & $\square$ \; Conduct integration tests covering all
+    System Verification                             & $\square$ \; Conduct system tests covering all
     system components                                                                                                                               \\[-2pt]
                                                     & $\square$ \; Validate full system behavior against SRS requirements                           \\[-2pt]
-                                                    & $\square$ \; Log and resolve all integration issues                                           \\[-2pt]
+                                                    & $\square$ \; Log and resolve all system test issues                                            \\[-2pt]
                                                     & $\square$ \; Prepare final verification report for stakeholder review                         \\ \hline
 
     Safety Review                                   & $\square$ \; Review safety requirements against Hazard Analysis
@@ -473,8 +473,7 @@ and performance metrics are adequately covered in design where possible.
 
 For the validation plan, the only validation activity is a planned review with
 the McMaster Rocketry Team (stakeholders) to collect feedback. No field tests
-or supervisor validation are performed; unit testing, integration testing, and
-system testing are conducted.
+or supervisor validation are performed; unit testing and system testing are conducted.
 
 % Preamble:
 % \usepackage{array}
@@ -534,7 +533,7 @@ combination of structured testing, static verification, and peer review.
 
 \subsubsection*{Dynamic Verification}
 Due to resource and contact limitations, \textbf{only field testing} is out of
-scope. Unit testing, integration testing, and system testing are performed.
+scope. Unit testing and system testing are performed.
 
 \begin{itemize}
   \item \textbf{Unit Testing:}
@@ -702,9 +701,9 @@ consistency checks between validated behaviors and specified requirements.
 \section{System Tests}
 
 \textbf{Scope note:} Due to resource and contact limitations, \textbf{only field
-  testing} is out of scope. Unit tests, integration tests, and system tests
+  testing} is out of scope. Unit tests and system tests
 described in this section are executed. Evidence of correctness comes from unit
-tests, integration tests, system tests, and the planned stakeholder review
+tests, system tests, and the planned stakeholder review
 with the McMaster Rocketry Team.
 
 \subsection{Tests for Functional Requirements}
@@ -879,7 +878,7 @@ Rocketry Team (client), who would be provided with the manual and would operate
 the system at a model rocket launch event. The development team would be
 present to assist. After the event, the client could fill out a survey
 (Appendix 6.2). Under the current plan, no field testing is performed; unit
-testing, integration testing, system testing, and a planned stakeholder review
+testing, system testing, and a planned stakeholder review
 with the rocketry team are conducted.
 
 \subsection{Tests for Nonfunctional Requirements}
@@ -1042,8 +1041,8 @@ before the field test.
 
 \subsubsection{Field Testing (Out of Scope)}
 
-Field testing and user surveys are out of scope; unit testing, integration
-testing, system testing, and the stakeholder review are performed.
+Field testing and user surveys are out of scope; unit testing, system
+testing, and the stakeholder review are performed.
 
 \subsubsection*{test-user-survey: User Survey (Out of Scope)}
 \begin{itemize}
@@ -1051,7 +1050,7 @@ testing, system testing, and the stakeholder review are performed.
   \item \textbf{Initial State:} N/A
   \item \textbf{Input/Condition:} N/A
   \item \textbf{Output/Result:} Completed user survey.
-  \item \textbf{How Test Will Be Performed:} Not performed. If field testing were in scope, the client would fill out the survey after the field test. Under the current plan, unit testing, integration testing, system testing, and stakeholder review are conducted.
+  \item \textbf{How Test Will Be Performed:} Not performed. If field testing were in scope, the client would fill out the survey after the field test. Under the current plan, unit testing, system testing, and stakeholder review are conducted.
 \end{itemize}
 
 \subsection{Traceability Between Test Cases and Requirements}
@@ -1090,7 +1089,6 @@ testing, system testing, and the stakeholder review are performed.
   test-stop-immediately        & RFR-2                                                                                             \\
   test-validate-commands       & IR-1                                                                                              \\
   test-log-operations          & AUR-1                                                                                             \\
-  test-user-survey             & AR-1, AR-2, SR-1, LR-1, UPR-1, UPR-2, PAR-1, SLR-1, RFR-5, CR-1, CR-2, SCR-2, SCR-3, RFR-3, EPE-1 \\
   \bottomrule
 \end{tabularx}
 
@@ -1148,7 +1146,7 @@ project team. The following modules are within the scope of unit testing:
   \item \mref{mStream} (Video Stream Abstraction Module) --- Implemented by Nvidia Deepstream SDK (third-party)
   \item \mref{mSerial} (Serial Abstraction Module) --- Implemented by pyserial library (third-party)
   \item \mref{mStatus} (System Status Module) --- Hardware-dependent library (jetson-stats)
-  \item Hardware-specific integration tests (require actual Jetson hardware)
+  \item Hardware-specific system tests (require actual Jetson hardware)
 \end{itemize}
 
 The unit testing strategy employs pytest for Python backend modules and Vitest
@@ -3081,7 +3079,7 @@ the graduate attribute of Lifelong Learning.
 
   \item \textbf{Approaches to acquire skills:}
         I will (1) review documentation on structured traceability mapping and (2) develop example UI
-        and integration tests that link directly to specific SRS requirements. I chose the second approach
+        and system tests that link directly to specific SRS requirements. I chose the second approach
         because applying traceability in practice will reinforce both documentation and test alignment.
 \end{enumerate}
 
