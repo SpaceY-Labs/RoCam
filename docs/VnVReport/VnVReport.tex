@@ -43,6 +43,7 @@
   \midrule
   2026-03-04          & 1.0           & Add Document Evaluation     \\
   2026-03-05          & 1.1           & Add Unit Tests based on run \\
+  2026-03-09          & 1.2           & Add Reflection Section and small fixes \\
   \bottomrule
 \end{tabularx}
 
@@ -1877,22 +1878,203 @@ summarizes coverage for both the backend (Python, pytest-cov) and frontend
 The information in this section will be used to evaluate the team members on
 the graduate attribute of Reflection.
 
-\input{../Reflection.tex}
-
 \begin{enumerate}
-  \item What went well while writing this deliverable?
-  \item What pain points did you experience during this deliverable, and how did you
-        resolve them?
-  \item Which parts of this document stemmed from speaking to your client(s) or a proxy
-        (e.g. your peers)? Which ones were not, and why?
-  \item In what ways was the Verification and Validation (VnV) Plan different from the
+  \item \textbf{What went well while writing this deliverable?}
+
+        Writing this deliverable went well because our team worked smoothly and
+        had a clear division of work. Different members were responsible for
+        different parts of the testing effort, especially backend and frontend
+        unit tests, so people could work in parallel instead of waiting on each
+        other. Some team members focused more on backend areas such as state
+        management, API validation, recording database behaviour, gimbal
+        communication, and tracking logic, while others focused more on frontend
+        areas such as the control page, recordings page, UI feedback,
+        configuration menu, provider behaviour, and formatting logic. Because
+        the work was split clearly, progress was steady and integration was
+        faster.
+
+        Another thing that went well was that our system already had a modular
+        structure, so it was easier to organize the testing and later write the
+        report. Since the project already had clear pieces such as backend
+        control logic, frontend React UI, tracking logic, CV process
+        management, recording management, and transcode-related components, it
+        was easier to connect each test to a module and then connect those
+        modules back to requirements. This helped a lot when writing the
+        traceability sections of the VnV Report because we were not trying to
+        force tests into an unclear structure at the last minute.
+
+        The iteration speed also helped a lot. As tests were added and updated,
+        we could quickly see whether backend and frontend changes were still
+        working. For example, once tests for API validation, recording
+        management, provider polling, and control-page interactions were in
+        place, it was much easier to organize the evidence into the document.
+        Overall, the writing process felt smooth because implementation,
+        testing, and documentation were moving together instead of being done
+        completely separately at the end.
+
+  \item \textbf{What pain points did you experience during this deliverable, and how did you
+        resolve them?}
+
+        One pain point was deciding how to present the testing methods clearly.
+        Our project is not just a normal software application. It includes
+        frontend code, backend code, real-time status updates, tracking logic,
+        gimbal control, recording workflows, and hardware-related behaviour.
+        Because of this, it was sometimes difficult to decide what should be
+        described as a unit test, what should be treated as a system test, and
+        what should be explained as a walkthrough or manual verification
+        activity. For example, API validation tests, provider tests, and
+        transcode route tests are automated, but they are closer to
+        component-level behaviour than very small isolated units. We resolved
+        this by focusing more on whether each test gave useful verification
+        evidence instead of worrying too much about the exact label.
+
+        Another pain point was coverage and test metrics. It was easy to report
+        line coverage and the number of passing tests, but it was harder to
+        explain what those numbers really mean for our system. For example,
+        branch coverage shows whether different decision paths were exercised,
+        e.g., success versus failure cases, valid versus invalid API input,
+        empty versus non-empty recording lists, or safe versus unsafe state
+        transitions. However, even strong branch coverage does not fully prove
+        that the full system will behave well in real launch-like conditions.
+        Some of the main risks in our project are in hardware interaction,
+        timing, and real-time behaviour, and those are not fully captured by
+        normal coverage numbers. We resolved this by treating coverage as one
+        useful metric, e.g., line coverage, branch coverage, and passing test
+        counts, but not the only proof of quality, and by clearly stating that
+        field testing was out of scope for this iteration.
+
+        A third pain point was that our system depends heavily on hardware and
+        integration. Some behaviours, such as actual gimbal response, live
+        camera input stability, real tracking performance, and end-to-end timing
+        under realistic outdoor conditions, are much harder to verify than pure
+        software logic. These parts cannot always be tested in a simple
+        automated way using mocks. For example, we can test gimbal angle
+        clamping logic and invalid command rejection in software, but that is
+        still different from validating how the full gimbal responds under real
+        motion and camera conditions. We resolved this by putting more effort
+        into the parts we could verify well in the current course scope, such
+        as state transitions, API validation, recording management, transcode
+        logic, UI feedback, and safety-related interface behaviour, and then
+        being honest in the report about what was not executed.
+
+        Another smaller pain point was avoiding repetition. Many tests supported
+        more than one purpose at the same time. A single test could support
+        module-level verification, nonfunctional discussion, and traceability to
+        requirements all at once. For example, a test like API error handling
+        can support both robustness discussion and backend module traceability,
+        while a test like control-page drag can support both usability and
+        frontend module verification. We resolved this by using traceability
+        tables and references between sections so the same evidence could be
+        reused without rewriting the same explanation too many times.
+
+  \item \textbf{Which parts of this document stemmed from speaking to your client(s) or a proxy
+        (e.g. your peers)? Which ones were not, and why?}
+
+        The parts of this document that were most influenced by speaking to our
+        client or proxy were the parts related to usability, operator workflow,
+        and changes made after testing. Since the system is meant to be used by
+        an operator during tracking and recording, feedback about how the
+        interface feels in use is very important. In particular, the change that
+        added drag control on the preview area came directly from customer
+        feedback after they tried the product. They wanted a more direct and
+        intuitive way to move the gimbal instead of relying only on directional
+        buttons. That change is reflected both in the implementation and in the
+        section on changes due to testing.
+
+        Other usability-related parts of the report were also influenced by user
+        or proxy feedback. For example, tests about immediate UI feedback,
+        visual indicators, manual idle control, confirmation prompts, bilingual
+        behaviour, and consistent units are closely connected to how a real user
+        experiences the system. The importance of clear operator state
+        information such as armed, tracking, target lost, storage alerts, and
+        network errors also reflects actual usage concerns rather than just
+        internal implementation details.
+
+        The parts of the report that were less directly based on client feedback
+        were mostly the deeper engineering and software quality sections. For
+        example, tests related to SSE thread safety, IPC buffer behaviour, API
+        error responses, path traversal protection in the recording database,
+        watchdog timing, formatter edge cases, and transcode process behaviour
+        were mainly driven by software engineering concerns. These were included
+        because they are important for correctness, robustness, maintainability,
+        and safety, even if the client would not explicitly ask for them by
+        name. The same is true for code coverage metrics and some of the
+        traceability work. For example, the client may care that recording works
+        correctly, but they would not usually ask specifically for branch
+        coverage on rename and delete paths or for thread-safety checks on SSE
+        listeners. These parts exist because they are important for
+        demonstrating technical quality and satisfying course expectations, not
+        because they came directly from stakeholder requests.
+
+        In short, the user-facing and workflow-related parts of the report were
+        influenced more by the client or proxy, while the lower-level software
+        quality evidence came more from the team’s own engineering judgment and
+        the structure required for the course deliverable.
+
+  \item \textbf{In what ways was the Verification and Validation (VnV) Plan different from the
         activities that were actually conducted for VnV? If there were differences,
         what changes required the modification in the plan? Why did these changes
         occur? Would you be able to anticipate these changes in future projects? If
         there weren't any differences, how was your team able to clearly predict a
         feasible amount of effort and the right tasks needed to build the evidence that
         demonstrates the required quality? (It is expected that most teams will have
-        had to deviate from their original VnV Plan.)
+        had to deviate from their original VnV Plan.)}
+
+        The actual V\&V activities were similar to the original plan in overall
+        goal, but different in scope and in the type of evidence that was most
+        practical to collect. The main goal stayed the same: we wanted to show
+        that the core functions, user interface, recording workflow, and key
+        quality attributes were working correctly. However, in practice, the
+        completed work focused more on automated tests, system tests,
+        walkthroughs, and document review than on broader field-style
+        validation.
+
+        The biggest difference was that field testing was not completed in this
+        iteration. That part was especially difficult because it depends on
+        hardware availability, real-time camera setup, gimbal behaviour,
+        environmental conditions, and launch-like scenarios that are not easy to
+        recreate during a course schedule. That means some planned verification
+        activities were harder to execute in a reliable and repeatable way
+        within the time available. As a result, we relied more heavily on
+        evidence that could be collected in a repeatable development setting,
+        such as backend automated tests, frontend automated tests, API tests,
+        mocked component tests, recording workflow tests, and manual
+        walkthroughs.
+
+        Another difference was that some qualities that would ideally be
+        measured through full system or field behaviour had to be supported
+        using partial evidence instead. For example, performance-related claims
+        were supported through tests such as status caching, SSE broadcast
+        behaviour, watchdog timing, and responsiveness of UI actions, rather
+        than through a full outdoor end-to-end latency study. Similarly,
+        robustness and reliability were supported through tests for error
+        handling, invalid requests, concurrency safety, IPC buffer overrun
+        handling, and exception safety, rather than through long-duration field
+        deployment. In other words, we could still verify many important paths,
+        e.g., valid versus invalid commands, connected versus disconnected
+        states, recording start versus stop paths, and normal versus error
+        responses, even if we could not execute every realistic outdoor scenario.
+
+        These changes happened mainly because a large part of the project risk is
+        in integration between modules, hardware devices, and real-world
+        operating conditions. That makes V\&V planning more difficult, because
+        the team may know what should ideally be tested, but not all of those
+        tests are equally feasible within one iteration. In future projects, we
+        could anticipate this better by separating the plan into clearer
+        categories from the beginning, such as software-only automated tests,
+        local integration tests, manual walkthrough tests, and hardware or field
+        validation planned for later stages. Doing that would make the plan more
+        realistic and would also make the final report match the original plan
+        more closely.
+
+        Even though the exact execution differed from the broader original idea,
+        the final V\&V work still supported the main quality goals of the
+        project. We were able to provide meaningful evidence for functional
+        correctness, usability, performance-related behaviour, and
+        robustness/reliability, while also documenting the limits of the current
+        scope. Because of that, the final report still reflects the intent of
+        the VnV Plan, even though some planned activities had to be reduced or
+        replaced by more practical forms of verification evidence.
 \end{enumerate}
 
 \end{document}
