@@ -24,6 +24,7 @@
 \newcommand{\VnVPlan}{\href{../VnVPlan/VnVPlan.pdf}{VnV Plan}}
 \newcommand{\MG}{\href{../Design/SoftArchitecture/MG.pdf}{MG}}
 \newcommand{\MIS}{\href{../Design/SoftDetailedDes/MIS.pdf}{MIS}}
+\newcommand{\mref}[1]{\texttt{#1}}
 
 % Common test ID shortcuts
 \newcommand{\tidanchor}[1]{\hypertarget{tid:#1}{}}
@@ -1723,6 +1724,156 @@ Not applicable, there is no existing implementation.
   \hline
 \end{tabularx}
 
+\section{Unit Test ID Dictionary}
+\label{sec:unit_test_dict}
+
+The table below is the hyperlink dictionary for test identifiers used in this report.
+Clicking any \texttt{\textbackslash tid\{test-id\}} reference jumps to the corresponding entry here.
+
+\small
+\begin{longtable}{|>{\raggedright\arraybackslash}p{5cm}|>{\raggedright\arraybackslash}p{9cm}|}
+  \caption{Unit Test ID Dictionary}\label{TblUnitTestDictionary} \\
+  \hline
+  \textbf{Test ID} & \textbf{Dictionary Entry} \\
+  \hline
+  \endfirsthead
+  \multicolumn{2}{c}{\tablename\ \thetable{} -- Continued from previous page} \\
+  \hline
+  \textbf{Test ID} & \textbf{Dictionary Entry} \\
+  \hline
+  \endhead
+  \hline
+  \multicolumn{2}{r}{Continued on next page} \\
+  \endfoot
+  \hline
+  \endlastfoot
+  \tiddef{test-acquire-frame} & acquire frame \\
+  \tiddef{test-api-client-automatic-discovery} & api client automatic discovery \\
+  \tiddef{test-api-client-methods} & api client methods \\
+  \tiddef{test-api-client-urls} & api client urls \\
+  \tiddef{test-api-endpoints-exist} & api endpoints exist \\
+  \tiddef{test-api-error-responses} & api error responses \\
+  \tiddef{test-api-recordings-crud} & api recordings crud \\
+  \tiddef{test-api-validation} & api validation \\
+  \tiddef{test-app-routing} & app routing \\
+  \tiddef{test-bilingual-ui} & bilingual ui \\
+  \tiddef{test-bounding-box-center} & bounding box center \\
+  \tiddef{test-bounding-box-collection} & bounding box collection \\
+  \tiddef{test-bounding-box-rotate-90} & bounding box rotate 90 \\
+  \tiddef{test-color-vision-deficiency} & color vision deficiency \\
+  \tiddef{test-configuration-menu} & configuration menu \\
+  \tiddef{test-confirmation-prompts} & confirmation prompts \\
+  \tiddef{test-consistent-units} & consistent units \\
+  \tiddef{test-control-page-bbox-overlay} & control page bbox overlay \\
+  \tiddef{test-control-page-drag} & control page drag \\
+  \tiddef{test-control-page-render} & control page render \\
+  \tiddef{test-control-process-main-entry} & control process main entry \\
+  \tiddef{test-controls-card} & controls card \\
+  \tiddef{test-controls-card-render} & controls card render \\
+  \tiddef{test-cv-format-time} & cv format time \\
+  \tiddef{test-cv-management-exception-safety} & cv management exception safety \\
+  \tiddef{test-cv-management-osd-send} & cv management osd send \\
+  \tiddef{test-cv-management-pause-resume} & cv management pause resume \\
+  \tiddef{test-cv-management-recording-commands} & cv management recording commands \\
+  \tiddef{test-cv-management-recv-loop} & cv management recv loop \\
+  \tiddef{test-cv-update-osd} & cv update osd \\
+  \tiddef{test-database-allocate} & database allocate \\
+  \tiddef{test-database-error-handling} & database error handling \\
+  \tiddef{test-database-list-recordings} & database list recordings \\
+  \tiddef{test-database-path-traversal-protection} & database path traversal protection \\
+  \tiddef{test-database-rename-delete} & database rename delete \\
+  \tiddef{test-database-space-usage} & database space usage \\
+  \tiddef{test-dataclass-construction} & dataclass construction \\
+  \tiddef{test-disconnect-camera} & disconnect camera \\
+  \tiddef{test-disconnect-hdmi} & disconnect hdmi \\
+  \tiddef{test-disk-full} & disk full \\
+  \tiddef{test-exit-gimbal-range} & exit gimbal range \\
+  \tiddef{test-formatters-bytes} & formatters bytes \\
+  \tiddef{test-formatters-degrees} & formatters degrees \\
+  \tiddef{test-formatters-duration} & formatters duration \\
+  \tiddef{test-formatters-edge-cases} & formatters edge cases \\
+  \tiddef{test-formatters-internationalization} & formatters internationalization \\
+  \tiddef{test-formatters-temperature} & formatters temperature \\
+  \tiddef{test-gimbal-angle-commands} & gimbal angle commands \\
+  \tiddef{test-gimbal-crc8} & gimbal crc8 \\
+  \tiddef{test-gimbal-info-query} & gimbal info query \\
+  \tiddef{test-gimbal-interface} & gimbal interface \\
+  \tiddef{test-gimbal-led-control} & gimbal led control \\
+  \tiddef{test-gimbal-packet-construction} & gimbal packet construction \\
+  \tiddef{test-hdmi-output} & hdmi output \\
+  \tiddef{test-i18n-activation} & i18n activation \\
+  \tiddef{test-immediate-ui-feedback} & immediate ui feedback \\
+  \tiddef{test-ip4-addresses} & ip4 addresses \\
+  \tiddef{test-ipc-buffer-memory-safety} & ipc buffer memory safety \\
+  \tiddef{test-ipc-buffer-overrun-handling} & ipc buffer overrun handling \\
+  \tiddef{test-ipc-buffer-receiver} & ipc buffer receiver \\
+  \tiddef{test-ipc-buffer-sender} & ipc buffer sender \\
+  \tiddef{test-language-selector} & language selector \\
+  \tiddef{test-livestream-construction} & livestream construction \\
+  \tiddef{test-livestream-process-loop} & livestream process loop \\
+  \tiddef{test-log-operations} & log operations \\
+  \tiddef{test-main-dispatch-control} & main dispatch control \\
+  \tiddef{test-main-dispatch-cv} & main dispatch cv \\
+  \tiddef{test-main-dispatch-livestream} & main dispatch livestream \\
+  \tiddef{test-main-dispatch-transcode} & main dispatch transcode \\
+  \tiddef{test-main-dispatch-unknown} & main dispatch unknown \\
+  \tiddef{test-manage-recordings} & manage recordings \\
+  \tiddef{test-manual-arm-mode} & manual arm mode \\
+  \tiddef{test-manual-control} & manual control \\
+  \tiddef{test-manual-idle-mode} & manual idle mode \\
+  \tiddef{test-navbar} & navbar \\
+  \tiddef{test-network-disconnect} & network disconnect \\
+  \tiddef{test-no-collection-pii} & no collection pii \\
+  \tiddef{test-preview-real-time} & preview real time \\
+  \tiddef{test-recording} & recording \\
+  \tiddef{test-recordings-delete} & recordings delete \\
+  \tiddef{test-recordings-page-empty} & recordings page empty \\
+  \tiddef{test-recordings-page-list} & recordings page list \\
+  \tiddef{test-recordings-page-loading} & recordings page loading \\
+  \tiddef{test-recordings-rename} & recordings rename \\
+  \tiddef{test-report-errors} & report errors \\
+  \tiddef{test-return-to-idle} & return to idle \\
+  \tiddef{test-rocam-provider-error-handling} & rocam provider error handling \\
+  \tiddef{test-rocam-provider-initialization} & rocam provider initialization \\
+  \tiddef{test-rocam-provider-polling} & rocam provider polling \\
+  \tiddef{test-scheduler-validation} & scheduler validation \\
+  \tiddef{test-sse-broadcast-performance} & sse broadcast performance \\
+  \tiddef{test-sse-thread-safety} & sse thread safety \\
+  \tiddef{test-state-error-handling} & state error handling \\
+  \tiddef{test-state-management-arm-disarm} & state management arm disarm \\
+  \tiddef{test-state-management-download-pause} & state management download pause \\
+  \tiddef{test-state-management-manual-move} & state management manual move \\
+  \tiddef{test-state-management-manual-move-clamped} & state management manual move clamped \\
+  \tiddef{test-state-management-recording} & state management recording \\
+  \tiddef{test-state-management-recording-only-noops} & state management recording only noops \\
+  \tiddef{test-state-management-recording-only-status} & state management recording only status \\
+  \tiddef{test-state-status-performance} & state status performance \\
+  \tiddef{test-stop-immediately} & stop immediately \\
+  \tiddef{test-system-status-caching} & system status caching \\
+  \tiddef{test-system-status-callback-updates} & system status callback updates \\
+  \tiddef{test-system-status-card} & system status card \\
+  \tiddef{test-tracking} & tracking \\
+  \tiddef{test-tracking-angle-clamping} & tracking angle clamping \\
+  \tiddef{test-tracking-queue-behavior} & tracking queue behavior \\
+  \tiddef{test-tracking-stop} & tracking stop \\
+  \tiddef{test-tracking-worker-control-law} & tracking worker control law \\
+  \tiddef{test-transcode-bus-call} & transcode bus call \\
+  \tiddef{test-transcode-pipe-cleanup} & transcode pipe cleanup \\
+  \tiddef{test-transcode-read-log} & transcode read log \\
+  \tiddef{test-transcode-routes-404} & transcode routes 404 \\
+  \tiddef{test-transcode-shader-probe} & transcode shader probe \\
+  \tiddef{test-transcode-streaming} & transcode streaming \\
+  \tiddef{test-transition-to-tracking} & transition to tracking \\
+  \tiddef{test-ui-error-handling} & ui error handling \\
+  \tiddef{test-ui-loading-states} & ui loading states \\
+  \tiddef{test-use-rocam-hook} & use rocam hook \\
+  \tiddef{test-validate-commands} & validate commands \\
+  \tiddef{test-visual-indicators} & visual indicators \\
+  \tiddef{test-watchdog-clear} & watchdog clear \\
+  \tiddef{test-watchdog-refresh} & watchdog refresh \\
+  \tiddef{test-watchdog-timeout-accuracy} & watchdog timeout accuracy \\
+\end{longtable}
+\normalsize
 \section{Changes Due to Testing}
 
 The V\&V process directly changed implementation details in both the frontend
@@ -1809,34 +1960,34 @@ request can be merged.
 \begin{tabularx}{\textwidth}{p{5cm}X}
   \toprule {\bf Test ID}       & {\bf Requirements}       \\
   \midrule
-  \tiddef{test-acquire-frame}           & FR-1, SLR-2              \\
-  \tiddef{test-disconnect-camera}       & FR-1                     \\
-  \tiddef{test-hdmi-output}             & FR-8, FR-9, INT-1, SLR-3 \\
-  \tiddef{test-disconnect-hdmi}         & FR-8                     \\
-  \tiddef{test-preview-real-time}       & FR-10                    \\
-  \tiddef{test-network-disconnect}      & FR-10                    \\
-  \tiddef{test-recording}               & FR-11                    \\
-  \tiddef{test-disk-full}               & FR-11                    \\
-  \tiddef{test-manage-recordings}       & FR-12                    \\
-  \tiddef{test-manual-control}          & FR-2, FR-6               \\
-  \tiddef{test-transition-to-tracking}  & FR-3, FR-4               \\
-  \tiddef{test-tracking}                & FR-2, FR-3, FR-7         \\
-  \tiddef{test-return-to-idle}          & FR-5                     \\
-  \tiddef{test-exit-gimbal-range}       & FR-2, FR-7               \\
-  \tiddef{test-consistent-units}        & EZ-1, PI-1               \\
-  \tiddef{test-bilingual-ui}            & PI-2                     \\
-  \tiddef{test-immediate-ui-feedback}   & EZ-2                     \\
-  \tiddef{test-visual-indicators}       & EZ-3                     \\
-  \tiddef{test-confirmation-prompts}    & EZ-4, UPR-3              \\
-  \tiddef{test-manual-idle-mode}        & SCR-1                    \\
-  \tiddef{test-no-collection-pii}       & LR-1                     \\
-  \tiddef{test-color-vision-deficiency} & AR-1                     \\
-  \tiddef{test-manual-arm-mode}         & SCR-4                    \\
-  \tiddef{test-gimbal-interface}        & INT-2                    \\
-  \tiddef{test-report-errors}           & RFR-1                    \\
-  \tiddef{test-stop-immediately}        & RFR-2                    \\
-  \tiddef{test-validate-commands}       & IR-1                     \\
-  \tiddef{test-log-operations}          & AUR-1                    \\
+  \tid{test-acquire-frame}           & FR-1, SLR-2              \\
+  \tid{test-disconnect-camera}       & FR-1                     \\
+  \tid{test-hdmi-output}             & FR-8, FR-9, INT-1, SLR-3 \\
+  \tid{test-disconnect-hdmi}         & FR-8                     \\
+  \tid{test-preview-real-time}       & FR-10                    \\
+  \tid{test-network-disconnect}      & FR-10                    \\
+  \tid{test-recording}               & FR-11                    \\
+  \tid{test-disk-full}               & FR-11                    \\
+  \tid{test-manage-recordings}       & FR-12                    \\
+  \tid{test-manual-control}          & FR-2, FR-6               \\
+  \tid{test-transition-to-tracking}  & FR-3, FR-4               \\
+  \tid{test-tracking}                & FR-2, FR-3, FR-7         \\
+  \tid{test-return-to-idle}          & FR-5                     \\
+  \tid{test-exit-gimbal-range}       & FR-2, FR-7               \\
+  \tid{test-consistent-units}        & EZ-1, PI-1               \\
+  \tid{test-bilingual-ui}            & PI-2                     \\
+  \tid{test-immediate-ui-feedback}   & EZ-2                     \\
+  \tid{test-visual-indicators}       & EZ-3                     \\
+  \tid{test-confirmation-prompts}    & EZ-4, UPR-3              \\
+  \tid{test-manual-idle-mode}        & SCR-1                    \\
+  \tid{test-no-collection-pii}       & LR-1                     \\
+  \tid{test-color-vision-deficiency} & AR-1                     \\
+  \tid{test-manual-arm-mode}         & SCR-4                    \\
+  \tid{test-gimbal-interface}        & INT-2                    \\
+  \tid{test-report-errors}           & RFR-1                    \\
+  \tid{test-stop-immediately}        & RFR-2                    \\
+  \tid{test-validate-commands}       & IR-1                     \\
+  \tid{test-log-operations}          & AUR-1                    \\
   \bottomrule
 \end{tabularx}
 
@@ -2155,3 +2306,6 @@ the graduate attribute of Reflection.
 \end{enumerate}
 
 \end{document}
+
+
+
