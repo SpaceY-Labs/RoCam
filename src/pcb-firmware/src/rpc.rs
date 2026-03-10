@@ -19,7 +19,7 @@ impl GimbalRpcServer for GimbalRpc {
         GimbalInfoResponse {
             tilt_range_deg: (0.0, 90.0),
             pan_range_deg: (-45.0, 45.0),
-            focal_length_range_mm: (24.0, 24.0),
+            focal_length_range_mm: (24.0, 120.0),
         }
     }
 
