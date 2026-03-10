@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { Spinner } from '@heroui/spinner'
 import { useMeasure } from 'react-use'
@@ -98,6 +98,42 @@ export default function ControlPage() {
     dragRef.current.isDragging = false
   }, [])
 
+  // ── Scroll-to-zoom (focal length) ────────────────────────────────────
+  const wheelLastCallRef = useRef(0)
+  const overlayRef = useRef<HTMLDivElement>(null)
+
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault()
+    const s = statusRef.current
+    const client = apiClientRef.current
+
+    if (!s || s.armed || !client) return
+
+    const now = Date.now()
+
+    if (now - wheelLastCallRef.current < DRAG_THROTTLE_MS) return
+    wheelLastCallRef.current = now
+
+    const range = s.focal_length_max_mm - s.focal_length_min_mm
+    const step = Math.max(1, range * 0.05)
+    const delta = e.deltaY < 0 ? step : -step
+    const newFocal = Math.max(
+      s.focal_length_min_mm,
+      Math.min(s.focal_length_max_mm, s.focal_length_mm + delta)
+    )
+
+    client.setFocalLength(newFocal)
+  }, [])
+
+  useEffect(() => {
+    const el = overlayRef.current
+
+    if (!el) return
+    el.addEventListener('wheel', handleWheel, { passive: false })
+
+    return () => el.removeEventListener('wheel', handleWheel)
+  }, [handleWheel])
+
   return (
     <div className="relative flex flex-col items-stretch h-screen">
       <Navbar />
@@ -158,8 +194,9 @@ export default function ControlPage() {
               </div>
             )}
 
-            {/* Transparent overlay that captures drag gestures for gimbal control */}
+            {/* Transparent overlay that captures drag gestures and scroll-to-zoom */}
             <div
+              ref={overlayRef}
               className={`absolute inset-0 z-10 ${isArmed ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
               style={{ touchAction: 'none' }}
               onPointerCancel={handlePointerUp}
