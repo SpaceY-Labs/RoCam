@@ -107,7 +107,15 @@ export default function ControlPage() {
     const s = statusRef.current
     const client = apiClientRef.current
 
-    if (!s || s.armed || !client) return
+    if (
+      !s ||
+      s.armed ||
+      !client ||
+      s.focal_length_mm == null ||
+      s.focal_length_min_mm == null ||
+      s.focal_length_max_mm == null
+    )
+      return
 
     const now = Date.now()
 

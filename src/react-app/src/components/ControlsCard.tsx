@@ -223,8 +223,13 @@ function ZoomControls() {
   const { apiClient, status } = useRocam()
   const disabled = !!status?.armed
 
+  const focalAvailable =
+    status?.focal_length_mm != null &&
+    status?.focal_length_min_mm != null &&
+    status?.focal_length_max_mm != null
+
   const handleZoom = async (direction: 'in' | 'out') => {
-    if (!apiClient || !status) return
+    if (!apiClient || !status || !focalAvailable) return
     const range = status.focal_length_max_mm - status.focal_length_min_mm
     const step = Math.max(1, range * 0.1)
     const delta = direction === 'in' ? step : -step
@@ -248,7 +253,7 @@ function ZoomControls() {
     <div className="flex flex-col justify-center gap-2">
       <Button
         isIconOnly
-        disabled={disabled}
+        disabled={disabled || !focalAvailable}
         radius="sm"
         size="lg"
         variant="flat"
@@ -258,7 +263,7 @@ function ZoomControls() {
       </Button>
       <Button
         isIconOnly
-        disabled={disabled}
+        disabled={disabled || !focalAvailable}
         radius="sm"
         size="lg"
         variant="flat"

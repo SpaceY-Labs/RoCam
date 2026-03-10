@@ -44,7 +44,13 @@ class StateManagementRecordingManagementOnly:
             is_recording=False,
             longitude=None,
             latitude=None,
+            focal_length_mm=24.0,
+            focal_length_min_mm=24.0,
+            focal_length_max_mm=120.0,
         )
+
+    def set_focal_length(self, focal_length_mm: float):
+        pass
 
     def manual_move(self, direction: str):
         pass
