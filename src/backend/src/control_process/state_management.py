@@ -100,6 +100,7 @@ class StateManagement:
         self._gimbal.set_deg(0, 0)
         tilt_range, pan_range, focal_range = self._gimbal.gimbal_info()
         self._focal_range = focal_range
+        self._current_focal_length_mm = focal_range[0]
         self._last_focal_measure_time = 0.0
         self._last_focal_measure = focal_range[0]
         logger.info(
@@ -197,7 +198,7 @@ class StateManagement:
             average_fps=data.fps,
             gimbal_tilt_deg=tilt,
             gimbal_pan_deg=pan,
-            gimbal_focal_length_mm=self._gimbal_focal_length_cached(),
+            gimbal_focal_length_mm=self._current_focal_length_mm,
             device_ip_addresses=self._system_status.get_device_ip_addresses(),
             timestamp_ms=int(time.time() * 1000),
             tracking_state=tracking_state,
@@ -237,7 +238,6 @@ class StateManagement:
         timestamp_ms = int(time.time() * 1000)
 
         tilt, pan = self._gimbal_measure_deg_cached()
-        focal_length_mm = self._gimbal_focal_length_cached()
         return StatusResponse(
             armed=self._armed,
             tilt=tilt,
@@ -258,7 +258,7 @@ class StateManagement:
             is_recording=self._in_progress_recording_id is not None,
             longitude=None,
             latitude=None,
-            focal_length_mm=focal_length_mm,
+            focal_length_mm=self._current_focal_length_mm,
             focal_length_min_mm=self._focal_range[0],
             focal_length_max_mm=self._focal_range[1],
         )
@@ -268,6 +268,7 @@ class StateManagement:
             return
         try:
             clamped = max(self._focal_range[0], min(self._focal_range[1], focal_length_mm))
+            self._current_focal_length_mm = clamped
             self._gimbal.set_focal_length_mm(clamped)
         except Exception as e:
             logger.error(f"Error in set_focal_length: {e}")
