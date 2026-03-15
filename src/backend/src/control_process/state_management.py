@@ -99,8 +99,6 @@ class StateManagement:
         self._gimbal = GimbalSerial(port="/dev/ttyTHS1", baudrate=115200, timeout=0.1)
         self._gimbal.set_deg(0, 0)
         tilt_range, pan_range, focal_range = self._gimbal.gimbal_info()
-        if focal_range[0] == focal_range[1]:
-            focal_range = (24.0, 120.0)
         self._focal_range = focal_range
         self._current_focal_length_mm = focal_range[0]
         self._last_focal_measure_time = 0.0
