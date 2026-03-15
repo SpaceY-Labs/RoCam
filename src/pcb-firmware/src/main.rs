@@ -66,6 +66,8 @@ fn main() -> ! {
         singleton!(: Watch<CriticalSectionRawMutex, f32, 1> = Watch::new()).unwrap();
     let pan_angle_deg_watch =
         singleton!(: Watch<CriticalSectionRawMutex, f32, 1> = Watch::new()).unwrap();
+    let focal_length_mm_watch =
+        singleton!(: Watch<CriticalSectionRawMutex, f32, 1> = Watch::new()).unwrap();
 
     // High priority executor
     {
@@ -103,6 +105,7 @@ fn main() -> ! {
             let gimbal_rpc = GimbalRpc {
                 tilt_angle_deg_watch,
                 pan_angle_deg_watch,
+                focal_length_mm_watch,
             };
             spawner.spawn(rpc_task(usart, gimbal_rpc).unwrap());
         })

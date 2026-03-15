@@ -8,6 +8,8 @@ import {
   IconChevronUp,
   IconChevronDown,
   IconHome,
+  IconZoomIn,
+  IconZoomOut,
 } from '@tabler/icons-react'
 import { useTimeoutFn } from 'react-use'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -90,6 +92,7 @@ export function ControlsCard() {
         </p>
         <div className="flex gap-8 mt-4">
           <GimbalPad />
+          <ZoomControls />
           <div className="flex flex-col justify-center gap-3">
             <Button
               color="danger"
@@ -211,6 +214,63 @@ function GimbalPad() {
         <IconChevronDown />
       </Button>
       <div />
+    </div>
+  )
+}
+
+function ZoomControls() {
+  const { t } = useLingui()
+  const { apiClient, status } = useRocam()
+  const disabled = !!status?.armed
+
+  const focalAvailable =
+    status?.focal_length_mm != null &&
+    status?.focal_length_min_mm != null &&
+    status?.focal_length_max_mm != null
+
+  const handleZoom = async (direction: 'in' | 'out') => {
+    if (!apiClient || !status || !focalAvailable) return
+    const range = status.focal_length_max_mm - status.focal_length_min_mm
+    const step = Math.max(1, range * 0.1)
+    const delta = direction === 'in' ? step : -step
+    const newFocal = Math.max(
+      status.focal_length_min_mm,
+      Math.min(status.focal_length_max_mm, status.focal_length_mm + delta)
+    )
+
+    try {
+      await apiClient.setFocalLength(newFocal)
+    } catch (error) {
+      addToast({
+        title: t`Failed to set focal length`,
+        description: getErrorMessage(error),
+        color: 'danger',
+      })
+    }
+  }
+
+  return (
+    <div className="flex flex-col justify-center gap-2">
+      <Button
+        isIconOnly
+        disabled={disabled || !focalAvailable}
+        radius="sm"
+        size="lg"
+        variant="flat"
+        onPress={() => void handleZoom('in')}
+      >
+        <IconZoomIn />
+      </Button>
+      <Button
+        isIconOnly
+        disabled={disabled || !focalAvailable}
+        radius="sm"
+        size="lg"
+        variant="flat"
+        onPress={() => void handleZoom('out')}
+      >
+        <IconZoomOut />
+      </Button>
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { Card, CardBody } from '@heroui/card'
 import {
   IconArrowsVertical,
   IconArrowsHorizontal,
+  IconFocusCentered,
   IconGauge,
   IconCpu,
   IconTemperature,
@@ -132,6 +133,11 @@ function buildStatusItems(
       label: <Trans>Pan</Trans>,
       value: formatDegrees(status.pan),
       icon: <IconArrowsHorizontal {...STATUS_ICON_PROPS} />,
+    },
+    {
+      label: <Trans>Focal Length</Trans>,
+      value: `${Math.round(status.focal_length_mm * 10) / 10}mm`,
+      icon: <IconFocusCentered {...STATUS_ICON_PROPS} />,
     },
     {
       label: <Trans>Rec Left</Trans>,
