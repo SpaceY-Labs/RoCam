@@ -1,16 +1,24 @@
 # -*- coding: utf-8 -*-
 """
 Stage 1: YOLO26s-P2 主训练 (300 epochs)
-- torchrun 启动确保猴子补丁在所有 GPU 进程生效
+- Ultralytics 内置 DDP: device="0,1,2,3" 让框架自己管理多卡
 - patience=0 禁用早停，保证 close_mosaic 在 ep250 生效
 - mosaic=0.4 保护小目标，multi_scale=False 避免缩到 480px
 - nbs=batch 防止 weight_decay 被隐式放大
 用法:
-  单卡冒烟:  python train_stage1.py --smoke
+  冒烟测试:  python train_stage1.py --smoke
   50ep验证:  python train_stage1.py --epochs 50
-  正式训练:  见 run_pipeline.bash (torchrun 启动)
+  正式训练:  python train_stage1.py  (由 run_pipeline.bash 调用)
 """
-import os, sys, argparse, subprocess, random, shutil, zipfile, urllib.request
+import os
+os.environ["MKL_THREADING_LAYER"] = "GNU"
+os.environ["OMP_NUM_THREADS"] = "16"
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+os.environ["NCCL_IB_DISABLE"] = "0"
+os.environ["NCCL_P2P_DISABLE"] = "0"
+os.environ["NCCL_BLOCKING_WAIT"] = "0"
+
+import sys, argparse, subprocess, random, shutil, zipfile, urllib.request
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -54,12 +62,17 @@ def get_ram_available_gb():
         return 999
 
 
-def preflight(target_batch=192):
+def preflight(target_batch=128):
     gpu_free = get_gpu_free_memory()
     usable = sorted(
-        [(i, m) for i, m in gpu_free.items() if m > 40_000],
+        [(i, m) for i, m in gpu_free.items() if m > 60_000],
         key=lambda x: -x[1],
     )
+    if not usable:
+        usable = sorted(
+            [(i, m) for i, m in gpu_free.items() if m > 40_000],
+            key=lambda x: -x[1],
+        )
     n_gpu = len(usable)
     if n_gpu == 0:
         raise RuntimeError(f"无 GPU 剩余 > 40GB: {gpu_free}")
@@ -70,11 +83,9 @@ def preflight(target_batch=192):
 
     ram_gb = get_ram_available_gb()
     workers = 8 if ram_gb > 40 else 4 if ram_gb > 20 else 2
-    if ram_gb < 15:
-        print(f"[WARN] 系统 RAM 仅 {ram_gb:.1f}GB 可用, workers={workers}")
 
     print(f"[PREFLIGHT] GPU: {device_str} ({n_gpu}卡), batch={actual_batch}, "
-          f"workers={workers}, RAM_avail={ram_gb:.1f}GB")
+          f"workers={workers}, RAM={ram_gb:.1f}GB")
     return device_str, actual_batch, n_gpu, workers
 
 
@@ -136,6 +147,11 @@ def prepare_coco_negatives():
 # --------------- Albumentations 猴子补丁 ---------------
 
 def patch_albumentations():
+    """
+    猴子补丁注入自定义成像退化增强。
+    注意: Ultralytics 内置 DDP 会重新产生子进程，此补丁不会传播到子进程。
+    Stage 2/3 使用单卡训练，补丁可完整生效。
+    """
     try:
         import albumentations as A
         from ultralytics.data.augment import Albumentations
@@ -215,54 +231,35 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--smoke", action="store_true", help="2ep 单卡冒烟测试")
     parser.add_argument("--epochs", type=int, default=300)
-    parser.add_argument("--batch", type=int, default=192)
+    parser.add_argument("--batch", type=int, default=128)
     parser.add_argument("--project", type=str, default=str(DATA_DIR / "runs" / "detect"))
     parser.add_argument("--name", type=str, default="stage1")
     cli = parser.parse_args()
 
-    rank = int(os.environ.get("LOCAL_RANK", -1))
-    is_main = rank in (-1, 0)
-
-    if is_main:
-        ensure_coco_images()
-        prepare_coco_negatives()
-
-    if rank > -1:
-        import torch.distributed as dist
-        if not dist.is_initialized():
-            dist.init_process_group(backend="nccl")
-        dist.barrier()
-
+    ensure_coco_images()
+    prepare_coco_negatives()
     patch_albumentations()
 
-    if rank == -1:
-        device_str, batch, n_gpu, workers = preflight(cli.batch)
-    else:
-        device_str = str(rank)
-        batch = cli.batch
-        workers = 8 if get_ram_available_gb() > 40 else 4
-
+    device_str, batch, n_gpu, workers = preflight(cli.batch)
     args = build_args(device_str, batch, workers, cli.epochs, cli.smoke)
     args["project"] = cli.project
     args["name"] = cli.name
 
     from ultralytics import YOLO
     model = YOLO(MODEL_YAML).load(PRETRAINED)
-    if is_main:
-        print(f"[MODEL] {MODEL_YAML} + {PRETRAINED}")
-        print(f"[TRAIN] epochs={args['epochs']}, batch={args['batch']}, "
-              f"device={args['device']}, nbs={args['nbs']}")
+    print(f"[MODEL] {MODEL_YAML} + {PRETRAINED}")
+    print(f"[TRAIN] epochs={args['epochs']}, batch={args['batch']}, "
+          f"device={args['device']}, nbs={args['nbs']}")
 
     results = model.train(**args)
 
-    if is_main:
-        save_dir = getattr(results, "save_dir", "?")
-        print(f"[DONE] Stage 1 完成: {save_dir}")
-        result_file = Path(cli.project) / cli.name / ".stage1_result"
-        result_file.parent.mkdir(parents=True, exist_ok=True)
-        best_pt = Path(save_dir) / "weights" / "best.pt"
-        result_file.write_text(str(best_pt))
-        print(f"[DONE] best.pt 路径已写入 {result_file}")
+    save_dir = getattr(results, "save_dir", "?")
+    print(f"[DONE] Stage 1 完成: {save_dir}")
+    result_file = Path(cli.project) / cli.name / ".stage1_result"
+    result_file.parent.mkdir(parents=True, exist_ok=True)
+    best_pt = Path(save_dir) / "weights" / "best.pt"
+    result_file.write_text(str(best_pt))
+    print(f"[DONE] best.pt = {best_pt}")
 
 
 if __name__ == "__main__":

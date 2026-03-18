@@ -1,16 +1,41 @@
 # -*- coding: utf-8 -*-
 """
 Stage 3: 极低 LR 抛光 (60 epochs)
-- lr0=0.0002, SGD, rect=True
-- Albumentations 概率降低 ~30%
-用法:  见 run_pipeline.bash
+- 单卡训练: rect=True + Albumentations
+- lr0=0.0002, SGD, augmentation 概率降低 ~30%
 """
-import os, sys, argparse
+import os
+os.environ["MKL_THREADING_LAYER"] = "GNU"
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+import sys, argparse, subprocess
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = Path("/u50/loux8/datafrompega")
 DATA_YAML = str(DATA_DIR / "rocam_data_15000" / "data_15000" / "data.yaml")
+
+
+def get_gpu_free_memory():
+    result = subprocess.run(
+        ["nvidia-smi", "--query-gpu=index,memory.free", "--format=csv,noheader,nounits"],
+        capture_output=True, text=True,
+    )
+    gpus = {}
+    for line in result.stdout.strip().split("\n"):
+        parts = line.split(",")
+        if len(parts) == 2:
+            gpus[int(parts[0].strip())] = int(parts[1].strip())
+    return gpus
+
+
+def select_best_gpu():
+    gpu_free = get_gpu_free_memory()
+    usable = sorted(gpu_free.items(), key=lambda x: -x[1])
+    if not usable or usable[0][1] < 40_000:
+        raise RuntimeError(f"无 GPU > 40GB 可用: {gpu_free}")
+    best_id, free_mb = usable[0]
+    print(f"[GPU] 选择 GPU {best_id} (free={free_mb}MiB)")
+    return str(best_id)
 
 
 def patch_albumentations_stage3():
@@ -55,32 +80,22 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, required=True, help="Stage 2 best.pt 路径")
     parser.add_argument("--epochs", type=int, default=60)
-    parser.add_argument("--batch", type=int, default=192)
+    parser.add_argument("--batch", type=int, default=32)
     parser.add_argument("--project", type=str, default=str(DATA_DIR / "runs" / "detect"))
     parser.add_argument("--name", type=str, default="stage3")
     cli = parser.parse_args()
 
-    rank = int(os.environ.get("LOCAL_RANK", -1))
-    is_main = rank in (-1, 0)
-
-    if rank > -1:
-        import torch.distributed as dist
-        if not dist.is_initialized():
-            dist.init_process_group(backend="nccl")
-        dist.barrier()
-
     patch_albumentations_stage3()
 
+    device = select_best_gpu()
     workers = 8 if get_ram_available_gb() > 40 else 4
-    device_str = str(rank) if rank > -1 else "0"
 
     args = dict(
-        model=cli.model,
         data=DATA_YAML,
         imgsz=960,
         batch=cli.batch,
         epochs=cli.epochs,
-        device=device_str,
+        device=device,
         workers=workers,
         amp=True,
         cache="disk",
@@ -111,18 +126,16 @@ def main():
 
     from ultralytics import YOLO
     model = YOLO(cli.model)
-    if is_main:
-        print(f"[STAGE3] model={cli.model}, lr0=0.0002, SGD, epochs={cli.epochs}")
+    print(f"[STAGE3] model={cli.model}, lr0=0.0002, SGD, epochs={cli.epochs}")
 
     results = model.train(**args)
 
-    if is_main:
-        save_dir = getattr(results, "save_dir", "?")
-        print(f"[DONE] Stage 3 完成: {save_dir}")
-        result_file = Path(cli.project) / cli.name / ".stage3_result"
-        result_file.parent.mkdir(parents=True, exist_ok=True)
-        best_pt = Path(save_dir) / "weights" / "best.pt"
-        result_file.write_text(str(best_pt))
+    save_dir = getattr(results, "save_dir", "?")
+    print(f"[DONE] Stage 3 完成: {save_dir}")
+    result_file = Path(cli.project) / cli.name / ".stage3_result"
+    result_file.parent.mkdir(parents=True, exist_ok=True)
+    best_pt = Path(save_dir) / "weights" / "best.pt"
+    result_file.write_text(str(best_pt))
 
 
 if __name__ == "__main__":

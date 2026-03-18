@@ -1,74 +1,45 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
 # ===== 配置 =====
-ENV_NAME="jplab"
 SESSION="rocket_pipeline"
 LOG_FILE="pipeline.log"
 PID_FILE=".pipeline.pid"
-BATCH=192
+CONDA_BASE="/u50/loux8/miniconda3"
+ENV_NAME="jplab"
+PYTHON="${CONDA_BASE}/envs/${ENV_NAME}/bin/python"
+TMUX="${CONDA_BASE}/bin/tmux"
 PROJECT="/u50/loux8/datafrompega/runs/detect"
 # =================
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR"
 
-have_tmux() { command -v tmux >/dev/null 2>&1; }
+set -eo pipefail
 
-detect_gpus() {
-    python3 -c "
-import subprocess
-r = subprocess.run(['nvidia-smi','--query-gpu=index,memory.free','--format=csv,noheader,nounits'],
-                   capture_output=True, text=True)
-usable = []
-for line in r.stdout.strip().split('\n'):
-    parts = line.split(',')
-    if len(parts)==2 and int(parts[1].strip()) > 40000:
-        usable.append(parts[0].strip())
-print(','.join(usable) if usable else '')
-print(len(usable))
-"
-}
+have_tmux() { command -v "$TMUX" >/dev/null 2>&1 || command -v tmux >/dev/null 2>&1; }
 
 run_training() {
-    source ~/.bashrc
-    conda activate ${ENV_NAME}
+    export PATH="${CONDA_BASE}/envs/${ENV_NAME}/bin:${CONDA_BASE}/bin:$PATH"
 
     cd "$DIR"
     echo "========================================" | tee -a "$LOG_FILE"
     echo "[$(date)] Pipeline 开始" | tee -a "$LOG_FILE"
     echo "========================================" | tee -a "$LOG_FILE"
 
-    # GPU 探测
-    GPU_INFO=$(detect_gpus)
-    GPU_LIST=$(echo "$GPU_INFO" | head -1)
-    N_GPU=$(echo "$GPU_INFO" | tail -1)
-
-    if [ -z "$GPU_LIST" ] || [ "$N_GPU" -eq 0 ]; then
-        echo "[ERROR] 无可用 GPU (>40GB free)" | tee -a "$LOG_FILE"
-        exit 1
-    fi
-
-    ACTUAL_BATCH=$(( (BATCH / N_GPU) * N_GPU ))
-    echo "[GPU] 使用 $GPU_LIST ($N_GPU 卡), batch=$ACTUAL_BATCH" | tee -a "$LOG_FILE"
-
     MAX_RETRY=3
 
-    # ---- Stage 1 ----
+    # ---- Stage 1: 多卡 DDP (Ultralytics 内置) ----
     echo "" | tee -a "$LOG_FILE"
-    echo "===== Stage 1: 主训练 300ep =====" | tee -a "$LOG_FILE"
+    echo "===== Stage 1: 主训练 300ep (4卡 DDP) =====" | tee -a "$LOG_FILE"
     STAGE1_BEST=""
     for attempt in $(seq 1 $MAX_RETRY); do
         echo "[Stage1] 第 ${attempt} 次尝试..." | tee -a "$LOG_FILE"
-        if CUDA_VISIBLE_DEVICES=$GPU_LIST torchrun \
-            --nproc_per_node=$N_GPU \
-            --master_port=$(python3 -c "import socket; s=socket.socket(); s.bind(('',0)); print(s.getsockname()[1]); s.close()") \
-            train_stage1.py --batch $ACTUAL_BATCH --project "$PROJECT" --name stage1 \
+        if "$PYTHON" train_stage1.py --project "$PROJECT" --name stage1 \
             2>&1 | tee -a "$LOG_FILE"; then
             break
         fi
-        echo "[Stage1] 失败, 30s 后重试..." | tee -a "$LOG_FILE"
-        sleep 30
+        echo "[Stage1] 失败, 60s 后重试..." | tee -a "$LOG_FILE"
+        sleep 60
     done
 
     STAGE1_RESULT="$PROJECT/stage1/.stage1_result"
@@ -80,27 +51,18 @@ run_training() {
         exit 1
     fi
 
-    # 重新探测 GPU (其他用户可能已释放/占用)
-    GPU_INFO=$(detect_gpus)
-    GPU_LIST=$(echo "$GPU_INFO" | head -1)
-    N_GPU=$(echo "$GPU_INFO" | tail -1)
-    ACTUAL_BATCH=$(( (BATCH / N_GPU) * N_GPU ))
-
-    # ---- Stage 2 ----
+    # ---- Stage 2: 单卡 rect=True 精调 ----
     echo "" | tee -a "$LOG_FILE"
-    echo "===== Stage 2: 全分辨率精调 120ep =====" | tee -a "$LOG_FILE"
+    echo "===== Stage 2: 全分辨率精调 120ep (单卡 rect=True) =====" | tee -a "$LOG_FILE"
     STAGE2_BEST=""
     for attempt in $(seq 1 $MAX_RETRY); do
         echo "[Stage2] 第 ${attempt} 次尝试..." | tee -a "$LOG_FILE"
-        if CUDA_VISIBLE_DEVICES=$GPU_LIST torchrun \
-            --nproc_per_node=$N_GPU \
-            --master_port=$(python3 -c "import socket; s=socket.socket(); s.bind(('',0)); print(s.getsockname()[1]); s.close()") \
-            train_stage2.py --model "$STAGE1_BEST" --batch $ACTUAL_BATCH --project "$PROJECT" --name stage2 \
+        if "$PYTHON" train_stage2.py --model "$STAGE1_BEST" --project "$PROJECT" --name stage2 \
             2>&1 | tee -a "$LOG_FILE"; then
             break
         fi
-        echo "[Stage2] 失败, 30s 后重试..." | tee -a "$LOG_FILE"
-        sleep 30
+        echo "[Stage2] 失败, 60s 后重试..." | tee -a "$LOG_FILE"
+        sleep 60
     done
 
     STAGE2_RESULT="$PROJECT/stage2/.stage2_result"
@@ -112,26 +74,17 @@ run_training() {
         exit 1
     fi
 
-    # 重新探测 GPU
-    GPU_INFO=$(detect_gpus)
-    GPU_LIST=$(echo "$GPU_INFO" | head -1)
-    N_GPU=$(echo "$GPU_INFO" | tail -1)
-    ACTUAL_BATCH=$(( (BATCH / N_GPU) * N_GPU ))
-
-    # ---- Stage 3 ----
+    # ---- Stage 3: 单卡极低 LR 抛光 ----
     echo "" | tee -a "$LOG_FILE"
-    echo "===== Stage 3: 极低 LR 抛光 60ep =====" | tee -a "$LOG_FILE"
+    echo "===== Stage 3: 极低 LR 抛光 60ep (单卡) =====" | tee -a "$LOG_FILE"
     for attempt in $(seq 1 $MAX_RETRY); do
         echo "[Stage3] 第 ${attempt} 次尝试..." | tee -a "$LOG_FILE"
-        if CUDA_VISIBLE_DEVICES=$GPU_LIST torchrun \
-            --nproc_per_node=$N_GPU \
-            --master_port=$(python3 -c "import socket; s=socket.socket(); s.bind(('',0)); print(s.getsockname()[1]); s.close()") \
-            train_stage3.py --model "$STAGE2_BEST" --batch $ACTUAL_BATCH --project "$PROJECT" --name stage3 \
+        if "$PYTHON" train_stage3.py --model "$STAGE2_BEST" --project "$PROJECT" --name stage3 \
             2>&1 | tee -a "$LOG_FILE"; then
             break
         fi
-        echo "[Stage3] 失败, 30s 后重试..." | tee -a "$LOG_FILE"
-        sleep 30
+        echo "[Stage3] 失败, 60s 后重试..." | tee -a "$LOG_FILE"
+        sleep 60
     done
 
     # ---- Evaluate ----
@@ -143,7 +96,7 @@ run_training() {
     else
         FINAL_MODEL="$STAGE2_BEST"
     fi
-    python evaluate.py --model "$FINAL_MODEL" 2>&1 | tee -a "$LOG_FILE"
+    "$PYTHON" evaluate.py --model "$FINAL_MODEL" 2>&1 | tee -a "$LOG_FILE"
 
     echo "" | tee -a "$LOG_FILE"
     echo "========================================" | tee -a "$LOG_FILE"
@@ -152,14 +105,14 @@ run_training() {
 }
 
 start_tmux() {
-    if tmux has-session -t "$SESSION" 2>/dev/null; then
+    local tmux_bin="$TMUX"
+    command -v "$tmux_bin" >/dev/null 2>&1 || tmux_bin="tmux"
+
+    if "$tmux_bin" has-session -t "$SESSION" 2>/dev/null; then
         echo "已在跑: tmux 会话 '$SESSION' 存在。用 '$0 attach' 或 '$0 tail' 查看。"
         exit 0
     fi
-    tmux new -d -s "$SESSION" bash -lc "
-        cd $DIR
-        source $DIR/run_pipeline.bash _run_internal
-    "
+    "$tmux_bin" new -d -s "$SESSION" "bash --norc -c 'export PATH=${CONDA_BASE}/envs/${ENV_NAME}/bin:${CONDA_BASE}/bin:\$PATH; cd ${DIR}; bash ${DIR}/run_pipeline.bash _run_internal 2>&1 | tee -a ${DIR}/pipeline_tmux.log'"
     echo "已用 tmux 启动三阶段 pipeline。会话: $SESSION"
     echo "  查看日志:  $0 tail"
     echo "  接入会话:  $0 attach (Ctrl-b d 退出)"
@@ -171,10 +124,7 @@ start_nohup() {
         echo "已在跑: PID=$(cat "$PID_FILE")"
         exit 0
     fi
-    nohup bash -lc "
-        cd $DIR
-        source $DIR/run_pipeline.bash _run_internal
-    " > "$LOG_FILE" 2>&1 & echo $! > "$PID_FILE"
+    nohup bash --norc -c "export PATH=${CONDA_BASE}/envs/${ENV_NAME}/bin:${CONDA_BASE}/bin:\$PATH; cd ${DIR}; bash ${DIR}/run_pipeline.bash _run_internal" > "${DIR}/${LOG_FILE}" 2>&1 & echo $! > "$PID_FILE"
     echo "已用 nohup 启动。PID=$(cat "$PID_FILE")"
     echo "  查看日志:  $0 tail"
 }
@@ -188,7 +138,9 @@ start() {
 }
 
 status() {
-    if have_tmux && tmux has-session -t "$SESSION" 2>/dev/null; then
+    local tmux_bin="$TMUX"
+    command -v "$tmux_bin" >/dev/null 2>&1 || tmux_bin="tmux"
+    if "$tmux_bin" has-session -t "$SESSION" 2>/dev/null; then
         echo "tmux 会话 '$SESSION' 正在运行"
     elif [[ -f "$PID_FILE" ]] && ps -p "$(cat "$PID_FILE")" >/dev/null 2>&1; then
         echo "nohup 运行中 PID=$(cat "$PID_FILE")"
@@ -198,14 +150,16 @@ status() {
     echo "—— GPU ——"
     nvidia-smi --query-gpu=index,memory.used,memory.free,utilization.gpu --format=csv 2>/dev/null || true
     echo "—— 最新日志 ——"
-    tail -5 "$LOG_FILE" 2>/dev/null || true
+    tail -5 "$DIR/$LOG_FILE" 2>/dev/null || true
 }
 
 stop() {
-    if have_tmux && tmux has-session -t "$SESSION" 2>/dev/null; then
-        tmux send-keys -t "$SESSION" C-c
+    local tmux_bin="$TMUX"
+    command -v "$tmux_bin" >/dev/null 2>&1 || tmux_bin="tmux"
+    if "$tmux_bin" has-session -t "$SESSION" 2>/dev/null; then
+        "$tmux_bin" send-keys -t "$SESSION" C-c
         sleep 3
-        tmux kill-session -t "$SESSION" 2>/dev/null || true
+        "$tmux_bin" kill-session -t "$SESSION" 2>/dev/null || true
         echo "已停止 tmux 会话"
     fi
     if [[ -f "$PID_FILE" ]]; then
@@ -217,20 +171,20 @@ stop() {
         fi
         rm -f "$PID_FILE"
     fi
-    pkill -f "torch.distributed.run" 2>/dev/null || true
     pkill -f "train_stage" 2>/dev/null || true
     echo "已停止"
 }
 
 tail_log() {
-    [[ -f "$LOG_FILE" ]] || { echo "日志不存在: $LOG_FILE"; exit 1; }
-    tail -f "$LOG_FILE"
+    [[ -f "$DIR/$LOG_FILE" ]] || { echo "日志不存在: $DIR/$LOG_FILE"; exit 1; }
+    tail -f "$DIR/$LOG_FILE"
 }
 
 attach() {
-    have_tmux || { echo "无 tmux"; exit 1; }
-    tmux has-session -t "$SESSION" 2>/dev/null || { echo "会话不存在"; exit 1; }
-    tmux attach -t "$SESSION"
+    local tmux_bin="$TMUX"
+    command -v "$tmux_bin" >/dev/null 2>&1 || tmux_bin="tmux"
+    "$tmux_bin" has-session -t "$SESSION" 2>/dev/null || { echo "会话不存在"; exit 1; }
+    "$tmux_bin" attach -t "$SESSION"
 }
 
 usage() {
@@ -241,6 +195,10 @@ usage() {
   stop    停止训练
   tail    实时看日志
   attach  接入 tmux 会话 (Ctrl-b d 退出)
+
+Stage 1: 4卡 DDP 300ep (Ultralytics 内置)
+Stage 2: 单卡 120ep (rect=True + Albumentations)
+Stage 3: 单卡 60ep  (低 LR + 弱增强)
 EOF
 }
 
