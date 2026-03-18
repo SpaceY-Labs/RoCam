@@ -43,12 +43,16 @@ export function ControlsCard() {
   }
 
   const cooldownOrLoading = isCooldownActive || isArmLoading || isRecordLoading
+  const openDisarmConfirm = () => {
+    if (cooldownOrLoading) return
+    setShowDisarmConfirm(true)
+  }
 
   const handleToggleArm = async () => {
     if (!apiClient || cooldownOrLoading) return
 
     if (isArmed) {
-      setShowDisarmConfirm(true)
+      openDisarmConfirm()
 
       return
     }
@@ -119,7 +123,10 @@ export function ControlsCard() {
             <Trans>Controls</Trans>
           </p>
           <div className="flex gap-8 mt-4">
-            <GimbalPad />
+            <GimbalPad
+              isInteractionBlocked={!apiClient || cooldownOrLoading}
+              onMoveAttemptWhileArmed={openDisarmConfirm}
+            />
             <div className="flex flex-col justify-center gap-3">
               <Button
                 color="danger"
@@ -195,10 +202,17 @@ export function ControlsCard() {
   )
 }
 
-function GimbalPad() {
+type GimbalPadProps = {
+  isInteractionBlocked: boolean
+  onMoveAttemptWhileArmed: () => void
+}
+
+function GimbalPad({
+  isInteractionBlocked,
+  onMoveAttemptWhileArmed,
+}: GimbalPadProps) {
   const { t } = useLingui()
   const { apiClient, status } = useRocam()
-  const disabled = !!status?.armed
   const handleMove = async (
     move: () => Promise<unknown>,
     actionLabel: string
@@ -213,74 +227,87 @@ function GimbalPad() {
       })
     }
   }
+  const handleDirectionPress = (direction: 'up' | 'down' | 'left' | 'right') => {
+    if (!apiClient || isInteractionBlocked) return
+    if (status?.armed) {
+      onMoveAttemptWhileArmed()
+
+      return
+    }
+    void handleMove(() => apiClient.manualMove(direction), direction)
+  }
+  const handleHomePress = () => {
+    if (!apiClient || isInteractionBlocked) return
+    if (status?.armed) {
+      onMoveAttemptWhileArmed()
+
+      return
+    }
+    void handleMove(() => apiClient.manualMoveTo(0, 0), 'home')
+  }
 
   return (
     <div className="grid gap-2 grid-cols-3 grid-rows-3 w-fit">
       <div />
       <Button
+        data-testid="gimbal-up"
+        aria-label={t`Move up`}
         isIconOnly
-        disabled={disabled}
+        disabled={isInteractionBlocked}
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => {
-          if (!apiClient) return
-          void handleMove(() => apiClient.manualMove('up'), 'up')
-        }}
+        onPress={() => handleDirectionPress('up')}
       >
         <IconChevronUp />
       </Button>
       <div />
       <Button
+        data-testid="gimbal-left"
+        aria-label={t`Move left`}
         isIconOnly
-        disabled={disabled}
+        disabled={isInteractionBlocked}
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => {
-          if (!apiClient) return
-          void handleMove(() => apiClient.manualMove('left'), 'left')
-        }}
+        onPress={() => handleDirectionPress('left')}
       >
         <IconChevronLeft />
       </Button>
       <Button
+        data-testid="gimbal-home"
+        aria-label={t`Move home`}
         isIconOnly
-        disabled={disabled}
+        disabled={isInteractionBlocked}
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => {
-          if (!apiClient) return
-          void handleMove(() => apiClient.manualMoveTo(0, 0), 'home')
-        }}
+        onPress={handleHomePress}
       >
         <IconHome />
       </Button>
       <Button
+        data-testid="gimbal-right"
+        aria-label={t`Move right`}
         isIconOnly
-        disabled={disabled}
+        disabled={isInteractionBlocked}
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => {
-          if (!apiClient) return
-          void handleMove(() => apiClient.manualMove('right'), 'right')
-        }}
+        onPress={() => handleDirectionPress('right')}
       >
         <IconChevronRight />
       </Button>
       <div />
       <Button
+        data-testid="gimbal-down"
+        aria-label={t`Move down`}
         isIconOnly
-        disabled={disabled}
+        disabled={isInteractionBlocked}
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => {
-          if (!apiClient) return
-          void handleMove(() => apiClient.manualMove('down'), 'down')
-        }}
+        onPress={() => handleDirectionPress('down')}
       >
         <IconChevronDown />
       </Button>
