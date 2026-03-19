@@ -297,4 +297,5 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-node_modules/
+node_modules/src/training/yolo26n.pt
+src/training/runs/
