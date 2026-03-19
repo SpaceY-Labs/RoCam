@@ -2,8 +2,8 @@
 """
 Stage 1b: 从 Stage 1 best.pt 延长训练 (200 epochs)
 - 4-GPU DDP (Ultralytics 内置): device 由 preflight 动态分配
-- optimizer="MuSGD" 显式指定, 保持与 Stage 1 (auto→MuSGD) 一致
-- lr0=0.005 (卷积层有效 lr=0.0005 因 muon_scale=0.1)
+- optimizer="SGD" + cos_lr (proven fine-tuning approach, cf. train81)
+- lr0=0.0005 (conservative, between train81's 0.0003 and failed 0.002)
 - mosaic=0.2 低强度继续生成小目标, close_mosaic=30
 - patience=0 训练满全部 epoch
 用法:
@@ -132,10 +132,11 @@ def main():
         amp=True,
         cache="disk",
 
-        optimizer="MuSGD",
-        lr0=0.005,
-        lrf=0.02,
+        optimizer="SGD",
+        lr0=0.0005,
+        lrf=0.1,
         nbs=batch,
+        cos_lr=True,
         warmup_epochs=5,
 
         patience=0,
@@ -167,7 +168,7 @@ def main():
     from ultralytics import YOLO
     model = YOLO(cli.model)
     print(f"[STAGE1b] model={cli.model}")
-    print(f"[STAGE1b] optimizer=MuSGD, lr0=0.005, mosaic=0.2, close_mosaic=30")
+    print(f"[STAGE1b] optimizer=SGD, lr0=0.0005, cos_lr=True, mosaic=0.2, close_mosaic=30")
     print(f"[STAGE1b] epochs={args['epochs']}, batch={args['batch']}, "
           f"device={args['device']}")
 

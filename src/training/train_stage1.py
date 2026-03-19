@@ -253,11 +253,22 @@ def main():
 
     results = model.train(**args)
 
-    save_dir = getattr(results, "save_dir", "?")
+    save_dir = getattr(results, "save_dir", None)
+    if save_dir is None:
+        save_dir = model.trainer.save_dir if hasattr(model, "trainer") else None
+    if save_dir is None:
+        from pathlib import Path as _P
+        candidates = sorted(_P(cli.project).glob(f"{cli.name}*"), key=lambda p: p.stat().st_mtime, reverse=True)
+        for c in candidates:
+            if (c / "weights" / "best.pt").exists():
+                save_dir = c
+                break
     print(f"[DONE] Stage 1 完成: {save_dir}")
     result_file = Path(cli.project) / cli.name / ".stage1_result"
     result_file.parent.mkdir(parents=True, exist_ok=True)
     best_pt = Path(save_dir) / "weights" / "best.pt"
+    if not best_pt.exists():
+        raise FileNotFoundError(f"best.pt 不存在: {best_pt}")
     result_file.write_text(str(best_pt))
     print(f"[DONE] best.pt = {best_pt}")
 

@@ -2,8 +2,8 @@
 """
 Stage 2: 抗干扰精调 (80 epochs)
 - 单卡训练: rect=True + Albumentations 完整生效
-- optimizer=MuSGD (与 Stage 1 的 auto→MuSGD 保持一致)
-- lr0=0.001, warmup_epochs=5, cos_lr=True
+- optimizer=SGD, lr0=0.0003 (proven fine-tuning lr, cf. train81)
+- warmup_epochs=5, cos_lr=True
 - 从 Stage 1b best.pt 加载 (model=path, 非 resume=True)
 """
 import os
@@ -102,9 +102,9 @@ def main():
         amp=True,
         cache="disk",
 
-        optimizer="MuSGD",
+        optimizer="SGD",
         nbs=cli.batch,
-        lr0=0.001,
+        lr0=0.0003,
         lrf=0.1,
         cos_lr=True,
         warmup_epochs=5,
@@ -133,7 +133,7 @@ def main():
 
     from ultralytics import YOLO
     model = YOLO(cli.model)
-    print(f"[STAGE2] model={cli.model}, lr0=0.001, MuSGD, rect=True, "
+    print(f"[STAGE2] model={cli.model}, lr0=0.0003, SGD, rect=True, "
           f"batch={cli.batch}, device={device}")
 
     results = model.train(**args)

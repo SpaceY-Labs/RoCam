@@ -2,8 +2,8 @@
 """
 Stage 3: 极低 LR 抛光 (40 epochs)
 - 单卡训练: rect=True + Albumentations (概率降低 30%)
-- optimizer=MuSGD (与 Stage 1/2 保持一致)
-- lr0=0.0002, warmup_epochs=3, cos_lr=True
+- optimizer=SGD, lr0=0.0001 (ultra-low for polishing)
+- warmup_epochs=3, cos_lr=True
 """
 import os
 os.environ["MKL_THREADING_LAYER"] = "GNU"
@@ -101,9 +101,9 @@ def main():
         amp=True,
         cache="disk",
 
-        optimizer="MuSGD",
+        optimizer="SGD",
         nbs=cli.batch,
-        lr0=0.0002,
+        lr0=0.0001,
         lrf=0.2,
         cos_lr=True,
         warmup_epochs=3,
@@ -128,7 +128,7 @@ def main():
 
     from ultralytics import YOLO
     model = YOLO(cli.model)
-    print(f"[STAGE3] model={cli.model}, lr0=0.0002, MuSGD, epochs={cli.epochs}")
+    print(f"[STAGE3] model={cli.model}, lr0=0.0001, SGD, epochs={cli.epochs}")
 
     results = model.train(**args)
 
