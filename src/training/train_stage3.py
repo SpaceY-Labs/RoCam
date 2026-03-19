@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Stage 3: 极低 LR 抛光 (60 epochs)
-- 单卡训练: rect=True + Albumentations
-- lr0=0.0002, SGD, augmentation 概率降低 ~30%
+Stage 3: 极低 LR 抛光 (40 epochs)
+- 单卡训练: rect=True + Albumentations (概率降低 30%)
+- optimizer=MuSGD (与 Stage 1/2 保持一致)
+- lr0=0.0002, warmup_epochs=3, cos_lr=True
 """
 import os
 os.environ["MKL_THREADING_LAYER"] = "GNU"
@@ -79,7 +80,7 @@ def get_ram_available_gb():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, required=True, help="Stage 2 best.pt 路径")
-    parser.add_argument("--epochs", type=int, default=60)
+    parser.add_argument("--epochs", type=int, default=40)
     parser.add_argument("--batch", type=int, default=32)
     parser.add_argument("--project", type=str, default=str(DATA_DIR / "runs" / "detect"))
     parser.add_argument("--name", type=str, default="stage3")
@@ -100,12 +101,13 @@ def main():
         amp=True,
         cache="disk",
 
-        optimizer="SGD",
+        optimizer="MuSGD",
         nbs=cli.batch,
         lr0=0.0002,
         lrf=0.2,
         cos_lr=True,
-        patience=25,
+        warmup_epochs=3,
+        patience=15,
 
         rect=True,
         mosaic=0.0, mixup=0.0, cutmix=0.0,
@@ -126,16 +128,30 @@ def main():
 
     from ultralytics import YOLO
     model = YOLO(cli.model)
-    print(f"[STAGE3] model={cli.model}, lr0=0.0002, SGD, epochs={cli.epochs}")
+    print(f"[STAGE3] model={cli.model}, lr0=0.0002, MuSGD, epochs={cli.epochs}")
 
     results = model.train(**args)
 
-    save_dir = getattr(results, "save_dir", "?")
+    save_dir = getattr(results, "save_dir", None)
+    if save_dir is None or str(save_dir) == "?":
+        save_dir = model.trainer.save_dir if hasattr(model, "trainer") else None
+    if save_dir is None:
+        candidates = sorted(
+            Path(cli.project).glob(f"{cli.name}*"),
+            key=lambda p: p.stat().st_mtime, reverse=True,
+        )
+        for c in candidates:
+            if (c / "weights" / "best.pt").exists():
+                save_dir = c
+                break
     print(f"[DONE] Stage 3 完成: {save_dir}")
     result_file = Path(cli.project) / cli.name / ".stage3_result"
     result_file.parent.mkdir(parents=True, exist_ok=True)
     best_pt = Path(save_dir) / "weights" / "best.pt"
+    if not best_pt.exists():
+        raise FileNotFoundError(f"best.pt 不存在: {best_pt}")
     result_file.write_text(str(best_pt))
+    print(f"[DONE] best.pt = {best_pt}")
 
 
 if __name__ == "__main__":

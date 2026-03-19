@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 
-# ===== 配置 =====
-SESSION="rocket_pipeline"
-LOG_FILE="pipeline.log"
-PID_FILE=".pipeline.pid"
+# ===== V2 Pipeline 配置 =====
+SESSION="rocket_v2"
+LOG_FILE="pipeline_v2.log"
+PID_FILE=".pipeline_v2.pid"
 CONDA_BASE="/u50/loux8/miniconda3"
 ENV_NAME="jplab"
 PYTHON="${CONDA_BASE}/envs/${ENV_NAME}/bin/python"
 TMUX="${CONDA_BASE}/bin/tmux"
 PROJECT="/u50/loux8/datafrompega/runs/detect"
-# =================
+STAGE1_BEST="/u50/loux8/datafrompega/runs/detect/stage17/weights/best.pt"
+# =============================
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR"
@@ -23,41 +24,43 @@ run_training() {
 
     cd "$DIR"
     echo "========================================" | tee -a "$LOG_FILE"
-    echo "[$(date)] Pipeline 开始" | tee -a "$LOG_FILE"
+    echo "[$(date)] V2 Pipeline 开始" | tee -a "$LOG_FILE"
     echo "========================================" | tee -a "$LOG_FILE"
 
     MAX_RETRY=3
 
-    # ---- Stage 1: 多卡 DDP (Ultralytics 内置) ----
+    # ---- Stage 1b: 从 Stage 1 best.pt 延长训练 (MuSGD, 200ep, 4卡) ----
     echo "" | tee -a "$LOG_FILE"
-    echo "===== Stage 1: 主训练 300ep (4卡 DDP) =====" | tee -a "$LOG_FILE"
-    STAGE1_BEST=""
+    echo "===== Stage 1b: 延长训练 200ep (4卡 DDP, MuSGD) =====" | tee -a "$LOG_FILE"
     for attempt in $(seq 1 $MAX_RETRY); do
-        echo "[Stage1] 第 ${attempt} 次尝试..." | tee -a "$LOG_FILE"
-        if "$PYTHON" train_stage1.py --project "$PROJECT" --name stage1 \
+        echo "[Stage1b] 第 ${attempt} 次尝试..." | tee -a "$LOG_FILE"
+        if "$PYTHON" train_stage1b.py \
+            --model "$STAGE1_BEST" \
+            --project "$PROJECT" --name stage1b \
             2>&1 | tee -a "$LOG_FILE"; then
             break
         fi
-        echo "[Stage1] 失败, 60s 后重试..." | tee -a "$LOG_FILE"
+        echo "[Stage1b] 失败, 60s 后重试..." | tee -a "$LOG_FILE"
         sleep 60
     done
 
-    STAGE1_RESULT="$PROJECT/stage1/.stage1_result"
-    if [ -f "$STAGE1_RESULT" ]; then
-        STAGE1_BEST=$(cat "$STAGE1_RESULT")
-        echo "[Stage1] best.pt = $STAGE1_BEST" | tee -a "$LOG_FILE"
+    STAGE1B_RESULT="$PROJECT/stage1b/.stage1b_result"
+    if [ -f "$STAGE1B_RESULT" ]; then
+        STAGE1B_BEST=$(cat "$STAGE1B_RESULT")
+        echo "[Stage1b] best.pt = $STAGE1B_BEST" | tee -a "$LOG_FILE"
     else
-        echo "[ERROR] Stage 1 未产生 .stage1_result" | tee -a "$LOG_FILE"
+        echo "[ERROR] Stage 1b 未产生 .stage1b_result" | tee -a "$LOG_FILE"
         exit 1
     fi
 
-    # ---- Stage 2: 单卡 rect=True 精调 ----
+    # ---- Stage 2: 单卡 MuSGD 精调 (rect=True, Albumentations) ----
     echo "" | tee -a "$LOG_FILE"
-    echo "===== Stage 2: 全分辨率精调 120ep (单卡 rect=True) =====" | tee -a "$LOG_FILE"
-    STAGE2_BEST=""
+    echo "===== Stage 2: 抗干扰精调 80ep (单卡 MuSGD, rect=True) =====" | tee -a "$LOG_FILE"
     for attempt in $(seq 1 $MAX_RETRY); do
         echo "[Stage2] 第 ${attempt} 次尝试..." | tee -a "$LOG_FILE"
-        if "$PYTHON" train_stage2.py --model "$STAGE1_BEST" --project "$PROJECT" --name stage2 \
+        if "$PYTHON" train_stage2.py \
+            --model "$STAGE1B_BEST" \
+            --project "$PROJECT" --name stage2_v2 \
             2>&1 | tee -a "$LOG_FILE"; then
             break
         fi
@@ -65,7 +68,7 @@ run_training() {
         sleep 60
     done
 
-    STAGE2_RESULT="$PROJECT/stage2/.stage2_result"
+    STAGE2_RESULT="$PROJECT/stage2_v2/.stage2_result"
     if [ -f "$STAGE2_RESULT" ]; then
         STAGE2_BEST=$(cat "$STAGE2_RESULT")
         echo "[Stage2] best.pt = $STAGE2_BEST" | tee -a "$LOG_FILE"
@@ -76,10 +79,12 @@ run_training() {
 
     # ---- Stage 3: 单卡极低 LR 抛光 ----
     echo "" | tee -a "$LOG_FILE"
-    echo "===== Stage 3: 极低 LR 抛光 60ep (单卡) =====" | tee -a "$LOG_FILE"
+    echo "===== Stage 3: 低 LR 抛光 40ep (单卡 MuSGD) =====" | tee -a "$LOG_FILE"
     for attempt in $(seq 1 $MAX_RETRY); do
         echo "[Stage3] 第 ${attempt} 次尝试..." | tee -a "$LOG_FILE"
-        if "$PYTHON" train_stage3.py --model "$STAGE2_BEST" --project "$PROJECT" --name stage3 \
+        if "$PYTHON" train_stage3.py \
+            --model "$STAGE2_BEST" \
+            --project "$PROJECT" --name stage3_v2 \
             2>&1 | tee -a "$LOG_FILE"; then
             break
         fi
@@ -89,8 +94,8 @@ run_training() {
 
     # ---- Evaluate ----
     echo "" | tee -a "$LOG_FILE"
-    echo "===== 最终评估 =====" | tee -a "$LOG_FILE"
-    STAGE3_RESULT="$PROJECT/stage3/.stage3_result"
+    echo "===== V2 最终评估 =====" | tee -a "$LOG_FILE"
+    STAGE3_RESULT="$PROJECT/stage3_v2/.stage3_result"
     if [ -f "$STAGE3_RESULT" ]; then
         FINAL_MODEL=$(cat "$STAGE3_RESULT")
     else
@@ -100,7 +105,7 @@ run_training() {
 
     echo "" | tee -a "$LOG_FILE"
     echo "========================================" | tee -a "$LOG_FILE"
-    echo "[$(date)] Pipeline 完成!" | tee -a "$LOG_FILE"
+    echo "[$(date)] V2 Pipeline 完成!" | tee -a "$LOG_FILE"
     echo "========================================" | tee -a "$LOG_FILE"
 }
 
@@ -112,8 +117,8 @@ start_tmux() {
         echo "已在跑: tmux 会话 '$SESSION' 存在。用 '$0 attach' 或 '$0 tail' 查看。"
         exit 0
     fi
-    "$tmux_bin" new -d -s "$SESSION" "bash --norc -c 'export PATH=${CONDA_BASE}/envs/${ENV_NAME}/bin:${CONDA_BASE}/bin:\$PATH; cd ${DIR}; bash ${DIR}/run_pipeline.bash _run_internal 2>&1 | tee -a ${DIR}/pipeline_tmux.log'"
-    echo "已用 tmux 启动三阶段 pipeline。会话: $SESSION"
+    "$tmux_bin" new -d -s "$SESSION" "bash --norc -c 'export PATH=${CONDA_BASE}/envs/${ENV_NAME}/bin:${CONDA_BASE}/bin:\$PATH; cd ${DIR}; bash ${DIR}/run_pipeline.bash _run_internal 2>&1 | tee -a ${DIR}/pipeline_v2_tmux.log'"
+    echo "已用 tmux 启动 V2 pipeline。会话: $SESSION"
     echo "  查看日志:  $0 tail"
     echo "  接入会话:  $0 attach (Ctrl-b d 退出)"
     echo "  停止训练:  $0 stop"
@@ -145,7 +150,7 @@ status() {
     elif [[ -f "$PID_FILE" ]] && ps -p "$(cat "$PID_FILE")" >/dev/null 2>&1; then
         echo "nohup 运行中 PID=$(cat "$PID_FILE")"
     else
-        echo "未发现运行中的 pipeline"
+        echo "未发现运行中的 V2 pipeline"
     fi
     echo "—— GPU ——"
     nvidia-smi --query-gpu=index,memory.used,memory.free,utilization.gpu --format=csv 2>/dev/null || true
@@ -190,15 +195,16 @@ attach() {
 usage() {
     cat <<EOF
 用法: $0 {start|status|stop|tail|attach}
-  start   启动三阶段训练 pipeline (tmux 优先, 关电脑不影响)
+  start   启动 V2 三阶段训练 pipeline (tmux 优先, 关电脑不影响)
   status  查看运行状态 + GPU
   stop    停止训练
   tail    实时看日志
   attach  接入 tmux 会话 (Ctrl-b d 退出)
 
-Stage 1: 4卡 DDP 300ep (Ultralytics 内置)
-Stage 2: 单卡 120ep (rect=True + Albumentations)
-Stage 3: 单卡 60ep  (低 LR + 弱增强)
+V2 Pipeline:
+  Stage 1b: 4卡 DDP 200ep (MuSGD, lr0=0.005, mosaic=0.2)
+  Stage 2:  单卡 80ep  (MuSGD, lr0=0.001, rect=True + Albumentations)
+  Stage 3:  单卡 40ep  (MuSGD, lr0=0.0002, 低增强)
 EOF
 }
 

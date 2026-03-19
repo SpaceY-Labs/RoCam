@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Stage 2: 全分辨率精调 (120 epochs)
+Stage 2: 抗干扰精调 (80 epochs)
 - 单卡训练: rect=True + Albumentations 完整生效
-- mosaic=0, optimizer=SGD, lr0=0.002
-- 从 Stage 1 best.pt 加载 (model=path, 非 resume=True)
+- optimizer=MuSGD (与 Stage 1 的 auto→MuSGD 保持一致)
+- lr0=0.001, warmup_epochs=5, cos_lr=True
+- 从 Stage 1b best.pt 加载 (model=path, 非 resume=True)
 """
 import os
 os.environ["MKL_THREADING_LAYER"] = "GNU"
@@ -80,7 +81,7 @@ def get_ram_available_gb():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, required=True, help="Stage 1 best.pt 路径")
-    parser.add_argument("--epochs", type=int, default=120)
+    parser.add_argument("--epochs", type=int, default=80)
     parser.add_argument("--batch", type=int, default=32)
     parser.add_argument("--project", type=str, default=str(DATA_DIR / "runs" / "detect"))
     parser.add_argument("--name", type=str, default="stage2")
@@ -101,12 +102,13 @@ def main():
         amp=True,
         cache="disk",
 
-        optimizer="SGD",
+        optimizer="MuSGD",
         nbs=cli.batch,
-        lr0=0.002,
-        lrf=0.05,
+        lr0=0.001,
+        lrf=0.1,
         cos_lr=True,
-        patience=50,
+        warmup_epochs=5,
+        patience=30,
 
         rect=True,
         mosaic=0.0,
@@ -118,7 +120,7 @@ def main():
 
         degrees=180,
         flipud=0.5, fliplr=0.5,
-        shear=3.0,
+        shear=2.5,
         scale=0.06,
         translate=0.03,
         perspective=0.0001,
@@ -131,17 +133,31 @@ def main():
 
     from ultralytics import YOLO
     model = YOLO(cli.model)
-    print(f"[STAGE2] model={cli.model}, lr0=0.002, SGD, rect=True, "
+    print(f"[STAGE2] model={cli.model}, lr0=0.001, MuSGD, rect=True, "
           f"batch={cli.batch}, device={device}")
 
     results = model.train(**args)
 
-    save_dir = getattr(results, "save_dir", "?")
+    save_dir = getattr(results, "save_dir", None)
+    if save_dir is None or str(save_dir) == "?":
+        save_dir = model.trainer.save_dir if hasattr(model, "trainer") else None
+    if save_dir is None:
+        candidates = sorted(
+            Path(cli.project).glob(f"{cli.name}*"),
+            key=lambda p: p.stat().st_mtime, reverse=True,
+        )
+        for c in candidates:
+            if (c / "weights" / "best.pt").exists():
+                save_dir = c
+                break
     print(f"[DONE] Stage 2 完成: {save_dir}")
     result_file = Path(cli.project) / cli.name / ".stage2_result"
     result_file.parent.mkdir(parents=True, exist_ok=True)
     best_pt = Path(save_dir) / "weights" / "best.pt"
+    if not best_pt.exists():
+        raise FileNotFoundError(f"best.pt 不存在: {best_pt}")
     result_file.write_text(str(best_pt))
+    print(f"[DONE] best.pt = {best_pt}")
 
 
 if __name__ == "__main__":
