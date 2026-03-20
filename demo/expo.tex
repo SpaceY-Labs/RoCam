@@ -270,10 +270,16 @@
   \includegraphics[width=0.88\linewidth, keepaspectratio]{libs/tools.png}
 }
 
-% --- Team Boxes (standalone row; no outer block) ---
-% --- Team Boxes (standalone row; no outer block) ---
-\block{}{
+% --- Team Section ---
+\block{Our Team}{
   \begin{minipage}[t]{0.28\linewidth}
+    
+    % --- COLOR CHANGE ADDED HERE ---
+    \colorlet{innerblocktitlebgcolor}{green!40!black} % Mixes green with 60% black for a deep forest green
+    \colorlet{innerblocktitlefgcolor}{white}          % Ensures the header text stays white
+% -------------------------------
+    % -------------------------------
+
     \innerblock{Development Team}{
       \small\sffamily 
       \begin{minipage}[t][7.2cm][c]{\linewidth} 
