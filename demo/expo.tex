@@ -177,34 +177,20 @@
 \block{Software \& Hardware Features}{
   \begin{minipage}[t]{0.48\linewidth}
     \vspace{0pt}
-    \begin{minipage}[t]{0.50\linewidth}
-      \vspace{0pt}
-      \centering
-      \includegraphics[width=\linewidth]{libs/team_placeholder.png}\\[0.3em]
-      {\normalsize\bfseries Web-Based Operator Interface}
-    \end{minipage}%
-    \hfill
-    \begin{minipage}[t]{0.46\linewidth}
-      \vspace{0pt}
-      \small
-      \textbf{Real-Time Gimbal Control:} RoCam sends low-latency movement commands to an STM32-based pan--tilt gimbal controller, allowing the system to translate software decisions into immediate physical motion during launch preparation and tracking operation. \textbf{Manual Positioning:} While the system is in \textbf{idle} mode, the operator can use the web interface to manually pan and tilt the gimbal, making it possible to quickly align the camera with the launch rail, expected ascent path, or surrounding observation area before ignition. \textbf{Responsive Local Operation:} The interface is designed for remote operation over a local network, so the operator can control the tracker from a safe stand-off location without requiring direct physical access to the hardware or any public internet connection. \textbf{System-State Awareness:} The web interface presents clear visual feedback about the current operating state, such as \textbf{idle}, \textbf{armed}, or \textbf{tracking}, helping the operator confirm readiness and reducing confusion during high-pressure launch procedures. \textbf{Safe Operator Override:} At any time, the operator can interrupt automated behavior, stop gimbal motion, and force the system back to a safe \textbf{idle} state, providing an important safety mechanism whenever unexpected motion, loss of target, or operational concerns arise.
-    \end{minipage}
+    \centering
+    \includegraphics[width=0.62\linewidth]{libs/team_placeholder.png}\\[0.3em]
+    {\normalsize\bfseries Web-Based Operator Interface}\\[0.45em]
+    \small
+    \textbf{Real-Time Gimbal Control:} RoCam provides a low-latency control path between the operator interface and an STM32-based pan--tilt gimbal controller, allowing software commands to be translated into immediate physical camera motion during launch preparation and flight operation. \textbf{Manual Positioning:} When the system is in \textbf{idle} mode, the operator can use the web interface to manually pan and tilt the camera in real time, making it possible to align the view with the launch rail, expected ascent corridor, or surrounding airspace before ignition. \textbf{Remote Operation:} All core control actions are available through a browser-based interface over a local network, so the system can be operated from a safe stand-off distance without requiring physical access to the tracker or any public internet connection. \textbf{System-State Awareness:} The interface presents clear visual feedback on the current state of the system, including \textbf{idle}, \textbf{armed}, and \textbf{tracking}, allowing the operator to quickly verify readiness and respond appropriately during time-critical launch procedures. \textbf{Safe Override:} At any point, the operator can immediately stop automated motion and command the system to return to a safe \textbf{idle} state, which is essential for fault recovery, unexpected target behavior, or general operational safety.
   \end{minipage}%
   \hfill
   \begin{minipage}[t]{0.48\linewidth}
     \vspace{0pt}
-    \begin{minipage}[t]{0.44\linewidth}
-      \vspace{0pt}
-      \centering
-      \includegraphics[width=0.95\linewidth]{libs/prototype.png}\\[0.3em]
-      {\normalsize\bfseries Two-Axis Gimbal Prototype}
-    \end{minipage}%
-    \hfill
-    \begin{minipage}[t]{0.52\linewidth}
-      \vspace{0pt}
-      \small
-      \textbf{Autonomous Vision Tracking:} Once the system is placed in the \textbf{armed} state, RoCam continuously analyzes the live camera feed to detect the rocket as a small, rapidly moving target in real time. \textbf{Automatic State Transition:} When a valid target is detected, the system automatically switches from \textbf{armed} to \textbf{tracking} without requiring additional operator input, reducing reaction delay during the most critical phase of launch. \textbf{Closed-Loop Target Following:} During tracking, vision outputs are converted into continuous pan and tilt corrections so that the gimbal actively follows the rocket and keeps it near the center of the frame throughout ascent and descent. \textbf{Robust Target Handling:} The tracking pipeline is designed to tolerate brief interruptions caused by smoke plume, glare, motion blur, or fast target motion, improving reliability under realistic outdoor launch conditions. \textbf{Short-Term Re-Acquisition:} If the rocket temporarily leaves the field of view, the system attempts short-term re-acquisition before declaring the target lost, which helps preserve footage continuity and improves the chance of recovering the rocket without manual intervention.
-    \end{minipage}
+    \centering
+    \includegraphics[width=0.55\linewidth]{libs/prototype.png}\\[0.3em]
+    {\normalsize\bfseries Two-Axis Gimbal Prototype}\\[0.45em]
+    \small
+    \textbf{Autonomous Vision Tracking:} Once the system is explicitly placed in the \textbf{armed} state, RoCam continuously processes the live camera feed to detect the rocket as a small, fast-moving target under realistic outdoor launch conditions. \textbf{Automatic State Transition:} When a valid rocket target is detected, the system automatically transitions from \textbf{armed} to \textbf{tracking} without requiring further operator input, reducing reaction delay during the most critical phase of flight. \textbf{Closed-Loop Target Following:} Detection results from the vision pipeline are converted into continuous pan and tilt corrections so that the gimbal actively follows the rocket and keeps it near the center of the frame throughout ascent and, where possible, descent. \textbf{Robustness in Challenging Conditions:} The tracking pipeline is designed to remain effective despite common disturbances such as smoke plume, glare, motion blur, or rapid angular movement, all of which are expected in real launch environments. \textbf{Short-Term Re-Acquisition:} If the rocket is briefly lost from view, the system attempts short-term re-acquisition before declaring the target lost, improving overall tracking continuity and increasing the likelihood of preserving useful flight footage without manual intervention.
   \end{minipage}
 }
 
