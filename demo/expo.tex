@@ -174,33 +174,63 @@
 % ============================================================
 \column{0.48}
 
-% --- Key Features ---
-\block{Key Features}{
-  \begin{minipage}[t]{0.57\linewidth}
-    \centering
-    \includegraphics[width=\linewidth]{libs/team_placeholder.png}\\[0.3em]
-    {\normalsize\bfseries Web-Based Operator Interface}
+\block{Software \& Hardware Features}{
+  \begin{minipage}[t]{0.48\linewidth}
+    \vspace{0pt}
+    \begin{minipage}[t]{0.50\linewidth}
+      \vspace{0pt}
+      \centering
+      \includegraphics[width=\linewidth]{libs/team_placeholder.png}\\[0.3em]
+      {\normalsize\bfseries Web-Based Operator Interface}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{0.46\linewidth}
+      \vspace{0pt}
+      \small
+      \textbf{Real-Time Gimbal Control:} RoCam sends low-latency movement commands to an STM32-based pan--tilt gimbal controller, allowing the system to translate software decisions into immediate physical motion during launch preparation and tracking operation. \textbf{Manual Positioning:} While the system is in \textbf{idle} mode, the operator can use the web interface to manually pan and tilt the gimbal, making it possible to quickly align the camera with the launch rail, expected ascent path, or surrounding observation area before ignition. \textbf{Responsive Local Operation:} The interface is designed for remote operation over a local network, so the operator can control the tracker from a safe stand-off location without requiring direct physical access to the hardware or any public internet connection. \textbf{System-State Awareness:} The web interface presents clear visual feedback about the current operating state, such as \textbf{idle}, \textbf{armed}, or \textbf{tracking}, helping the operator confirm readiness and reducing confusion during high-pressure launch procedures. \textbf{Safe Operator Override:} At any time, the operator can interrupt automated behavior, stop gimbal motion, and force the system back to a safe \textbf{idle} state, providing an important safety mechanism whenever unexpected motion, loss of target, or operational concerns arise.
+    \end{minipage}
   \end{minipage}%
   \hfill
-  \begin{minipage}[t]{0.38\linewidth}
-    \centering
-    \includegraphics[width=0.85\linewidth]{libs/prototype.png}\\[0.3em]
-    {\normalsize\bfseries Two-Axis Gimbal Prototype}
+  \begin{minipage}[t]{0.48\linewidth}
+    \vspace{0pt}
+    \begin{minipage}[t]{0.44\linewidth}
+      \vspace{0pt}
+      \centering
+      \includegraphics[width=0.95\linewidth]{libs/prototype.png}\\[0.3em]
+      {\normalsize\bfseries Two-Axis Gimbal Prototype}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{0.52\linewidth}
+      \vspace{0pt}
+      \small
+      \textbf{Autonomous Vision Tracking:} Once the system is placed in the \textbf{armed} state, RoCam continuously analyzes the live camera feed to detect the rocket as a small, rapidly moving target in real time. \textbf{Automatic State Transition:} When a valid target is detected, the system automatically switches from \textbf{armed} to \textbf{tracking} without requiring additional operator input, reducing reaction delay during the most critical phase of launch. \textbf{Closed-Loop Target Following:} During tracking, vision outputs are converted into continuous pan and tilt corrections so that the gimbal actively follows the rocket and keeps it near the center of the frame throughout ascent and descent. \textbf{Robust Target Handling:} The tracking pipeline is designed to tolerate brief interruptions caused by smoke plume, glare, motion blur, or fast target motion, improving reliability under realistic outdoor launch conditions. \textbf{Short-Term Re-Acquisition:} If the rocket temporarily leaves the field of view, the system attempts short-term re-acquisition before declaring the target lost, which helps preserve footage continuity and improves the chance of recovering the rocket without manual intervention.
+    \end{minipage}
   \end{minipage}
+}
 
-  \vspace{0.8em}
+\block{Computer Vision \& Machine Learning}{
+  \begin{minipage}[t]{0.28\linewidth}
+    \vspace{0pt}
+    \centering
+    \posterimg[
+      width=0.95\linewidth,
+      keepaspectratio
+    ]{libs/results_train.png}{YOLO26s-P2 Training Performance}
+  \end{minipage}%
+  \hfill
+  \begin{minipage}[t]{0.68\linewidth}
+    \vspace{0pt}
+    \small
+    \begin{itemize}[leftmargin=1.1em, itemsep=0.18em]
+    \item \textbf{Model Architecture:} The detector was upgraded from the baseline \textbf{YOLO26s} to \textbf{YOLO26s-P2}, which adds a \textbf{stride-4 detection head} for improved sensitivity to very small rockets, at an approximate \textbf{+22\% GFLOPs} cost while remaining suitable for edge deployment.
 
-  \begin{itemize}[leftmargin=1.2em, itemsep=0.4em]
-    \item \textbf{Real-Time Gimbal Control} -- Two-axis servo gimbal with
-          closed-loop proportional control for smooth, accurate tracking.
-    \item \textbf{YOLO Computer Vision} -- GPU-accelerated object detection
-          via NVIDIA DeepStream and TensorRT, maintaining lock through
-          partial occlusion.
-    \item \textbf{Web Application} -- Live 1080p video preview, manual
-          override controls, video recording with playback and download.
-    \item \textbf{Digital Zoom \& Stabilization} -- Software-based zoom
-          and frame stabilization for clear close-up footage of rocket events.
-  \end{itemize}
+    \item \textbf{Data Strategy:} To suppress false positives, the training set was expanded with \textbf{4,000 COCO hard-negative background images} with empty labels, increasing the training split from \textbf{11,832} to \textbf{15,832} images and making background-only samples about \textbf{25\%} of training data.
+
+    \item \textbf{Training Stages:} Performance initially dropped from \textbf{mAP50--95 = 0.694} to \textbf{0.614} after introducing the P2 head and harder negatives, then recovered through a \textbf{three-stage fine-tuning pipeline}: close-mosaic fine-tuning raised performance to \textbf{0.720}, and ultra-fine polishing improved it further to a final \textbf{mAP50 = 0.958} and \textbf{mAP50--95 = 0.750}.
+
+    \item \textbf{Training Platform:} Experiments were run using \textbf{Distributed Data Parallel (DDP)} with mixed precision on a \textbf{4$\times$ NVIDIA H100 PCIe} cluster, enabling stable large-batch training, reproducible stage-by-stage comparison, and efficient optimization of the final detector.
+    \end{itemize}
+  \end{minipage}
 }
 
 % --- Team Section ---
