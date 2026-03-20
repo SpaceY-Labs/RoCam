@@ -270,33 +270,52 @@
   \includegraphics[width=0.88\linewidth, keepaspectratio]{libs/tools.png}
 }
 
-\block{Team Responsibilities}{
-  \begin{minipage}[t]{0.31\linewidth}
+% --- Team Boxes (standalone row; no outer block) ---
+% --- Team Boxes (standalone row; no outer block) ---
+\block{}{
+  \begin{minipage}[t]{0.28\linewidth}
     \innerblock{RoCam Mission Team}{
-      \small
-      Zifan Si\\
-      Jianqing Liu\\
-      Mike Chen\\
-      Xiaotian Lou
+      \small\sffamily 
+      \begin{minipage}[t][7.2cm][c]{\linewidth} 
+        \centering
+        \includegraphics[width=0.85\linewidth, height=2.8cm, keepaspectratio]{libs/team_rocam.png}\\[1em]
+        Zifan Si\\[0.2em]
+        Jianqing Liu\\[0.2em]
+        Mike Chen\\[0.2em]
+        Xiaotian Lou
+      \end{minipage}
     }
   \end{minipage}%
   \hfill
-  \begin{minipage}[t]{0.31\linewidth}
+  \begin{minipage}[t]{0.28\linewidth}
     \innerblock{Launch \& Ground Support Team}{
-      \small
-      McMaster Rocketry Team
+      \small\sffamily
+      \begin{minipage}[t][7.2cm][c]{\linewidth}
+        \centering
+        \includegraphics[width=0.85\linewidth, height=3.0cm, keepaspectratio]{libs/team_rocketry.png}\\[1em]
+        McMaster Rocketry Team
+      \end{minipage}
     }
   \end{minipage}%
   \hfill
-  \begin{minipage}[t]{0.31\linewidth}
+  \begin{minipage}[t]{0.28\linewidth}
+    
+    % --- COLOR CHANGE ADDED HERE ---
+    \colorlet{innerblocktitlebgcolor}{blue!80!black} % Changes the header background to blue
+    \colorlet{innerblocktitlefgcolor}{white}         % Ensures the header text stays white
+    % -------------------------------
+
     \innerblock{Advisory Team}{
-      \small
-      Dr.\ Shahin Sirouspour\\
-      Dr.\ Spencer Smith\\
-      Tanya Djavaherpour
+      \small\sffamily
+      \begin{minipage}[t][7.2cm][c]{\linewidth}
+        \centering
+        Dr.\ Shahin Sirouspour\\[0.2em]
+        Dr.\ Spencer Smith\\[0.2em]
+        Tanya Djavaherpour\\[1em]
+        \includegraphics[width=0.85\linewidth, height=2.8cm, keepaspectratio]{libs/team_cas.png}
+      \end{minipage}
     }
   \end{minipage}
 }
-
 \end{columns}
 \end{document}
