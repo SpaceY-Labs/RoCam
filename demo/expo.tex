@@ -136,51 +136,28 @@
 
 % --- System Architecture ---
 \block{System Architecture}{
-  \centering
-  
-  % --- Top Section: Diagram ---
-  % I kept your specific trim and clip settings, but increased the width to 90%
-  \posterimg[
-    width=0.9\linewidth,
-    trim=40 420 40 420,
-    clip
-  ]{../img/pipeline.png}{Real-Time Vision and Control Pipeline}
-
-  \vspace{1.5em} % Breathing room between the diagram and text
-
-  % --- Bottom Section: Bullet Points ---
-  \small
-  \begin{itemize}[leftmargin=2em, itemsep=0.6em]
-    \item \textbf{Core Processing:} Runs a distributed multi-process architecture on an NVIDIA Jetson.
-    \item \textbf{Vision Pipeline:} A GStreamer pipeline captures camera input at 1920$\times$1080 and feeds it through NVIDIA DeepStream for real-time YOLO inference.
-    \item \textbf{Gimbal Control:} Detection results drive a proportional tracking controller commanding a two-axis servo gimbal via an STM32 microcontroller over UART.
-    \item \textbf{Web Backend:} A Flask-based control process manages state, recording, transcoding, and serves a REST API with SSE to the web frontend.
-  \end{itemize}
-  
-  \vspace{0.2em}
-}
-
-% --- Launch Validation & Key Benefits ---
-\block{Launch Validation \& Key Benefits}{
-  % --- Left Side: Image ---
-  \begin{minipage}[c]{0.48\linewidth}
+  % --- Left Side: Diagram ---
+  \begin{minipage}[c]{0.58\linewidth}
     \centering
     \posterimg[
-      width=\linewidth, % Image will fill this left column
-      keepaspectratio
-    ]{libs/launch.png}{} % Removed the caption text for a cleaner look
-  \end{minipage}%
+      width=\linewidth,
+      clip
+    ]{../img/pipeline.png}{Real-Time Vision and Control Pipeline}
+  \end{minipage}% <--- Crucial % to prevent Overfull \hbox
   \hfill
-  % --- Right Side: Bullet Points ---
-  \begin{minipage}[c]{0.48\linewidth}
+  % --- Right Side: Text ---
+  \begin{minipage}[c]{0.40\linewidth}
     \small
-    \begin{itemize}[leftmargin=1.5em, itemsep=0.4em]
-      \item \textbf{Tracking:} Autonomous, hands-free
-      \item \textbf{Video:} 1080p, 60fps
-      \item \textbf{Control:} Web, remote
-      \item \textbf{Scale:} 3km+ altitude
-      \item \textbf{Cost:} Affordable, off-the-shelf
-    \end{itemize}
+    \noindent\textbf{Edge Compute \& Hardware.} The implemented architecture follows a distributed multi-process edge-compute design on an NVIDIA Jetson. To ensure high reliability, CPU/GPU-heavy perception workloads are isolated from control and operator services via Inter-Process Communication (IPC). This strict fault isolation preserves deterministic command flow and API stability even if the vision pipeline encounters transient errors during launch-dynamic conditions.
+
+    \vspace{0.6em}
+    \noindent\textbf{Vision Pipeline.} Image acquisition utilizes a GStreamer capture graph configured for 1920$\times$1080 at 60\,fps, feeding NVIDIA DeepStream for GPU-accelerated preprocessing. Detection relies on a YOLO network optimized with TensorRT, yielding low-latency normalized bounding boxes. A decoupled Live Video process parallelizes OSD telemetry overlay and HDMI output to guarantee continuous situational awareness without blocking inference.
+
+    \vspace{0.6em}
+    \noindent\textbf{Kinematic Control.} The tracking module calculates image-plane target error (targeting frame center $cx=0.5, cy=0.5$) to generate proportional 2-axis gimbal actuation commands. These commands pass through a validated, state-gated pathway—enforcing rate limits and safety bounds—before transmission to an STM32 microcontroller via UART, ensuring deterministic, closed-loop responsiveness throughout boost and coast regimes.
+
+    \vspace{0.6em}
+    \noindent\textbf{Backend \& State Management.} System orchestration is governed by a centralized State Machine (Disarmed, Armed, Tracking, Recording) that prevents invalid mode combinations and enforces hardware safety. A Flask-based API Gateway exposes a REST interface for offline-first LAN operation, managing mode transitions, asynchronous recording/transcoding workflows, and streaming SSE telemetry for live state and control-stream observability.
   \end{minipage}
 }
 
@@ -191,39 +168,21 @@
 
 % --- Key Features ---
 \block{Key Features}{
-  \small
-  \begin{minipage}[t]{0.49\linewidth}
+  \begin{minipage}[t]{0.57\linewidth}
     \centering
-    \posterimg[
-      width=\linewidth,
-      height=8.0cm,
-      keepaspectratio
-    ]{libs/rocam_prototype_converted.png}{RoCam Gimbal CAD}
+    \includegraphics[width=\linewidth]{libs/prototype.png}\\[0.3em]
+    {\normalsize\bfseries Web-Based Operator Interface}
   \end{minipage}%
   \hfill
-  \begin{minipage}[t]{0.49\linewidth}
+  \begin{minipage}[t]{0.38\linewidth}
     \centering
-    \posterimg[
-      width=\linewidth,
-      height=8.0cm,
-      keepaspectratio,
-      trim=220 420 240 360,
-      clip
-    ]{libs/rocket_hardware.jpg}{Integrated Avionics Hardware}
+    \includegraphics[width=0.85\linewidth]{libs/prototype.png}\\[0.3em]
+    {\normalsize\bfseries Two-Axis Gimbal Prototype}
   \end{minipage}
 
-  \vspace{0.25em}
+  \vspace{0.8em}
 
-  \centering
-  \posterimg[
-    width=0.98\linewidth,
-    height=5.2cm,
-    keepaspectratio
-  ]{../docs/Images/rocam_ui_overview.png}{Web-Based Operator Interface}
-
-  \vspace{0.25em}
-
-  \begin{itemize}[leftmargin=1.1em, itemsep=0.2em]
+  \begin{itemize}[leftmargin=1.2em, itemsep=0.4em]
     \item \textbf{Real-Time Gimbal Control} -- Two-axis servo gimbal with
           closed-loop proportional control for smooth, accurate tracking.
     \item \textbf{YOLO Computer Vision} -- GPU-accelerated object detection
