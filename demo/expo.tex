@@ -125,38 +125,38 @@
   \textbf{scalable to high-powered rockets} (3\,km+ apogee) for
   organizations such as the McMaster Rocketry Team.
 
-  \vspace{0.35em}
+  \vspace{0.5em}
+
   \centering
   \posterimg[
-    width=\linewidth,
-    trim=120 1150 120 1150,
-    clip
-  ]{libs/rocket_ready.jpg}{Field Launch Operations with McMaster Rocketry Team}
+    width=0.96\linewidth,
+    keepaspectratio
+  ]{libs/section_1.png}{RoCam Launch and Tracking Operations}
 }
 
 % --- System Architecture ---
 \block{System Architecture}{
-  \small
-  \begin{minipage}[t]{0.57\linewidth}
-    \centering
-    \posterimg[
-      width=\linewidth,
-      trim=40 420 40 420,
-      clip
-    ]{../img/pipeline.png}{Real-Time Vision and Control Pipeline}
-  \end{minipage}%
-  \hfill
-  \begin{minipage}[t]{0.40\linewidth}
-    The system runs a \textbf{distributed multi-process architecture} on an
-    NVIDIA Jetson. A GStreamer pipeline captures camera input at
-    1920$\times$1080 and feeds it through NVIDIA DeepStream for real-time
-    YOLO inference. Detection results drive a proportional tracking
-    controller that commands a two-axis servo gimbal via an STM32
-    microcontroller over UART. A Flask-based control process manages
-    state, recording, transcoding, and serves a REST API with SSE to the
-    web frontend.
-  \end{minipage}
+  \centering
+  
+  % --- Top Section: Diagram ---
+  % I kept your specific trim and clip settings, but increased the width to 90%
+  \posterimg[
+    width=0.9\linewidth,
+    trim=40 420 40 420,
+    clip
+  ]{../img/pipeline.png}{Real-Time Vision and Control Pipeline}
 
+  \vspace{1.5em} % Breathing room between the diagram and text
+
+  % --- Bottom Section: Bullet Points ---
+  \small
+  \begin{itemize}[leftmargin=2em, itemsep=0.6em]
+    \item \textbf{Core Processing:} Runs a distributed multi-process architecture on an NVIDIA Jetson.
+    \item \textbf{Vision Pipeline:} A GStreamer pipeline captures camera input at 1920$\times$1080 and feeds it through NVIDIA DeepStream for real-time YOLO inference.
+    \item \textbf{Gimbal Control:} Detection results drive a proportional tracking controller commanding a two-axis servo gimbal via an STM32 microcontroller over UART.
+    \item \textbf{Web Backend:} A Flask-based control process manages state, recording, transcoding, and serves a REST API with SSE to the web frontend.
+  \end{itemize}
+  
   \vspace{0.2em}
 }
 
