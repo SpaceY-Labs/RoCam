@@ -1,0 +1,308 @@
+\documentclass[25pt, a0paper, landscape]{tikzposter}
+
+% ============================================================
+% Packages
+% ============================================================
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{enumitem}
+
+% Remove tikzposter watermark
+\tikzposterlatexaffectionproofoff
+
+% Define VeryHuge if not available in this tikzposter version
+\makeatletter
+\@ifundefined{VeryHuge}{%
+  \newcommand{\VeryHuge}{\fontsize{80}{96}\selectfont}%
+}{}
+\makeatother
+
+% ============================================================
+% Color Theme — RoCam Red / Black
+% ============================================================
+\definecolorstyle{RoCamStyle}{
+  \definecolor{colorOne}{RGB}{30, 30, 30}       % dark (headers)
+  \definecolor{colorTwo}{RGB}{220, 38, 38}      % RoCam red
+  \definecolor{colorThree}{RGB}{245, 245, 245}  % light gray
+}{
+  \colorlet{backgroundcolor}{white}
+  \colorlet{framecolor}{white}
+  % title bar
+  \colorlet{titlefgcolor}{white}
+  \colorlet{titlebgcolor}{colorOne}
+  % blocks
+  \colorlet{blocktitlebgcolor}{colorOne}
+  \colorlet{blocktitlefgcolor}{white}
+  \colorlet{blockbodybgcolor}{white}
+  \colorlet{blockbodyfgcolor}{black}
+  % inner blocks
+  \colorlet{innerblocktitlebgcolor}{colorTwo}
+  \colorlet{innerblocktitlefgcolor}{white}
+  \colorlet{innerblockbodybgcolor}{colorThree}
+  \colorlet{innerblockbodyfgcolor}{black}
+}
+
+\usetheme{Default}
+\usecolorstyle{RoCamStyle}
+\useblockstyle{Default}
+\usetitlestyle{Filled}
+
+% ============================================================
+% Technology badge command
+% ============================================================
+\newcommand{\tool}[1]{%
+  \tikz[baseline=(t.base)]{%
+    \node[fill=colorTwo!10, draw=colorTwo!50, rounded corners=3pt,
+          inner xsep=8pt, inner ysep=5pt,
+          font=\normalsize\bfseries] (t) {#1};%
+  }\hspace{3pt}%
+}
+
+% Consistent image card for poster visuals
+\newcommand{\posterimg}[3][]{%
+  \begin{minipage}[t]{\linewidth}
+    \centering
+    \setlength{\fboxsep}{0pt}%
+    \fcolorbox{colorOne!40}{white}{\includegraphics[#1]{#2}}\\[0.25em]
+    {\small\bfseries #3}
+  \end{minipage}%
+}
+
+% ============================================================
+% Title — three-part header: McMaster | Logo+Title | Department
+% ============================================================
+\title{\mbox{}}
+\author{}
+\institute{}
+
+\makeatletter
+\settitle{
+  \parbox{\linewidth}{%
+    \color{titlefgcolor}%
+    \begin{minipage}[c]{0.20\linewidth}
+      {\Large\bfseries McMaster University\\[0.15em] Engineering}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[c]{0.52\linewidth}
+      \centering
+      \includegraphics[height=7cm]{../assets/logo/red.png}\\[0.3em]
+      {\huge High Performance Vision-Guided Rocket Tracker}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[c]{0.22\linewidth}
+      \raggedleft
+      {\LARGE\bfseries Capstone Project}\\[0.3em]
+      {\Large Department of\\Computing and Software\\[0.2em]
+       Mechatronics \&\\Software Engineering}
+    \end{minipage}%
+  }%
+}
+\makeatother
+
+% ============================================================
+\begin{document}
+\maketitle
+
+\begin{columns}
+
+% ============================================================
+%  LEFT COLUMN
+% ============================================================
+\column{0.48}
+
+% --- Motivation ---
+\block{Motivation}{
+  Capturing smooth, stable footage of model rockets is a major challenge.
+  These vehicles accelerate to hundreds of meters per second within fractions
+  of a second, making manual camera tracking nearly impossible. Existing
+  commercial tracking solutions are prohibitively expensive and not designed
+  for amateur rocketry.
+
+  \vspace{0.5em}
+
+  RoCam addresses this gap with an \textbf{autonomous, vision-guided camera
+  tracking system} that locks onto and follows model rockets in real time.
+  The system delivers smooth \textbf{1080p video at 60\,fps}, capturing
+  critical flight events such as motor ignition, staging, and parachute
+  deployment.
+
+  \vspace{0.5em}
+
+  Designed for small-scale launches ($<$200\,m apogee), the platform is
+  \textbf{scalable to high-powered rockets} (3\,km+ apogee) for
+  organizations such as the McMaster Rocketry Team.
+
+  \vspace{0.7em}
+  \centering
+  \posterimg[
+    width=0.97\linewidth,
+    height=11.2cm,
+    keepaspectratio,
+    trim=180 320 180 260,
+    clip
+  ]{libs/rocket_ready.jpg}{Field Launch Operations with McMaster Rocketry Team}
+}
+
+% --- System Architecture ---
+\block{System Architecture}{
+  \begin{minipage}[c]{0.48\linewidth}
+    \centering
+    \posterimg[
+      width=\linewidth,
+      height=12.2cm,
+      keepaspectratio
+    ]{../img/pipeline.png}{Real-Time Vision and Control Pipeline}
+  \end{minipage}%
+  \hfill
+  \begin{minipage}[c]{0.48\linewidth}
+    The system runs a \textbf{distributed multi-process architecture} on an
+    NVIDIA Jetson. A GStreamer pipeline captures camera input at
+    1920$\times$1080 and feeds it through NVIDIA DeepStream for real-time
+    YOLO inference. Detection results drive a proportional tracking
+    controller that commands a two-axis servo gimbal via an STM32
+    microcontroller over UART. A Flask-based control process manages
+    state, recording, transcoding, and serves a REST API with SSE to the
+    web frontend.
+
+    \vspace{0.5em}
+
+    \centering
+    \posterimg[
+      width=\linewidth,
+      height=8.8cm,
+      keepaspectratio
+    ]{../docs/Images/module_use_hierarchy.png}{Software Module Hierarchy}
+  \end{minipage}
+}
+
+% --- Launch Validation & Key Benefits ---
+\block{Launch Validation \& Key Benefits}{
+  \begin{minipage}[t]{0.31\linewidth}
+    \centering
+    \posterimg[
+      width=\linewidth,
+      height=11.0cm,
+      keepaspectratio,
+      trim=0 80 0 170,
+      clip
+    ]{libs/launch_stage_1.png}{T-0: Launch Pad Tracking}
+  \end{minipage}%
+  \hfill
+  \begin{minipage}[t]{0.31\linewidth}
+    \centering
+    \posterimg[
+      width=\linewidth,
+      height=11.0cm,
+      keepaspectratio,
+      trim=0 80 0 280,
+      clip
+    ]{libs/launch_stage_2.png}{Ignition and Lift-Off}
+  \end{minipage}%
+  \hfill
+  \begin{minipage}[t]{0.31\linewidth}
+    \centering
+    \posterimg[
+      width=\linewidth,
+      height=11.0cm,
+      keepaspectratio,
+      trim=0 90 0 300,
+      clip
+    ]{libs/launch_stage_3.png}{Ascent Lock Continuity}
+  \end{minipage}
+
+  \vspace{0.6em}
+
+  \begin{itemize}[leftmargin=1.2em, itemsep=0.4em]
+    \item \textbf{Autonomous Tracking} -- Eliminates the need for skilled
+          camera operators; locks on and follows the rocket automatically.
+    \item \textbf{High-Quality Output} -- Real-time 1080p at 60\,fps
+          with smooth gimbal motion for broadcast-quality footage.
+    \item \textbf{Accessible Interface} -- Web-based UI accessible from
+          any device on the local network for remote monitoring and control.
+    \item \textbf{Scalable Design} -- Architecturally ready for
+          high-powered launches at 3\,km+ altitude.
+    \item \textbf{Low-Cost Hardware} -- Built on NVIDIA Jetson and
+          commodity servos, keeping the total cost affordable.
+  \end{itemize}
+}
+
+% ============================================================
+%  RIGHT COLUMN
+% ============================================================
+\column{0.48}
+
+% --- Key Features ---
+\block{Key Features}{
+  \begin{minipage}[t]{0.48\linewidth}
+    \centering
+    \posterimg[
+      width=\linewidth,
+      height=10.5cm,
+      keepaspectratio
+    ]{libs/rocam_prototype_converted.png}{RoCam Gimbal CAD}
+  \end{minipage}%
+  \hfill
+  \begin{minipage}[t]{0.48\linewidth}
+    \centering
+    \posterimg[
+      width=\linewidth,
+      height=10.5cm,
+      keepaspectratio,
+      trim=110 250 140 210,
+      clip
+    ]{libs/rocket_hardware.jpg}{Integrated Avionics Hardware}
+  \end{minipage}
+
+  \vspace{0.5em}
+
+  \centering
+  \posterimg[
+    width=0.98\linewidth,
+    height=7.4cm,
+    keepaspectratio
+  ]{../docs/Images/rocam_ui_overview.png}{Web-Based Operator Interface}
+
+  \vspace{0.5em}
+
+  \begin{itemize}[leftmargin=1.2em, itemsep=0.4em]
+    \item \textbf{Real-Time Gimbal Control} -- Two-axis servo gimbal with
+          closed-loop proportional control for smooth, accurate tracking.
+    \item \textbf{YOLO Computer Vision} -- GPU-accelerated object detection
+          via NVIDIA DeepStream and TensorRT, maintaining lock through
+          partial occlusion.
+    \item \textbf{Web Application} -- Live 1080p video preview, manual
+          override controls, video recording with playback and download.
+    \item \textbf{Digital Zoom \& Stabilization} -- Software-based zoom
+          and frame stabilization for clear close-up footage of rocket events.
+  \end{itemize}
+}
+
+% --- Tools & Technologies ---
+\block{Tools \& Technologies}{
+  \vspace{0.3em}
+  \centering
+  \tool{React} \tool{TypeScript} \tool{Vite}
+  \tool{Tailwind CSS} \tool{Python} \tool{Flask}\\[0.7em]
+  \tool{NVIDIA DeepStream} \tool{YOLO} \tool{TensorRT}
+  \tool{GStreamer} \tool{SQLite}\\[0.7em]
+  \tool{Rust} \tool{Embassy} \tool{STM32} \tool{GitHub}
+  \vspace{0.3em}
+}
+
+% --- Team & Acknowledgements ---
+\block{Team Responsibilities}{
+  \small
+
+  {\large\bfseries RoCam Mission Team}\\[0.4em]
+  Zifan Si, Jianqing Liu, Mike Chen, Xiaotian Lou\\[0.8em]
+
+  {\large\bfseries Launch \& Ground Support Team}\\[0.4em]
+  McMaster Rocketry Team\\[0.8em]
+
+  {\large\bfseries Advisory Team}\\[0.4em]
+  Dr.\ Shahin Sirouspour, Dr.\ Spencer Smith, Tanya Djavaherpour
+}
+
+\end{columns}
+\end{document}
