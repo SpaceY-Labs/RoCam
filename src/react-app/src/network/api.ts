@@ -28,6 +28,9 @@ export type StatusResponse = {
   is_recording: boolean
   longitude: number | null
   latitude: number | null
+  focal_length_mm: number
+  focal_length_min_mm: number
+  focal_length_max_mm: number
 }
 
 export type Recording = {
@@ -207,6 +210,12 @@ export class ApiClient {
         new_name: newName,
       }
     )
+  }
+
+  async setFocalLength(focalLengthMm: number): Promise<ApiResponse> {
+    return this.requestJson<ApiResponse>('POST', '/api/set_focal_length', {
+      focal_length_mm: focalLengthMm,
+    })
   }
 
   async deleteRecording(recordingId: string): Promise<ApiResponse> {

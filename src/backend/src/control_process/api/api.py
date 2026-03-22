@@ -56,6 +56,13 @@ def run_api_gateway(
         state_management.manual_move_to(tilt, pan)
         return jsonify({})
 
+    @app.post("/api/set_focal_length")
+    def set_focal_length():
+        data = request.get_json()
+        focal_length_mm = data.get("focal_length_mm")
+        state_management.set_focal_length(focal_length_mm)
+        return jsonify({})
+
     @app.post("/api/arm")
     def arm():
         state_management.arm()
