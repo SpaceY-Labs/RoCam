@@ -8,6 +8,8 @@ import {
   IconChevronUp,
   IconChevronDown,
   IconHome,
+  IconZoomIn,
+  IconZoomOut,
 } from '@tabler/icons-react'
 import { useTimeoutFn } from 'react-use'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -83,6 +85,42 @@ export function ControlsCard() {
   }
 
   return (
+    <>
+      <Card radius="sm">
+        <CardBody className="px-6 py-5">
+          <p className="text-xs font-semibold uppercase text-gray-800 tracking-widest">
+            <Trans>Controls</Trans>
+          </p>
+          <div className="flex gap-8 mt-4">
+            <GimbalPad
+              isInteractionBlocked={!apiClient || cooldownOrLoading}
+              onMoveAttemptWhileArmed={openDisarmConfirm}
+            />
+            <div className="flex flex-col justify-center gap-3">
+              <Button
+                color="danger"
+                isDisabled={!apiClient || cooldownOrLoading}
+                radius="sm"
+                variant="bordered"
+                onPress={handleToggleRecording}
+              >
+                {isRecording ? (
+                  <Trans>Stop Recording</Trans>
+                ) : (
+                  <Trans>Start Recording</Trans>
+                )}
+              </Button>
+              <Button
+                className="border-amber-500 text-amber-600"
+                color="warning"
+                isDisabled={!apiClient || cooldownOrLoading}
+                radius="sm"
+                variant="bordered"
+                onPress={handleToggleArm}
+              >
+                {isArmed ? <Trans>Disarm</Trans> : <Trans>Arm</Trans>}
+              </Button>
+            </div>
     <Card radius="sm">
       <CardBody className="px-6 py-5">
         <p className="text-xs font-semibold uppercase text-gray-800 tracking-widest">
@@ -90,6 +128,7 @@ export function ControlsCard() {
         </p>
         <div className="flex gap-8 mt-4">
           <GimbalPad />
+          <ZoomControls />
           <div className="flex flex-col justify-center gap-3">
             <Button
               color="danger"
@@ -115,13 +154,64 @@ export function ControlsCard() {
               {isArmed ? <Trans>Disarm</Trans> : <Trans>Arm</Trans>}
             </Button>
           </div>
-        </div>
-      </CardBody>
-    </Card>
+        </CardBody>
+      </Card>
+
+      <Modal
+        isDismissable={!isArmLoading}
+        isOpen={showDisarmConfirm}
+        onOpenChange={(open) => setShowDisarmConfirm(open)}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader>
+                <Trans>Disarm and switch to manual control?</Trans>
+              </ModalHeader>
+              <ModalBody>
+                <p className="text-sm text-gray-600">
+                  <Trans>
+                    Disarming will exit armed mode and re-enable manual gimbal
+                    controls.
+                  </Trans>
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  isDisabled={isArmLoading}
+                  radius="sm"
+                  variant="light"
+                  onPress={onClose}
+                >
+                  <Trans>Cancel</Trans>
+                </Button>
+                <Button
+                  color="warning"
+                  isLoading={isArmLoading}
+                  radius="sm"
+                  variant="solid"
+                  onPress={handleConfirmDisarm}
+                >
+                  <Trans>Disarm and Manual Control</Trans>
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </>
   )
 }
 
-function GimbalPad() {
+type GimbalPadProps = {
+  isInteractionBlocked: boolean
+  onMoveAttemptWhileArmed: () => void
+}
+
+function GimbalPad({
+  isInteractionBlocked,
+  onMoveAttemptWhileArmed,
+}: GimbalPadProps) {
   const { t } = useLingui()
   const { apiClient, status } = useRocam()
   const disabled = !!status?.armed
@@ -211,6 +301,63 @@ function GimbalPad() {
         <IconChevronDown />
       </Button>
       <div />
+    </div>
+  )
+}
+
+function ZoomControls() {
+  const { t } = useLingui()
+  const { apiClient, status } = useRocam()
+  const disabled = !!status?.armed
+
+  const focalAvailable =
+    status?.focal_length_mm != null &&
+    status?.focal_length_min_mm != null &&
+    status?.focal_length_max_mm != null
+
+  const handleZoom = async (direction: 'in' | 'out') => {
+    if (!apiClient || !status || !focalAvailable) return
+    const range = status.focal_length_max_mm - status.focal_length_min_mm
+    const step = Math.max(1, range * 0.1)
+    const delta = direction === 'in' ? step : -step
+    const newFocal = Math.max(
+      status.focal_length_min_mm,
+      Math.min(status.focal_length_max_mm, status.focal_length_mm + delta)
+    )
+
+    try {
+      await apiClient.setFocalLength(newFocal)
+    } catch (error) {
+      addToast({
+        title: t`Failed to set focal length`,
+        description: getErrorMessage(error),
+        color: 'danger',
+      })
+    }
+  }
+
+  return (
+    <div className="flex flex-col justify-center gap-2">
+      <Button
+        isIconOnly
+        disabled={disabled || !focalAvailable}
+        radius="sm"
+        size="lg"
+        variant="flat"
+        onPress={() => void handleZoom('in')}
+      >
+        <IconZoomIn />
+      </Button>
+      <Button
+        isIconOnly
+        disabled={disabled || !focalAvailable}
+        radius="sm"
+        size="lg"
+        variant="flat"
+        onPress={() => void handleZoom('out')}
+      >
+        <IconZoomOut />
+      </Button>
     </div>
   )
 }

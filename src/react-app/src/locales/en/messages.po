@@ -13,11 +13,11 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/components/ControlsCard.tsx:115
+#: src/components/ControlsCard.tsx:118
 msgid "Arm"
 msgstr "Arm"
 
-#: src/pages/control.tsx:178
+#: src/pages/control.tsx:201
 msgid "ARMED"
 msgstr "ARMED"
 
@@ -25,7 +25,7 @@ msgstr "ARMED"
 msgid "Camera Controls"
 msgstr "Camera Controls"
 
-#: src/pages/control.tsx:136
+#: src/pages/control.tsx:159
 msgid "Camera Preview"
 msgstr "Camera Preview"
 
@@ -38,20 +38,20 @@ msgstr "Configuration"
 msgid "Control"
 msgstr "Control"
 
-#: src/components/ControlsCard.tsx:89
+#: src/components/ControlsCard.tsx:91
 msgid "Controls"
 msgstr "Controls"
 
-#: src/components/SystemStatusCard.tsx:173
+#: src/components/SystemStatusCard.tsx:179
 msgid "CPU"
 msgstr "CPU"
 
-#: src/pages/recordings.tsx:285
+#: src/pages/recordings.tsx:269
 msgid "Delete"
 msgstr "Delete"
 
 #. placeholder {0}: r.name
-#: src/pages/recordings.tsx:92
+#: src/pages/recordings.tsx:81
 msgid "Delete \"{0}\"? This cannot be undone."
 msgstr "Delete \"{0}\"? This cannot be undone."
 
@@ -68,11 +68,11 @@ msgstr "Developer"
 #~ msgid "Developer Mode"
 #~ msgstr "Developer Mode"
 
-#: src/components/ControlsCard.tsx:115
+#: src/components/ControlsCard.tsx:118
 msgid "Disarm"
 msgstr "Disarm"
 
-#: src/pages/recordings.tsx:270
+#: src/pages/recordings.tsx:254
 msgid "Download"
 msgstr "Download"
 
@@ -90,51 +90,60 @@ msgstr "Emergency Stop"
 msgid "Exit Fullscreen"
 msgstr "Exit Fullscreen"
 
-#: src/components/ControlsCard.tsx:51
+#: src/components/ControlsCard.tsx:53
 msgid "Failed to arm"
 msgstr "Failed to arm"
 
-#: src/pages/recordings.tsx:103
+#: src/pages/recordings.tsx:92
 msgid "Failed to delete recording"
 msgstr "Failed to delete recording"
 
-#: src/components/ControlsCard.tsx:51
+#: src/components/ControlsCard.tsx:53
 msgid "Failed to disarm"
 msgstr "Failed to disarm"
 
-#: src/pages/recordings.tsx:48
+#: src/pages/recordings.tsx:43
 msgid "Failed to load recordings"
 msgstr "Failed to load recordings"
 
-#: src/components/ControlsCard.tsx:136
+#: src/components/ControlsCard.tsx:139
 msgid "Failed to move {actionLabel}"
 msgstr "Failed to move {actionLabel}"
 
-#: src/pages/recordings.tsx:344
+#: src/pages/recordings.tsx:334
+#: src/pages/recordings.tsx:385
 msgid "Failed to play preview"
 msgstr "Failed to play preview"
 
-#: src/pages/control.tsx:44
+#: src/network/rocamProvider.tsx:104
 msgid "Failed to poll status"
 msgstr "Failed to poll status"
 
-#: src/pages/recordings.tsx:80
+#: src/pages/recordings.tsx:71
 msgid "Failed to rename recording"
 msgstr "Failed to rename recording"
 
-#: src/components/ControlsCard.tsx:76
+#: src/components/ControlsCard.tsx:245
+msgid "Failed to set focal length"
+msgstr "Failed to set focal length"
+
+#: src/components/ControlsCard.tsx:78
 msgid "Failed to start recording"
 msgstr "Failed to start recording"
 
-#: src/components/ControlsCard.tsx:75
+#: src/components/ControlsCard.tsx:77
 msgid "Failed to stop recording"
 msgstr "Failed to stop recording"
 
-#: src/components/LogsCard.tsx:49
+#: src/network/rocamProvider.tsx:138
 msgid "Failed to stream logs"
 msgstr "Failed to stream logs"
 
-#: src/components/SystemStatusCard.tsx:154
+#: src/components/SystemStatusCard.tsx:138
+msgid "Focal Length"
+msgstr "Focal Length"
+
+#: src/components/SystemStatusCard.tsx:160
 msgid "FPS"
 msgstr "FPS"
 
@@ -142,11 +151,11 @@ msgstr "FPS"
 msgid "Fullscreen"
 msgstr "Fullscreen"
 
-#: src/components/SystemStatusCard.tsx:203
+#: src/components/SystemStatusCard.tsx:209
 msgid "GPS Location"
 msgstr "GPS Location"
 
-#: src/components/SystemStatusCard.tsx:179
+#: src/components/SystemStatusCard.tsx:185
 msgid "GPU"
 msgstr "GPU"
 
@@ -158,35 +167,35 @@ msgstr "Invert drag direction"
 msgid "Language"
 msgstr "Language"
 
-#: src/components/SystemStatusCard.tsx:252
+#: src/components/SystemStatusCard.tsx:258
 msgid "Last updated: {lastUpdatedText} ago"
 msgstr "Last updated: {lastUpdatedText} ago"
 
-#: src/pages/recordings.tsx:123
+#: src/pages/recordings.tsx:110
 msgid "Loading recordings..."
 msgstr "Loading recordings..."
 
-#: src/pages/control.tsx:142
+#: src/pages/control.tsx:165
 msgid "Loading stream..."
 msgstr "Loading stream..."
 
-#: src/components/LogsCard.tsx:65
+#: src/components/LogsCard.tsx:34
 msgid "Logs"
 msgstr "Logs"
 
-#: src/components/LogsCard.tsx:45
+#: src/network/rocamProvider.tsx:139
 msgid "Logs stream connection error"
 msgstr "Logs stream connection error"
 
-#: src/components/SystemStatusCard.tsx:159
+#: src/components/SystemStatusCard.tsx:165
 msgid "Mem"
 msgstr "Mem"
 
-#: src/components/SystemStatusCard.tsx:102
+#: src/components/SystemStatusCard.tsx:103
 msgid "N/A"
 msgstr "N/A"
 
-#: src/pages/recordings.tsx:128
+#: src/pages/recordings.tsx:115
 msgid "No recordings yet. Start one from the Control page."
 msgstr "No recordings yet. Start one from the Control page."
 
@@ -194,40 +203,40 @@ msgstr "No recordings yet. Start one from the Control page."
 msgid "Not implemented"
 msgstr "Not implemented"
 
-#: src/components/SystemStatusCard.tsx:132
+#: src/components/SystemStatusCard.tsx:133
 msgid "Pan"
 msgstr "Pan"
 
-#: src/components/SystemStatusCard.tsx:193
+#: src/components/SystemStatusCard.tsx:199
 msgid "Power"
 msgstr "Power"
 
-#: src/pages/recordings.tsx:260
+#: src/pages/recordings.tsx:244
 msgid "Preview"
 msgstr "Preview"
 
 #. placeholder {0}: recording?.name
-#: src/pages/recordings.tsx:390
+#: src/pages/recordings.tsx:364
 msgid "Preview {0}"
 msgstr "Preview {0}"
 
-#: src/pages/control.tsx:172
+#: src/pages/control.tsx:195
 msgid "REC"
 msgstr "REC"
 
-#: src/components/SystemStatusCard.tsx:137
+#: src/components/SystemStatusCard.tsx:143
 msgid "Rec Left"
 msgstr "Rec Left"
 
-#: src/pages/recordings.tsx:98
+#: src/pages/recordings.tsx:87
 msgid "Recording deleted"
 msgstr "Recording deleted"
 
-#: src/components/ControlsCard.tsx:70
+#: src/components/ControlsCard.tsx:72
 msgid "Recording started"
 msgstr "Recording started"
 
-#: src/components/ControlsCard.tsx:67
+#: src/components/ControlsCard.tsx:69
 msgid "Recording stopped"
 msgstr "Recording stopped"
 
@@ -243,7 +252,7 @@ msgstr "RoCam"
 msgid "Select language"
 msgstr "Select language"
 
-#: src/components/SystemStatusCard.tsx:198
+#: src/components/SystemStatusCard.tsx:204
 msgid "Server Time"
 msgstr "Server Time"
 
@@ -251,23 +260,23 @@ msgstr "Server Time"
 msgid "Show Logs"
 msgstr "Show Logs"
 
-#: src/components/ControlsCard.tsx:104
+#: src/components/ControlsCard.tsx:107
 msgid "Start Recording"
 msgstr "Start Recording"
 
-#: src/components/ControlsCard.tsx:102
+#: src/components/ControlsCard.tsx:105
 msgid "Stop Recording"
 msgstr "Stop Recording"
 
-#: src/components/SystemStatusCard.tsx:142
+#: src/components/SystemStatusCard.tsx:148
 msgid "Storage"
 msgstr "Storage"
 
-#: src/components/SystemStatusCard.tsx:249
+#: src/components/SystemStatusCard.tsx:255
 msgid "System Status"
 msgstr "System Status"
 
-#: src/components/SystemStatusCard.tsx:185
+#: src/components/SystemStatusCard.tsx:191
 msgid "Temp"
 msgstr "Temp"
 
@@ -275,14 +284,14 @@ msgstr "Temp"
 msgid "Temperature"
 msgstr "Temperature"
 
-#: src/components/SystemStatusCard.tsx:127
+#: src/components/SystemStatusCard.tsx:128
 msgid "Tilt"
 msgstr "Tilt"
 
-#: src/components/LogsCard.tsx:79
+#: src/components/LogsCard.tsx:52
 msgid "Waiting for logs..."
 msgstr "Waiting for logs..."
 
-#: src/pages/recordings.tsx:412
+#: src/pages/recordings.tsx:396
 msgid "Your browser does not support the video tag."
 msgstr "Your browser does not support the video tag."

@@ -41,6 +41,9 @@ class StatusResponse:
     is_recording: bool
     longitude: Optional[float]
     latitude: Optional[float]
+    focal_length_mm: float
+    focal_length_min_mm: float
+    focal_length_max_mm: float
 
 
 class BoundingBoxCollection:
@@ -96,6 +99,10 @@ class StateManagement:
         self._gimbal = GimbalSerial(port="/dev/ttyTHS1", baudrate=115200, timeout=0.1)
         self._gimbal.set_deg(0, 0)
         tilt_range, pan_range, focal_range = self._gimbal.gimbal_info()
+        self._focal_range = focal_range
+        self._current_focal_length_mm = focal_range[0]
+        self._last_focal_measure_time = 0.0
+        self._last_focal_measure = focal_range[0]
         logger.info(
             f"Gimbal info: tilt {tilt_range} deg, pan {pan_range} deg, focal {focal_range} mm"
         )
@@ -142,6 +149,19 @@ class StateManagement:
                 logger.warning(f"Error measuring gimbal: {e}")
             return self._last_gimbal_measure
 
+    def _gimbal_focal_length_cached(self) -> float:
+        with self._gimbal_lock:
+            now = time.perf_counter()
+            if now - self._last_focal_measure_time < 0.02:  # 20ms
+                return self._last_focal_measure
+
+            try:
+                self._last_focal_measure = self._gimbal.get_focal_length_mm()
+                self._last_focal_measure_time = now
+            except Exception as e:
+                logger.warning(f"Error reading focal length: {e}")
+            return self._last_focal_measure
+
     def _on_cvdata(self, data: CVData):
         self._last_cv_data = data
         self._bboxes.received_data(data)
@@ -178,7 +198,7 @@ class StateManagement:
             average_fps=data.fps,
             gimbal_tilt_deg=tilt,
             gimbal_pan_deg=pan,
-            gimbal_focal_length_mm=24,  # Hardcoded for now
+            gimbal_focal_length_mm=self._current_focal_length_mm,
             device_ip_addresses=self._system_status.get_device_ip_addresses(),
             timestamp_ms=int(time.time() * 1000),
             tracking_state=tracking_state,
@@ -238,7 +258,20 @@ class StateManagement:
             is_recording=self._in_progress_recording_id is not None,
             longitude=None,
             latitude=None,
+            focal_length_mm=self._current_focal_length_mm,
+            focal_length_min_mm=self._focal_range[0],
+            focal_length_max_mm=self._focal_range[1],
         )
+
+    def set_focal_length(self, focal_length_mm: float):
+        if self._armed:
+            return
+        try:
+            clamped = max(self._focal_range[0], min(self._focal_range[1], focal_length_mm))
+            self._current_focal_length_mm = clamped
+            self._gimbal.set_focal_length_mm(clamped)
+        except Exception as e:
+            logger.error(f"Error in set_focal_length: {e}")
 
     def manual_move(self, direction: str):
         if self._armed:
