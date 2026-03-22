@@ -12,6 +12,7 @@ use crate::led::{set_arm_led, set_status_led};
 pub struct GimbalRpc {
     pub tilt_angle_deg_watch: &'static Watch<CriticalSectionRawMutex, f32, 1>,
     pub pan_angle_deg_watch: &'static Watch<CriticalSectionRawMutex, f32, 1>,
+    pub focal_length_mm_watch: &'static Watch<CriticalSectionRawMutex, f32, 1>,
 }
 
 impl GimbalRpcServer for GimbalRpc {
@@ -19,7 +20,7 @@ impl GimbalRpcServer for GimbalRpc {
         GimbalInfoResponse {
             tilt_range_deg: (0.0, 90.0),
             pan_range_deg: (-45.0, 45.0),
-            focal_length_range_mm: (24.0, 24.0),
+            focal_length_range_mm: (24.0, 120.0),
         }
     }
 
@@ -64,14 +65,18 @@ impl GimbalRpcServer for GimbalRpc {
         }
     }
 
-    async fn set_focal_length_mm(&mut self, _focal_length_mm: f32) -> SetFocalLengthMmResponse {
-        // Noop
+    async fn set_focal_length_mm(&mut self, focal_length_mm: f32) -> SetFocalLengthMmResponse {
+        self.focal_length_mm_watch.sender().send(focal_length_mm);
         SetFocalLengthMmResponse {}
     }
 
     async fn get_focal_length_mm(&mut self) -> GetFocalLengthMmResponse {
         GetFocalLengthMmResponse {
-            focal_length_mm: 24.0,
+            focal_length_mm: self
+                .focal_length_mm_watch
+                .anon_receiver()
+                .try_get()
+                .unwrap_or(24.0),
         }
     }
 
