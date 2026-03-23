@@ -98,179 +98,178 @@
 
 \begin{columns}
 
-% ============================================================
-%  LEFT COLUMN
-% ============================================================
-\column{0.48}
+  % ============================================================
+  %  LEFT COLUMN
+  % ============================================================
+  \column{0.48}
 
-% --- Motivation ---
-\block{Motivation}{
-  Capturing smooth, stable footage of model rockets is a major challenge.
-  These vehicles accelerate to hundreds of meters per second within fractions
-  of a second, making manual camera tracking nearly impossible. Existing
-  commercial tracking solutions are prohibitively expensive and not designed
-  for amateur rocketry.
+  % --- Motivation ---
+  \block{Motivation}{
+    Capturing smooth, stable footage of model rockets is a major challenge.
+    These vehicles accelerate to hundreds of meters per second within fractions
+    of a second, making manual camera tracking nearly impossible. Existing
+    commercial tracking solutions are prohibitively expensive and not designed
+    for amateur rocketry.
 
-  \vspace{0.25em}
+    \vspace{0.25em}
 
-  RoCam addresses this gap with an \textbf{autonomous, vision-guided camera
-  tracking system} that locks onto and follows model rockets in real time.
-  The system delivers smooth \textbf{1080p video at 60\,fps}, capturing
-  critical flight events such as motor ignition, staging, and parachute
-  deployment.
+    RoCam addresses this gap with an \textbf{autonomous, vision-guided camera
+      tracking system} that locks onto and follows model rockets in real time. The
+    system delivers smooth \textbf{1080p video at 60\,fps}, capturing critical
+    flight events such as motor ignition, staging, and parachute deployment.
 
-  \vspace{0.25em}
+    \vspace{0.25em}
 
-  Designed for small-scale launches ($<$200\,m apogee), the platform is
-  \textbf{scalable to high-powered rockets} (3\,km+ apogee) for
-  organizations such as the McMaster Rocketry Team.
+    Designed for small-scale launches ($<$200\,m apogee), the platform is
+    \textbf{scalable to high-powered rockets} (3\,km+ apogee) for organizations
+    such as the McMaster Rocketry Team.
 
-  \vspace{0.5em}
+    \vspace{0.5em}
 
-  \centering
-  \posterimg[
-    width=0.96\linewidth,
-    keepaspectratio
-  ]{libs/section_1.png}{RoCam Launch and Tracking Operations}
-}
-
-% --- System Architecture ---
-\block{System Architecture}{
-  % --- Left Side: Diagram ---
-  \begin{minipage}[c]{0.58\linewidth}
     \centering
     \posterimg[
-      width=\linewidth,
-      clip
-    ]{../../../img/pipeline.png}{Real-Time Vision and Control Pipeline}
-  \end{minipage}% <--- Crucial % to prevent Overfull \hbox
-  \hfill
-  % --- Right Side: Text ---
-  \begin{minipage}[c]{0.40\linewidth}
-    \small
-    \noindent\textbf{Edge Compute \& Hardware.} The implemented architecture follows a distributed multi-process edge-compute design on an NVIDIA Jetson. To ensure high reliability, CPU/GPU-heavy perception workloads are isolated from control and operator services via Inter-Process Communication (IPC). This strict fault isolation preserves deterministic command flow and API stability even if the vision pipeline encounters transient errors during launch-dynamic conditions.
-
-    \vspace{0.6em}
-    \noindent\textbf{Vision Pipeline.} Image acquisition utilizes a GStreamer capture graph configured for 1920$\times$1080 at 60\,fps, feeding NVIDIA DeepStream for GPU-accelerated preprocessing. Detection relies on a YOLO network optimized with TensorRT, yielding low-latency normalized bounding boxes. A decoupled Live Video process parallelizes OSD telemetry overlay and HDMI output to guarantee continuous situational awareness without blocking inference.
-
-    \vspace{0.6em}
-    \noindent\textbf{Kinematic Control.} The tracking module calculates image-plane target error (targeting frame center $cx=0.5, cy=0.5$) to generate proportional 2-axis gimbal actuation commands. These commands pass through a validated, state-gated pathway—enforcing rate limits and safety bounds—before transmission to an STM32 microcontroller via UART, ensuring deterministic, closed-loop responsiveness throughout boost and coast regimes.
-
-    \vspace{0.6em}
-    \noindent\textbf{Backend \& State Management.} System orchestration is governed by a centralized State Machine (Disarmed, Armed, Tracking, Recording) that prevents invalid mode combinations and enforces hardware safety. A Flask-based API Gateway exposes a REST interface for offline-first LAN operation, managing mode transitions, asynchronous recording/transcoding workflows, and streaming SSE telemetry for live state and control-stream observability.
-  \end{minipage}
-}
-
-% --- Tools & Technologies ---
-\block{Tools \& Technologies}{
-  \vspace{-0.6em} % Pulls the image up tightly against the title
-  \centering
-  \includegraphics[width=0.85\linewidth, keepaspectratio]{libs/tools.png}
-  \vspace{-0.4em} % Shaves off extra white space at the bottom of the block
-}
-
-% ============================================================
-%  RIGHT COLUMN
-% ============================================================
-\column{0.48}
-
-\block{Software \& Hardware Features}{
-  \begin{minipage}[t]{0.48\linewidth}
-    \vspace{0pt}
-    \centering
-    \includegraphics[width=0.62\linewidth]{libs/team_placeholder.png}\\[0.3em]
-    {\normalsize\bfseries Web-Based Operator Interface}\\[0.45em]
-    \small
-    \textbf{Real-Time Gimbal Control:} RoCam provides a low-latency control path between the operator interface and an STM32-based pan--tilt gimbal controller, allowing software commands to be translated into immediate physical camera motion during launch preparation and flight operation. \textbf{Manual Positioning:} When the system is in \textbf{idle} mode, the operator can use the web interface to manually pan and tilt the camera in real time, making it possible to align the view with the launch rail, expected ascent corridor, or surrounding airspace before ignition. \textbf{Remote Operation:} All core control actions are available through a browser-based interface over a local network, so the system can be operated from a safe stand-off distance without requiring physical access to the tracker or any public internet connection. \textbf{System-State Awareness:} The interface presents clear visual feedback on the current state of the system, including \textbf{idle}, \textbf{armed}, and \textbf{tracking}, allowing the operator to quickly verify readiness and respond appropriately during time-critical launch procedures. \textbf{Safe Override:} At any point, the operator can immediately stop automated motion and command the system to return to a safe \textbf{idle} state, which is essential for fault recovery, unexpected target behavior, or general operational safety.
-  \end{minipage}%
-  \hfill
-  \begin{minipage}[t]{0.48\linewidth}
-    \vspace{0pt}
-    \centering
-    \includegraphics[width=0.55\linewidth]{libs/prototype.png}\\[0.3em]
-    {\normalsize\bfseries Two-Axis Gimbal Prototype}\\[0.45em]
-    \small
-    \textbf{Autonomous Vision Tracking:} Once the system is explicitly placed in the \textbf{armed} state, RoCam continuously processes the live camera feed to detect the rocket as a small, fast-moving target under realistic outdoor launch conditions. \textbf{Automatic State Transition:} When a valid rocket target is detected, the system automatically transitions from \textbf{armed} to \textbf{tracking} without requiring further operator input, reducing reaction delay during the most critical phase of flight. \textbf{Closed-Loop Target Following:} Detection results from the vision pipeline are converted into continuous pan and tilt corrections so that the gimbal actively follows the rocket and keeps it near the center of the frame throughout ascent and, where possible, descent. \textbf{Robustness in Challenging Conditions:} The tracking pipeline is designed to remain effective despite common disturbances such as smoke plume, glare, motion blur, or rapid angular movement, all of which are expected in real launch environments. \textbf{Short-Term Re-Acquisition:} If the rocket is briefly lost from view, the system attempts short-term re-acquisition before declaring the target lost, improving overall tracking continuity and increasing the likelihood of preserving useful flight footage without manual intervention.
-  \end{minipage}
-}
-
-\block{Computer Vision \& Machine Learning}{
-  \begin{minipage}[t]{0.28\linewidth}
-    \vspace{0pt}
-    \centering
-    \posterimg[
-      width=0.95\linewidth,
+      width=0.96\linewidth,
       keepaspectratio
-    ]{libs/results_train.png}{YOLO26s-P2 Training Performance}
-  \end{minipage}%
-  \hfill
-  \begin{minipage}[t]{0.68\linewidth}
-    \vspace{0pt}
-    \small
-    \begin{itemize}[leftmargin=1.1em, itemsep=0.18em]
-    \item \textbf{Model Architecture:} The detector was upgraded from the baseline \textbf{YOLO26s} to \textbf{YOLO26s-P2}, which adds a \textbf{stride-4 detection head} for improved sensitivity to very small rockets, at an approximate \textbf{+22\% GFLOPs} cost while remaining suitable for edge deployment.
+    ]{libs/section_1.png}{RoCam Launch and Tracking Operations}
+  }
 
-    \item \textbf{Data Strategy:} To suppress false positives, the training set was expanded with \textbf{4,000 COCO hard-negative background images} with empty labels, increasing the training split from \textbf{11,832} to \textbf{15,832} images and making background-only samples about \textbf{25\%} of training data.
+  % --- System Architecture ---
+  \block{System Architecture}{
+    % --- Left Side: Diagram ---
+    \begin{minipage}[c]{0.58\linewidth}
+      \centering
+      \posterimg[
+        width=\linewidth,
+        clip
+      ]{../../../img/pipeline.png}{Real-Time Vision and Control Pipeline}
+    \end{minipage}% <--- Crucial % to prevent Overfull \hbox
+    \hfill
+    % --- Right Side: Text ---
+    \begin{minipage}[c]{0.40\linewidth}
+      \small
+      \noindent\textbf{Edge Compute \& Hardware.} The implemented architecture follows a distributed multi-process edge-compute design on an NVIDIA Jetson. To ensure high reliability, CPU/GPU-heavy perception workloads are isolated from control and operator services via Inter-Process Communication (IPC). This strict fault isolation preserves deterministic command flow and API stability even if the vision pipeline encounters transient errors during launch-dynamic conditions.
 
-    \item \textbf{Training Stages:} Performance initially dropped from \textbf{mAP50--95 = 0.694} to \textbf{0.614} after introducing the P2 head and harder negatives, then recovered through a \textbf{three-stage fine-tuning pipeline}: close-mosaic fine-tuning raised performance to \textbf{0.720}, and ultra-fine polishing improved it further to a final \textbf{mAP50 = 0.958} and \textbf{mAP50--95 = 0.750}.
+      \vspace{0.6em}
+      \noindent\textbf{Vision Pipeline.} Image acquisition utilizes a GStreamer capture graph configured for 1920$\times$1080 at 60\,fps, feeding NVIDIA DeepStream for GPU-accelerated preprocessing. Detection relies on a YOLO network optimized with TensorRT, yielding low-latency normalized bounding boxes. A decoupled Live Video process parallelizes OSD telemetry overlay and HDMI output to guarantee continuous situational awareness without blocking inference.
 
-    \item \textbf{Training Platform:} Experiments were run using \textbf{Distributed Data Parallel (DDP)} with mixed precision on a \textbf{4$\times$ NVIDIA H100 PCIe} cluster, enabling stable large-batch training, reproducible stage-by-stage comparison, and efficient optimization of the final detector.
-    \end{itemize}
-  \end{minipage}
-}
+      \vspace{0.6em}
+      \noindent\textbf{Kinematic Control.} The tracking module calculates image-plane target error (targeting frame center $cx=0.5, cy=0.5$) to generate proportional 2-axis gimbal actuation commands. These commands pass through a validated, state-gated pathway—enforcing rate limits and safety bounds—before transmission to an STM32 microcontroller via UART, ensuring deterministic, closed-loop responsiveness throughout boost and coast regimes.
 
-% --- Team Section ---
-\block{Our Team}{
-  \begin{minipage}[t]{0.28\linewidth}
-    
-    % --- COLOR CHANGE ADDED HERE ---
-    \colorlet{innerblocktitlebgcolor}{green!40!black} % Mixes green with 60% black for a deep forest green
-    \colorlet{innerblocktitlefgcolor}{white}          % Ensures the header text stays white
-% -------------------------------
-    % -------------------------------
+      \vspace{0.6em}
+      \noindent\textbf{Backend \& State Management.} System orchestration is governed by a centralized State Machine (Disarmed, Armed, Tracking, Recording) that prevents invalid mode combinations and enforces hardware safety. A Flask-based API Gateway exposes a REST interface for offline-first LAN operation, managing mode transitions, asynchronous recording/transcoding workflows, and streaming SSE telemetry for live state and control-stream observability.
+    \end{minipage}
+  }
 
-    \innerblock{Development Team}{
-      \small\sffamily 
-      \begin{minipage}[t][7.2cm][c]{\linewidth} 
-        \centering
-        \includegraphics[width=0.85\linewidth, height=2.8cm, keepaspectratio]{libs/team_rocam.png}\\[1em]
-        Zifan Si\\[0.2em]
-        Jianqing Liu\\[0.2em]
-        Mike Chen\\[0.2em]
-        Xiaotian Lou
-      \end{minipage}
-    }
-  \end{minipage}%
-  \hfill
-  \begin{minipage}[t]{0.28\linewidth}
-    \innerblock{Launch Team}{
-      \small\sffamily
-      \begin{minipage}[t][7.2cm][c]{\linewidth}
-        \centering
-        \includegraphics[width=0.85\linewidth, height=3.0cm, keepaspectratio]{libs/team_rocketry.png}\\[1em]
-        McMaster Rocketry Team
-      \end{minipage}
-    }
-  \end{minipage}%
-  \hfill
-  \begin{minipage}[t]{0.28\linewidth}
-    
-    % --- COLOR CHANGE ADDED HERE ---
-    \colorlet{innerblocktitlebgcolor}{blue!80!black} % Changes the header background to blue
-    \colorlet{innerblocktitlefgcolor}{white}         % Ensures the header text stays white
-    % -------------------------------
+  % --- Tools & Technologies ---
+  \block{Tools \& Technologies}{
+    \vspace{-0.6em} % Pulls the image up tightly against the title
+    \centering
+    \includegraphics[width=0.85\linewidth, keepaspectratio]{libs/tools.png}
+    \vspace{-0.4em} % Shaves off extra white space at the bottom of the block
+  }
 
-    \innerblock{Advisory Team}{
-      \small\sffamily
-      \begin{minipage}[t][7.2cm][c]{\linewidth}
-        \centering
-        Dr.\ Shahin Sirouspour\\[0.2em]
-        Dr.\ Spencer Smith\\[0.2em]
-        Tanya Djavaherpour\\[1em]
-        \includegraphics[width=0.85\linewidth, height=2.8cm, keepaspectratio]{libs/team_cas.png}
-      \end{minipage}
-    }
-  \end{minipage}
-}
+  % ============================================================
+  %  RIGHT COLUMN
+  % ============================================================
+  \column{0.48}
+
+  \block{Software \& Hardware Features}{
+    \begin{minipage}[t]{0.48\linewidth}
+      \vspace{0pt}
+      \centering
+      \includegraphics[width=0.62\linewidth]{libs/team_placeholder.png}\\[0.3em]
+      {\normalsize\bfseries Web-Based Operator Interface}\\[0.45em]
+      \small
+      \textbf{Real-Time Gimbal Control:} RoCam provides a low-latency control path between the operator interface and an STM32-based pan--tilt gimbal controller, allowing software commands to be translated into immediate physical camera motion during launch preparation and flight operation. \textbf{Manual Positioning:} When the system is in \textbf{idle} mode, the operator can use the web interface to manually pan and tilt the camera in real time, making it possible to align the view with the launch rail, expected ascent corridor, or surrounding airspace before ignition. \textbf{Remote Operation:} All core control actions are available through a browser-based interface over a local network, so the system can be operated from a safe stand-off distance without requiring physical access to the tracker or any public internet connection. \textbf{System-State Awareness:} The interface presents clear visual feedback on the current state of the system, including \textbf{idle}, \textbf{armed}, and \textbf{tracking}, allowing the operator to quickly verify readiness and respond appropriately during time-critical launch procedures. \textbf{Safe Override:} At any point, the operator can immediately stop automated motion and command the system to return to a safe \textbf{idle} state, which is essential for fault recovery, unexpected target behavior, or general operational safety.
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{0.48\linewidth}
+      \vspace{0pt}
+      \centering
+      \includegraphics[width=0.55\linewidth]{libs/prototype.png}\\[0.3em]
+      {\normalsize\bfseries Two-Axis Gimbal Prototype}\\[0.45em]
+      \small
+      \textbf{Autonomous Vision Tracking:} Once the system is explicitly placed in the \textbf{armed} state, RoCam continuously processes the live camera feed to detect the rocket as a small, fast-moving target under realistic outdoor launch conditions. \textbf{Automatic State Transition:} When a valid rocket target is detected, the system automatically transitions from \textbf{armed} to \textbf{tracking} without requiring further operator input, reducing reaction delay during the most critical phase of flight. \textbf{Closed-Loop Target Following:} Detection results from the vision pipeline are converted into continuous pan and tilt corrections so that the gimbal actively follows the rocket and keeps it near the center of the frame throughout ascent and, where possible, descent. \textbf{Robustness in Challenging Conditions:} The tracking pipeline is designed to remain effective despite common disturbances such as smoke plume, glare, motion blur, or rapid angular movement, all of which are expected in real launch environments. \textbf{Short-Term Re-Acquisition:} If the rocket is briefly lost from view, the system attempts short-term re-acquisition before declaring the target lost, improving overall tracking continuity and increasing the likelihood of preserving useful flight footage without manual intervention.
+    \end{minipage}
+  }
+
+  \block{Computer Vision \& Machine Learning}{
+    \begin{minipage}[t]{0.28\linewidth}
+      \vspace{0pt}
+      \centering
+      \posterimg[
+        width=0.95\linewidth,
+        keepaspectratio
+      ]{libs/results_train.png}{YOLO26s-P2 Training Performance}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{0.68\linewidth}
+      \vspace{0pt}
+      \small
+      \begin{itemize}[leftmargin=1.1em, itemsep=0.18em]
+        \item \textbf{Model Architecture:} The detector was upgraded from the baseline \textbf{YOLO26s} to \textbf{YOLO26s-P2}, which adds a \textbf{stride-4 detection head} for improved sensitivity to very small rockets, at an approximate \textbf{+22\% GFLOPs} cost while remaining suitable for edge deployment.
+
+        \item \textbf{Data Strategy:} To suppress false positives, the training set was expanded with \textbf{4,000 COCO hard-negative background images} with empty labels, increasing the training split from \textbf{11,832} to \textbf{15,832} images and making background-only samples about \textbf{25\%} of training data.
+
+        \item \textbf{Training Stages:} Performance initially dropped from \textbf{mAP50--95 = 0.694} to \textbf{0.614} after introducing the P2 head and harder negatives, then recovered through a \textbf{three-stage fine-tuning pipeline}: close-mosaic fine-tuning raised performance to \textbf{0.720}, and ultra-fine polishing improved it further to a final \textbf{mAP50 = 0.958} and \textbf{mAP50--95 = 0.750}.
+
+        \item \textbf{Training Platform:} Experiments were run using \textbf{Distributed Data Parallel (DDP)} with mixed precision on a \textbf{4$\times$ NVIDIA H100 PCIe} cluster, enabling stable large-batch training, reproducible stage-by-stage comparison, and efficient optimization of the final detector.
+      \end{itemize}
+    \end{minipage}
+  }
+
+  % --- Team Section ---
+  \block{Our Team}{
+    \begin{minipage}[t]{0.28\linewidth}
+
+      % --- COLOR CHANGE ADDED HERE ---
+      \colorlet{innerblocktitlebgcolor}{green!40!black} % Mixes green with 60% black for a deep forest green
+      \colorlet{innerblocktitlefgcolor}{white}          % Ensures the header text stays white
+      % -------------------------------
+      % -------------------------------
+
+      \innerblock{Development Team}{
+        \small\sffamily
+        \begin{minipage}[t][7.2cm][c]{\linewidth}
+          \centering
+          \includegraphics[width=0.85\linewidth, height=2.8cm, keepaspectratio]{libs/team_rocam.png}\\[1em]
+          Zifan Si\\[0.2em]
+          Jianqing Liu\\[0.2em]
+          Mike Chen\\[0.2em]
+          Xiaotian Lou
+        \end{minipage}
+      }
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{0.28\linewidth}
+      \innerblock{Launch Team}{
+        \small\sffamily
+        \begin{minipage}[t][7.2cm][c]{\linewidth}
+          \centering
+          \includegraphics[width=0.85\linewidth, height=3.0cm, keepaspectratio]{libs/team_rocketry.png}\\[1em]
+          McMaster Rocketry Team
+        \end{minipage}
+      }
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{0.28\linewidth}
+
+      % --- COLOR CHANGE ADDED HERE ---
+      \colorlet{innerblocktitlebgcolor}{blue!80!black} % Changes the header background to blue
+      \colorlet{innerblocktitlefgcolor}{white}         % Ensures the header text stays white
+      % -------------------------------
+
+      \innerblock{Advisory Team}{
+        \small\sffamily
+        \begin{minipage}[t][7.2cm][c]{\linewidth}
+          \centering
+          Dr.\ Shahin Sirouspour\\[0.2em]
+          Dr.\ Spencer Smith\\[0.2em]
+          Tanya Djavaherpour\\[1em]
+          \includegraphics[width=0.85\linewidth, height=2.8cm, keepaspectratio]{libs/team_cas.png}
+        \end{minipage}
+      }
+    \end{minipage}
+  }
 \end{columns}
 \end{document}
