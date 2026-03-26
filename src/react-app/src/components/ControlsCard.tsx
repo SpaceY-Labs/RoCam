@@ -154,6 +154,38 @@ export function ControlsCard() {
                 {isArmed ? <Trans>Disarm</Trans> : <Trans>Arm</Trans>}
               </Button>
             </div>
+    <Card radius="sm">
+      <CardBody className="px-6 py-5">
+        <p className="text-xs font-semibold uppercase text-gray-800 tracking-widest">
+          <Trans>Controls</Trans>
+        </p>
+        <div className="flex gap-8 mt-4">
+          <GimbalPad />
+          <ZoomControls />
+          <div className="flex flex-col justify-center gap-3">
+            <Button
+              color="danger"
+              isDisabled={!apiClient || cooldownOrLoading}
+              radius="sm"
+              variant="bordered"
+              onPress={handleToggleRecording}
+            >
+              {isRecording ? (
+                <Trans>Stop Recording</Trans>
+              ) : (
+                <Trans>Start Recording</Trans>
+              )}
+            </Button>
+            <Button
+              className="border-amber-500 text-amber-600"
+              color="warning"
+              isDisabled={!apiClient || cooldownOrLoading}
+              radius="sm"
+              variant="bordered"
+              onPress={handleToggleArm}
+            >
+              {isArmed ? <Trans>Disarm</Trans> : <Trans>Arm</Trans>}
+            </Button>
           </div>
         </CardBody>
       </Card>
