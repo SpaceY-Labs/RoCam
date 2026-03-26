@@ -4,6 +4,7 @@
 % Packages
 % ============================================================
 \usepackage[T1]{fontenc}
+\usepackage[sfdefault]{FiraSans}
 \usepackage{lmodern}
 \usepackage{graphicx}
 \usepackage{enumitem}
@@ -142,13 +143,9 @@
 
   \vspace{0.5em}
 
-  \textbf{The Solution:} RoCam bridges this gap with an \textbf{autonomous, vision-guided camera tracking system}. By locking onto the rocket in real time, it actively commands a two-axis gimbal to deliver smooth, stabilized \textbf{1080p video at 60\,fps}. 
+  \textbf{The Solution:} RoCam bridges this gap with an \textbf{autonomous, vision-guided tracking system}. By locking onto the rocket in real time, it actively commands a two-axis gimbal to deliver smooth \textbf{1080p video at 60\,fps}. 
 
   \vspace{0.5em}
-
-  \textbf{The Impact:} Designed to reliably capture motor ignition, staging, and recovery, RoCam provides actionable flight data. While optimized for small-scale launches ($<$200\,m apogee), the platform is fully \textbf{scalable to high-powered rocketry} (3\,km+ apogee) for organizations like the McMaster Rocketry Team.
-
-  \vspace{0.8em}
 
   \centering
   \posterimg[
@@ -201,19 +198,35 @@
   \begin{minipage}[t]{0.48\linewidth}
     \vspace{0pt}
     \centering
-    \includegraphics[width=0.62\linewidth]{libs/team_placeholder.png}\\[0.3em]
+    % Images now share identical width, height, and ratio constraints
+    \includegraphics[width=0.58\linewidth, height=4.5cm, keepaspectratio]{libs/team_placeholder.png}\\[0.3em]
     {\normalsize\bfseries Web-Based Operator Interface}\\[0.45em]
     \small
-    \textbf{Real-Time Gimbal Control:} RoCam provides a low-latency control path between the operator interface and an STM32-based pan--tilt gimbal controller, allowing software commands to be translated into immediate physical camera motion during launch preparation and flight operation. \textbf{Manual Positioning:} When the system is in \textbf{idle} mode, the operator can use the web interface to manually pan and tilt the camera in real time, making it possible to align the view with the launch rail, expected ascent corridor, or surrounding airspace before ignition. \textbf{Remote Operation:} All core control actions are available through a browser-based interface over a local network, so the system can be operated from a safe stand-off distance without requiring physical access to the tracker or any public internet connection. \textbf{System-State Awareness:} The interface presents clear visual feedback on the current state of the system, including \textbf{idle}, \textbf{armed}, and \textbf{tracking}, allowing the operator to quickly verify readiness and respond appropriately during time-critical launch procedures. \textbf{Safe Override:} At any point, the operator can immediately stop automated motion and command the system to return to a safe \textbf{idle} state, which is essential for fault recovery, unexpected target behavior, or general operational safety.
+    \raggedright
+    \begin{itemize}[leftmargin=1.1em, itemsep=0.1em, topsep=0pt, parsep=0pt]
+        \item \textbf{Real-Time Gimbal Control:} Low-latency control path between the operator interface and an STM32-based pan-tilt gimbal controller for immediate physical camera motion.
+        \item \textbf{Manual Positioning:} In \textbf{idle} mode, the operator can manually pan and tilt the camera in real time to align the view with the launch rail or expected ascent corridor.
+        \item \textbf{Remote Operation:} Core control actions are available through a browser over a local network, allowing safe stand-off operation without internet access.
+        \item \textbf{System-State Awareness:} Clear visual feedback on the current state (\textbf{idle}, \textbf{armed}, \textbf{tracking}) to quickly verify readiness during time-critical procedures.
+        \item \textbf{Safe Override:} Operator can immediately stop automated motion and return to a safe \textbf{idle} state for fault recovery or unexpected target behavior.
+    \end{itemize}
   \end{minipage}%
   \hfill
   \begin{minipage}[t]{0.48\linewidth}
     \vspace{0pt}
     \centering
-    \includegraphics[width=0.55\linewidth]{libs/prototype.png}\\[0.3em]
+    % Images now share identical width, height, and ratio constraints
+    \includegraphics[width=0.58\linewidth, height=4.5cm, keepaspectratio]{libs/prototype.png}\\[0.3em]
     {\normalsize\bfseries Two-Axis Gimbal Prototype}\\[0.45em]
     \small
-    \textbf{Autonomous Vision Tracking:} Once the system is explicitly placed in the \textbf{armed} state, RoCam continuously processes the live camera feed to detect the rocket as a small, fast-moving target under realistic outdoor launch conditions. \textbf{Automatic State Transition:} When a valid rocket target is detected, the system automatically transitions from \textbf{armed} to \textbf{tracking} without requiring further operator input, reducing reaction delay during the most critical phase of flight. \textbf{Closed-Loop Target Following:} Detection results from the vision pipeline are converted into continuous pan and tilt corrections so that the gimbal actively follows the rocket and keeps it near the center of the frame throughout ascent and, where possible, descent. \textbf{Robustness in Challenging Conditions:} The tracking pipeline is designed to remain effective despite common disturbances such as smoke plume, glare, motion blur, or rapid angular movement, all of which are expected in real launch environments. \textbf{Short-Term Re-Acquisition:} If the rocket is briefly lost from view, the system attempts short-term re-acquisition before declaring the target lost, improving overall tracking continuity and increasing the likelihood of preserving useful flight footage without manual intervention.
+    \raggedright
+    \begin{itemize}[leftmargin=1.1em, itemsep=0.1em, topsep=0pt, parsep=0pt]
+        \item \textbf{Autonomous Vision Tracking:} Once \textbf{armed}, RoCam continuously processes the live feed to detect the rocket as a fast-moving target under realistic conditions.
+        \item \textbf{Automatic State Transition:} Automatically transitions from \textbf{armed} to \textbf{tracking} upon valid detection, reducing reaction delay during critical flight phases.
+        \item \textbf{Closed-Loop Target Following:} Vision pipeline detections are converted into continuous pan and tilt corrections to keep the rocket centered throughout the flight.
+        \item \textbf{Robustness in Challenging Conditions:} Effective against common launch disturbances such as smoke plumes, glare, motion blur, and rapid angular movement.
+        \item \textbf{Short-Term Re-Acquisition:} Attempts to re-acquire the target if briefly lost, improving tracking continuity and preserving flight footage without manual intervention.
+    \end{itemize}
   \end{minipage}
 }
 
