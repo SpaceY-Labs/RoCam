@@ -68,11 +68,11 @@ class IPCBufferSender:
             head = struct.unpack('Q', self.shm.buf[0:8])[0]
             tail = struct.unpack('Q', self.shm.buf[8:16])[0]
             
-            # Check if full (leave one slot empty to distinguish full/empty)
-            was_full = (head + 1) % self.size == tail % self.size
-            if was_full:
-                # Advance tail to discard oldest entry and make room
-                self.shm.buf[8:16] = struct.pack('Q', tail + 1)
+            # Check if full (capacity is size - 1)
+            # We use monotonic counters. If head - tail >= size - 1, the buffer is full.
+            # We do NOT update tail here to avoid race conditions with the receiver.
+            # The receiver is responsible for detecting overruns and advancing tail.
+            was_full = (head - tail) >= (self.size - 1)
             
             # Write data directly at slot
             offset = 16 + (head % self.size) * self.message_size
@@ -160,9 +160,23 @@ class IPCBufferReceiver:
             head = struct.unpack('Q', self.shm.buf[0:8])[0]
             tail = struct.unpack('Q', self.shm.buf[8:16])[0]
             
-            # Check if empty
-            if head % self.size == tail % self.size:
+            # Handle potential sender reset
+            if head < tail:
+                tail = head
+                self.shm.buf[8:16] = struct.pack('Q', tail)
                 return None
+            
+            # Check if empty
+            if head == tail:
+                return None
+            
+            # Check for overrun (receiver too slow)
+            # Valid data is in range [head - (size - 1), head)
+            if tail < head - (self.size - 1):
+                overrun = (head - (self.size - 1)) - tail
+                logger.warning(f"IPCBufferReceiver overrun: skipping {overrun} frames")
+                tail = head - (self.size - 1)
+                # We update tail in SHM later after reading, but we read from the new tail position
             
             # Read data directly from slot
             offset = 16 + (tail % self.size) * self.message_size

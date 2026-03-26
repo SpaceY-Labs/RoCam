@@ -1,10 +1,13 @@
 import logging
 import time
 import threading
+from dataclasses import dataclass
+from typing import Optional
 from control_process.database import RecordingDatabase
 from common.ipc import BoundingBox, CVData, OSDData, PreviewData
 from common.ipc_buffer import cleanup_shared_memory
-from common.utils import ip4_addresses, set_scheduler_other
+from common.system_status import SystemStatusMonitor
+from common.utils import set_scheduler_other
 from control_process.cv_process_management import CVProcessManagement
 from control_process.livestream_process_management import LivestreamProcessManagement
 from control_process.gimbal import GimbalSerial
@@ -15,6 +18,32 @@ from cv_process.main import LIVE_STREAM_SHM_NAME
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class StatusResponse:
+    armed: bool
+    tilt: float
+    pan: float
+    preview: Optional[str]
+    bbox: Optional[BoundingBox]
+    average_fps: float
+    cpu_utilization: float
+    gpu_utilization: float
+    core_temperature_celsius: float
+    system_power_w: float
+    memory_used_bytes: int
+    memory_total_bytes: int
+    disk_used_bytes: int
+    disk_total_bytes: int
+    recording_duration_left_s: int
+    timestamp_ms: int
+    is_recording: bool
+    longitude: Optional[float]
+    latitude: Optional[float]
+    focal_length_mm: float
+    focal_length_min_mm: float
+    focal_length_max_mm: float
 
 
 class BoundingBoxCollection:
@@ -48,22 +77,15 @@ class BoundingBoxCollection:
                 return cv_data.bounding_box
         return None
 
+RECORDING_DATABASE_BASE_PATH = "/mnt/data/data"
 
 class StateManagement:
     def __init__(self):
-        self._device_ip_addresses = [ip for ip in ip4_addresses() if ip != "127.0.0.1"]
-        self._ip_refresh_thread = threading.Thread(
-            target=self._refresh_ip_addresses, daemon=True
-        )
-        self._ip_refresh_thread.start()
-
-        self._status_led_thread = threading.Thread(
-            target=self._blink_status_led, daemon=True
-        )
-        self._status_led_thread.start()
-
-        self.database = RecordingDatabase(base_path="/mnt/data/data")
+        self.database = RecordingDatabase(base_path=RECORDING_DATABASE_BASE_PATH)
         self._in_progress_recording_id = None
+
+        self._download_count = 0
+        self._download_lock = threading.Lock()
 
         self._gimbal_lock = threading.Lock()
         self._last_gimbal_measure_time = 0.0
@@ -71,14 +93,30 @@ class StateManagement:
 
         self._armed = False
         self._last_preview_frame: PreviewData | None = None
+        self._last_cv_data: CVData | None = None
+        self._system_status = SystemStatusMonitor()
 
         self._gimbal = GimbalSerial(port="/dev/ttyTHS1", baudrate=115200, timeout=0.1)
-        self._gimbal.move_deg(0, 0)
+        self._gimbal.set_deg(0, 0)
+        tilt_range, pan_range, focal_range = self._gimbal.gimbal_info()
+        self._focal_range = focal_range
+        self._current_focal_length_mm = focal_range[0]
+        self._last_focal_measure_time = 0.0
+        self._last_focal_measure = focal_range[0]
+        logger.info(
+            f"Gimbal info: tilt {tilt_range} deg, pan {pan_range} deg, focal {focal_range} mm"
+        )
+        
         self._tracking = Tracking(
             gimbal=self._gimbal, width=1080, height=1920, k_p=0.005
         )
 
         self._bboxes = BoundingBoxCollection()
+
+        self._status_led_thread = threading.Thread(
+            target=self._blink_status_led, daemon=True
+        )
+        self._status_led_thread.start()
 
         cleanup_shared_memory(LIVE_STREAM_SHM_NAME)
         # Need to start live stream process before cv process, due to nvidia driver bug
@@ -90,24 +128,13 @@ class StateManagement:
             process_restart_callback=self._on_cv_process_restart_during_recording,
         )
 
-    def _refresh_ip_addresses(self):
-        set_scheduler_other()
-        while True:
-            time.sleep(1)
-            try:
-                self._device_ip_addresses = [
-                    ip for ip in ip4_addresses() if ip != "127.0.0.1"
-                ]
-            except Exception as e:
-                logger.error(f"Error refreshing IP addresses: {e}")
-
     def _blink_status_led(self):
         set_scheduler_other()
         while True:
             time.sleep(0.5)
-            self._gimbal.status_led(True)
+            self._gimbal.set_status_led(True)
             time.sleep(0.5)
-            self._gimbal.status_led(False)
+            self._gimbal.set_status_led(False)
 
     def _gimbal_measure_deg_cached(self) -> tuple[float, float]:
         with self._gimbal_lock:
@@ -115,11 +142,28 @@ class StateManagement:
             if now - self._last_gimbal_measure_time < 0.02:  # 20ms
                 return self._last_gimbal_measure
 
-            self._last_gimbal_measure = self._gimbal.measure_deg()
-            self._last_gimbal_measure_time = now
+            try:
+                self._last_gimbal_measure = self._gimbal.get_deg()
+                self._last_gimbal_measure_time = now
+            except Exception as e:
+                logger.warning(f"Error measuring gimbal: {e}")
             return self._last_gimbal_measure
 
+    def _gimbal_focal_length_cached(self) -> float:
+        with self._gimbal_lock:
+            now = time.perf_counter()
+            if now - self._last_focal_measure_time < 0.02:  # 20ms
+                return self._last_focal_measure
+
+            try:
+                self._last_focal_measure = self._gimbal.get_focal_length_mm()
+                self._last_focal_measure_time = now
+            except Exception as e:
+                logger.warning(f"Error reading focal length: {e}")
+            return self._last_focal_measure
+
     def _on_cvdata(self, data: CVData):
+        self._last_cv_data = data
         self._bboxes.received_data(data)
 
         tracking_state = "idle"
@@ -154,8 +198,8 @@ class StateManagement:
             average_fps=data.fps,
             gimbal_tilt_deg=tilt,
             gimbal_pan_deg=pan,
-            gimbal_focal_length_mm=24,  # Hardcoded for now
-            device_ip_addresses=self._device_ip_addresses,
+            gimbal_focal_length_mm=self._current_focal_length_mm,
+            device_ip_addresses=self._system_status.get_device_ip_addresses(),
             timestamp_ms=int(time.time() * 1000),
             tracking_state=tracking_state,
             longitude=None,
@@ -172,13 +216,16 @@ class StateManagement:
 
     def arm(self):
         self._armed = True
-        self._gimbal.arm_led(True)
+        self._gimbal.set_arm_led(True)
 
     def disarm(self):
         self._armed = False
-        self._gimbal.arm_led(False)
+        self._gimbal.set_arm_led(False)
 
     def status(self):
+        average_fps = (
+            self._last_cv_data.fps if self._last_cv_data is not None else 0.0
+        )
         latest_preview_frame = None
         bbox = None
         if self._last_preview_frame is not None:
@@ -187,26 +234,44 @@ class StateManagement:
             ).decode("ascii")
             bbox = self._bboxes.get_bbox(self._last_preview_frame.pts_ns)
 
+        disk_used_bytes, disk_total_bytes = self.database.space_usage_bytes()
+        timestamp_ms = int(time.time() * 1000)
+
+        tilt, pan = self._gimbal_measure_deg_cached()
+        return StatusResponse(
+            armed=self._armed,
+            tilt=tilt,
+            pan=pan,
+            preview=latest_preview_frame,
+            bbox=bbox,
+            average_fps=average_fps,
+            cpu_utilization=self._system_status.get_cpu_utilization(),
+            gpu_utilization=self._system_status.get_gpu_utilization(),
+            core_temperature_celsius=self._system_status.get_core_temperature_celsius(),
+            system_power_w=self._system_status.get_system_power_w(),
+            memory_used_bytes=self._system_status.get_memory_used_bytes(),
+            memory_total_bytes=self._system_status.get_memory_total_bytes(),
+            disk_used_bytes=disk_used_bytes,
+            disk_total_bytes=disk_total_bytes,
+            recording_duration_left_s=self.database.recording_duration_left_s(),
+            timestamp_ms=timestamp_ms,
+            is_recording=self._in_progress_recording_id is not None,
+            longitude=None,
+            latitude=None,
+            focal_length_mm=self._current_focal_length_mm,
+            focal_length_min_mm=self._focal_range[0],
+            focal_length_max_mm=self._focal_range[1],
+        )
+
+    def set_focal_length(self, focal_length_mm: float):
+        if self._armed:
+            return
         try:
-            tilt, pan = self._gimbal_measure_deg_cached()
-            return {
-                "armed": self._armed,
-                "tilt": tilt,
-                "pan": pan,
-                "preview": latest_preview_frame,
-                "bbox": bbox,
-                "is_recording": self._in_progress_recording_id is not None,
-            }
+            clamped = max(self._focal_range[0], min(self._focal_range[1], focal_length_mm))
+            self._current_focal_length_mm = clamped
+            self._gimbal.set_focal_length_mm(clamped)
         except Exception as e:
-            logger.error(f"Error reading status: {e}")
-            return {
-                "armed": self._armed,
-                "tilt": None,
-                "pan": None,
-                "preview": latest_preview_frame,
-                "bbox": bbox,
-                "is_recording": self._in_progress_recording_id is not None,
-            }
+            logger.error(f"Error in set_focal_length: {e}")
 
     def manual_move(self, direction: str):
         if self._armed:
@@ -231,7 +296,7 @@ class StateManagement:
                 logger.warning(f"Unknown direction: {direction}")
                 return
 
-            self._gimbal.move_deg(new_tilt, new_pan)
+            self._gimbal.set_deg(new_tilt, new_pan)
         except Exception as e:
             logger.error(f"Error in manual_move: {e}")
 
@@ -241,7 +306,7 @@ class StateManagement:
         try:
             new_tilt = max(0.0, min(90.0, tilt))
             new_pan = max(-45.0, min(45.0, pan))
-            self._gimbal.move_deg(new_tilt, new_pan)
+            self._gimbal.set_deg(new_tilt, new_pan)
         except Exception as e:
             logger.error(f"Error in manual_move_to: {e}")
 
@@ -264,3 +329,20 @@ class StateManagement:
             recording_info = self.database.allocate_recording()
             self._cv_process.start_recording(recording_info)
             self._in_progress_recording_id = recording_info.id
+
+    def on_download_start(self):
+        with self._download_lock:
+            self._download_count += 1
+            if self._download_count == 1:
+                logger.info("Starting download/preview, pausing pipeline")
+                self._cv_process.pause_pipeline()
+
+    def on_download_end(self):
+        with self._download_lock:
+            self._download_count -= 1
+            if self._download_count == 0:
+                logger.info("All downloads/previews finished, resuming pipeline")
+                self._cv_process.resume_pipeline()
+            elif self._download_count < 0:
+                logger.error("Download count went below 0!")
+                self._download_count = 0

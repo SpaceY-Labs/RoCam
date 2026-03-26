@@ -299,3 +299,11 @@ __pycache__/
 
 node_modules/src/training/yolo26n.pt
 src/training/runs/
+node_modules/
+.cursor/
+src/labelling-app/frontend/test-results/.last-run.json
+
+.coverage
+coverage/
+coverage.xml
+coverage.json

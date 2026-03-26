@@ -1,55 +1,65 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from 'react-router-dom'
 import {
   Navbar as HeroUINavbar,
   NavbarContent,
   NavbarItem,
-} from "@heroui/navbar";
-import { link as linkStyles } from "@heroui/theme";
-import clsx from "clsx";
-import { Button } from "@heroui/button";
-import { IconCancel, IconMaximize, IconMaximizeOff } from "@tabler/icons-react";
+} from '@heroui/navbar'
+import { link as linkStyles } from '@heroui/theme'
+import clsx from 'clsx'
+import { Button } from '@heroui/button'
+import { IconCancel, IconMaximize, IconMaximizeOff } from '@tabler/icons-react'
+import { Trans, useLingui } from '@lingui/react/macro'
+
+import { ConfigurationMenu } from './ConfigurationMenu'
 
 export const Navbar = () => {
+  const { t } = useLingui()
+  const location = useLocation()
+  const isControlPage = location.pathname === '/'
+
   return (
     <HeroUINavbar
       classNames={{
-        wrapper: "px-4",
+        base: isControlPage ? 'bg-transparent backdrop-filter-none' : undefined,
+        wrapper: 'px-4',
       }}
+      isBlurred={false}
       maxWidth="full"
     >
       <NavbarContent justify="start">
-        <img alt="RoCam" className="h-8" src="/logo.png" />
+        <img alt={t`RoCam`} className="h-8" src="/logo.png" />
 
-        <div className="hidden lg:flex gap-4 justify-start ml-2">
+        <div className="flex gap-4 justify-start ml-2">
           <NavbarItem>
             <NavLink
               className={({ isActive }: { isActive: boolean }) =>
                 clsx(
-                  linkStyles({ color: "foreground" }),
-                  isActive ? "font-bold" : "text-gray-500",
+                  linkStyles({ color: 'foreground' }),
+                  isActive ? 'font-bold' : 'text-gray-500'
                 )
               }
-              to={"/"}
+              to={'/'}
             >
-              Control
+              <Trans>Control</Trans>
             </NavLink>
           </NavbarItem>
           <NavbarItem>
             <NavLink
               className={({ isActive }: { isActive: boolean }) =>
                 clsx(
-                  linkStyles({ color: "foreground" }),
-                  isActive ? "font-bold" : "text-gray-500",
+                  linkStyles({ color: 'foreground' }),
+                  isActive ? 'font-bold' : 'text-gray-500'
                 )
               }
-              to={"/recordings"}
+              to={'/recordings'}
             >
-              Recordings
+              <Trans>Recordings</Trans>
             </NavLink>
           </NavbarItem>
         </div>
       </NavbarContent>
       <NavbarContent justify="end">
+        <ConfigurationMenu />
         <Button
           radius="sm"
           startContent={
@@ -58,13 +68,17 @@ export const Navbar = () => {
           variant="bordered"
           onPress={() => {
             if (document.fullscreenElement) {
-              document.exitFullscreen();
+              document.exitFullscreen()
             } else {
-              document.documentElement.requestFullscreen();
+              document.documentElement.requestFullscreen()
             }
           }}
         >
-          {document.fullscreenElement ? "Exit Fullscreen" : "Fullscreen"}
+          {document.fullscreenElement ? (
+            <Trans>Exit Fullscreen</Trans>
+          ) : (
+            <Trans>Fullscreen</Trans>
+          )}
         </Button>
         <Button
           color="danger"
@@ -72,12 +86,12 @@ export const Navbar = () => {
           startContent={<IconCancel />}
           variant="bordered"
           onPress={() => {
-            alert("Not implemented");
+            alert(t`Not implemented`)
           }}
         >
-          Emergency Stop
+          <Trans>Emergency Stop</Trans>
         </Button>
       </NavbarContent>
     </HeroUINavbar>
-  );
-};
+  )
+}

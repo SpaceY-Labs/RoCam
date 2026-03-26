@@ -3,7 +3,15 @@
 # How to Run:
 
 ```bash
+cd src/react-app
+yarn
 yarn dev
+```
+
+# Unit Tests
+
+```bash
+npx vitest run --coverage
 ```
 
 # How to Deploy:

@@ -2,111 +2,157 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
-} from "react";
+} from 'react'
+import { addToast } from '@heroui/toast'
+import { useLingui } from '@lingui/react/macro'
 
-import { ApiClient, type StatusResponse } from "./api";
+import { ApiClient, type StatusResponse } from './api'
 
-interface RocamContextType {
-  apiClient: ApiClient | null;
-  statusPollingError: Error | null;
-  status: StatusResponse | null;
+import { getErrorMessage } from '@/utils'
+
+export type LogEntry = {
+  id: number
+  timestamp: number
+  level: string
+  logger: string
+  message: string
 }
 
-const RocamContext = createContext<RocamContextType | undefined>(undefined);
+const MAX_LOG_ENTRIES = 1000
+
+interface RocamContextType {
+  apiClient: ApiClient | null
+  status: StatusResponse | null
+  logs: LogEntry[]
+}
+
+const RocamContext = createContext<RocamContextType | undefined>(undefined)
 
 interface RocamProviderProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 export function RocamProvider({ children }: RocamProviderProps) {
-  const [apiClient, setApiClient] = useState<ApiClient | null>(null);
-  const [error, setError] = useState<Error | null>(null);
-  const [status, setStatus] = useState<StatusResponse | null>(null);
+  const { t } = useLingui()
+  const [apiClient, setApiClient] = useState<ApiClient | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [status, setStatus] = useState<StatusResponse | null>(null)
+  const [logs, setLogs] = useState<LogEntry[]>([])
+  const nextLogIdRef = useRef(1)
+  const logsErrorMessageRef = useRef<string | null>(null)
 
   // Initialize API client
   useEffect(() => {
-    let isMounted = true;
+    let isMounted = true
 
     async function initializeApiClient() {
       try {
-        setError(null);
-        const client = await ApiClient.createAutomatic();
+        setErrorMessage(null)
+        const client = await ApiClient.createAutomatic()
 
         if (isMounted) {
-          setApiClient(client);
+          setApiClient(client)
         }
       } catch (err) {
         if (isMounted) {
-          setError(err instanceof Error ? err : new Error(String(err)));
+          setErrorMessage(getErrorMessage(err))
         }
       }
     }
 
-    initializeApiClient();
+    initializeApiClient()
 
     return () => {
-      isMounted = false;
-    };
-  }, []);
+      isMounted = false
+    }
+  }, [])
 
-  // Poll status at 30Hz (or slower if limited by network)
+  // Subscribe to status SSE stream (30Hz from backend)
   useEffect(() => {
-    if (!apiClient) return;
+    if (!apiClient) return
 
-    let isMounted = true;
-    let timeoutId: number | null = null;
-    const targetInterval = 1000 / 30; // 15Hz
+    const url = apiClient.getStatusStreamUrl()
+    const es = new EventSource(url)
 
-    async function pollStatus() {
-      if (!isMounted || !apiClient) return;
-
-      const startTime = Date.now();
-
+    es.onmessage = (event) => {
       try {
-        const statusData = await apiClient.getStatus();
+        const data = JSON.parse(event.data) as StatusResponse
 
-        if (isMounted) {
-          setStatus(statusData);
-          setError(null);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(err instanceof Error ? err : new Error(String(err)));
-        }
+        setStatus(data)
+        setErrorMessage(null)
+      } catch {
+        // ignore malformed messages
       }
-
-      if (!isMounted) return;
-
-      // Calculate delay: wait for target interval, but account for request time
-      // This ensures we poll at 30Hz when network is fast, or slower if network is slow
-      const elapsed = Date.now() - startTime;
-      const delay = Math.max(0, targetInterval - elapsed);
-
-      timeoutId = window.setTimeout(pollStatus, delay);
     }
 
-    // Start polling
-    pollStatus();
+    es.onerror = () => {
+      setErrorMessage('Status stream connection error')
+    }
 
     return () => {
-      isMounted = false;
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [apiClient]);
+      es.close()
+    }
+  }, [apiClient])
+
+  useEffect(() => {
+    if (!errorMessage) return
+
+    addToast({
+      title: t`Failed to poll status`,
+      description: errorMessage,
+      color: 'danger',
+    })
+  }, [errorMessage, t])
+
+  // Subscribe to logs SSE stream
+  useEffect(() => {
+    if (!apiClient) return
+
+    const es = new EventSource(apiClient.getLogsStreamUrl())
+
+    es.onmessage = (event) => {
+      const entry = parseLogEvent(event.data, nextLogIdRef.current++)
+
+      if (!entry) return
+
+      logsErrorMessageRef.current = null
+      setLogs((prev) => {
+        const next = [...prev, entry]
+
+        return next.length <= MAX_LOG_ENTRIES
+          ? next
+          : next.slice(next.length - MAX_LOG_ENTRIES)
+      })
+    }
+
+    es.onerror = () => {
+      const message = 'Logs stream connection error'
+
+      if (logsErrorMessageRef.current === message) return
+
+      logsErrorMessageRef.current = message
+      addToast({
+        title: t`Failed to stream logs`,
+        description: t`Logs stream connection error`,
+        color: 'danger',
+      })
+    }
+
+    return () => {
+      es.close()
+    }
+  }, [apiClient, t])
 
   const value: RocamContextType = {
     apiClient,
-    statusPollingError: error,
     status,
-  };
+    logs,
+  }
 
-  return (
-    <RocamContext.Provider value={value}>{children}</RocamContext.Provider>
-  );
+  return <RocamContext.Provider value={value}>{children}</RocamContext.Provider>
 }
 
 /**
@@ -115,11 +161,36 @@ export function RocamProvider({ children }: RocamProviderProps) {
  * @throws Error if used outside of RocamProvider
  */
 export function useRocam() {
-  const context = useContext(RocamContext);
+  const context = useContext(RocamContext)
 
   if (context === undefined) {
-    throw new Error("useRocam must be used within a RocamProvider");
+    throw new Error('useRocam must be used within a RocamProvider')
   }
 
-  return context;
+  return context
+}
+
+function parseLogEvent(rawData: string, id: number): LogEntry | null {
+  try {
+    const data = JSON.parse(rawData) as {
+      timestamp?: number
+      level?: string
+      logger?: string
+      message?: string
+    }
+
+    if (typeof data.message !== 'string') return null
+
+    return {
+      id,
+      timestamp: Number.isFinite(data.timestamp)
+        ? (data.timestamp as number)
+        : Date.now(),
+      level: typeof data.level === 'string' ? data.level : 'INFO',
+      logger: typeof data.logger === 'string' ? data.logger : 'backend',
+      message: data.message,
+    }
+  } catch {
+    return null
+  }
 }

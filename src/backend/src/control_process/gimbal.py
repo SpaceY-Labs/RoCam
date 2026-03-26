@@ -6,63 +6,22 @@ from threading import Lock
 
 class GimbalSerial:
     """
-    Serial protocol helper for a device that exchanges small, fixed-format packets
-    with an 8-bit CRC at byte 0 and a 1-byte request identifier at byte 1.
+    Serial client for the gimbal protocol. See docs/Design/GimbalProtocol/GimbalProtocol.tex
+    for the full specification.
 
-    Communication protocol:
-      This protocol uses a strict request-response structure. All communication
-      must start with a request from the host (this class). Every request must be
-      followed by a response from the gimbal device. The host never sends data
-      without expecting a response, and the gimbal never initiates communication.
+    Methods raise RuntimeError if the port is closed, a write is short, a read times out,
+    or the CRC check fails (where applicable).
 
-    General framing (requests built via create_request_data)
-    Bytes:  [0] [1] [2..N-1]
-             │   │  └──┬───┘
-             │   │     │
-             │   │     └─ Payload (command-specific)
-             │   └─ request_id (uint8)
-             └─ CRC-8/SMBUS over bytes [1..N-1]
-
-    CRC-8/SMBUS parameters:
-      width=8  poly=0x07  init=0x00  refin=false  refout=false  xorout=0x00
-      check=0xF4  residue=0x00
-
-    Endianness:
-      Unless otherwise stated, all 32-bit floating point values are IEEE-754
-      little-endian ("<f" in Python struct notation).
-
-    Typical responses:
-      All responses follow the format [data_bytes...] [CRC_byte], where CRC-8/SMBUS
-      is computed over all data bytes. For simple set/command requests (LEDs, move),
-      this is a special case with 0 data bytes, so the response is just:
-            [0]    CRC-8/SMBUS over 0 bytes (empty data) = 0x00
-      For measurement (request_id=0x03), the response has 8 data bytes:
-            [0..3] float32 tilt (LE)
-            [4..7] float32 pan  (LE)
-            [8]    CRC-8/SMBUS over bytes [0..7]
-
-    I/O behavior and errors:
-      • Methods raise RuntimeError if the serial port is closed, a write is
-        short, a read times out, or the CRC check fails (where applicable).
-      • Methods that expect a 1-byte ACK return bool (True on 0x00).
-
-    Usage pattern:
+    Usage:
         with GimbalSerial("/dev/ttyUSB0", 115200, 0.5) as dev:
-            dev.arm_led(True)
-            dev.status_led(False)
-            ok = dev.move_deg(12.5, 3.25)
-            tilt, pan = dev.measure_deg()
+            info = dev.gimbal_info()
+            dev.set_arm_led(True)
+            dev.set_status_led(False)
+            dev.set_deg(12.5, 3.25)
+            tilt, pan = dev.get_deg()
     """
 
     def __init__(self, port: str, baudrate: int = 115200, timeout: float = 0.5):
-        """
-        Open the serial port.
-
-        Args:
-          port: e.g. "/dev/ttyUSB0", "/dev/ttyACM0".
-          baudrate: serial bit rate (default 115200).
-          timeout: read timeout in seconds (default 0.5).
-        """
         self.ser = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
         self._mutex = Lock()
 
@@ -79,10 +38,8 @@ class GimbalSerial:
     def __exit__(self, exc_type, exc, tb):
         self.close()
 
-    # ── CRC implementation ─────────────────────────────────────────────────────
     @staticmethod
     def _crc8_smbus(data: bytes) -> int:
-        """Compute CRC-8/SMBUS over the provided bytes (see class doc)."""
         crc = 0x00
         poly = 0x07
         for b in data:
@@ -95,7 +52,6 @@ class GimbalSerial:
         return crc
 
     def _read_exact(self, n: int) -> Optional[bytes]:
-        """Read exactly n bytes or return None on timeout/short read."""
         buf = bytearray()
         while len(buf) < n:
             chunk = self.ser.read(n - len(buf))
@@ -104,29 +60,7 @@ class GimbalSerial:
             buf.extend(chunk)
         return bytes(buf)
 
-    # ── Request/Response handling ───────────────────────────────────────────────
     def _send_request(self, request_id: int, payload: bytes, response_length: int = 0) -> bytes:
-        """
-        Send a request packet and read the response.
-
-        This is the general method for sending requests and receiving responses.
-        The response format is: [data_bytes...] [CRC_byte], where CRC-8/SMBUS
-        is computed over all data bytes.
-
-        Args:
-          request_id: command identifier (0..255).
-          payload: command-specific bytes. Can be empty (b"").
-          response_length: number of data bytes in the response (excluding CRC byte).
-                          Defaults to 0 for simple ACK responses (0 data bytes + 1 CRC byte).
-                          For data responses, specify the number of data bytes (CRC byte is added automatically).
-
-        Returns:
-          Response data bytes (without the CRC byte). For simple ACK responses
-          (response_length=0), returns empty bytes if CRC is valid (0x00).
-
-        Raises:
-          RuntimeError: if port is closed, short write, timeout, or CRC mismatch.
-        """
         with self._mutex:
             if not self.ser or not self.ser.is_open:
                 raise RuntimeError("Serial port is not open")
@@ -134,19 +68,16 @@ class GimbalSerial:
             written = self.ser.write(packet)
             if written != len(packet):
                 raise RuntimeError(f"Short write for request_id 0x{request_id:02X}")
-            # Total response length is data bytes + 1 CRC byte
             total_response_length = response_length + 1
             resp = self._read_exact(total_response_length)
             if resp is None or len(resp) != total_response_length:
                 raise RuntimeError(f"Timeout or short read on request_id 0x{request_id:02X} response")
-            
+
             if response_length == 0:
-                # Simple ACK: response is CRC(empty) = 0x00
                 if resp[0] != 0x00:
                     raise RuntimeError(f"Invalid ACK: got 0x{resp[0]:02X}, expected 0x00")
                 return b""
             else:
-                # Data response: last byte is CRC over all preceding bytes
                 data_bytes = resp[:-1]
                 crc_expected = self._crc8_smbus(data_bytes)
                 crc_received = resp[-1]
@@ -156,196 +87,79 @@ class GimbalSerial:
                     )
                 return data_bytes
 
-    # ── Packet construction ────────────────────────────────────────────────────
     def create_request_data(self, request_id: int, payload: bytes) -> bytes:
-        """
-        Construct a request packet with the class's standard framing.
-
-        Fields (by offset):
-          [0]  uint8  CRC-8/SMBUS over bytes [1..]
-          [1]  uint8  request_id
-          [2..] bytes payload (opaque, command-specific)
-
-        Args:
-          request_id: command identifier (0..255).
-          payload: command-specific bytes. Can be empty (b"").
-
-        Returns:
-          bytes ready to send via serial.write().
-
-        Raises:
-          TypeError: if payload is not bytes-like.
-        """
         if not isinstance(payload, (bytes, bytearray)):
             raise TypeError("payload must be bytes-like")
         data = bytearray(2 + len(payload))
-        data[0] = 0x00  # placeholder until CRC calculated
+        data[0] = 0x00
         data[1] = request_id & 0xFF
         if payload:
             data[2:] = payload
-        # CRC over [1..end]
         data[0] = self._crc8_smbus(bytes(data[1:]))
         return bytes(data)
 
-    # ── Commands ───────────────────────────────────────────────────────────────
-    def arm_led(self, state: bool) -> bool:
+    def gimbal_info(self) -> Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]]:
         """
-        Set the ARM indication LED.
-
-        request_id: 0x00
-        payload:    [2] uint8 state, 1 for True, 0 for False
-        request:    [0]=CRC([1..2]), [1]=0x00, [2]=state
-        response:   1 byte containing CRC-8/SMBUS over 0 bytes (empty data) = 0x00
+        Get tilt, pan, and focal length ranges (Command ID 0x00).
 
         Returns:
-          True on successful response (CRC(empty) = 0x00), False on error.
-
-        Raises:
-          RuntimeError if the serial port is not open, short write, timeout, or CRC mismatch.
+          (tilt_range_deg, pan_range_deg, focal_length_range_mm), each a (min, max) tuple.
         """
         if not self.ser or not self.ser.is_open:
             raise RuntimeError("Serial port is not open")
-        try:
-            payload = bytes([1 if state else 0])
-            self._send_request(0x00, payload)
-            return True
-        except RuntimeError:
-            return False
+        resp_data = self._send_request(0x00, b"", 24)
+        tilt_min, tilt_max = struct.unpack("<ff", resp_data[0:8])
+        pan_min, pan_max = struct.unpack("<ff", resp_data[8:16])
+        focal_min, focal_max = struct.unpack("<ff", resp_data[16:24])
+        return (tilt_min, tilt_max), (pan_min, pan_max), (focal_min, focal_max)
 
-    def status_led(self, state: bool) -> bool:
-        """
-        Set the STATUS indication LED.
-
-        request_id: 0x01
-        payload:    [2] uint8 state, 1 for True, 0 for False
-        request:    [0]=CRC([1..2]), [1]=0x01, [2]=state
-        response:   1 byte containing CRC-8/SMBUS over 0 bytes (empty data) = 0x00
-
-        Returns:
-          True on successful response (CRC(empty) = 0x00), False on error.
-
-        Raises:
-          RuntimeError if the serial port is not open, short write, timeout, or CRC mismatch.
-        """
+    def set_arm_led(self, enabled: bool) -> bool:
+        """Set the ARM LED on or off (Command ID 0x01). Returns True on success."""
         if not self.ser or not self.ser.is_open:
             raise RuntimeError("Serial port is not open")
         try:
-            payload = bytes([1 if state else 0])
+            payload = bytes([1 if enabled else 0])
             self._send_request(0x01, payload)
             return True
         except RuntimeError:
             return False
 
-    def move_deg(self, tilt: float, pan: float) -> bool:
-        """
-        Command the device to move to the specified tilt/pan angles (degrees).
-
-        request_id: 0x02
-        payload:    [2..5] float32 tilt (LE)
-                    [6..9] float32 pan  (LE)
-        packet len: 10 bytes total
-        request:    [0]=CRC([1..9]), [1]=0x02, [2..5]=tilt, [6..9]=pan
-        response:   1 byte containing CRC-8/SMBUS over 0 bytes (empty data) = 0x00
-
-        Returns:
-          True on successful response (CRC(empty) = 0x00), False on error.
-
-        Raises:
-          RuntimeError if the serial port is not open, short write, timeout, or CRC mismatch.
-        """
+    def set_status_led(self, enabled: bool) -> bool:
+        """Set the Status LED on or off (Command ID 0x02). Returns True on success."""
         if not self.ser or not self.ser.is_open:
             raise RuntimeError("Serial port is not open")
         try:
-            payload = struct.pack("<ff", float(tilt), float(pan))
+            payload = bytes([1 if enabled else 0])
             self._send_request(0x02, payload)
             return True
         except RuntimeError:
             return False
 
-    def measure_deg(self) -> Tuple[float, float]:
+    def set_deg(self, tilt_deg: float, pan_deg: float) -> bool:
+        """Move gimbal to tilt/pan angles in degrees (Command ID 0x03). Returns True on success."""
+        if not self.ser or not self.ser.is_open:
+            raise RuntimeError("Serial port is not open")
+        try:
+            payload = struct.pack("<ff", float(tilt_deg), float(pan_deg))
+            self._send_request(0x03, payload)
+            return True
+        except RuntimeError:
+            return False
+
+    def get_deg(self) -> Tuple[float, float]:
         """
-        Request current tilt and pan angles from the device.
-
-        request_id: 0x03
-        payload:    none (empty)
-        request:    [0]=CRC([1]), [1]=0x03
-
-        response (9 bytes):
-          [0..3] float32 tilt (LE)
-          [4..7] float32 pan  (LE)
-          [8]    uint8  CRC-8/SMBUS over bytes [0..7]
-
-        Returns:
-          (tilt_deg, pan_deg) as floats.
-
-        Raises:
-          RuntimeError on port closed, short write, timeout, or CRC mismatch.
+        Get current tilt and pan in degrees (Command ID 0x04).
+        Returns (tilt_deg, pan_deg). If coordinates are not available, returns (NaN, NaN).
         """
         if not self.ser or not self.ser.is_open:
             raise RuntimeError("Serial port is not open")
-        resp_data = self._send_request(0x03, b"", 8)
+        resp_data = self._send_request(0x04, b"", 8)
         tilt = struct.unpack("<f", resp_data[0:4])[0]
         pan = struct.unpack("<f", resp_data[4:8])[0]
         return tilt, pan
 
-    def get_gps_data(self) -> Tuple[Optional[Tuple[float, float]], Optional[int]]:
-        """
-        Request current GPS data from the device.
-
-        request_id: 0x04
-        payload:    none (empty)
-        request:    [0]=CRC([1]), [1]=0x04
-
-        response (25 bytes):
-          [0..7]   float64 longitude (LE)
-          [8..15]  float64 latitude (LE)
-          [16..23] uint64  Unix timestamp in milliseconds (LE)
-          [24]     uint8   CRC-8/SMBUS over bytes [0..23]
-
-        Returns:
-          ((longitude, latitude), timestamp_ms) as (Optional[Tuple[float, float]], Optional[int]).
-          If coordinates are unknown (NaN), the first element is None.
-          If timestamp is unknown (0), the second element is None.
-
-        Raises:
-          RuntimeError on port closed, short write, timeout, or CRC mismatch.
-        """
-        if not self.ser or not self.ser.is_open:
-            raise RuntimeError("Serial port is not open")
-        resp_data = self._send_request(0x04, b"", 24)
-        longitude = struct.unpack("<d", resp_data[0:8])[0]
-        latitude = struct.unpack("<d", resp_data[8:16])[0]
-        timestamp_ms = struct.unpack("<Q", resp_data[16:24])[0]
-        
-        # Convert NaN coordinates to None
-        coords = None
-        if not (math.isnan(longitude) or math.isnan(latitude)):
-            coords = (longitude, latitude)
-        
-        # Convert zero timestamp to None
-        timestamp = None if timestamp_ms == 0 else timestamp_ms
-        
-        return coords, timestamp
-
-    def set_focal_length(self, focal_length_mm: float) -> bool:
-        """
-        Set the camera focal length.
-
-        request_id: 0x05
-        payload:    [2..5] float32 focal_length_mm (LE)
-        packet len: 6 bytes total
-        request:    [0]=CRC([1..5]), [1]=0x05, [2..5]=focal_length_mm
-        response:   1 byte containing CRC-8/SMBUS over 0 bytes (empty data) = 0x00
-
-        Args:
-          focal_length_mm: Focal length in millimeters.
-
-        Returns:
-          True on successful response (CRC(empty) = 0x00), False on error.
-
-        Raises:
-          RuntimeError if the serial port is not open, short write, timeout, or CRC mismatch.
-        """
+    def set_focal_length_mm(self, focal_length_mm: float) -> bool:
+        """Set focal length in mm (Command ID 0x05). Returns True on success."""
         if not self.ser or not self.ser.is_open:
             raise RuntimeError("Serial port is not open")
         try:
@@ -355,32 +169,35 @@ class GimbalSerial:
         except RuntimeError:
             return False
 
-    def get_focal_length(self) -> float:
-        """
-        Request current camera focal length from the device.
-
-        request_id: 0x06
-        payload:    none (empty)
-        request:    [0]=CRC([1]), [1]=0x06
-
-        response (5 bytes):
-          [0..3] float32 focal_length_mm (LE)
-          [4]    uint8  CRC-8/SMBUS over bytes [0..3]
-
-        Returns:
-          Focal length in millimeters as float.
-
-        Raises:
-          RuntimeError on port closed, short write, timeout, or CRC mismatch.
-        """
+    def get_focal_length_mm(self) -> float:
+        """Get current focal length in mm (Command ID 0x06)."""
         if not self.ser or not self.ser.is_open:
             raise RuntimeError("Serial port is not open")
         resp_data = self._send_request(0x06, b"", 4)
-        focal_length = struct.unpack("<f", resp_data[0:4])[0]
-        return focal_length
+        return struct.unpack("<f", resp_data[0:4])[0]
 
-if __name__ == "__main__":
-    with GimbalSerial(port="/dev/ttyTHS1", baudrate=115200, timeout=0.5) as dev:
-        dev.arm_led(True)
-        dev.status_led(True)
-        dev.move_deg(0, 0)
+    def get_gps_data(self) -> Tuple[Optional[Tuple[float, float]], Optional[int]]:
+        """
+        Get (longitude, latitude) and timestamp (ms) (Command ID 0x07).
+        
+        Returns:
+            ((longitude, latitude), timestamp_ms)
+            - coordinates: (longitude, latitude) in degrees, or None if unavailable.
+            - timestamp_ms: timestamp in ms, or None if unavailable.
+        """
+        if not self.ser or not self.ser.is_open:
+            raise RuntimeError("Serial port is not open")
+        resp_data = self._send_request(0x07, b"", 24)
+        longitude = struct.unpack("<d", resp_data[0:8])[0]
+        latitude = struct.unpack("<d", resp_data[8:16])[0]
+        timestamp_ms = struct.unpack("<Q", resp_data[16:24])[0]
+
+        coordinates = None
+        if not math.isnan(longitude) and not math.isnan(latitude):
+            coordinates = (longitude, latitude)
+
+        timestamp = None
+        if timestamp_ms != 0:
+            timestamp = timestamp_ms
+
+        return coordinates, timestamp

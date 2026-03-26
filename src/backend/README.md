@@ -1,7 +1,19 @@
 # How to Run:
 
 ```bash
+# Start the full backend
 ./start_backend.sh
+
+# Start the backend with only recording management (rename, delete, download)
+./start_backend.sh recording-management
+```
+
+# Unit Tests
+
+```bash
+pip install -r requirements-test.txt
+
+pytest --cov=src --cov-branch --cov-report=term-missing
 ```
 
 # How to Change the Model:

@@ -12,20 +12,29 @@ use crate::led::{set_arm_led, set_status_led};
 pub struct GimbalRpc {
     pub tilt_angle_deg_watch: &'static Watch<CriticalSectionRawMutex, f32, 1>,
     pub pan_angle_deg_watch: &'static Watch<CriticalSectionRawMutex, f32, 1>,
+    pub focal_length_mm_watch: &'static Watch<CriticalSectionRawMutex, f32, 1>,
 }
 
 impl GimbalRpcServer for GimbalRpc {
-    async fn arm_led(&mut self, enabled: bool) -> ArmLedResponse {
+    async fn gimbal_info(&mut self) -> GimbalInfoResponse {
+        GimbalInfoResponse {
+            tilt_range_deg: (0.0, 90.0),
+            pan_range_deg: (-45.0, 45.0),
+            focal_length_range_mm: (24.0, 120.0),
+        }
+    }
+
+    async fn set_arm_led(&mut self, enabled: bool) -> SetArmLedResponse {
         set_arm_led(if enabled { Level::High } else { Level::Low });
-        ArmLedResponse {}
+        SetArmLedResponse {}
     }
 
-    async fn status_led(&mut self, enabled: bool) -> StatusLedResponse {
+    async fn set_status_led(&mut self, enabled: bool) -> SetStatusLedResponse {
         set_status_led(if enabled { Level::High } else { Level::Low });
-        StatusLedResponse {}
+        SetStatusLedResponse {}
     }
 
-    async fn move_deg(&mut self, mut tilt: f32, mut pan: f32) -> MoveDegResponse {
+    async fn set_deg(&mut self, mut tilt: f32, mut pan: f32) -> SetDegResponse {
         if tilt > 90.0 {
             tilt = 90.0;
         } else if tilt < 0.0 {
@@ -38,21 +47,44 @@ impl GimbalRpcServer for GimbalRpc {
         }
         self.tilt_angle_deg_watch.sender().send(tilt);
         self.pan_angle_deg_watch.sender().send(pan);
-        MoveDegResponse {}
+        SetDegResponse {}
     }
 
-    async fn measure_deg(&mut self) -> MeasureDegResponse {
-        MeasureDegResponse {
-            tilt: self
+    async fn get_deg(&mut self) -> GetDegResponse {
+        GetDegResponse {
+            tilt_deg: self
                 .tilt_angle_deg_watch
                 .anon_receiver()
                 .try_get()
                 .unwrap_or(0.0),
-            pan: self
+            pan_deg: self
                 .pan_angle_deg_watch
                 .anon_receiver()
                 .try_get()
                 .unwrap_or(0.0),
+        }
+    }
+
+    async fn set_focal_length_mm(&mut self, focal_length_mm: f32) -> SetFocalLengthMmResponse {
+        self.focal_length_mm_watch.sender().send(focal_length_mm);
+        SetFocalLengthMmResponse {}
+    }
+
+    async fn get_focal_length_mm(&mut self) -> GetFocalLengthMmResponse {
+        GetFocalLengthMmResponse {
+            focal_length_mm: self
+                .focal_length_mm_watch
+                .anon_receiver()
+                .try_get()
+                .unwrap_or(24.0),
+        }
+    }
+
+    async fn get_gps_data(&mut self) -> GetGpsDataResponse {
+        GetGpsDataResponse {
+            longitude: f64::NAN,
+            latitude: f64::NAN,
+            timestamp_ms: 0,
         }
     }
 }
