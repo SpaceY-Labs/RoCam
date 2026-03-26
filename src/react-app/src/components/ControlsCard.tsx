@@ -1,13 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@heroui/button'
 import { Card, CardBody } from '@heroui/card'
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from '@heroui/modal'
 import { addToast } from '@heroui/toast'
 import {
   IconChevronLeft,
@@ -30,7 +23,6 @@ export function ControlsCard() {
   const [isArmLoading, setIsArmLoading] = useState(false)
   const [isRecordLoading, setIsRecordLoading] = useState(false)
   const [isCooldownActive, setIsCooldownActive] = useState(false)
-  const [showDisarmConfirm, setShowDisarmConfirm] = useState(false)
 
   const isArmed = !!status?.armed
   const isRecording = !!status?.is_recording
@@ -45,50 +37,25 @@ export function ControlsCard() {
   }
 
   const cooldownOrLoading = isCooldownActive || isArmLoading || isRecordLoading
-  const openDisarmConfirm = () => {
-    if (cooldownOrLoading) return
-    setShowDisarmConfirm(true)
-  }
 
   const handleToggleArm = async () => {
     if (!apiClient || cooldownOrLoading) return
-
-    if (isArmed) {
-      openDisarmConfirm()
-
-      return
-    }
     setIsArmLoading(true)
     startCooldown()
     try {
-      await apiClient.arm()
+      if (isArmed) {
+        await apiClient.disarm()
+      } else {
+        await apiClient.arm()
+      }
     } catch (error) {
       addToast({
-        title: t`Failed to arm`,
+        title: isArmed ? t`Failed to disarm` : t`Failed to arm`,
         description: getErrorMessage(error),
         color: 'danger',
       })
     } finally {
       setIsArmLoading(false)
-    }
-  }
-
-  const handleConfirmDisarm = async () => {
-    if (!apiClient || cooldownOrLoading) return
-
-    setIsArmLoading(true)
-    startCooldown()
-    try {
-      await apiClient.disarm()
-    } catch (error) {
-      addToast({
-        title: t`Failed to disarm`,
-        description: getErrorMessage(error),
-        color: 'danger',
-      })
-    } finally {
-      setIsArmLoading(false)
-      setShowDisarmConfirm(false)
     }
   }
 
@@ -118,42 +85,6 @@ export function ControlsCard() {
   }
 
   return (
-    <>
-      <Card radius="sm">
-        <CardBody className="px-6 py-5">
-          <p className="text-xs font-semibold uppercase text-gray-800 tracking-widest">
-            <Trans>Controls</Trans>
-          </p>
-          <div className="flex gap-8 mt-4">
-            <GimbalPad
-              isInteractionBlocked={!apiClient || cooldownOrLoading}
-              onMoveAttemptWhileArmed={openDisarmConfirm}
-            />
-            <div className="flex flex-col justify-center gap-3">
-              <Button
-                color="danger"
-                isDisabled={!apiClient || cooldownOrLoading}
-                radius="sm"
-                variant="bordered"
-                onPress={handleToggleRecording}
-              >
-                {isRecording ? (
-                  <Trans>Stop Recording</Trans>
-                ) : (
-                  <Trans>Start Recording</Trans>
-                )}
-              </Button>
-              <Button
-                className="border-amber-500 text-amber-600"
-                color="warning"
-                isDisabled={!apiClient || cooldownOrLoading}
-                radius="sm"
-                variant="bordered"
-                onPress={handleToggleArm}
-              >
-                {isArmed ? <Trans>Disarm</Trans> : <Trans>Arm</Trans>}
-              </Button>
-            </div>
     <Card radius="sm">
       <CardBody className="px-6 py-5">
         <p className="text-xs font-semibold uppercase text-gray-800 tracking-widest">
@@ -187,66 +118,16 @@ export function ControlsCard() {
               {isArmed ? <Trans>Disarm</Trans> : <Trans>Arm</Trans>}
             </Button>
           </div>
-        </CardBody>
-      </Card>
-
-      <Modal
-        isDismissable={!isArmLoading}
-        isOpen={showDisarmConfirm}
-        onOpenChange={(open) => setShowDisarmConfirm(open)}
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader>
-                <Trans>Disarm and switch to manual control?</Trans>
-              </ModalHeader>
-              <ModalBody>
-                <p className="text-sm text-gray-600">
-                  <Trans>
-                    Disarming will exit armed mode and re-enable manual gimbal
-                    controls.
-                  </Trans>
-                </p>
-              </ModalBody>
-              <ModalFooter>
-                <Button
-                  isDisabled={isArmLoading}
-                  radius="sm"
-                  variant="light"
-                  onPress={onClose}
-                >
-                  <Trans>Cancel</Trans>
-                </Button>
-                <Button
-                  color="warning"
-                  isLoading={isArmLoading}
-                  radius="sm"
-                  variant="solid"
-                  onPress={handleConfirmDisarm}
-                >
-                  <Trans>Disarm and Manual Control</Trans>
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-    </>
+        </div>
+      </CardBody>
+    </Card>
   )
 }
 
-type GimbalPadProps = {
-  isInteractionBlocked: boolean
-  onMoveAttemptWhileArmed: () => void
-}
-
-function GimbalPad({
-  isInteractionBlocked,
-  onMoveAttemptWhileArmed,
-}: GimbalPadProps) {
+function GimbalPad() {
   const { t } = useLingui()
   const { apiClient, status } = useRocam()
+  const disabled = !!status?.armed
   const handleMove = async (
     move: () => Promise<unknown>,
     actionLabel: string
@@ -261,87 +142,74 @@ function GimbalPad({
       })
     }
   }
-  const handleDirectionPress = (direction: 'up' | 'down' | 'left' | 'right') => {
-    if (!apiClient || isInteractionBlocked) return
-    if (status?.armed) {
-      onMoveAttemptWhileArmed()
-
-      return
-    }
-    void handleMove(() => apiClient.manualMove(direction), direction)
-  }
-  const handleHomePress = () => {
-    if (!apiClient || isInteractionBlocked) return
-    if (status?.armed) {
-      onMoveAttemptWhileArmed()
-
-      return
-    }
-    void handleMove(() => apiClient.manualMoveTo(0, 0), 'home')
-  }
 
   return (
     <div className="grid gap-2 grid-cols-3 grid-rows-3 w-fit">
       <div />
       <Button
-        data-testid="gimbal-up"
-        aria-label={t`Move up`}
         isIconOnly
-        disabled={isInteractionBlocked}
+        disabled={disabled}
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => handleDirectionPress('up')}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMove('up'), 'up')
+        }}
       >
         <IconChevronUp />
       </Button>
       <div />
       <Button
-        data-testid="gimbal-left"
-        aria-label={t`Move left`}
         isIconOnly
-        disabled={isInteractionBlocked}
+        disabled={disabled}
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => handleDirectionPress('left')}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMove('left'), 'left')
+        }}
       >
         <IconChevronLeft />
       </Button>
       <Button
-        data-testid="gimbal-home"
-        aria-label={t`Move home`}
         isIconOnly
-        disabled={isInteractionBlocked}
+        disabled={disabled}
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={handleHomePress}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMoveTo(0, 0), 'home')
+        }}
       >
         <IconHome />
       </Button>
       <Button
-        data-testid="gimbal-right"
-        aria-label={t`Move right`}
         isIconOnly
-        disabled={isInteractionBlocked}
+        disabled={disabled}
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => handleDirectionPress('right')}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMove('right'), 'right')
+        }}
       >
         <IconChevronRight />
       </Button>
       <div />
       <Button
-        data-testid="gimbal-down"
-        aria-label={t`Move down`}
         isIconOnly
-        disabled={isInteractionBlocked}
+        disabled={disabled}
         radius="sm"
         size="lg"
         variant="flat"
-        onPress={() => handleDirectionPress('down')}
+        onPress={() => {
+          if (!apiClient) return
+          void handleMove(() => apiClient.manualMove('down'), 'down')
+        }}
       >
         <IconChevronDown />
       </Button>
