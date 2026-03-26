@@ -98,10 +98,11 @@
         \makebox[0pt][c]{%
           \smash{%
             \raisebox{0.15cm}[0pt][0pt]{%
-              \begin{tikzpicture}
-                \node[inner sep=0pt, outer sep=0pt, opacity=0.42]
-                  {\includegraphics[height=4.3cm]{libs/McMaster_University_logo.svg.png}};
-              \end{tikzpicture}%
+                \begin{tikzpicture}
+                % Removed opacity=0.42 and increased height to 10.0cm
+                \node[inner sep=0pt, outer sep=0pt]
+                    {\includegraphics[height=5.0cm]{libs/McMaster_University_logo.svg.png}};
+                \end{tikzpicture}
             }%
           }%
         }%
