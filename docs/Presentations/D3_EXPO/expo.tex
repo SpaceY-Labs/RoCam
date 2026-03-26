@@ -68,12 +68,29 @@
 \author{}
 \institute{}
 
+% --- Override title colors to Grey Background and Black Text ---
+\colorlet{titlebgcolor}{gray!20}
+\colorlet{titlefgcolor}{black}
+
 \makeatletter
 \settitle{
   \parbox{\linewidth}{%
     \color{titlefgcolor}%
     \begin{minipage}[c]{0.20\linewidth}
-      {\Large\bfseries McMaster University\\[0.15em] Engineering}
+      \centering
+      \makebox[\linewidth][c]{%
+        \makebox[0pt][c]{%
+          \smash{%
+            \raisebox{0.15cm}[0pt][0pt]{%
+              \begin{tikzpicture}
+                \node[inner sep=0pt, outer sep=0pt, opacity=0.42]
+                  {\includegraphics[height=4.3cm]{libs/McMaster_University_logo.svg.png}};
+              \end{tikzpicture}%
+            }%
+          }%
+        }%
+        \parbox[c]{0.92\linewidth}{\centering {\Large\bfseries McMaster University}\\[0.15em]{\Large Engineering}}
+      }
     \end{minipage}%
     \hfill
     \begin{minipage}[c]{0.52\linewidth}
@@ -85,8 +102,7 @@
     \begin{minipage}[c]{0.22\linewidth}
       \raggedleft
       {\LARGE\bfseries Capstone Project}\\[0.3em]
-      {\Large Department of\\Computing and Software\\[0.2em]
-       Mechatronics \&\\Software Engineering}
+      {\Large Department of\\Computing and Software\\[0.2em]}
     \end{minipage}%
   }%
 }
