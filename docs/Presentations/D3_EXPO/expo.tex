@@ -184,6 +184,9 @@
   \end{minipage}
 }
 
+% ============================================================
+%  Machine Learning Section
+% ============================================================
 \block{Computer Vision \& Machine Learning}{
   \begin{minipage}[t]{0.28\linewidth}
     \vspace{0pt}
@@ -197,15 +200,24 @@
   \begin{minipage}[t]{0.68\linewidth}
     \vspace{0pt}
     \small
-    \begin{itemize}[leftmargin=1.1em, itemsep=0.18em]
-    \item \textbf{Model Architecture:} The detector was upgraded from the baseline \textbf{YOLO26s} to \textbf{YOLO26s-P2}, which adds a \textbf{stride-4 detection head} for improved sensitivity to very small rockets, at an approximate \textbf{+22\% GFLOPs} cost while remaining suitable for edge deployment.
-
-    \item \textbf{Data Strategy:} To suppress false positives, the training set was expanded with \textbf{4,000 COCO hard-negative background images} with empty labels, increasing the training split from \textbf{11,832} to \textbf{15,832} images and making background-only samples about \textbf{25\%} of training data.
-
-    \item \textbf{Training Stages:} Performance initially dropped from \textbf{mAP50--95 = 0.694} to \textbf{0.614} after introducing the P2 head and harder negatives, then recovered through a \textbf{three-stage fine-tuning pipeline}: close-mosaic fine-tuning raised performance to \textbf{0.720}, and ultra-fine polishing improved it further to a final \textbf{mAP50 = 0.958} and \textbf{mAP50--95 = 0.750}.
-
-    \item \textbf{Training Platform:} Experiments were run using \textbf{Distributed Data Parallel (DDP)} with mixed precision on a \textbf{4$\times$ NVIDIA H100 PCIe} cluster, enabling stable large-batch training, reproducible stage-by-stage comparison, and efficient optimization of the final detector.
+    \raggedright % <--- Added to fix Underfull \hbox warnings
+    \begin{itemize}[leftmargin=1.1em, itemsep=0.2em]
+    \item \textbf{Architecture Upgrade (YOLO26s-P2):} Added a \textbf{stride-4 detection head} to quadruple the spatial resolution of the finest feature map, ensuring sensitivity to micro-targets as small as $10{\times}10$ pixels.
+    
+    \item \textbf{Data Engineering \& Hard Negative Mining:} Engineered an automated pipeline to inject \textbf{4,000 pure background COCO images} ($\sim$25\% of the dataset) with empty labels, forcing a harder decision boundary to suppress false positives.
+    
+    \item \textbf{Custom Degradation Pipeline:} Integrated a DDP-compatible Albumentations pipeline to simulate real-world flight conditions, including motion blur, sensor noise, dynamic range shifts, and compression artifacts.
+    
+    \item \textbf{Curriculum Augmentation Strategy:} Implemented a progressive reduction strategy across training stages—shifting from heavy augmentation (exploration) to minimal perturbation (exploitation). 
+    
+    \item \textbf{Failure Analysis \& Debugging:} Diagnosed a critical "Mosaic Starvation" failure where early stopping preempted the \texttt{close\_mosaic} phase, trapping the model on $\frac{1}{4}$-scale downscaled images and crashing mAP$_{50-95}$ to 0.614.
+    
+    \item \textbf{Close-Mosaic Fine-Tuning:} Engineered a dedicated recovery stage (mosaic=0.0) to expose the model to full-resolution $960{\times}544$ frames, rescuing the pipeline and triggering a massive $+17.3\%$ metric jump.
+        
+    \item \textbf{HPC Distributed Training:} Orchestrated the complete four-stage training pipeline on a \textbf{4$\times$NVIDIA H100 PCIe (81\,GB)} cluster using Distributed Data Parallel (DDP) and mixed precision.
     \end{itemize}
+    \vspace{0.5em}
+    \textbf{Final Deployment Metrics:} {\Large \textcolor{colorTwo}{\textbf{mAP$_{50} = 0.958$}; \textbf{mAP$_{50-95} = 0.750$}}}
   \end{minipage}
 }
 
