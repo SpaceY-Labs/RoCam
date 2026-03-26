@@ -61,6 +61,22 @@
   \end{minipage}%
 }
 
+% Section header colors
+\definecolor{motivationColor}{RGB}{146, 32, 57}
+\definecolor{architectureColor}{RGB}{0, 102, 128}
+\definecolor{toolsColor}{RGB}{168, 96, 24}
+\definecolor{featuresColor}{RGB}{34, 108, 76}
+\definecolor{visionColor}{RGB}{58, 78, 146}
+\definecolor{teamColor}{RGB}{105, 74, 42}
+
+\newcommand{\sectionblock}[3]{%
+  {%
+    \colorlet{blocktitlebgcolor}{#1}%
+    \colorlet{blocktitlefgcolor}{white}%
+    \block{#2}{#3}%
+  }%
+}
+
 % ============================================================
 % Title — three-part header: McMaster | Logo+Title | Department
 % ============================================================
@@ -120,7 +136,7 @@
 \column{0.48}
 
 % --- Motivation ---
-\block{Motivation}{
+\sectionblock{motivationColor}{Motivation}{
   \textbf{The Problem:} Model rockets accelerate to extreme speeds within fractions of a second, making manual camera tracking virtually impossible. Existing commercial tracking systems are cost-prohibitive and lack the precision required for small, fast-moving targets. Consequently, rocketry teams lose critical visual data for mid-flight events like staging and parachute tangling.
 
   \vspace{0.5em}
@@ -141,7 +157,7 @@
 }
 
 % --- System Architecture ---
-\block{System Architecture}{
+\sectionblock{architectureColor}{System Architecture}{
   % --- Left Side: Diagram ---
   \begin{minipage}[c]{0.58\linewidth}
     \centering
@@ -168,7 +184,7 @@
 }
 
 % --- Tools & Technologies ---
-\block{Tools \& Technologies}{
+\sectionblock{toolsColor}{Tools \& Technologies}{
   \vspace{-0.6em} % Pulls the image up tightly against the title
   \centering
   \includegraphics[width=0.85\linewidth, keepaspectratio]{libs/tools.png}
@@ -180,7 +196,7 @@
 % ============================================================
 \column{0.48}
 
-\block{Software \& Hardware Features}{
+\sectionblock{featuresColor}{Software \& Hardware Features}{
   \begin{minipage}[t]{0.48\linewidth}
     \vspace{0pt}
     \centering
@@ -203,7 +219,7 @@
 % ============================================================
 %  Machine Learning Section
 % ============================================================
-\block{Computer Vision \& Machine Learning}{
+\sectionblock{visionColor}{Computer Vision \& Machine Learning}{
   \begin{minipage}[t]{0.28\linewidth}
     \vspace{0pt}
     \centering
@@ -238,7 +254,7 @@
 }
 
 % --- Team Section ---
-\block{Our Team}{
+\sectionblock{teamColor}{Our Team}{
   \begin{minipage}[t]{0.28\linewidth}
     
     % --- COLOR CHANGE ADDED HERE ---
