@@ -214,20 +214,19 @@
   \begin{minipage}[t]{0.28\linewidth}
     
     % --- COLOR CHANGE ADDED HERE ---
-    \colorlet{innerblocktitlebgcolor}{green!40!black} % Mixes green with 60% black for a deep forest green
-    \colorlet{innerblocktitlefgcolor}{white}          % Ensures the header text stays white
-% -------------------------------
+    \colorlet{innerblocktitlebgcolor}{green!40!black} 
+    \colorlet{innerblocktitlefgcolor}{white}          
     % -------------------------------
 
     \innerblock{Development Team}{
       \small\sffamily 
-      \begin{minipage}[t][7.2cm][c]{\linewidth} 
+      % Height aggressively reduced to 3.2cm
+      \begin{minipage}[t][3.2cm][c]{\linewidth} 
         \centering
-        \includegraphics[width=0.85\linewidth, height=2.8cm, keepaspectratio]{libs/team_rocam.png}\\[1em]
-        Zifan Si\\[0.2em]
-        Jianqing Liu\\[0.2em]
-        Mike Chen\\[0.2em]
-        Xiaotian Lou
+        % Image height reduced to 1.3cm, spacing tightened
+        \includegraphics[width=0.85\linewidth, height=1.3cm, keepaspectratio]{libs/team_rocam.png}\\[0.2em]
+        Zifan Si \quad Jianqing Liu \\[0.05em]
+        Mike Chen \quad Xiaotian Lou
       \end{minipage}
     }
   \end{minipage}%
@@ -235,9 +234,9 @@
   \begin{minipage}[t]{0.28\linewidth}
     \innerblock{Launch Team}{
       \small\sffamily
-      \begin{minipage}[t][7.2cm][c]{\linewidth}
+      \begin{minipage}[t][3.2cm][c]{\linewidth}
         \centering
-        \includegraphics[width=0.85\linewidth, height=3.0cm, keepaspectratio]{libs/team_rocketry.png}\\[1em]
+        \includegraphics[width=0.85\linewidth, height=1.5cm, keepaspectratio]{libs/team_rocketry.png}\\[0.2em]
         McMaster Rocketry Team
       \end{minipage}
     }
@@ -246,18 +245,17 @@
   \begin{minipage}[t]{0.28\linewidth}
     
     % --- COLOR CHANGE ADDED HERE ---
-    \colorlet{innerblocktitlebgcolor}{blue!80!black} % Changes the header background to blue
-    \colorlet{innerblocktitlefgcolor}{white}         % Ensures the header text stays white
+    \colorlet{innerblocktitlebgcolor}{blue!80!black} 
+    \colorlet{innerblocktitlefgcolor}{white}         
     % -------------------------------
 
     \innerblock{Advisory Team}{
       \small\sffamily
-      \begin{minipage}[t][7.2cm][c]{\linewidth}
+      \begin{minipage}[t][3.2cm][c]{\linewidth}
         \centering
-        Dr.\ Shahin Sirouspour\\[0.2em]
-        Dr.\ Spencer Smith\\[0.2em]
-        Tanya Djavaherpour\\[1em]
-        \includegraphics[width=0.85\linewidth, height=2.8cm, keepaspectratio]{libs/team_cas.png}
+        Dr.\ Shahin Sirouspour \quad Dr.\ Spencer Smith \\[0.05em] 
+        Tanya Djavaherpour\\[0.2em]
+        \includegraphics[width=0.85\linewidth, height=1.3cm, keepaspectratio]{libs/team_cas.png}
       \end{minipage}
     }
   \end{minipage}
