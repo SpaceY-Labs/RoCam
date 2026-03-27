@@ -148,7 +148,7 @@ def pt_yolo11_to_onnx(input_pt: Path, output_onnx: Path):
     """
     Exports a YOLO11 .pt model to a DeepStream-compatible ONNX model.
     """
-    img_size = _align_to_stride(int(HEIGHT * INFER_SCALE), int(WIDTH * INFER_SCALE), 32)
+    img_size = _align_to_stride(int(HEIGHT * INFER_SCALE), int(WIDTH / 2), 32)
     batch_size = 1
     opset_version = 17
     device = torch.device("cpu")
@@ -243,7 +243,7 @@ def pt_yolo26_to_onnx(input_pt: Path, output_onnx: Path):
     model = nn.Sequential(model, DeepStreamOutput())
 
     stride = int(max(yolo_model.model.stride))
-    img_size = _align_to_stride(int(HEIGHT * INFER_SCALE), int(WIDTH * INFER_SCALE), stride)
+    img_size = _align_to_stride(int(HEIGHT * INFER_SCALE), int(WIDTH / 2), stride)
     print(
         f"[INFO] Exporting to ONNX: {output_onnx} (Size: {img_size}, Batch: {batch_size}, Stride: {stride})"
     )
@@ -337,8 +337,8 @@ def pt_to_engine(input_pt: str, output_engine: str, rebuild: bool = False, scale
     global INFER_SCALE
     INFER_SCALE = scale_factor
     infer_h = int(HEIGHT * scale_factor)
-    infer_w = int(WIDTH * scale_factor)
-    print(f"[INFO] Inference resolution: ~{infer_h}x{infer_w} (scale={scale_factor})")
+    infer_w = int(WIDTH / 2)
+    print(f"[INFO] Inference resolution: ~{infer_h}x{infer_w} (height_scale={scale_factor}, width=WIDTH/2)")
 
     # 1. Check Cache (include scale in cache key to avoid collisions)
     model_type = get_model_info(pt_path)
@@ -406,8 +406,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--scale-factor", type=float, default=0.5,
-        help="Scale factor for inference resolution (default 0.5 = half res). "
-             "E.g. 0.68 -> 736x960, 0.75 -> 816x960"
+        help="Height scale factor (default 0.5). Width is fixed at WIDTH/2=960. "
+             "E.g. 0.68 -> 736x960, 0.76 -> 816x960"
     )
 
     args = parser.parse_args()

@@ -414,7 +414,7 @@ def main():  # pragma: no cover
     ap.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
     ap.add_argument("--debug-vis", type=int, default=0, help=f"Save N debug overlay images to {DEBUG_VIS_DIR}")
     ap.add_argument("--scale-factor", type=float, default=0.5,
-                    help="Scale factor for inference resolution (default 0.5). E.g. 0.68 -> 736x960")
+                    help="Height scale factor (default 0.5). Width=960 fixed. E.g. 0.68 -> 736x960")
     args = ap.parse_args()
 
     # 1. Handle model (Convert .pt to .engine or use .engine directly)
