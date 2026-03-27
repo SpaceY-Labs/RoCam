@@ -413,6 +413,8 @@ def main():  # pragma: no cover
     ap.add_argument("--limit", type=int, help="Limit number of images to evaluate")
     ap.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
     ap.add_argument("--debug-vis", type=int, default=0, help=f"Save N debug overlay images to {DEBUG_VIS_DIR}")
+    ap.add_argument("--scale-factor", type=float, default=0.5,
+                    help="Scale factor for inference resolution (default 0.5). E.g. 0.68 -> 736x960")
     args = ap.parse_args()
 
     # 1. Handle model (Convert .pt to .engine or use .engine directly)
@@ -429,7 +431,7 @@ def main():  # pragma: no cover
         engine_path = temp_engine_to_cleanup
         
         logger.info(f"Converting/Restoring model: {pt_path} to {engine_path}")
-        if not pt_to_engine(str(pt_path), str(engine_path), args.rebuild):
+        if not pt_to_engine(str(pt_path), str(engine_path), args.rebuild, args.scale_factor):
             logger.error("Model conversion failed")
             return 1
         onnx_path_for_config = str(pt_path)

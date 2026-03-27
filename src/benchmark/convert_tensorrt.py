@@ -33,6 +33,7 @@ sys.modules["ultralytics.yolo.utils"] = ultralytics.utils
 
 WIDTH = 1920
 HEIGHT = 1080
+INFER_SCALE = 0.5
 CACHE_DIR = Path("/mnt/data/tensorrt_engine_cache")
 
 
@@ -104,6 +105,7 @@ def bus_call(bus, message, loop):
 def get_model_info(pt_path: Path):
     """
     Identifies the model type (YOLO11 vs YOLO26) from the .pt file metadata.
+    Checks train_args.model string first, then falls back to model yaml metadata.
     """
     try:
         from ultralytics.nn.tasks import DetectionModel
@@ -116,6 +118,18 @@ def get_model_info(pt_path: Path):
                 return "YOLO11"
             elif "yolo26" in train_model:
                 return "YOLO26"
+
+        # Fallback: check model yaml metadata (handles fine-tuned checkpoints)
+        if isinstance(m, dict):
+            model_obj = m.get("ema") or m.get("model")
+            if model_obj is not None and hasattr(model_obj, "yaml"):
+                yaml_info = model_obj.yaml
+                yaml_file = yaml_info.get("yaml_file", "") if isinstance(yaml_info, dict) else ""
+                if "yolo11" in yaml_file:
+                    return "YOLO11"
+                elif "yolo26" in yaml_file:
+                    return "YOLO26"
+
         return "Unknown"
     except Exception as e:
         print(f"[WARN] Could not identify model info: {e}")
@@ -134,7 +148,7 @@ def pt_yolo11_to_onnx(input_pt: Path, output_onnx: Path):
     """
     Exports a YOLO11 .pt model to a DeepStream-compatible ONNX model.
     """
-    img_size = (int(HEIGHT / 2), int(WIDTH / 2))  # (540, 960)
+    img_size = _align_to_stride(int(HEIGHT * INFER_SCALE), int(WIDTH * INFER_SCALE), 32)
     batch_size = 1
     opset_version = 17
     device = torch.device("cpu")
@@ -192,11 +206,16 @@ def pt_yolo11_to_onnx(input_pt: Path, output_onnx: Path):
     print(f"[INFO] YOLO11 ONNX export complete: {output_onnx}")
 
 
+def _align_to_stride(h: int, w: int, stride: int = 32):
+    """Round dimensions up to the nearest multiple of stride."""
+    import math
+    return math.ceil(h / stride) * stride, math.ceil(w / stride) * stride
+
+
 def pt_yolo26_to_onnx(input_pt: Path, output_onnx: Path):
     """
     Exports a YOLO26 .pt model to a DeepStream-compatible ONNX model.
     """
-    img_size = (int(HEIGHT / 2), int(WIDTH / 2))  # (540, 960)
     batch_size = 1
     opset_version = 17
     device = torch.device("cpu")
@@ -223,8 +242,10 @@ def pt_yolo26_to_onnx(input_pt: Path, output_onnx: Path):
 
     model = nn.Sequential(model, DeepStreamOutput())
 
+    stride = int(max(yolo_model.model.stride))
+    img_size = _align_to_stride(int(HEIGHT * INFER_SCALE), int(WIDTH * INFER_SCALE), stride)
     print(
-        f"[INFO] Exporting to ONNX: {output_onnx} (Size: {img_size}, Batch: {batch_size})"
+        f"[INFO] Exporting to ONNX: {output_onnx} (Size: {img_size}, Batch: {batch_size}, Stride: {stride})"
     )
     dummy_input = torch.zeros(batch_size, 3, *img_size).to(device)
 
@@ -302,7 +323,7 @@ def onnx_to_engine(input_onnx: Path, output_engine: Path):
         os.chdir(orig_cwd)
 
 
-def pt_to_engine(input_pt: str, output_engine: str, rebuild: bool = False):
+def pt_to_engine(input_pt: str, output_engine: str, rebuild: bool = False, scale_factor: float = 0.5):
     """
     Checks cache, handles conversion flow: .pt -> .onnx -> .engine.
     """
@@ -312,11 +333,20 @@ def pt_to_engine(input_pt: str, output_engine: str, rebuild: bool = False):
         print(f"[ERROR] Input .pt file not found: {pt_path}", file=sys.stderr)
         return False
 
-    # 1. Check Cache
+    # Apply scale factor globally
+    global INFER_SCALE
+    INFER_SCALE = scale_factor
+    infer_h = int(HEIGHT * scale_factor)
+    infer_w = int(WIDTH * scale_factor)
+    print(f"[INFO] Inference resolution: ~{infer_h}x{infer_w} (scale={scale_factor})")
+
+    # 1. Check Cache (include scale in cache key to avoid collisions)
     model_type = get_model_info(pt_path)
     print(f"[INFO] Identified model type: {model_type}")
 
-    pt_md5 = get_file_md5(pt_path)
+    pt_md5_raw = get_file_md5(pt_path)
+    scale_tag = f"_s{int(scale_factor * 100)}" if scale_factor != 0.5 else ""
+    pt_md5 = pt_md5_raw + scale_tag
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     cached_engine = CACHE_DIR / f"{pt_md5}.engine"
     output_engine_path = Path(output_engine).resolve()
@@ -374,8 +404,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--rebuild", action="store_true", help="Force rebuild even if cache exists"
     )
+    parser.add_argument(
+        "--scale-factor", type=float, default=0.5,
+        help="Scale factor for inference resolution (default 0.5 = half res). "
+             "E.g. 0.68 -> 736x960, 0.75 -> 816x960"
+    )
 
     args = parser.parse_args()
 
-    success = pt_to_engine(args.input_pt, args.output_engine, args.rebuild)
+    success = pt_to_engine(args.input_pt, args.output_engine, args.rebuild, args.scale_factor)
     sys.exit(0 if success else 1)
