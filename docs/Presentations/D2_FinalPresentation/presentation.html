@@ -194,11 +194,19 @@
             </p>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">1 / 16</div>
+        <div class="slide-footer">1 / 18</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 2: Problem & Roadmap -->
+    <!-- SLIDE 2: Group Photo -->
+    <!-- ========================================== -->
+    <div class="slide relative" style="background: #000; display: flex; justify-content: center; align-items: center;">
+        <img src="figures/bvigpic.webp" alt="Team Group Photo" style="width: 100%; height: 100%; object-fit: contain;">
+        <div class="slide-footer" style="color: #999;">2 / 18</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 3: Problem & Roadmap -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex relative">
         <div class="slide-header">
@@ -257,7 +265,7 @@
         </div>
         
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">2 / 16</div>
+        <div class="slide-footer">3 / 18</div>
     </div>
 
     <!-- ========================================== -->
@@ -316,7 +324,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">3 / 16</div>
+        <div class="slide-footer">4 / 18</div>
     </div>
 
     <!-- ========================================== -->
@@ -351,7 +359,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">4 / 16</div>
+        <div class="slide-footer">5 / 18</div>
     </div>
 
     <!-- ========================================== -->
@@ -369,7 +377,7 @@
         </div>
         
         <div class="speaker-badge" style="color: #666;"><i class="fa-solid fa-microphone"></i> Speaker: All</div>
-        <div class="slide-footer" style="color: #444;">5 / 16</div>
+        <div class="slide-footer" style="color: #444;">6 / 18</div>
     </div>
 
     <!-- ========================================== -->
@@ -424,7 +432,7 @@
         </div>
 
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Mike Chen</div>
-        <div class="slide-footer">6 / 16</div>
+        <div class="slide-footer">7 / 18</div>
     </div>
 
     <!-- ========================================== -->
@@ -440,67 +448,316 @@
             Optimized for extreme distance and strict latency budgets.
         </h2>
 
-        <!-- Linear Flow -->
-        <div class="flex items-center justify-between w-full mb-20 bg-white p-12 rounded-3xl shadow-lg border border-gray-100">
-            <div class="flex flex-col items-center">
-                <div class="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center mb-6">
-                    <i class="fa-solid fa-camera text-3xl text-rocam-dark"></i>
+        <!-- Linear Flow: Actual CV Pipeline -->
+        <div class="flex items-center justify-between w-full mb-20 bg-white p-10 rounded-3xl shadow-lg border border-gray-100">
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-camera text-2xl text-rocam-dark"></i>
                 </div>
-                <div class="text-2xl font-bold text-rocam-dark">Decode</div>
+                <div class="text-xl font-bold text-rocam-dark">Capture</div>
+                <div class="text-sm text-rocam-gray mt-1">1080p @60fps</div>
             </div>
-            
-            <i class="fa-solid fa-arrow-right text-3xl text-gray-300"></i>
-            
-            <div class="flex flex-col items-center">
-                <div class="w-24 h-24 rounded-2xl bg-rocam-dark flex items-center justify-center mb-6 shadow-xl transform scale-110">
-                    <i class="fa-solid fa-brain text-3xl text-white"></i>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-crop-simple text-2xl text-rocam-dark"></i>
                 </div>
-                <div class="text-2xl font-bold text-rocam-dark">YOLO26s</div>
+                <div class="text-xl font-bold text-rocam-dark">Preprocess</div>
+                <div class="text-sm text-rocam-gray mt-1">540×960 Letterbox</div>
             </div>
-
-            <i class="fa-solid fa-arrow-right text-3xl text-gray-300"></i>
-            
-            <div class="flex flex-col items-center">
-                <div class="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center mb-6">
-                    <i class="fa-solid fa-crosshairs text-3xl text-rocam-dark"></i>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:140px;">
+                <div class="w-20 h-20 rounded-2xl bg-rocam-dark flex items-center justify-center mb-4 shadow-xl transform scale-110">
+                    <i class="fa-solid fa-brain text-2xl text-white"></i>
                 </div>
-                <div class="text-2xl font-bold text-rocam-dark">Extract</div>
+                <div class="text-xl font-bold text-rocam-dark">YOLO26s-P2</div>
+                <div class="text-sm text-rocam-gray mt-1">DeepStream nvinfer</div>
             </div>
-
-            <i class="fa-solid fa-arrow-right text-3xl text-gray-300"></i>
-
-            <div class="flex flex-col items-center">
-                <div class="w-24 h-24 rounded-2xl bg-rocam-red flex items-center justify-center mb-6 shadow-lg">
-                    <i class="fa-solid fa-microchip text-3xl text-white"></i>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-filter text-2xl text-rocam-dark"></i>
                 </div>
-                <div class="text-2xl font-bold text-rocam-dark">TensorRT</div>
+                <div class="text-xl font-bold text-rocam-dark">NMS</div>
+                <div class="text-sm text-rocam-gray mt-1">IoU 0.45 conf 0.25</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-crosshairs text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">Extract</div>
+                <div class="text-sm text-rocam-gray mt-1">BBox + Conf</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-rocam-red flex items-center justify-center mb-4 shadow-lg">
+                    <i class="fa-solid fa-bullseye text-2xl text-white"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">P-Control</div>
+                <div class="text-sm text-rocam-gray mt-1">Gimbal Tracking</div>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-16 mt-8">
+        <!-- Image: Raw frame -->
+        <div style="position:absolute; top:80px; right:90px; text-align:center; z-index:20;">
+            <img src="figures/tiny_rocket_raw.jpg" alt="Raw frame" style="width:420px; height:236px; object-fit:cover; border-radius:14px; border:2px solid #E5E7EB; box-shadow:0 8px 30px rgba(0,0,0,0.08);">
+            <div style="font-size:14px; font-weight:700; color:#888; margin-top:6px;">Raw frame &mdash; can you spot the rocket?</div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-12 mt-8">
             <div>
                 <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
                     <i class="fa-solid fa-magnifying-glass text-rocam-red"></i> Why YOLO26s-P2?
                 </h4>
                 <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
-                    YOLO26s with a custom P2 stride-4 detection head excels at micro-objects. Critical when the rocket occupies &lt;1% of the frame at extreme range.
+                    Custom P2 stride-4 detection head excels at micro-objects. Critical when the rocket occupies &lt;1% of the frame at extreme range.
                 </p>
             </div>
             <div>
                 <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
-                    <i class="fa-solid fa-gauge-simple-high text-rocam-red"></i> NVIDIA DeepStream
+                    <i class="fa-solid fa-gauge-simple-high text-rocam-red"></i> DeepStream Pipeline
                 </h4>
                 <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
-                    Hardware-accelerated pipeline ensures that frame decoding and TensorRT FP16 inference happen strictly under our 16.6ms per frame budget.
+                    DeepStream's nvinfer plugin handles the full pipeline on GPU — preprocessing, TensorRT FP16 inference, and NMS all under 16.6ms per frame at 60fps.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
+                    <i class="fa-solid fa-arrows-to-circle text-rocam-red"></i> Gimbal Control
+                </h4>
+                <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
+                    Proportional controller (k<sub>p</sub>=0.005) converts pixel error to gimbal delta. IPC via Unix socket keeps E2E latency ~30ms.
                 </p>
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Mike Chen / Xiaotian Lou</div>
-        <div class="slide-footer">7 / 16</div>
+        <div class="slide-footer">8 / 18</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 7: ML Training -->
+    <!-- SLIDE 8b: CV Pipeline - Detection Result -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col justify-center px-32 relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Computer Vision Pipeline</div>
+        </div>
+
+        <h2 class="text-[56px] font-black tight-heading text-rocam-dark mt-24 mb-16 max-w-5xl">
+            Optimized for extreme distance and strict latency budgets.
+        </h2>
+
+        <!-- Linear Flow: Actual CV Pipeline -->
+        <div class="flex items-center justify-between w-full mb-20 bg-white p-10 rounded-3xl shadow-lg border border-gray-100">
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-camera text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">Capture</div>
+                <div class="text-sm text-rocam-gray mt-1">1080p @60fps</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-crop-simple text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">Preprocess</div>
+                <div class="text-sm text-rocam-gray mt-1">540×960 Letterbox</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:140px;">
+                <div class="w-20 h-20 rounded-2xl bg-rocam-dark flex items-center justify-center mb-4 shadow-xl transform scale-110">
+                    <i class="fa-solid fa-brain text-2xl text-white"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">YOLO26s-P2</div>
+                <div class="text-sm text-rocam-gray mt-1">DeepStream nvinfer</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-filter text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">NMS</div>
+                <div class="text-sm text-rocam-gray mt-1">IoU 0.45 conf 0.25</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-crosshairs text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">Extract</div>
+                <div class="text-sm text-rocam-gray mt-1">BBox + Conf</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-rocam-red flex items-center justify-center mb-4 shadow-lg">
+                    <i class="fa-solid fa-bullseye text-2xl text-white"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">P-Control</div>
+                <div class="text-sm text-rocam-gray mt-1">Gimbal Tracking</div>
+            </div>
+        </div>
+
+        <!-- Image: Detection result - same position as raw frame -->
+        <div style="position:absolute; top:80px; right:90px; text-align:center; z-index:20;">
+            <img src="figures/tiny_rocket_det.jpg" alt="Detection" style="width:420px; height:236px; object-fit:cover; border-radius:14px; border:2px solid #D92121; box-shadow:0 8px 30px rgba(0,0,0,0.08);">
+            <div style="font-size:14px; font-weight:700; color:#D92121; margin-top:6px;">Target &lt;0.1% of frame &mdash; detected at conf 0.52</div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-12 mt-8">
+            <div>
+                <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
+                    <i class="fa-solid fa-magnifying-glass text-rocam-red"></i> Why YOLO26s-P2?
+                </h4>
+                <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
+                    Custom P2 stride-4 detection head excels at micro-objects. Critical when the rocket occupies &lt;1% of the frame at extreme range.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
+                    <i class="fa-solid fa-gauge-simple-high text-rocam-red"></i> DeepStream Pipeline
+                </h4>
+                <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
+                    DeepStream's nvinfer plugin handles the full pipeline on GPU — preprocessing, TensorRT FP16 inference, and NMS all under 16.6ms per frame at 60fps.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
+                    <i class="fa-solid fa-arrows-to-circle text-rocam-red"></i> Gimbal Control
+                </h4>
+                <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
+                    Proportional controller (k<sub>p</sub>=0.005) converts pixel error to gimbal delta. IPC via Unix socket keeps E2E latency ~30ms.
+                </p>
+            </div>
+        </div>
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Mike Chen / Xiaotian Lou</div>
+        <div class="slide-footer">9 / 18</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 9: Zero-Latency Visual Tracking -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col justify-center px-32 relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Zero-Latency Tracking</div>
+        </div>
+
+        <h2 class="text-[52px] font-black tight-heading text-rocam-dark mt-24 mb-14 max-w-5xl">
+            Optical redundancy enables perceptually instant tracking.
+        </h2>
+
+        <!-- Dual-path diagram -->
+        <div class="flex w-full gap-12 mb-14">
+
+            <!-- Left: FOV Redundancy Diagram -->
+            <div class="w-[45%] bg-white rounded-3xl shadow-lg border border-gray-100 p-10 flex flex-col items-center justify-center">
+                <!-- Camera FOV visualisation -->
+                <div style="width:420px; height:280px; position:relative; border:3px solid #D1D5DB; border-radius:20px; background:#F8F9FA; overflow:hidden;">
+                    <!-- Outer label -->
+                    <div style="position:absolute; top:8px; left:12px; font-size:13px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:0.1em;">Camera Full FOV (1920×1080)</div>
+                    <!-- Inner display window -->
+                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:220px; height:148px; border:3px dashed #D92121; border-radius:14px; background:rgba(217,33,33,0.04);">
+                        <div style="position:absolute; top:-28px; left:50%; transform:translateX(-50%); white-space:nowrap; font-size:12px; font-weight:700; color:#D92121; text-transform:uppercase; letter-spacing:0.08em;">GPU Shader Crop</div>
+                        <!-- Rocket icon -->
+                        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center;">
+                            <i class="fa-solid fa-rocket text-4xl text-rocam-dark" style="transform:rotate(-45deg);"></i>
+                            <div style="font-size:11px; font-weight:700; color:#D92121; margin-top:6px;">Target Centered</div>
+                        </div>
+                    </div>
+                    <!-- Redundancy arrows -->
+                    <div style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); font-size:12px; font-weight:600; color:#888;">
+                        <i class="fa-solid fa-arrows-left-right text-rocam-red"></i>&nbsp; Zoom Redundancy Buffer
+                    </div>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark mt-6">FOV Redundancy Model</div>
+                <div class="text-base text-rocam-gray mt-1 text-center">Wide optical view guarantees target stays in frame<br>while gimbal mechanically catches up</div>
+            </div>
+
+            <!-- Right: Dual-path flow -->
+            <div class="w-[55%] flex flex-col gap-6">
+                <!-- Detection source -->
+                <div class="bg-rocam-dark rounded-2xl px-8 py-5 flex items-center gap-6 shadow-xl">
+                    <div class="w-14 h-14 rounded-xl bg-white/15 flex items-center justify-center">
+                        <i class="fa-solid fa-crosshairs text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-black text-white">Detection Result</div>
+                        <div class="text-base text-gray-400 font-medium">BBox (cx, cy, w, h) from YOLO @ 60fps</div>
+                    </div>
+                </div>
+
+                <!-- Split into two paths -->
+                <div class="flex gap-6">
+                    <!-- Fast path -->
+                    <div class="flex-1 bg-white rounded-2xl shadow-lg border-2 border-rocam-red p-6 relative">
+                        <div class="absolute -top-3 left-6 bg-rocam-red text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">~1ms</div>
+                        <div class="flex items-center gap-4 mb-4 mt-2">
+                            <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center">
+                                <i class="fa-solid fa-bolt text-xl text-rocam-red"></i>
+                            </div>
+                            <div class="text-xl font-black text-rocam-dark">GPU Shader Path</div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-xs font-bold text-rocam-red">1</div>
+                                <span class="text-base font-medium text-rocam-gray">Compute tx, ty, scale from bbox</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-xs font-bold text-rocam-red">2</div>
+                                <span class="text-base font-medium text-rocam-gray">GL shader crops &amp; centers frame</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-xs font-bold text-rocam-red">3</div>
+                                <span class="text-base font-medium text-rocam-gray">Livestream output &rarr; operator sees instant lock</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slow path -->
+                    <div class="flex-1 bg-white rounded-2xl shadow-lg border border-gray-200 p-6 relative">
+                        <div class="absolute -top-3 left-6 bg-gray-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">~100ms</div>
+                        <div class="flex items-center gap-4 mb-4 mt-2">
+                            <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+                                <i class="fa-solid fa-gears text-xl text-rocam-dark"></i>
+                            </div>
+                            <div class="text-xl font-black text-rocam-dark">Gimbal Servo Path</div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-rocam-dark">1</div>
+                                <span class="text-base font-medium text-rocam-gray">P-control &rarr; delta pan/tilt</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-rocam-dark">2</div>
+                                <span class="text-base font-medium text-rocam-gray">UART &rarr; STM32 &rarr; PWM servo</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-rocam-dark">3</div>
+                                <span class="text-base font-medium text-rocam-gray">Mechanical motion re-centers optical FOV</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result bar -->
+                <div class="bg-gradient-to-r from-rocam-red to-red-700 rounded-2xl px-8 py-5 flex items-center gap-6 shadow-lg">
+                    <i class="fa-solid fa-circle-check text-3xl text-white"></i>
+                    <div>
+                        <div class="text-xl font-black text-white">Zero Perceived Latency</div>
+                        <div class="text-base text-red-200 font-medium">Operator sees target locked within one display frame (~16ms). Gimbal catches up transparently.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
+        <div class="slide-footer">10 / 18</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 10: ML Training -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -554,7 +811,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
-        <div class="slide-footer">8 / 16</div>
+        <div class="slide-footer">11 / 18</div>
     </div>
 
     <!-- ========================================== -->
@@ -620,7 +877,7 @@
         </div>
         
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">9 / 16</div>
+        <div class="slide-footer">12 / 18</div>
     </div>
 
     <!-- ========================================== -->
@@ -687,7 +944,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">10 / 16</div>
+        <div class="slide-footer">13 / 18</div>
     </div>
 
     <!-- ========================================== -->
@@ -729,50 +986,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Zifan Si</div>
-        <div class="slide-footer">11 / 16</div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- SLIDE 10: State Machine & Safety -->
-    <!-- ========================================== -->
-    <div class="slide dot-bg flex flex-col justify-center items-center px-32 relative">
-        <div class="slide-header">
-            <div class="header-line"></div>
-            <div class="header-title">State Machine & Safety</div>
-        </div>
-
-        <div class="w-full max-w-[1400px] mt-24 flex justify-center bg-white p-10 rounded-3xl shadow-xl border border-gray-100 mb-16">
-            <img src="figures/state_diagram.png" alt="State Diagram" class="w-[85%] object-contain clean-img">
-        </div>
-        
-        <div class="grid grid-cols-4 gap-8 w-full max-w-[1500px]">
-            <div class="minimal-card !p-6 border-l-8 border-l-gray-400">
-                <div class="text-2xl font-black text-rocam-dark mb-2">Disarmed</div>
-                <div class="text-lg text-rocam-gray font-medium">Safe mode. Motors off, manual UI control only.</div>
-            </div>
-            <div class="minimal-card !p-6 border-l-8 border-l-orange-400">
-                <div class="text-2xl font-black text-rocam-dark mb-2">Armed</div>
-                <div class="text-lg text-rocam-gray font-medium">Motors active. CV watching for launch event.</div>
-            </div>
-            <div class="minimal-card !p-6 border-l-8 border-l-rocam-red">
-                <div class="text-2xl font-black text-rocam-red mb-2">Tracking</div>
-                <div class="text-lg text-rocam-gray font-medium">Rocket detected. Closed-loop PID taking over.</div>
-            </div>
-            <div class="minimal-card !p-6 border-l-8 border-l-blue-600">
-                <div class="text-2xl font-black text-rocam-dark mb-2">Recording</div>
-                <div class="text-lg text-rocam-gray font-medium">Event complete. Saving H.264 footage to disk.</div>
-            </div>
-        </div>
-        
-        <!-- Safety Note -->
-        <div class="absolute right-32 top-32 text-right">
-            <div class="bg-red-50 text-rocam-red px-6 py-3 rounded-full font-bold border border-red-200 shadow-sm">
-                <i class="fa-solid fa-triangle-exclamation mr-2"></i> Safety: Hardware Limits Enforced
-            </div>
-        </div>
-
-        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Zifan Si</div>
-        <div class="slide-footer">12 / 16</div>
+        <div class="slide-footer">14 / 18</div>
     </div>
 
     <!-- ========================================== -->
@@ -813,7 +1027,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
-        <div class="slide-footer">13 / 16</div>
+        <div class="slide-footer">15 / 18</div>
     </div>
 
     <!-- ========================================== -->
@@ -867,7 +1081,7 @@
         </div>
 
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">14 / 16</div>
+        <div class="slide-footer">16 / 18</div>
     </div>
 
     <!-- ========================================== -->
@@ -919,7 +1133,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">15 / 16</div>
+        <div class="slide-footer">17 / 18</div>
     </div>
 
     <!-- ========================================== -->
@@ -945,7 +1159,7 @@
                 Team #3 SpaceY &nbsp;|&nbsp; McMaster University SFWRENG 4G06
             </p>
         </div>
-        <div class="slide-footer">16 / 16</div>
+        <div class="slide-footer">18 / 18</div>
     </div>
 
 </div>
