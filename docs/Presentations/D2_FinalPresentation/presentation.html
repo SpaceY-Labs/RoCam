@@ -198,7 +198,7 @@
             </p>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">1 / 20</div>
+        <div class="slide-footer">1 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -269,7 +269,7 @@
         </div>
         
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">3 / 20</div>
+        <div class="slide-footer">3 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -328,7 +328,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">4 / 20</div>
+        <div class="slide-footer">4 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -363,7 +363,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">5 / 20</div>
+        <div class="slide-footer">5 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -436,7 +436,7 @@
         </div>
 
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Mike Chen</div>
-        <div class="slide-footer">7 / 20</div>
+        <div class="slide-footer">7 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -536,7 +536,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Mike Chen / Xiaotian Lou</div>
-        <div class="slide-footer">8 / 20</div>
+        <div class="slide-footer">8 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -636,7 +636,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Mike Chen / Xiaotian Lou</div>
-        <div class="slide-footer">9 / 20</div>
+        <div class="slide-footer">9 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -757,7 +757,7 @@
         </div>
 
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
-        <div class="slide-footer">10 / 20</div>
+        <div class="slide-footer">10 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -826,87 +826,129 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 12: Model Development Journey -->
+    <!-- SLIDE 12: Model Development Journey — Branch Diagram -->
     <!-- ========================================== -->
-    <div class="slide dot-bg flex relative">
+    <div class="slide dot-bg flex flex-col relative">
         <div class="slide-header">
             <div class="header-line"></div>
             <div class="header-title">Model Development Journey</div>
         </div>
 
-        <div class="w-[55%] flex flex-col justify-center pl-32 pr-16 pt-16">
-            <h2 class="text-[72px] font-black tight-heading text-rocam-dark mb-4">
-                Built for the edge.
+        <!-- Title -->
+        <div class="flex flex-col items-center pt-[130px] px-20">
+            <h2 class="text-[52px] font-black tight-heading text-rocam-dark text-center mb-2">
+                Systematic Exploration. <span class="text-rocam-red">One Survivor.</span>
             </h2>
-            <h2 class="text-[72px] font-black tight-heading text-rocam-red mb-12">
-                Tested to survive.
-            </h2>
-            <p class="text-2xl text-rocam-gray font-medium leading-relaxed mb-16">
-                Edge deployment is unforgiving&mdash;FP16 quantization, 8&nbsp;GB memory, real-time constraints. We systematically tested every viable approach before committing to production.
+            <p class="text-[20px] text-rocam-gray font-medium text-center">
+                Every promising architecture and training strategy tested against real edge deployment constraints
             </p>
-
-            <div class="grid grid-cols-2 gap-12">
-                <div class="border-l-8 border-rocam-dark pl-8 py-2">
-                    <div class="text-[64px] font-black text-rocam-dark leading-none mb-2">7</div>
-                    <div class="text-xl text-rocam-gray font-bold uppercase tracking-wide">Architectures Tested</div>
-                </div>
-                <div class="border-l-8 border-rocam-red pl-8 py-2">
-                    <div class="text-[64px] font-black text-rocam-red leading-none mb-2">1</div>
-                    <div class="text-xl text-rocam-gray font-bold uppercase tracking-wide">Survived Deployment</div>
-                </div>
-            </div>
         </div>
 
-        <div class="w-[45%] flex flex-col justify-center bg-white border-l border-gray-200 relative shadow-2xl z-10 px-14 pt-28 pb-16">
-            <h3 class="text-3xl font-black text-rocam-dark mb-14 tracking-widest uppercase">Exploration Path</h3>
+        <!-- Branch Diagram -->
+        <div class="flex-1 flex items-center justify-center px-20" style="padding-bottom: 100px;">
+            <svg viewBox="0 0 1460 480" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-height:520px;">
+                <defs>
+                    <filter id="cs12" x="-4%" y="-8%" width="108%" height="120%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.07"/>
+                    </filter>
+                </defs>
 
-            <div class="flex flex-col gap-10 w-full relative">
-                <!-- Vertical Line -->
-                <div class="absolute left-[15px] top-4 bottom-4 w-1 bg-gray-200 z-0"></div>
+                <!-- Trunk glow -->
+                <line x1="65" y1="248" x2="1340" y2="248" stroke="#0A0A0A" stroke-width="14" opacity="0.04" stroke-linecap="round"/>
+                <!-- Main trunk -->
+                <line x1="65" y1="248" x2="1340" y2="248" stroke="#0A0A0A" stroke-width="5" stroke-linecap="round"/>
 
-                <!-- Failed: Advanced Architectures -->
-                <div class="flex gap-6 items-start relative z-10">
-                    <div class="w-8 h-8 rounded-full bg-red-100 border-4 border-white shadow-md flex items-center justify-center shrink-0 mt-1">
-                        <div class="w-2 h-2 rounded-full bg-rocam-red"></div>
-                    </div>
-                    <div>
-                        <div class="text-xl font-black text-rocam-dark mb-1">Advanced Architectures</div>
-                        <p class="text-base text-rocam-gray font-medium leading-relaxed">4-head detection with extra-fine resolution&mdash;outstanding in training, but FP16 quantization destroyed accuracy at deployment.</p>
-                    </div>
-                </div>
+                <!-- Trunk label -->
+                <text x="155" y="232" font-size="10.5" font-weight="700" fill="#aaa" font-family="Inter, sans-serif" letter-spacing="0.16em">MOSAIC=1.0 &middot; MULTI-SCALE &middot; 7&times; ALBUMENTATIONS &middot; 4K COCO NEGATIVES &middot; CLOSE_MOSAIC @ EP 340</text>
 
-                <!-- Failed: Training Variations -->
-                <div class="flex gap-6 items-start relative z-10">
-                    <div class="w-8 h-8 rounded-full bg-red-100 border-4 border-white shadow-md flex items-center justify-center shrink-0 mt-1">
-                        <div class="w-2 h-2 rounded-full bg-rocam-red"></div>
-                    </div>
-                    <div>
-                        <div class="text-xl font-black text-rocam-dark mb-1">Training Variations</div>
-                        <p class="text-base text-rocam-gray font-medium leading-relaxed">Fine-tuning, varied augmentation strengths, higher resolution&mdash;overall metrics improved but small-target accuracy consistently regressed.</p>
-                    </div>
-                </div>
+                <!-- Start node -->
+                <circle cx="65" cy="248" r="12" fill="#0A0A0A"/>
+                <text x="65" y="288" text-anchor="middle" font-size="14" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">YOLO26s</text>
+                <text x="65" y="305" text-anchor="middle" font-size="11" fill="#999" font-family="Inter, sans-serif">9.47M params</text>
 
-                <!-- Winner: Aggressive Augmentation -->
-                <div class="flex gap-6 items-start relative z-10">
-                    <div class="w-8 h-8 rounded-full bg-green-500 border-4 border-white shadow-lg flex items-center justify-center shrink-0 mt-1">
-                        <i class="fa-solid fa-check text-white text-xs"></i>
-                    </div>
-                    <div>
-                        <div class="text-xl font-black text-rocam-dark mb-1">Aggressive Augmentation</div>
-                        <p class="text-base text-rocam-gray font-medium leading-relaxed">Full mosaic, COCO hard negatives, multi-scale training&mdash;the only recipe that survived FP16 quantization with just 9% accuracy loss.</p>
-                    </div>
-                </div>
+                <!-- Branch point nodes -->
+                <circle cx="230" cy="248" r="7" fill="#0A0A0A"/>
+                <circle cx="490" cy="248" r="7" fill="#0A0A0A"/>
+                <circle cx="750" cy="248" r="7" fill="#0A0A0A"/>
+                <circle cx="1010" cy="248" r="7" fill="#0A0A0A"/>
 
-                <!-- Ongoing: Still Pushing -->
-                <div class="flex gap-6 items-start relative z-10">
-                    <div class="w-8 h-8 rounded-full bg-amber-100 border-4 border-white shadow-md flex items-center justify-center shrink-0 mt-1">
-                        <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
-                    </div>
-                    <div>
-                        <div class="text-xl font-black text-rocam-dark mb-1">Still Pushing Further</div>
-                        <p class="text-base text-rocam-gray font-medium leading-relaxed">3 new strategies training now on H100&mdash;tiled detection, copy-paste augmentation, and enhanced data pipelines.</p>
-                    </div>
-                </div>
+                <!-- ═══ Branch 1: P2 Sub-Pixel Detection Head (UP) ═══ -->
+                <path d="M230,248 C230,148 330,68 430,68" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="430" y1="68" x2="458" y2="68" stroke="#D92121" stroke-width="2" opacity="0.25" stroke-dasharray="4,4"/>
+                <circle cx="430" cy="68" r="5" fill="#D92121" opacity="0.55"/>
+                <!-- Card -->
+                <rect x="466" y="22" width="270" height="92" rx="10" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="486" y="46" font-size="15" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">P2 Sub-Pixel Detection Head</text>
+                <text x="486" y="64" font-size="11" fill="#aaa" font-family="Inter, sans-serif">stride [4, 8, 16, 32] &middot; 4 detection scales</text>
+                <text x="486" y="82" font-size="12" fill="#888" font-family="Inter, sans-serif">Train mAP 0.765 &rarr; Deploy 0.539</text>
+                <text x="486" y="101" font-size="12" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; FP16 quantization destroys fine features</text>
+
+                <!-- ═══ Branch 2: High-Resolution Scale Optimization (DOWN) ═══ -->
+                <path d="M490,248 C490,345 590,418 690,418" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="690" y1="418" x2="718" y2="418" stroke="#D92121" stroke-width="2" opacity="0.25" stroke-dasharray="4,4"/>
+                <circle cx="690" cy="418" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="726" y="372" width="270" height="92" rx="10" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="746" y="396" font-size="15" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">Resolution &amp; Scale Optimization</text>
+                <text x="746" y="414" font-size="11" fill="#aaa" font-family="Inter, sans-serif">640px input &middot; cosine LR 3e-4 &middot; extended warmup</text>
+                <text x="746" y="432" font-size="12" fill="#888" font-family="Inter, sans-serif">Deploy mAP 0.499&ndash;0.551 (3 runs)</text>
+                <text x="746" y="451" font-size="12" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; Low mosaic at higher res is catastrophic</text>
+
+                <!-- ═══ Branch 3: Cosine-Scheduled Transfer Learning (UP) ═══ -->
+                <path d="M750,248 C750,148 850,68 950,68" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="950" y1="68" x2="978" y2="68" stroke="#D92121" stroke-width="2" opacity="0.25" stroke-dasharray="4,4"/>
+                <circle cx="950" cy="68" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="986" y="22" width="270" height="92" rx="10" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="1006" y="46" font-size="15" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">Cosine-Scheduled Fine-tuning</text>
+                <text x="1006" y="64" font-size="11" fill="#aaa" font-family="Inter, sans-serif">cosine LR 1.5e-4 &middot; calibrated mosaic 0&ndash;1.0</text>
+                <text x="1006" y="82" font-size="12" fill="#888" font-family="Inter, sans-serif">Deploy mAP 0.621&ndash;0.641, small 0.282&ndash;0.312</text>
+                <text x="1006" y="101" font-size="12" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; Small target features degrade</text>
+
+                <!-- ═══ Branch 4: Data-Centric Augmentation Engineering (DOWN) ═══ -->
+                <path d="M1010,248 C1010,345 1090,418 1140,418" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="1140" y1="418" x2="1168" y2="418" stroke="#D92121" stroke-width="2" opacity="0.25" stroke-dasharray="4,4"/>
+                <circle cx="1140" cy="418" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="1176" y="372" width="270" height="92" rx="10" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="1196" y="396" font-size="15" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">Data-Centric Augmentation</text>
+                <text x="1196" y="414" font-size="11" fill="#aaa" font-family="Inter, sans-serif">copy-paste &middot; SAHI tiling &middot; close_mosaic=100</text>
+                <text x="1196" y="432" font-size="12" fill="#888" font-family="Inter, sans-serif">Deploy mAP 0.614&ndash;0.618 (3 runs)</text>
+                <text x="1196" y="451" font-size="12" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; From-scratch cannot close feature gap</text>
+
+                <!-- ═══ Deployed Endpoint ═══ -->
+                <!-- Green glow -->
+                <circle cx="1340" cy="248" r="22" fill="#10B981" opacity="0.12"/>
+                <circle cx="1340" cy="248" r="15" fill="#10B981" stroke="white" stroke-width="3"/>
+                <text x="1340" y="253" text-anchor="middle" font-size="13" font-weight="900" fill="white" font-family="Inter, sans-serif">&#10003;</text>
+
+                <!-- Deployed badge -->
+                <rect x="1250" y="155" width="180" height="62" rx="10" fill="#0A0A0A"/>
+                <text x="1340" y="178" text-anchor="middle" font-size="12" font-weight="800" fill="white" font-family="Inter, sans-serif" letter-spacing="0.1em">DEPLOYED ON JETSON</text>
+                <text x="1340" y="198" text-anchor="middle" font-size="13" fill="#10B981" font-weight="700" font-family="Inter, sans-serif">mAP 0.631 &middot; small 0.341</text>
+                <text x="1340" y="210" text-anchor="middle" font-size="9" fill="#888" font-family="Inter, sans-serif">FP16 &middot; 9% accuracy loss</text>
+                <!-- Connector line -->
+                <line x1="1340" y1="217" x2="1340" y2="233" stroke="#10B981" stroke-width="2"/>
+            </svg>
+        </div>
+
+        <!-- Bottom stats -->
+        <div class="absolute bottom-[85px] left-0 right-0 flex justify-center gap-20">
+            <div class="flex items-center gap-4">
+                <div class="text-[38px] font-black text-rocam-dark leading-none">10+</div>
+                <div class="text-[13px] text-rocam-gray font-bold uppercase tracking-wider leading-tight">Experiments<br/>Conducted</div>
+            </div>
+            <div class="w-px h-12 bg-gray-300"></div>
+            <div class="flex items-center gap-4">
+                <div class="text-[38px] font-black text-rocam-dark leading-none">4</div>
+                <div class="text-[13px] text-rocam-gray font-bold uppercase tracking-wider leading-tight">GPU-Weeks<br/>on H100</div>
+            </div>
+            <div class="w-px h-12 bg-gray-300"></div>
+            <div class="flex items-center gap-4">
+                <div class="text-[38px] font-black text-rocam-red leading-none">9%</div>
+                <div class="text-[13px] text-rocam-gray font-bold uppercase tracking-wider leading-tight">FP16 Accuracy<br/>Loss (Best)</div>
+            </div>
+            <div class="w-px h-12 bg-gray-300"></div>
+            <div class="flex items-center gap-4">
+                <div class="text-[38px] font-black text-rocam-red leading-none">1</div>
+                <div class="text-[13px] text-rocam-gray font-bold uppercase tracking-wider leading-tight">Survived<br/>Deployment</div>
             </div>
         </div>
 
@@ -977,7 +1019,7 @@
         </div>
         
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">12 / 20</div>
+        <div class="slide-footer">13 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -1044,7 +1086,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">13 / 20</div>
+        <div class="slide-footer">14 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -1086,7 +1128,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Zifan Si</div>
-        <div class="slide-footer">14 / 20</div>
+        <div class="slide-footer">15 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -1203,7 +1245,7 @@
         </div>
 
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Zifan Si</div>
-        <div class="slide-footer">15 / 20</div>
+        <div class="slide-footer">16 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -1244,7 +1286,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
-        <div class="slide-footer">16 / 20</div>
+        <div class="slide-footer">17 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -1298,7 +1340,7 @@
         </div>
 
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">17 / 20</div>
+        <div class="slide-footer">18 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -1350,7 +1392,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">18 / 20</div>
+        <div class="slide-footer">19 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -1469,7 +1511,7 @@
         </div>
 
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Zifan Si</div>
-        <div class="slide-footer">19 / 20</div>
+        <div class="slide-footer">20 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -1538,7 +1580,7 @@
                 Team #3 SpaceY &nbsp;|&nbsp; McMaster University SFWRENG 4G06
             </p>
         </div>
-        <div class="slide-footer">20 / 20</div>
+        <div class="slide-footer">21 / 21</div>
     </div>
 
 </div>
