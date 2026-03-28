@@ -456,18 +456,18 @@
         <div class="flex items-center justify-between w-full mb-20 bg-white p-10 rounded-3xl shadow-lg border border-gray-100">
             <div class="flex flex-col items-center" style="min-width:120px;">
                 <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-                    <i class="fa-solid fa-camera text-2xl text-rocam-dark"></i>
+                    <i class="fa-solid fa-video text-2xl text-rocam-dark"></i>
                 </div>
                 <div class="text-xl font-bold text-rocam-dark">Capture</div>
-                <div class="text-sm text-rocam-gray mt-1">1080p @60fps</div>
+                <div class="text-sm text-rocam-gray mt-1">CSI 1080p @60fps</div>
             </div>
             <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
             <div class="flex flex-col items-center" style="min-width:120px;">
                 <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
                     <i class="fa-solid fa-crop-simple text-2xl text-rocam-dark"></i>
                 </div>
-                <div class="text-xl font-bold text-rocam-dark">Preprocess</div>
-                <div class="text-sm text-rocam-gray mt-1">540×960 Letterbox</div>
+                <div class="text-xl font-bold text-rocam-dark">Letterbox</div>
+                <div class="text-sm text-rocam-gray mt-1">GPU 540&times;960</div>
             </div>
             <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
             <div class="flex flex-col items-center" style="min-width:140px;">
@@ -480,18 +480,10 @@
             <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
             <div class="flex flex-col items-center" style="min-width:120px;">
                 <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-                    <i class="fa-solid fa-filter text-2xl text-rocam-dark"></i>
-                </div>
-                <div class="text-xl font-bold text-rocam-dark">NMS</div>
-                <div class="text-sm text-rocam-gray mt-1">DBSCAN IoU 0.45</div>
-            </div>
-            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
-            <div class="flex flex-col items-center" style="min-width:120px;">
-                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
                     <i class="fa-solid fa-crosshairs text-2xl text-rocam-dark"></i>
                 </div>
-                <div class="text-xl font-bold text-rocam-dark">Extract</div>
-                <div class="text-sm text-rocam-gray mt-1">BBox + Conf</div>
+                <div class="text-xl font-bold text-rocam-dark">Select</div>
+                <div class="text-sm text-rocam-gray mt-1">Best Detection</div>
             </div>
             <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
             <div class="flex flex-col items-center" style="min-width:120px;">
@@ -499,7 +491,15 @@
                     <i class="fa-solid fa-bullseye text-2xl text-white"></i>
                 </div>
                 <div class="text-xl font-bold text-rocam-dark">P-Control</div>
-                <div class="text-sm text-rocam-gray mt-1">Gimbal Tracking</div>
+                <div class="text-sm text-rocam-gray mt-1">Gimbal Track</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-expand text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">GL Shader</div>
+                <div class="text-sm text-rocam-gray mt-1">Live Zoom</div>
             </div>
         </div>
 
@@ -515,23 +515,23 @@
                     <i class="fa-solid fa-magnifying-glass text-rocam-red"></i> Why YOLO26s?
                 </h4>
                 <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
-                    9.47M-parameter model with stride {8,16,32} detection heads. Chosen for robust FP16 quantisation on edge &mdash; only 9% accuracy loss vs. 30% for P2 variant.
+                    One-to-one detection head eliminates NMS entirely. 9.47M parameters engineered for FP16&mdash;only 9% accuracy loss on Jetson vs. 30% for alternative architectures.
                 </p>
             </div>
             <div>
                 <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
-                    <i class="fa-solid fa-gauge-simple-high text-rocam-red"></i> DeepStream Pipeline
+                    <i class="fa-solid fa-gauge-simple-high text-rocam-red"></i> Full GPU Pipeline
                 </h4>
                 <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
-                    DeepStream's nvinfer plugin handles preprocessing, TensorRT FP16 inference, and DBSCAN NMS entirely on GPU &mdash; under 16.6ms per frame at 60fps.
+                    DeepStream runs decode, letterbox, and TensorRT inference entirely on GPU. Confidence threshold filters noise; probe selects single best detection per frame.
                 </p>
             </div>
             <div>
                 <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
-                    <i class="fa-solid fa-arrows-to-circle text-rocam-red"></i> Gimbal Control
+                    <i class="fa-solid fa-arrows-to-circle text-rocam-red"></i> Instant Visual Lock
                 </h4>
                 <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
-                    Proportional controller (k<sub>p</sub>=0.005) converts pixel error to gimbal delta. IPC via Unix socket keeps E2E latency ~30ms.
+                    GL fragment shader crops and zooms on target within one display frame. P-control drives gimbal via UART. Zero perceived tracking latency.
                 </p>
             </div>
         </div>
@@ -556,18 +556,18 @@
         <div class="flex items-center justify-between w-full mb-20 bg-white p-10 rounded-3xl shadow-lg border border-gray-100">
             <div class="flex flex-col items-center" style="min-width:120px;">
                 <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-                    <i class="fa-solid fa-camera text-2xl text-rocam-dark"></i>
+                    <i class="fa-solid fa-video text-2xl text-rocam-dark"></i>
                 </div>
                 <div class="text-xl font-bold text-rocam-dark">Capture</div>
-                <div class="text-sm text-rocam-gray mt-1">1080p @60fps</div>
+                <div class="text-sm text-rocam-gray mt-1">CSI 1080p @60fps</div>
             </div>
             <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
             <div class="flex flex-col items-center" style="min-width:120px;">
                 <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
                     <i class="fa-solid fa-crop-simple text-2xl text-rocam-dark"></i>
                 </div>
-                <div class="text-xl font-bold text-rocam-dark">Preprocess</div>
-                <div class="text-sm text-rocam-gray mt-1">540×960 Letterbox</div>
+                <div class="text-xl font-bold text-rocam-dark">Letterbox</div>
+                <div class="text-sm text-rocam-gray mt-1">GPU 540&times;960</div>
             </div>
             <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
             <div class="flex flex-col items-center" style="min-width:140px;">
@@ -580,18 +580,10 @@
             <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
             <div class="flex flex-col items-center" style="min-width:120px;">
                 <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-                    <i class="fa-solid fa-filter text-2xl text-rocam-dark"></i>
-                </div>
-                <div class="text-xl font-bold text-rocam-dark">NMS</div>
-                <div class="text-sm text-rocam-gray mt-1">DBSCAN IoU 0.45</div>
-            </div>
-            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
-            <div class="flex flex-col items-center" style="min-width:120px;">
-                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
                     <i class="fa-solid fa-crosshairs text-2xl text-rocam-dark"></i>
                 </div>
-                <div class="text-xl font-bold text-rocam-dark">Extract</div>
-                <div class="text-sm text-rocam-gray mt-1">BBox + Conf</div>
+                <div class="text-xl font-bold text-rocam-dark">Select</div>
+                <div class="text-sm text-rocam-gray mt-1">Best Detection</div>
             </div>
             <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
             <div class="flex flex-col items-center" style="min-width:120px;">
@@ -599,7 +591,15 @@
                     <i class="fa-solid fa-bullseye text-2xl text-white"></i>
                 </div>
                 <div class="text-xl font-bold text-rocam-dark">P-Control</div>
-                <div class="text-sm text-rocam-gray mt-1">Gimbal Tracking</div>
+                <div class="text-sm text-rocam-gray mt-1">Gimbal Track</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-expand text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">GL Shader</div>
+                <div class="text-sm text-rocam-gray mt-1">Live Zoom</div>
             </div>
         </div>
 
@@ -615,23 +615,23 @@
                     <i class="fa-solid fa-magnifying-glass text-rocam-red"></i> Why YOLO26s?
                 </h4>
                 <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
-                    9.47M-parameter model with stride {8,16,32} detection heads. Chosen for robust FP16 quantisation on edge &mdash; only 9% accuracy loss vs. 30% for P2 variant.
+                    One-to-one detection head eliminates NMS entirely. 9.47M parameters engineered for FP16&mdash;only 9% accuracy loss on Jetson vs. 30% for alternative architectures.
                 </p>
             </div>
             <div>
                 <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
-                    <i class="fa-solid fa-gauge-simple-high text-rocam-red"></i> DeepStream Pipeline
+                    <i class="fa-solid fa-gauge-simple-high text-rocam-red"></i> Full GPU Pipeline
                 </h4>
                 <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
-                    DeepStream's nvinfer plugin handles preprocessing, TensorRT FP16 inference, and DBSCAN NMS entirely on GPU &mdash; under 16.6ms per frame at 60fps.
+                    DeepStream runs decode, letterbox, and TensorRT inference entirely on GPU. Confidence threshold filters noise; probe selects single best detection per frame.
                 </p>
             </div>
             <div>
                 <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
-                    <i class="fa-solid fa-arrows-to-circle text-rocam-red"></i> Gimbal Control
+                    <i class="fa-solid fa-arrows-to-circle text-rocam-red"></i> Instant Visual Lock
                 </h4>
                 <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
-                    Proportional controller (k<sub>p</sub>=0.005) converts pixel error to gimbal delta. IPC via Unix socket keeps E2E latency ~30ms.
+                    GL fragment shader crops and zooms on target within one display frame. P-control drives gimbal via UART. Zero perceived tracking latency.
                 </p>
             </div>
         </div>
@@ -822,7 +822,96 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
-        <div class="slide-footer">11 / 20</div>
+        <div class="slide-footer">11 / 21</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 12: Model Development Journey -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Model Development Journey</div>
+        </div>
+
+        <div class="w-[55%] flex flex-col justify-center pl-32 pr-16 pt-16">
+            <h2 class="text-[72px] font-black tight-heading text-rocam-dark mb-4">
+                Built for the edge.
+            </h2>
+            <h2 class="text-[72px] font-black tight-heading text-rocam-red mb-12">
+                Tested to survive.
+            </h2>
+            <p class="text-2xl text-rocam-gray font-medium leading-relaxed mb-16">
+                Edge deployment is unforgiving&mdash;FP16 quantization, 8&nbsp;GB memory, real-time constraints. We systematically tested every viable approach before committing to production.
+            </p>
+
+            <div class="grid grid-cols-2 gap-12">
+                <div class="border-l-8 border-rocam-dark pl-8 py-2">
+                    <div class="text-[64px] font-black text-rocam-dark leading-none mb-2">7</div>
+                    <div class="text-xl text-rocam-gray font-bold uppercase tracking-wide">Architectures Tested</div>
+                </div>
+                <div class="border-l-8 border-rocam-red pl-8 py-2">
+                    <div class="text-[64px] font-black text-rocam-red leading-none mb-2">1</div>
+                    <div class="text-xl text-rocam-gray font-bold uppercase tracking-wide">Survived Deployment</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-[45%] flex flex-col justify-center bg-white border-l border-gray-200 relative shadow-2xl z-10 px-14 pt-28 pb-16">
+            <h3 class="text-3xl font-black text-rocam-dark mb-14 tracking-widest uppercase">Exploration Path</h3>
+
+            <div class="flex flex-col gap-10 w-full relative">
+                <!-- Vertical Line -->
+                <div class="absolute left-[15px] top-4 bottom-4 w-1 bg-gray-200 z-0"></div>
+
+                <!-- Failed: Advanced Architectures -->
+                <div class="flex gap-6 items-start relative z-10">
+                    <div class="w-8 h-8 rounded-full bg-red-100 border-4 border-white shadow-md flex items-center justify-center shrink-0 mt-1">
+                        <div class="w-2 h-2 rounded-full bg-rocam-red"></div>
+                    </div>
+                    <div>
+                        <div class="text-xl font-black text-rocam-dark mb-1">Advanced Architectures</div>
+                        <p class="text-base text-rocam-gray font-medium leading-relaxed">4-head detection with extra-fine resolution&mdash;outstanding in training, but FP16 quantization destroyed accuracy at deployment.</p>
+                    </div>
+                </div>
+
+                <!-- Failed: Training Variations -->
+                <div class="flex gap-6 items-start relative z-10">
+                    <div class="w-8 h-8 rounded-full bg-red-100 border-4 border-white shadow-md flex items-center justify-center shrink-0 mt-1">
+                        <div class="w-2 h-2 rounded-full bg-rocam-red"></div>
+                    </div>
+                    <div>
+                        <div class="text-xl font-black text-rocam-dark mb-1">Training Variations</div>
+                        <p class="text-base text-rocam-gray font-medium leading-relaxed">Fine-tuning, varied augmentation strengths, higher resolution&mdash;overall metrics improved but small-target accuracy consistently regressed.</p>
+                    </div>
+                </div>
+
+                <!-- Winner: Aggressive Augmentation -->
+                <div class="flex gap-6 items-start relative z-10">
+                    <div class="w-8 h-8 rounded-full bg-green-500 border-4 border-white shadow-lg flex items-center justify-center shrink-0 mt-1">
+                        <i class="fa-solid fa-check text-white text-xs"></i>
+                    </div>
+                    <div>
+                        <div class="text-xl font-black text-rocam-dark mb-1">Aggressive Augmentation</div>
+                        <p class="text-base text-rocam-gray font-medium leading-relaxed">Full mosaic, COCO hard negatives, multi-scale training&mdash;the only recipe that survived FP16 quantization with just 9% accuracy loss.</p>
+                    </div>
+                </div>
+
+                <!-- Ongoing: Still Pushing -->
+                <div class="flex gap-6 items-start relative z-10">
+                    <div class="w-8 h-8 rounded-full bg-amber-100 border-4 border-white shadow-md flex items-center justify-center shrink-0 mt-1">
+                        <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                    </div>
+                    <div>
+                        <div class="text-xl font-black text-rocam-dark mb-1">Still Pushing Further</div>
+                        <p class="text-base text-rocam-gray font-medium leading-relaxed">3 new strategies training now on H100&mdash;tiled detection, copy-paste augmentation, and enhanced data pipelines.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
+        <div class="slide-footer">12 / 21</div>
     </div>
 
     <!-- ========================================== -->
