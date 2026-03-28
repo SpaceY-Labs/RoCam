@@ -474,8 +474,8 @@
                 <div class="w-20 h-20 rounded-2xl bg-rocam-dark flex items-center justify-center mb-4 shadow-xl transform scale-110">
                     <i class="fa-solid fa-brain text-2xl text-white"></i>
                 </div>
-                <div class="text-xl font-bold text-rocam-dark">YOLO26s-P2</div>
-                <div class="text-sm text-rocam-gray mt-1">DeepStream nvinfer</div>
+                <div class="text-xl font-bold text-rocam-dark">YOLO26s</div>
+                <div class="text-sm text-rocam-gray mt-1">TensorRT FP16</div>
             </div>
             <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
             <div class="flex flex-col items-center" style="min-width:120px;">
@@ -483,7 +483,7 @@
                     <i class="fa-solid fa-filter text-2xl text-rocam-dark"></i>
                 </div>
                 <div class="text-xl font-bold text-rocam-dark">NMS</div>
-                <div class="text-sm text-rocam-gray mt-1">IoU 0.45 conf 0.25</div>
+                <div class="text-sm text-rocam-gray mt-1">DBSCAN IoU 0.45</div>
             </div>
             <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
             <div class="flex flex-col items-center" style="min-width:120px;">
@@ -512,10 +512,10 @@
         <div class="grid grid-cols-3 gap-12 mt-8">
             <div>
                 <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
-                    <i class="fa-solid fa-magnifying-glass text-rocam-red"></i> Why YOLO26s-P2?
+                    <i class="fa-solid fa-magnifying-glass text-rocam-red"></i> Why YOLO26s?
                 </h4>
                 <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
-                    Custom P2 stride-4 detection head excels at micro-objects. Critical when the rocket occupies &lt;1% of the frame at extreme range.
+                    9.47M-parameter model with stride {8,16,32} detection heads. Chosen for robust FP16 quantisation on edge &mdash; only 9% accuracy loss vs. 30% for P2 variant.
                 </p>
             </div>
             <div>
@@ -523,7 +523,7 @@
                     <i class="fa-solid fa-gauge-simple-high text-rocam-red"></i> DeepStream Pipeline
                 </h4>
                 <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
-                    DeepStream's nvinfer plugin handles the full pipeline on GPU — preprocessing, TensorRT FP16 inference, and NMS all under 16.6ms per frame at 60fps.
+                    DeepStream's nvinfer plugin handles preprocessing, TensorRT FP16 inference, and DBSCAN NMS entirely on GPU &mdash; under 16.6ms per frame at 60fps.
                 </p>
             </div>
             <div>
@@ -574,8 +574,8 @@
                 <div class="w-20 h-20 rounded-2xl bg-rocam-dark flex items-center justify-center mb-4 shadow-xl transform scale-110">
                     <i class="fa-solid fa-brain text-2xl text-white"></i>
                 </div>
-                <div class="text-xl font-bold text-rocam-dark">YOLO26s-P2</div>
-                <div class="text-sm text-rocam-gray mt-1">DeepStream nvinfer</div>
+                <div class="text-xl font-bold text-rocam-dark">YOLO26s</div>
+                <div class="text-sm text-rocam-gray mt-1">TensorRT FP16</div>
             </div>
             <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
             <div class="flex flex-col items-center" style="min-width:120px;">
@@ -583,7 +583,7 @@
                     <i class="fa-solid fa-filter text-2xl text-rocam-dark"></i>
                 </div>
                 <div class="text-xl font-bold text-rocam-dark">NMS</div>
-                <div class="text-sm text-rocam-gray mt-1">IoU 0.45 conf 0.25</div>
+                <div class="text-sm text-rocam-gray mt-1">DBSCAN IoU 0.45</div>
             </div>
             <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
             <div class="flex flex-col items-center" style="min-width:120px;">
@@ -612,10 +612,10 @@
         <div class="grid grid-cols-3 gap-12 mt-8">
             <div>
                 <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
-                    <i class="fa-solid fa-magnifying-glass text-rocam-red"></i> Why YOLO26s-P2?
+                    <i class="fa-solid fa-magnifying-glass text-rocam-red"></i> Why YOLO26s?
                 </h4>
                 <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
-                    Custom P2 stride-4 detection head excels at micro-objects. Critical when the rocket occupies &lt;1% of the frame at extreme range.
+                    9.47M-parameter model with stride {8,16,32} detection heads. Chosen for robust FP16 quantisation on edge &mdash; only 9% accuracy loss vs. 30% for P2 variant.
                 </p>
             </div>
             <div>
@@ -623,7 +623,7 @@
                     <i class="fa-solid fa-gauge-simple-high text-rocam-red"></i> DeepStream Pipeline
                 </h4>
                 <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
-                    DeepStream's nvinfer plugin handles the full pipeline on GPU — preprocessing, TensorRT FP16 inference, and NMS all under 16.6ms per frame at 60fps.
+                    DeepStream's nvinfer plugin handles preprocessing, TensorRT FP16 inference, and DBSCAN NMS entirely on GPU &mdash; under 16.6ms per frame at 60fps.
                 </p>
             </div>
             <div>
@@ -766,49 +766,56 @@
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
             <div class="header-line"></div>
-            <div class="header-title">Machine Learning Testing & Data</div>
+            <div class="header-title">Machine Learning Training</div>
         </div>
 
         <div class="flex w-full mt-24 gap-16">
-            <!-- Left: Big Data -->
+            <!-- Left: Deployed Metrics -->
             <div class="w-[40%] flex flex-col justify-center">
                 <div class="minimal-card bg-rocam-dark text-white mb-10 shadow-2xl relative overflow-hidden">
                     <div class="absolute -right-10 -top-10 opacity-10"><i class="fa-solid fa-bullseye text-[200px]"></i></div>
-                    <div class="text-[120px] font-black leading-none tracking-tighter mb-2 relative z-10">0.958</div>
-                    <div class="text-2xl text-gray-400 font-bold uppercase tracking-widest relative z-10">Final mAP@50 Score</div>
+                    <div class="text-[120px] font-black leading-none tracking-tighter mb-2 relative z-10">0.631</div>
+                    <div class="text-2xl text-gray-400 font-bold uppercase tracking-widest relative z-10">Deployed mAP@50-95</div>
+                    <div class="text-lg text-gray-500 font-medium mt-2 relative z-10">DeepStream FP16 on Jetson Orin Nano</div>
                 </div>
                 <div class="minimal-card border-2 border-rocam-red">
-                    <div class="text-[80px] font-black text-rocam-red leading-none tracking-tighter mb-2">+22%</div>
-                    <div class="text-xl text-rocam-dark font-bold uppercase tracking-widest">mAP@50-95 Improvement</div>
-                    <p class="mt-4 text-lg text-rocam-gray font-medium">Over baseline COCO weights during extreme weather validation.</p>
+                    <div class="text-[80px] font-black text-rocam-red leading-none tracking-tighter mb-2">0.875</div>
+                    <div class="text-xl text-rocam-dark font-bold uppercase tracking-widest">Deployed mAP@50</div>
+                    <p class="mt-4 text-lg text-rocam-gray font-medium">Only 9% quantisation gap from training (0.694 &rarr; 0.631), validated on full test set.</p>
                 </div>
             </div>
 
             <!-- Right: Methodology -->
             <div class="w-[60%] flex flex-col justify-center">
-                <h3 class="text-4xl font-black text-rocam-dark mb-8 tight-heading">3-Stage Training Pipeline</h3>
-                <p class="text-xl text-rocam-gray font-medium mb-10">Training data labelled via our custom <span class="font-bold text-rocam-dark">Labelling App</span> (built by Mike Chen) with SAM-assisted annotation.</p>
-                
+                <h3 class="text-4xl font-black text-rocam-dark mb-8 tight-heading">Aggressive Augmentation Training</h3>
+                <p class="text-xl text-rocam-gray font-medium mb-10">YOLO26s trained end-to-end for <span class="font-bold text-rocam-dark">420 epochs</span> on H100 GPU. Data labelled via our custom <span class="font-bold text-rocam-dark">Labelling App</span> with SAM-assisted annotation.</p>
+
                 <div class="space-y-10">
                     <div class="flex gap-8 items-start">
-                        <div class="w-16 h-16 rounded-full bg-white shadow-md flex items-center justify-center text-2xl font-black text-rocam-dark border border-gray-200 shrink-0">1</div>
+                        <div class="w-16 h-16 rounded-full bg-rocam-red shadow-md flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-grid-2 text-xl text-white"></i>
+                        </div>
                         <div>
-                            <h4 class="text-2xl font-bold text-rocam-dark mb-2">Stage 1: Full Training (300 epochs)</h4>
-                            <p class="text-xl text-rocam-gray font-medium leading-relaxed">COCO pre-trained YOLO26s-P2 fine-tuned on rocket dataset with mosaic augmentation (0.4) and zero patience.</p>
+                            <h4 class="text-2xl font-bold text-rocam-dark mb-2">Full Mosaic = 1.0 (Key Finding)</h4>
+                            <p class="text-xl text-rocam-gray font-medium leading-relaxed">Every image trained as 2&times;2 mosaic, quadrupling effective object density. Disabled last 80 epochs for full-resolution refinement. All reduced-mosaic variants failed.</p>
                         </div>
                     </div>
                     <div class="flex gap-8 items-start">
-                        <div class="w-16 h-16 rounded-full bg-rocam-red shadow-md flex items-center justify-center text-2xl font-black text-white shrink-0">2</div>
+                        <div class="w-16 h-16 rounded-full bg-white shadow-md flex items-center justify-center shrink-0 border border-gray-200">
+                            <i class="fa-solid fa-image text-xl text-rocam-dark"></i>
+                        </div>
                         <div>
-                            <h4 class="text-2xl font-bold text-rocam-dark mb-2">Stage 2: Rect Fine-tune</h4>
-                            <p class="text-xl text-rocam-gray font-medium leading-relaxed">Resume with rect=True and hard-negative backgrounds (empty skies, birds) to suppress false positives.</p>
+                            <h4 class="text-2xl font-bold text-rocam-dark mb-2">15,832 Images + 4,000 COCO Hard Negatives</h4>
+                            <p class="text-xl text-rocam-gray font-medium leading-relaxed">25% of training set is pure background from COCO, forcing a harder decision boundary to suppress false positives in real-world deployment.</p>
                         </div>
                     </div>
                     <div class="flex gap-8 items-start">
-                        <div class="w-16 h-16 rounded-full bg-white shadow-md flex items-center justify-center text-2xl font-black text-rocam-dark border border-gray-200 shrink-0">3</div>
+                        <div class="w-16 h-16 rounded-full bg-white shadow-md flex items-center justify-center shrink-0 border border-gray-200">
+                            <i class="fa-solid fa-wand-magic-sparkles text-xl text-rocam-dark"></i>
+                        </div>
                         <div>
-                            <h4 class="text-2xl font-bold text-rocam-dark mb-2">Stage 3: Low-LR Polish</h4>
-                            <p class="text-xl text-rocam-gray font-medium leading-relaxed">Final epochs at reduced learning rate on curated, manually verified subset for maximum precision.</p>
+                            <h4 class="text-2xl font-bold text-rocam-dark mb-2">Multi-Scale + 7 Albumentations</h4>
+                            <p class="text-xl text-rocam-gray font-medium leading-relaxed">Variable resolution (544&ndash;960px), 180&deg; rotation, motion blur, compression artefacts, and sensor noise transforms for real-world robustness.</p>
                         </div>
                     </div>
                 </div>
