@@ -246,13 +246,55 @@ Grace (numpy 2.x) 与 Orin (numpy 1.x) 版本不一致导致 `torch.load` 反序
 
 ---
 
+## Plan G: Clone train63 recipe, fine-tune smallrocket@544 (NEW - 关键方案)
+
+**核心发现**: smallrocket (train63) 之所以小目标强，是因为用了与我们完全不同的训练策略:
+- mosaic=1.0 (我们的方案最高才 0.30)
+- lr0=0.01 (我们用 0.0002, 差了 50 倍)
+- multi_scale=True + close_mosaic=80
+- erasing=0.4, cutmix=0.1, shear=5.0
+- 420 epochs (我们的微调只有 80)
+- cos_lr=False (线性衰减, 非余弦)
+
+**Plan G 策略**: 完全复制 train63 的增强配方, fine-tune smallrocket@544
+
+**训练配置**:
+- 模型: smallrocket.pt (fine-tune)
+- imgsz=544, batch=16, nbs=64
+- SGD, **lr0=0.005** (train63 一半, 微调折中), lrf=0.01
+- **cos_lr=False** (匹配 train63)
+- **150 epochs**, patience=30
+- **mosaic=1.0**, mixup=0.1, cutmix=0.1, erasing=0.4, scale=0.3
+- **close_mosaic=80** (匹配 train63)
+- shear=5.0, degrees=180, perspective=0.0002
+- train63 原版 Albumentations
+- tmux session: `planG_clone63`, GPU 2
+- 脚本: `src/training/run_planG.bash`, `train_planG_clone63.py`
+
+**状态**: 🔄 训练中 (ep 1/150)
+
+---
+
+## 失败分析: 为什么 Plan C/D/F 都没打过 baseline
+
+| 问题 | 影响 |
+|------|------|
+| **mosaic 太低** (0~0.30 vs baseline 1.0) | 小目标出现频率不够, 模型学不到足够的小目标特征 |
+| **学习率太保守** (0.0002 vs 0.01) | 微调时模型参数几乎不动, 无法适应新分辨率 |
+| **cos_lr=True** | 学习率末期过低, 不如 train63 的线性衰减 |
+| **close_mosaic 过早** (0~40 vs 80) | 模型在精调阶段过早失去 mosaic 增强 |
+| **训练轮数不足** (80 ep vs 420 ep) | 参数空间探索不充分 |
+| **V3 方案过度"精巧"** | 9 种 Albumentations 复杂度高但对小目标贡献不如 mosaic |
+
+---
+
 ## Next Steps
 
-1. ✅ **Plan C DeepStream benchmark** — 结果: mAP50-95=0.499, small=0.238 ❌ 全面落后 baseline
-2. ⏳ **Plan E** — ~1h 后训练完成 → 导出 ONNX → Orin benchmark
-3. ⏳ **Plan F** — ~3h 后训练完成 → 导出 ONNX → Orin benchmark (关键期望: 小目标提升)
-4. ⏳ Plan C Phase 1 还剩 ~90 epochs → 判断是否值得继续到 Phase 2
-5. 待做: 所有候选者 DeepStream benchmark 完成后比较
+1. ✅ **Plan C DeepStream benchmark** — mAP50-95=0.499, small=0.238 ❌
+2. ⏳ **Plan E** — 即将完成 (ep 198/200) → 导出 ONNX → Orin benchmark
+3. ⏳ **Plan F** — 训练中 (ep ~1/80), 但 mosaic=0.30 可能仍不够
+4. ⏳ **Plan G** — 训练中 (ep 1/150), **最有希望的方案** — 完全复制 train63 配方
+5. 待做: Plan E/F/G 完成后 DeepStream benchmark
 6. 待做: 胜者部署 + PR
 
 ---
