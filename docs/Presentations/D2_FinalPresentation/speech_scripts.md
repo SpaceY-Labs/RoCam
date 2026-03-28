@@ -17,7 +17,7 @@
 | 6 | LIVE DEMO | All | 2:45 |
 | 7 | Data Tooling - RoCam Labeler | Mike | 1:20 |
 | 8 | Computer Vision Pipeline | Mike | 1:00 |
-| 9 | Computer Vision Pipeline (Detection Result) | Mike / Xiaotian | 0:40 |
+| 9 | Computer Vision Pipeline (Detection Result) | Mike | 0:30 |
 | 10 | Zero-Latency Tracking | Xiaotian | 0:55 |
 | 11 | Machine Learning Training | Xiaotian | 1:10 |
 | 12 | Model Development Journey | Xiaotian | 0:55 |
@@ -115,7 +115,7 @@ We chose YOLO26s because it gave us the best deployment tradeoff on Jetson. Comb
 
 ### Slide 9 - Computer Vision Pipeline (Detection Result) (0:30)
 
-This frame shows the core challenge — the rocket occupies less than **0.1% of the image**, roughly **15×15 pixels** in a 1080p frame. Standard detectors struggle at this scale. Everything we did in training and pipeline design was driven by this constraint. Let me show you how we turn that tiny detection into instant visual tracking.
+This frame shows the core challenge — the rocket occupies less than **0.1% of the image**, roughly **15×15 pixels** in a 1080p frame. Standard detectors struggle at this scale. Everything we did in training and pipeline design was driven by this constraint. Xiaotian will now show you how that tiny detection becomes perceptually instant tracking.
 
 ---
 
