@@ -856,9 +856,9 @@
             </p>
         </div>
 
-        <!-- Branch Diagram -->
-        <div class="flex-1 flex items-center justify-center px-20" style="padding-bottom: 100px;">
-            <svg viewBox="0 0 1460 480" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-height:520px;">
+        <!-- Branch Diagram (6 branches) -->
+        <div class="flex-1 flex items-center justify-center px-16" style="padding-bottom: 100px;">
+            <svg viewBox="0 0 1600 500" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-height:530px;">
                 <defs>
                     <filter id="cs12" x="-4%" y="-8%" width="108%" height="120%">
                         <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.07"/>
@@ -866,78 +866,97 @@
                 </defs>
 
                 <!-- Trunk glow -->
-                <line x1="65" y1="248" x2="1340" y2="248" stroke="#0A0A0A" stroke-width="14" opacity="0.04" stroke-linecap="round"/>
+                <line x1="55" y1="250" x2="1500" y2="250" stroke="#0A0A0A" stroke-width="14" opacity="0.04" stroke-linecap="round"/>
                 <!-- Main trunk -->
-                <line x1="65" y1="248" x2="1340" y2="248" stroke="#0A0A0A" stroke-width="5" stroke-linecap="round"/>
+                <line x1="55" y1="250" x2="1500" y2="250" stroke="#0A0A0A" stroke-width="5" stroke-linecap="round"/>
 
                 <!-- Trunk label -->
-                <text x="155" y="232" font-size="10.5" font-weight="700" fill="#aaa" font-family="Inter, sans-serif" letter-spacing="0.16em">MOSAIC=1.0 &middot; MULTI-SCALE &middot; 7&times; ALBUMENTATIONS &middot; 4K COCO NEGATIVES &middot; CLOSE_MOSAIC @ EP 340</text>
+                <text x="155" y="234" font-size="9.5" font-weight="700" fill="#aaa" font-family="Inter, sans-serif" letter-spacing="0.14em">MOSAIC=1.0 &middot; MULTI-SCALE &middot; 7&times; ALBUMENTATIONS &middot; 4K COCO NEGATIVES &middot; 420 EPOCHS</text>
 
                 <!-- Start node -->
-                <circle cx="65" cy="248" r="12" fill="#0A0A0A"/>
-                <text x="65" y="288" text-anchor="middle" font-size="14" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">YOLO26s</text>
-                <text x="65" y="305" text-anchor="middle" font-size="11" fill="#999" font-family="Inter, sans-serif">9.47M params</text>
+                <circle cx="55" cy="250" r="11" fill="#0A0A0A"/>
+                <text x="55" y="288" text-anchor="middle" font-size="13" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">YOLO26s</text>
+                <text x="55" y="303" text-anchor="middle" font-size="10" fill="#999" font-family="Inter, sans-serif">9.47M params</text>
 
                 <!-- Branch point nodes -->
-                <circle cx="230" cy="248" r="7" fill="#0A0A0A"/>
-                <circle cx="490" cy="248" r="7" fill="#0A0A0A"/>
-                <circle cx="750" cy="248" r="7" fill="#0A0A0A"/>
-                <circle cx="1010" cy="248" r="7" fill="#0A0A0A"/>
+                <circle cx="180" cy="250" r="6" fill="#0A0A0A"/>
+                <circle cx="370" cy="250" r="6" fill="#0A0A0A"/>
+                <circle cx="560" cy="250" r="6" fill="#0A0A0A"/>
+                <circle cx="750" cy="250" r="6" fill="#0A0A0A"/>
+                <circle cx="940" cy="250" r="6" fill="#0A0A0A"/>
+                <circle cx="1130" cy="250" r="6" fill="#0A0A0A"/>
 
                 <!-- ═══ Branch 1: P2 Sub-Pixel Detection Head (UP) ═══ -->
-                <path d="M230,248 C230,148 330,68 430,68" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
-                <line x1="430" y1="68" x2="458" y2="68" stroke="#D92121" stroke-width="2" opacity="0.25" stroke-dasharray="4,4"/>
-                <circle cx="430" cy="68" r="5" fill="#D92121" opacity="0.55"/>
-                <!-- Card -->
-                <rect x="466" y="22" width="270" height="92" rx="10" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
-                <text x="486" y="46" font-size="15" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">P2 Sub-Pixel Detection Head</text>
-                <text x="486" y="64" font-size="11" fill="#aaa" font-family="Inter, sans-serif">stride [4, 8, 16, 32] &middot; 4 detection scales</text>
-                <text x="486" y="82" font-size="12" fill="#888" font-family="Inter, sans-serif">Train mAP 0.765 &rarr; Deploy 0.539</text>
-                <text x="486" y="101" font-size="12" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; FP16 quantization destroys fine features</text>
+                <path d="M180,250 C180,155 270,72 350,72" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="350" y1="72" x2="374" y2="72" stroke="#D92121" stroke-width="2" opacity="0.2" stroke-dasharray="4,4"/>
+                <circle cx="350" cy="72" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="382" y="30" width="210" height="84" rx="9" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="398" y="52" font-size="13.5" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">P2 Sub-Pixel Detection</text>
+                <text x="398" y="67" font-size="10" fill="#aaa" font-family="Inter, sans-serif">stride [4,8,16,32] &middot; 4 heads</text>
+                <text x="398" y="83" font-size="11" fill="#888" font-family="Inter, sans-serif">Train 0.764 &rarr; Deploy 0.539</text>
+                <text x="398" y="100" font-size="11" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; FP16 destroys fine features</text>
 
-                <!-- ═══ Branch 2: High-Resolution Scale Optimization (DOWN) ═══ -->
-                <path d="M490,248 C490,345 590,418 690,418" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
-                <line x1="690" y1="418" x2="718" y2="418" stroke="#D92121" stroke-width="2" opacity="0.25" stroke-dasharray="4,4"/>
-                <circle cx="690" cy="418" r="5" fill="#D92121" opacity="0.55"/>
-                <rect x="726" y="372" width="270" height="92" rx="10" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
-                <text x="746" y="396" font-size="15" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">Resolution &amp; Scale Optimization</text>
-                <text x="746" y="414" font-size="11" fill="#aaa" font-family="Inter, sans-serif">640px input &middot; cosine LR 3e-4 &middot; extended warmup</text>
-                <text x="746" y="432" font-size="12" fill="#888" font-family="Inter, sans-serif">Deploy mAP 0.499&ndash;0.551 (3 runs)</text>
-                <text x="746" y="451" font-size="12" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; Low mosaic at higher res is catastrophic</text>
+                <!-- ═══ Branch 2: Low-Mosaic Regime (DOWN) ═══ -->
+                <path d="M370,250 C370,345 460,428 540,428" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="540" y1="428" x2="564" y2="428" stroke="#D92121" stroke-width="2" opacity="0.2" stroke-dasharray="4,4"/>
+                <circle cx="540" cy="428" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="572" y="386" width="210" height="84" rx="9" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="588" y="408" font-size="13.5" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">Low-Mosaic Regime</text>
+                <text x="588" y="423" font-size="10" fill="#aaa" font-family="Inter, sans-serif">mosaic=0.15&ndash;0.30 &middot; reduced aug</text>
+                <text x="588" y="439" font-size="11" fill="#888" font-family="Inter, sans-serif">Deploy mAP 0.499&ndash;0.551</text>
+                <text x="588" y="456" font-size="11" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; Insufficient for small targets</text>
 
-                <!-- ═══ Branch 3: Cosine-Scheduled Transfer Learning (UP) ═══ -->
-                <path d="M750,248 C750,148 850,68 950,68" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
-                <line x1="950" y1="68" x2="978" y2="68" stroke="#D92121" stroke-width="2" opacity="0.25" stroke-dasharray="4,4"/>
-                <circle cx="950" cy="68" r="5" fill="#D92121" opacity="0.55"/>
-                <rect x="986" y="22" width="270" height="92" rx="10" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
-                <text x="1006" y="46" font-size="15" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">Cosine-Scheduled Fine-tuning</text>
-                <text x="1006" y="64" font-size="11" fill="#aaa" font-family="Inter, sans-serif">cosine LR 1.5e-4 &middot; calibrated mosaic 0&ndash;1.0</text>
-                <text x="1006" y="82" font-size="12" fill="#888" font-family="Inter, sans-serif">Deploy mAP 0.621&ndash;0.641, small 0.282&ndash;0.312</text>
-                <text x="1006" y="101" font-size="12" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; Small target features degrade</text>
+                <!-- ═══ Branch 3: High-Resolution Scaling (UP) ═══ -->
+                <path d="M560,250 C560,155 650,72 730,72" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="730" y1="72" x2="754" y2="72" stroke="#D92121" stroke-width="2" opacity="0.2" stroke-dasharray="4,4"/>
+                <circle cx="730" cy="72" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="762" y="30" width="210" height="84" rx="9" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="778" y="52" font-size="13.5" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">High-Resolution Scaling</text>
+                <text x="778" y="67" font-size="10" fill="#aaa" font-family="Inter, sans-serif">640px input &middot; cosine LR 3e-4</text>
+                <text x="778" y="83" font-size="11" fill="#888" font-family="Inter, sans-serif">Deploy mAP 0.551</text>
+                <text x="778" y="100" font-size="11" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; Higher res needs stronger aug</text>
 
-                <!-- ═══ Branch 4: Data-Centric Augmentation Engineering (DOWN) ═══ -->
-                <path d="M1010,248 C1010,345 1090,418 1140,418" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
-                <line x1="1140" y1="418" x2="1168" y2="418" stroke="#D92121" stroke-width="2" opacity="0.25" stroke-dasharray="4,4"/>
-                <circle cx="1140" cy="418" r="5" fill="#D92121" opacity="0.55"/>
-                <rect x="1176" y="372" width="270" height="92" rx="10" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
-                <text x="1196" y="396" font-size="15" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">Data-Centric Augmentation</text>
-                <text x="1196" y="414" font-size="11" fill="#aaa" font-family="Inter, sans-serif">copy-paste &middot; SAHI tiling &middot; close_mosaic=100</text>
-                <text x="1196" y="432" font-size="12" fill="#888" font-family="Inter, sans-serif">Deploy mAP 0.614&ndash;0.618 (3 runs)</text>
-                <text x="1196" y="451" font-size="12" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; From-scratch cannot close feature gap</text>
+                <!-- ═══ Branch 4: Transfer Learning Fine-tuning (DOWN) ═══ -->
+                <path d="M750,250 C750,345 840,428 920,428" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="920" y1="428" x2="944" y2="428" stroke="#D92121" stroke-width="2" opacity="0.2" stroke-dasharray="4,4"/>
+                <circle cx="920" cy="428" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="952" y="386" width="210" height="84" rx="9" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="968" y="408" font-size="13.5" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">Transfer Learning</text>
+                <text x="968" y="423" font-size="10" fill="#aaa" font-family="Inter, sans-serif">cosine LR 1.5e-4 &middot; from pretrained</text>
+                <text x="968" y="439" font-size="11" fill="#888" font-family="Inter, sans-serif">Deploy mAP 0.621&ndash;0.641</text>
+                <text x="968" y="456" font-size="11" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; Small target accuracy regressed</text>
+
+                <!-- ═══ Branch 5: Copy-Paste Synthesis (UP) ═══ -->
+                <path d="M940,250 C940,155 1030,72 1110,72" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="1110" y1="72" x2="1134" y2="72" stroke="#D92121" stroke-width="2" opacity="0.2" stroke-dasharray="4,4"/>
+                <circle cx="1110" cy="72" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="1142" y="30" width="210" height="84" rx="9" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="1158" y="52" font-size="13.5" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">Copy-Paste Synthesis</text>
+                <text x="1158" y="67" font-size="10" fill="#aaa" font-family="Inter, sans-serif">bbox copy-paste &middot; synthetic oversample</text>
+                <text x="1158" y="83" font-size="11" fill="#888" font-family="Inter, sans-serif">Deploy mAP 0.618</text>
+                <text x="1158" y="100" font-size="11" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; Synthetic data insufficient</text>
+
+                <!-- ═══ Branch 6: SAHI Tiled Detection (DOWN) ═══ -->
+                <path d="M1130,250 C1130,345 1200,428 1260,428" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="1260" y1="428" x2="1284" y2="428" stroke="#D92121" stroke-width="2" opacity="0.2" stroke-dasharray="4,4"/>
+                <circle cx="1260" cy="428" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="1292" y="386" width="210" height="84" rx="9" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="1308" y="408" font-size="13.5" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">SAHI Tiled Detection</text>
+                <text x="1308" y="423" font-size="10" fill="#aaa" font-family="Inter, sans-serif">50K+ tiled images &middot; sliding window</text>
+                <text x="1308" y="439" font-size="11" fill="#888" font-family="Inter, sans-serif">Val mAP 0.604 (training)</text>
+                <text x="1308" y="456" font-size="11" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; 3&times; slower, marginal gain</text>
 
                 <!-- ═══ Deployed Endpoint ═══ -->
-                <!-- Green glow -->
-                <circle cx="1340" cy="248" r="22" fill="#10B981" opacity="0.12"/>
-                <circle cx="1340" cy="248" r="15" fill="#10B981" stroke="white" stroke-width="3"/>
-                <text x="1340" y="253" text-anchor="middle" font-size="13" font-weight="900" fill="white" font-family="Inter, sans-serif">&#10003;</text>
+                <circle cx="1500" cy="250" r="20" fill="#10B981" opacity="0.12"/>
+                <circle cx="1500" cy="250" r="14" fill="#10B981" stroke="white" stroke-width="3"/>
+                <text x="1500" y="255" text-anchor="middle" font-size="12" font-weight="900" fill="white" font-family="Inter, sans-serif">&#10003;</text>
 
                 <!-- Deployed badge -->
-                <rect x="1250" y="155" width="180" height="62" rx="10" fill="#0A0A0A"/>
-                <text x="1340" y="178" text-anchor="middle" font-size="12" font-weight="800" fill="white" font-family="Inter, sans-serif" letter-spacing="0.1em">DEPLOYED ON JETSON</text>
-                <text x="1340" y="198" text-anchor="middle" font-size="13" fill="#10B981" font-weight="700" font-family="Inter, sans-serif">mAP 0.631 &middot; small 0.341</text>
-                <text x="1340" y="210" text-anchor="middle" font-size="9" fill="#888" font-family="Inter, sans-serif">FP16 &middot; 9% accuracy loss</text>
-                <!-- Connector line -->
-                <line x1="1340" y1="217" x2="1340" y2="233" stroke="#10B981" stroke-width="2"/>
+                <rect x="1410" y="158" width="180" height="58" rx="10" fill="#0A0A0A"/>
+                <text x="1500" y="180" text-anchor="middle" font-size="11.5" font-weight="800" fill="white" font-family="Inter, sans-serif" letter-spacing="0.1em">DEPLOYED ON JETSON</text>
+                <text x="1500" y="198" text-anchor="middle" font-size="12" fill="#10B981" font-weight="700" font-family="Inter, sans-serif">mAP 0.631 &middot; small 0.341</text>
+                <text x="1500" y="209" text-anchor="middle" font-size="9" fill="#888" font-family="Inter, sans-serif">FP16 &middot; 9% accuracy loss</text>
+                <line x1="1500" y1="216" x2="1500" y2="236" stroke="#10B981" stroke-width="2"/>
             </svg>
         </div>
 
