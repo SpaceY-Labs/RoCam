@@ -213,6 +213,7 @@ Grace numpy 2.x vs Orin numpy 1.x → `torch.load` 失败.
 | 03-28 ~00:30 | Plan I tiles 预处理完成 (34909 tiles), 开始缓存 |
 | 03-28 ~00:35 | Plan J crops 提取完成 (3581), 训练已注入 copy-paste |
 | 03-28 ~02:00 | G=ep14, H=ep5, I=缓存中, J=ep4. 全部正常运行 |
+| 03-28 ~02:15 | G=ep18, H=ep5(val中), I=缓存32%, J=ep7. 上下文91%即将开新会话 |
 
 ## Next Steps
 
@@ -225,4 +226,16 @@ Grace numpy 2.x vs Orin numpy 1.x → `torch.load` 失败.
 7. 胜者部署 + PR
 
 ---
-*Last updated: 2026-03-28 ~02:00 EDT*
+## 新会话恢复指南
+
+1. 读本文件 (`docs/EXPERIMENT_LOG.md`) 获取全部上下文
+2. `tmux ls` 查看运行中的训练会话
+3. `tmux capture-pane -t <session> -p | tail -5` 查看各方案进度
+4. Plan G 最先完成 (~150ep) → 导出 ONNX → Orin benchmark → 考虑 Plan K (QAT)
+5. H/I/J 需 15-20h, 每个完成后同样流程
+6. ONNX 导出: `conda run -n CVPOC2 python3 /u50/loux8/export_onnx_grace.py --pt <best.pt> --out <name>.onnx`
+7. 传到 Orin: `scp <name>.onnx rocam:~/RoCam/src/benchmark/models/`
+8. Orin benchmark: `ssh rocam "cd ~/RoCam/src/benchmark && python3 accuracy_benchmark.py --onnx ./models/<name>.onnx --data-yaml /mnt/data/testdata/data_15000/data.yaml"`
+9. push: `PAT=$(cat ~/.git_pat) && GIT_ASKPASS=echo git push https://${PAT}@github.com/SpaceY-Labs/RoCam.git CV_planC_544`
+
+*Last updated: 2026-03-28 ~02:15 EDT*
