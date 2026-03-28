@@ -1,13 +1,14 @@
-# Experiment Log: Plan A/C/D Parallel Validation
+# Experiment Log: Plan A/C/D/E Parallel Validation
 
 > **上下文恢复指南**: 如果在新会话中继续，阅读本文件即可了解所有方案状态、分支映射、关键结论和下一步操作。
 
-## Quick Status (最后更新: 2026-03-27 20:00 EDT)
+## Quick Status (最后更新: 2026-03-27 20:10 EDT)
 
 | 方案 | GPU | Epoch | mAP50-95 | 状态 | 预计完成 |
 |------|-----|-------|----------|------|---------|
 | C - yolo26s@544 从头训练 | GPU 3 | 27/300 (P1) | 0.396 | 训练中 (tmux: planC_train) | 明早 ~05:30 |
 | D - smallrocket@544 微调 | GPU 0 | 4/80 | ~0.673 | 训练中 (tmux: planD_finetune) | 今晚 ~22:00 |
+| E - yolo26s@640 折中分辨率 | GPU 1 | 0/200 | - | 训练中 (tmux: planE_640) | 明早 ~01:00 |
 | A - 816x960 P2 benchmark | Orin | - | - | engine 编译中 | ~30min |
 
 ## Branch Map
@@ -85,6 +86,34 @@ P2 模型 (maxvalue.pt) 训练时 mAP50-95=0.773@960，但 DeepStream 部署时�
 - tmux session: `planD_finetune`, GPU 0
 - 脚本: `src/training/run_planD.bash`, `train_planD_finetune.py`
 
+## Plan E: yolo26s from scratch @ imgsz=640 (IN PROGRESS)
+
+**训练配置**:
+- 模型: yolo26s.pt (pretrained, 3-head)
+- imgsz=640, batch=32 (conservative for shared GPU), nbs=128 (accumulate=4)
+- SGD, lr0=0.0003, cos_lr, 200 epochs (~4-5 hours)
+- V3 augmentations (same as Plan C)
+- tmux session: `planE_640`, GPU 1
+- 脚本: `src/training/run_planE.bash`, `train_planE_640.py`
+
+**Rationale**: 640 may generalize better than strict 544 while avoiding 960→544 mismatch.
+
+## GPU Allocation
+
+| GPU | Task | Memory Used |
+|-----|------|-------------|
+| 0 | Plan D (smallrocket fine-tune) | 76.6 / 81.6 GB |
+| 1 | Plan E (yolo26s@640) + others | 69.8 / 81.6 GB |
+| 2 | (Other users) | 70.2 / 81.6 GB |
+| 3 | Plan C (yolo26s@544) | 49.4 / 81.6 GB |
+
+## GitHub PRs (EXPERIMENTAL - DO NOT MERGE)
+
+| PR | Branch | Status | Label |
+|----|--------|--------|-------|
+| [#361](https://github.com/SpaceY-Labs/RoCam/pull/361) | CV_planC_544 | Draft | experiment |
+| [#362](https://github.com/SpaceY-Labs/RoCam/pull/362) | experiment/planA_highres | Draft | experiment |
+
 ## Data
 
 - Dataset: `/u50/loux8/datafrompega/rocam_data_15000/data_15000/data.yaml`
@@ -103,11 +132,12 @@ P2 模型 (maxvalue.pt) 训练时 mAP50-95=0.773@960，但 DeepStream 部署时�
 
 1. ✅ Plan A 736x960 benchmark → 无改善
 2. ⏳ Plan A 816x960 benchmark → Orin engine 编译中
-3. ⏳ Plan D (smallrocket fine-tune) → ~2h 后出结果，快速验证
-4. ⏳ Plan C Phase 1 → ~8h 后完成
-5. 待做: Plan C Phase 2 (自动接续)
-6. 待做: 胜者 DeepStream benchmark on Orin
-7. 待做: 最终模型部署 + PR
+3. ⏳ Plan D (smallrocket fine-tune) → ~2h 后出结果
+4. ⏳ Plan E (yolo26s@640) → ~5h 后出结果
+5. ⏳ Plan C Phase 1 → ~8h 后完成
+6. 待做: Plan C Phase 2 (自动接续)
+7. 待做: 所有候选者 DeepStream benchmark on Orin
+8. 待做: 胜者部署 + PR
 
 ## Decision Criteria
 
