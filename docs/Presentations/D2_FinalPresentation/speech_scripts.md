@@ -113,39 +113,35 @@ The flow is: **camera capture**, then GPU **letterboxing**, then **YOLO26s** in 
 
 We chose YOLO26s because it gave us the best deployment tradeoff on Jetson. Combined with DeepStream, the whole decode-to-inference path stays on GPU, which is how we remain inside a single-frame latency budget.
 
-### Slide 9 - Computer Vision Pipeline (Detection Result) (0:40)
+### Slide 9 - Computer Vision Pipeline (Detection Result) (0:30)
 
-This example makes the problem concrete. The rocket is occupying less than **0.1% of the frame**, yet we still detect it at usable confidence.
-
-That is why tiny-object robustness drove everything else in the project: how we labeled data, how we trained the model, and how we designed the tracking pipeline. I will hand it to Xiaotian to show how that detection becomes perceptually instant tracking.
+This frame shows the core challenge — the rocket occupies less than **0.1% of the image**, roughly **15×15 pixels** in a 1080p frame. Standard detectors struggle at this scale. Everything we did in training and pipeline design was driven by this constraint. Let me show you how we turn that tiny detection into instant visual tracking.
 
 ---
 
 ## XIAOTIAN LOU - Slides 10-12
 
-### Slide 10 - Zero-Latency Tracking (0:55)
+### Slide 10 - Zero-Latency Tracking (0:45)
 
-The key idea here is **optical redundancy**.
+The key idea is **optical redundancy**. The camera's field of view is wider than what the operator sees. When YOLO returns a bounding box, the fast GPU shader path computes translation and scale and updates the preview in **under one millisecond** — the operator sees the rocket locked on screen within a single display frame.
 
-We keep the camera's full field of view wider than what the operator sees. As soon as YOLO gives us a bounding box, the fast path computes translation and scale and updates the GPU shader in about a millisecond. That means the preview looks locked onto the rocket within one display frame.
+In parallel, a slower UART path sends correction commands to the STM32, which physically re-centers the gimbal. The operator perceives **zero tracking latency** while the hardware catches up in the background.
 
-In parallel, a slower path sends the correction over UART to the STM32, which drives the servos and physically re-centers the gimbal. So the operator sees instant lock while the hardware catches up in the background.
+### Slide 11 - Machine Learning Training (0:55)
 
-### Slide 11 - Machine Learning Training (1:10)
+Our peak training accuracy across all experiments reached **96.2% mAP@50** on H100 GPUs. But the real test is edge deployment — our best-in-training architecture lost **30%** of its accuracy after FP16 quantization on the Jetson.
 
-That deployment result came from a very data-centric training process.
+The recipe that survived had three key ingredients. First, **full mosaic at 1.0** for most of training, quadrupling effective object density, then disabled for the last 80 epochs for full-resolution refinement. Second, over **15,000 labelled images plus 4,000 COCO hard negatives** to suppress false positives. Third, **multi-scale training with seven Albumentations** — motion blur, compression artifacts, sensor noise.
 
-Our final model was trained for **420 epochs** on H100 GPUs using data from our custom labeler. The winning recipe had three parts. First, **full mosaic at 1.0** for most of training, which increased effective rocket density. Second, **15,832 labeled images plus 4,000 COCO hard negatives**, which sharpened the boundary between rockets and background clutter. Third, **multi-scale training plus seven augmentations** to simulate real field conditions such as blur, compression, and noise.
-
-The result was a deployed **mAP@50 of 0.875**, with only about a **9% gap** from training to Jetson FP16 deployment.
+The result: only a **9% deployment gap**. **94.3% precision**, **89.8% recall**, running at **60 FPS** with under **1ms shader latency**.
 
 ### Slide 12 - Model Development Journey (0:55)
 
-This slide shows the part that usually gets hidden: what we tried that did **not** survive deployment.
+This diagram shows every major direction we explored — **six distinct research branches**, not quick tests.
 
-We ran more than **10 serious experiments** over roughly **4 GPU-weeks**. Some ideas looked promising in training but degraded badly after quantization or edge deployment. The lesson was that the best-looking training curve is not enough - the architecture has to survive the Jetson.
+We tried a **P2 four-head architecture** with sub-pixel detection — highest in training but collapsed under FP16. We tested **low-mosaic regimes** at 0.15 to 0.30 — insufficient for small targets. We scaled input resolution to **640 pixels** with cosine learning rate — higher resolution actually needed even stronger augmentation. We tried **transfer learning** fine-tuning — small target accuracy regressed. We experimented with **copy-paste synthesis** — synthetic data alone was not enough. And finally **SAHI tiled detection** with over 50,000 tiled images — three times slower for marginal gain.
 
-That is why this slide ends with **one survivor**. Our final model was the branch that held up best under real deployment constraints, not just in the lab.
+The main trunk — aggressive mosaic, multi-scale, COCO negatives — was the only recipe that survived all the way to production on the Jetson. Over **100 GPU-hours**, **one survivor**.
 
 ---
 
@@ -191,13 +187,11 @@ That separation keeps capture lightweight during launch while still giving us a 
 
 ## XIAOTIAN LOU - Slide 17
 
-### Slide 17 - Testing & Quality Assurance (1:05)
+### Slide 17 - Testing & Quality Assurance (0:45)
 
-To validate the system, we built substantial automated coverage across both backend and frontend.
+We built **481 automated tests**: **313 backend pytest tests** at **88% coverage**, **168 frontend Vitest tests** at **86% coverage**, plus system-level end-to-end tests. Every pull request runs through GitHub Actions CI with a **100% pass rate**.
 
-We currently have **481 automated tests** passing: **313 backend pytest tests** at **88% coverage**, and **168 frontend Vitest tests** at **86% coverage**. These run in GitHub Actions on every pull request.
-
-That matters because we changed major parts of the system during the project. With this test suite, regressions were caught quickly instead of appearing during field testing. The point is not just the test count - it is that we can keep iterating without losing confidence in correctness.
+This mattered because we changed major parts of the system throughout the project — backend architecture, control protocol, CV pipeline. With this test suite, regressions were caught in CI instead of during field testing. The goal was not test count, but the ability to keep iterating with confidence.
 
 ---
 
