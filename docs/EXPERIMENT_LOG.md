@@ -1,7 +1,7 @@
 # Experiment Log: 小目标火箭检测模型 边缘部署优化
 
 > **上下文恢复指南**: 如果在新会话中继续，阅读本文件即可了解所有方案状态、分支映射、关键结论和下一步操作。
-> **上次更新**: 2026-03-28 ~01:15 EDT
+> **上次更新**: 2026-03-28 ~01:45 EDT
 
 ---
 
@@ -288,14 +288,30 @@ Grace (numpy 2.x) 与 Orin (numpy 1.x) 版本不一致导致 `torch.load` 反序
 
 ---
 
+## Phase 2: 全面突破计划 (2026-03-28 01:30 启动)
+
+**Plan C/E/F 已停止** (已证明无效: mosaic 太低, lr 太保守)
+
+### 新方案矩阵
+
+| 方案 | GPU | 策略 | 状态 |
+|------|-----|------|------|
+| G - clone63 微调@544 | 2 | 复制 train63 配方微调 smallrocket, 150ep | 🔄 训练中 |
+| **H - 从头@544 小目标无敌** | 3 | train63 配方+小目标增强, 420ep | 🔄 训练中 |
+| **I - 切片训练** | 0 | 原图+tile 混合数据集+train63, 300ep | 🔄 预处理中 |
+| **J - Copy-Paste** | 1 | 自定义 bbox copy-paste+train63, 420ep | 🔄 训练中 |
+| K - QAT | 2 | 量化感知微调 (G 完成后) | ⏳ 等待 |
+
+脚本: `train_planH_scratch.py`, `prepare_tiles.py`, `train_planI_tiled.py`,
+`small_object_copypaste.py`, `train_planJ_copypaste.py`
+
 ## Next Steps
 
-1. ✅ **Plan C DeepStream benchmark** — mAP50-95=0.499, small=0.238 ❌
-2. ⏳ **Plan E** — 即将完成 (ep 198/200) → 导出 ONNX → Orin benchmark
-3. ⏳ **Plan F** — 训练中 (ep ~1/80), 但 mosaic=0.30 可能仍不够
-4. ⏳ **Plan G** — 训练中 (ep 1/150), **最有希望的方案** — 完全复制 train63 配方
-5. 待做: Plan E/F/G 完成后 DeepStream benchmark
-6. 待做: 胜者部署 + PR
+1. ⏳ 等待 Plan I tiles 预处理完成 → 自动开始训练
+2. 🔄 Plan G/H/J 持续训练
+3. 待做: 各方案完成后 → Grace 导出 ONNX → Orin DeepStream benchmark
+4. 待做: Plan K (QAT, G 完成后)
+5. 待做: 胜者部署 + PR
 
 ---
-*Last updated: 2026-03-28 ~01:15 EDT*
+*Last updated: 2026-03-28 ~01:45 EDT*
