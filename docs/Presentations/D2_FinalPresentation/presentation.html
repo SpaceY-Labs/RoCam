@@ -191,7 +191,7 @@
     <!-- ========================================== -->
     <div class="slide relative" style="background: #000; display: flex; justify-content: center; align-items: center;">
         <img src="figures/bvigpic.webp" alt="Team Group Photo" style="width: 100%; height: 100%; object-fit: cover;">
-        <div class="slide-footer" style="color: #999;">2 / 20</div>
+        <div class="slide-footer" style="color: #999;">2 / 21</div>
     </div>
 
     <!-- ========================================== -->
@@ -217,8 +217,8 @@
                     <div class="text-xl text-rocam-gray font-bold uppercase tracking-wide">Max Altitude</div>
                 </div>
                 <div class="border-l-8 border-rocam-red pl-8 py-2">
-                    <div class="text-[64px] font-black text-rocam-red leading-none mb-2">&lt;1<span class="text-3xl ml-2">s</span></div>
-                    <div class="text-xl text-rocam-gray font-bold uppercase tracking-wide">Event Duration</div>
+                    <div class="text-[64px] font-black text-rocam-red leading-none mb-2">&gt;10<span class="text-3xl ml-2">g</span></div>
+                    <div class="text-xl text-rocam-gray font-bold uppercase tracking-wide">Acceleration</div>
                 </div>
             </div>
         </div>
@@ -231,11 +231,11 @@
                 <div class="absolute left-[11px] top-4 bottom-4 w-1 bg-gray-200 z-0"></div>
                 
                 <div class="flex items-center gap-8 relative z-10">
-                    <div class="w-6 h-6 rounded-full bg-rocam-red border-4 border-white shadow-md"></div>
+                    <div class="w-6 h-6 rounded-full bg-rocam-dark border-4 border-white shadow-md"></div>
                     <span class="text-rocam-dark">1. Problem & Solution</span>
                 </div>
                 <div class="flex items-center gap-8 relative z-10">
-                    <div class="w-6 h-6 rounded-full bg-rocam-red border-4 border-white shadow-md"></div>
+                    <div class="w-6 h-6 rounded-full bg-rocam-dark border-4 border-white shadow-md"></div>
                     <span class="text-rocam-dark">2. Architecture & Live Demo</span>
                 </div>
                 <div class="flex items-center gap-8 relative z-10">
@@ -258,7 +258,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 3: Solution (Requirements) -->
+    <!-- SLIDE 4: Solution (Requirements) -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex relative">
         <div class="slide-header">
@@ -266,7 +266,7 @@
             <div class="header-title">The RoCam Solution</div>
         </div>
 
-        <div class="w-1/2 flex items-center justify-center pt-24 pl-16">
+        <div class="w-1/2 flex items-center justify-center pt-24 pl-16 relative z-10">
             <div class="relative">
                 <div class="absolute -inset-4 bg-rocam-red/5 rounded-full blur-3xl z-0"></div>
                 <img src="figures/prototype_cutout.png" alt="RoCam Prototype" class="h-[750px] object-contain clean-img relative z-10">
@@ -279,7 +279,7 @@
             </h2>
             
             <p class="text-2xl text-rocam-gray font-medium leading-relaxed mb-12">
-                A fully autonomous, closed-loop optical tracking system engineered to meet strict capstone constraints.
+                A fully autonomous, closed-loop optical tracking system engineered to meet strict performance constraints.
             </p>
             
             <div class="grid grid-cols-1 gap-6">
@@ -288,8 +288,8 @@
                         <i class="fa-solid fa-microchip text-2xl text-white"></i>
                     </div>
                     <div>
-                        <div class="text-2xl font-bold text-rocam-dark mb-1">Edge AI Tracking</div>
-                        <div class="text-lg text-rocam-gray">YOLO + TensorRT on Jetson Orin Nano</div>
+                        <div class="text-2xl font-bold text-rocam-dark mb-1">Autonomous Edge AI Tracking</div>
+                        <div class="text-lg text-rocam-gray">Works in remote, offline, and hazardous conditions</div>
                     </div>
                 </div>
                 <div class="minimal-card !p-8 flex items-center gap-8">
@@ -297,16 +297,16 @@
                         <i class="fa-solid fa-gauge-high text-2xl text-white"></i>
                     </div>
                     <div>
-                        <div class="text-2xl font-bold text-rocam-dark mb-1">High-Speed Loop</div>
-                        <div class="text-lg text-rocam-gray">60Hz closed-loop servo actuation</div>
+                        <div class="text-2xl font-bold text-rocam-dark mb-1">Accurate and Precise</div>
+                        <div class="text-lg text-rocam-gray">60Hz closed-loop control and digital stabilization</div>
                     </div>
                 </div>
-                <div class="minimal-card !p-8 flex items-center gap-8 border-l-4 border-l-rocam-dark">
+                <div class="minimal-card !p-8 flex items-center gap-8">
                     <div class="w-16 h-16 rounded-2xl bg-gray-200 flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-dollar-sign text-2xl text-rocam-dark"></i>
                     </div>
                     <div>
-                        <div class="text-2xl font-bold text-rocam-dark mb-1">Budget Constraint Met</div>
+                        <div class="text-2xl font-bold text-rocam-dark mb-1">Low Cost</div>
                         <div class="text-lg text-rocam-gray">Total BOM under $500 CAD (vs $10k+ commercial)</div>
                     </div>
                 </div>
@@ -317,7 +317,22 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 4: Architecture (Modular) -->
+    <!-- SLIDE 5: Live Demo -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col justify-center items-center relative">
+        <div class="z-10 text-center flex flex-col items-center">
+            <div class="w-32 h-32 rounded-full bg-rocam-red/10 flex items-center justify-center mb-10 border-2 border-rocam-red/30">
+                <i class="fa-solid fa-rocket text-[64px] text-rocam-red"></i>
+            </div>
+            <h1 class="text-[140px] font-black tight-heading tracking-tighter mb-6 text-rocam-dark">LIVE DEMO</h1>
+        </div>
+
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: All</div>
+        <div class="slide-footer">5 / 21</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 6: Architecture (Modular) -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center items-center px-32 relative">
         <div class="slide-header">
@@ -328,7 +343,7 @@
         <div class="w-full max-w-[1500px] mt-24 bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
             <img src="figures/pipeline.png" alt="Architecture Pipeline" class="w-full object-contain clean-img">
         </div>
-        
+
         <div class="flex gap-16 mt-16 max-w-[1500px] w-full">
             <div class="w-1/4">
                 <h3 class="text-2xl font-black text-rocam-dark mb-3 uppercase tracking-wide border-b-2 border-rocam-red pb-2">1. Input</h3>
@@ -348,29 +363,11 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">5 / 21</div>
+        <div class="slide-footer">6 / 21</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 5: Live Demo -->
-    <!-- ========================================== -->
-    <div class="slide flex flex-col justify-center items-center relative" style="background-color: #0A0A0A; color: white;">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(217,33,33,0.15)_0,transparent_50%)]"></div>
-        
-        <div class="z-10 text-center flex flex-col items-center">
-            <div class="w-32 h-32 rounded-full bg-rocam-red/20 flex items-center justify-center mb-10 border border-rocam-red/50">
-                <i class="fa-solid fa-rocket text-[64px] text-rocam-red"></i>
-            </div>
-            <h1 class="text-[140px] font-black tight-heading tracking-tighter mb-6">LIVE DEMO</h1>
-            <p class="text-4xl text-gray-400 font-medium tracking-widest uppercase">Autonomous Tracking in Action</p>
-        </div>
-        
-        <div class="speaker-badge" style="color: #666;"><i class="fa-solid fa-microphone"></i> Speaker: All</div>
-        <div class="slide-footer" style="color: #444;">6 / 20</div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- SLIDE 6: Labelling App (Data Tooling) -->
+    <!-- SLIDE 7: Labelling App (Data Tooling) -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex relative">
         <div class="slide-header">
@@ -425,7 +422,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 7: CV Pipeline -->
+    <!-- SLIDE 8: CV Pipeline -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -525,7 +522,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 8b: CV Pipeline - Detection Result -->
+    <!-- SLIDE 9: CV Pipeline - Detection Result -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -625,7 +622,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 9: Zero-Latency Visual Tracking -->
+    <!-- SLIDE 10: Zero-Latency Visual Tracking -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -746,7 +743,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 10: ML Training -->
+    <!-- SLIDE 11: ML Training -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -811,7 +808,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 12: Model Development Journey — Branch Diagram -->
+    <!-- SLIDE 12: Model Development Journey -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col relative">
         <div class="slide-header">
@@ -942,7 +939,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 8: Hardware & Firm. -->
+    <!-- SLIDE 13: Hardware & Firm. -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -1008,7 +1005,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 8: Fault Tolerance -->
+    <!-- SLIDE 14: Fault Tolerance -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -1075,7 +1072,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 11: Web UI -->
+    <!-- SLIDE 15: Web UI -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex relative">
         <div class="slide-header">
@@ -1117,7 +1114,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 12: Recording -->
+    <!-- SLIDE 16: Recording -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex relative">
         <div class="slide-header">
@@ -1234,7 +1231,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 13: Testing Data -->
+    <!-- SLIDE 17: Testing Data -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -1275,7 +1272,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 13: Challenges -->
+    <!-- SLIDE 18: Challenges -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -1329,7 +1326,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 14: Future -->
+    <!-- SLIDE 19: Future -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -1381,7 +1378,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 15: Stakeholder Feedback -->
+    <!-- SLIDE 20: Stakeholder Feedback -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex relative">
         <div class="slide-header">
@@ -1500,7 +1497,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 16: Thank you -->
+    <!-- SLIDE 21: Thank you -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center items-center relative">
         <div class="absolute inset-x-0 top-0 h-[220px] bg-gradient-to-b from-red-50 to-transparent"></div>
