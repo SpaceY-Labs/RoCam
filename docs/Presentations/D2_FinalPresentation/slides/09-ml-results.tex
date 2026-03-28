@@ -1,0 +1,61 @@
+% Slide 9 — ML Training Results
+\begin{frame}{ML Training Results}
+
+\begin{columns}[c]
+  \begin{column}{0.42\textwidth}
+    \centering
+    {\fontsize{48}{52}\selectfont\bfseries\textcolor{RoCamRed}{0.875}}\\[0.15em]
+    {\large Deployed mAP\textsubscript{50}}
+
+    \vspace{1.2em}
+    {\fontsize{28}{32}\selectfont\bfseries\textcolor{RoCamDark}{0.631}}\\[0.15em]
+    {\normalsize Deployed mAP\textsubscript{50--95}}
+
+    \vspace{1.2em}
+    {\small\textcolor{RoCamDark!60}{YOLO26s on Jetson Orin Nano\\
+      TensorRT FP16 via DeepStream}}
+  \end{column}
+  \begin{column}{0.54\textwidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        ybar, bar width=16pt,
+        width=7.5cm, height=5.5cm,
+        ymin=0, ymax=1.08,
+        symbolic x coords={Training, Deployed},
+        xtick=data,
+        ylabel style={font=\small},
+        ylabel={Score},
+        tick label style={font=\small},
+        legend style={at={(0.5,-0.2)}, anchor=north,
+                      legend columns=2, font=\small,
+                      draw=none, fill=none},
+        nodes near coords,
+        nodes near coords style={font=\scriptsize\bfseries},
+        every axis plot/.append style={fill opacity=0.9},
+        axis line style={RoCamDark!30},
+        tick style={RoCamDark!30},
+        grid=major,
+        grid style={RoCamDark!8},
+      ]
+      \addplot[fill=RoCamRed, draw=none] coordinates
+        {(Training, 0.694) (Deployed, 0.631)};
+      \addplot[fill=RoCamDark, draw=none] coordinates
+        {(Training, 0.947) (Deployed, 0.875)};
+      \legend{mAP\textsubscript{50--95}, mAP\textsubscript{50}}
+      \end{axis}
+    \end{tikzpicture}
+  \end{column}
+\end{columns}
+
+\speakernote{%
+  [~1 min] Our deployed model is YOLO26s trained for 420 epochs
+  with aggressive mosaic augmentation and 4,000 COCO hard negatives.
+  In training on the H100, we achieve mAP 50-to-95 of 0.694.
+  After ONNX export and TensorRT FP16 compilation on the Jetson
+  Orin Nano, the deployed model achieves mAP 50-to-95 of 0.631 and
+  mAP 50 of 0.875 --- meaning the model reliably detects rockets in
+  real-time on edge hardware.  The 9 percent quantisation gap is
+  expected for FP16 deployment.
+  Now I will hand over to [Speaker 3] who will cover the gimbal and UI.}
+\end{frame}
