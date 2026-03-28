@@ -1,21 +1,33 @@
 # Experiment Log: 小目标火箭检测模型 边缘部署优化
 
-> **上下文恢复指南**: 如果在新会话中继续，阅读本文件即可了解所有方案状态、分支映射、关键结论和下一步操作。
-> **上次更新**: 2026-03-28 ~01:45 EDT
+> **上下文恢复指南**: 新会话请阅读本文件即可恢复所有方案状态、关键结论和下一步操作。
+> **上次更新**: 2026-03-28 ~02:00 EDT
 
 ---
 
 ## Quick Status
 
-| 方案 | GPU | Epoch | Val mAP50-95 | DS Bench mAP50-95 | DS mAP50-95(small) | 状态 |
-|------|-----|-------|-------------|-------------------|---------------------|------|
-| A - maxvalue@P2 高分辨率 | Orin | - | 0.765@960 | 0.525~0.526 | 0.146~0.150 | ❌ 已结论: 不可行 |
-| C - yolo26s@544 从头训练 | GPU 3 | 213/300 (P1) | 0.543 | 0.499 | 0.238 | ❌ 全面落后 baseline |
-| D - smallrocket@544 微调 | GPU 0 | 80/80 ✅ | 0.684 | 0.641 | 0.312 | ⚠️ 整体好但小目标退步 |
-| E - yolo26s@640 折中 | GPU 1 | 191/200 | 0.549 | - | - | 🔄 训练中, 即将完成 |
-| F - smallrocket@544 小目标强化 | GPU 0 | 1/80 | - | - | - | 🔄 训练中 |
+**Baseline (smallrocket/train63)**: DS mAP50-95=0.631, mAP50=0.875, **mAP50-95(small)=0.341**
 
-**Baseline (smallrocket.pt)**: DS mAP50-95=0.631, mAP50=0.875, mAP50-95(small)=0.341
+### Phase 1 方案 (全部已结论)
+
+| 方案 | Val mAP50-95 | DS mAP50-95 | DS small | 结论 |
+|------|-------------|-------------|----------|------|
+| A - P2@高分辨率 | 0.765@960 | 0.525~0.526 | 0.146~0.150 | ❌ FP16 量化主因 |
+| C - yolo26s@544 从头 | 0.543 | 0.499 | 0.238 | ❌ mosaic太低+lr太保守 |
+| D - smallrocket@544 微调 | 0.684 | 0.641 | 0.312 | ⚠️ 整体好但小目标退步 |
+| E - yolo26s@640 | 0.551 | 未测 | 未测 | ❌ 已停止 (同C问题) |
+| F - smallrocket 小目标强化 | - | - | - | ❌ 已停止 (mosaic=0.30不够) |
+
+### Phase 2 方案 (当前运行中)
+
+| 方案 | GPU | Epoch | 策略 | 状态 |
+|------|-----|-------|------|------|
+| G - clone63 微调 | 2 | 14/150 | 复制 train63 配方, 微调 smallrocket@544 | 🔄 训练中 |
+| **H - 从头小目标无敌** | 3 | 5/420 | train63+小目标增强 (erasing=0.5, scale=0.4, close_mosaic=100) | 🔄 训练中 |
+| **I - 切片训练** | 0 | 缓存中 | 15832原图+34909tiles=50741混合, train63配方, 300ep | 🔄 缓存数据 |
+| **J - Copy-Paste** | 1 | 4/420 | 自定义bbox copy-paste (3581 crops)+train63, 420ep | 🔄 训练中 |
+| K - QAT | 2 | - | 量化感知微调 (G完成后) | ⏳ 等待 |
 
 ---
 
@@ -23,295 +35,194 @@
 
 | Branch | Repo | Purpose | GitHub |
 |--------|------|---------|--------|
-| `CV_planC_544` | CVimprove (Grace) | Plan C/D/E/F 训练代码 | ✅ PR #361 (Draft) |
+| `CV_planC_544` | CVimprove (Grace) | 所有 Plan C-K 训练代码 | ✅ PR #361 (Draft) |
 | `experiment/planA_highres` | RoCam (Orin) | Plan A 部署验证代码 | ✅ PR #362 (Draft) |
-| `CV_yolo26` | CVimprove (Grace) | V3 pipeline baseline | ✅ exists |
 
 ## GitHub Push
-PAT token stored locally at `~/.git_pat` (chmod 600, NOT in repo).
+PAT: `~/.git_pat` (chmod 600)
 ```
 PAT=$(cat ~/.git_pat)
-GIT_ASKPASS=echo git push https://${PAT}@github.com/SpaceY-Labs/CVimprove.git CV_planC_544
+GIT_ASKPASS=echo git push https://${PAT}@github.com/SpaceY-Labs/RoCam.git CV_planC_544
 ```
 
 ---
 
 ## Core Problem & Root Cause
 
-P2 模型 (maxvalue.pt) 训练时 mAP50-95=0.765@960，但 DeepStream FP16 部署时仅 0.539@544x960。
-标准模型 (smallrocket.pt) 部署时 mAP50-95=0.631@544x960，**反超 P2**。
+P2 模型 (maxvalue.pt) 训练 mAP=0.765@960, DeepStream FP16 仅 0.539@544x960.
+标准模型 (smallrocket.pt) DS mAP=0.631, **反超 P2**.
 
-**根因 (已确认)**:
-1. 训练/部署分辨率不匹配 (960→544)：小目标从 17.7%→35.7% COCO-small
-2. FP16 量化：P2 的 43K anchors 比标准的 8K anchors 受损更严重
-3. 社区证实：P2 头在 FP16 TensorRT 下精度损失是已知问题
-
-**结论**: 边缘 FP16 部署场景下，匹配分辨率训练的标准 3 头 yolo26s 是最佳选择。
+**根因**: (1) 分辨率不匹配 960→544 (2) FP16 量化, P2 43K anchors 受损严重 (3) P2+FP16 是已知社区问题
 
 ---
 
-## Plan A Results (❌ 已结论: 不可行)
+## 关键发现: smallrocket (train63) 完整训练配置
 
-尝试提高 DeepStream 推理分辨率来恢复 P2 精度。
+| 参数 | train63 (smallrocket) | 我们之前的方案 |
+|------|----------------------|--------------|
+| **mosaic** | **1.0** | 0~0.30 |
+| **lr0** | **0.01** | 0.0002 (差50x) |
+| **epochs** | **420** | 80~300 |
+| **cutmix** | **0.1** | 0.0 |
+| **cos_lr** | **False** (线性) | True (余弦) |
+| **close_mosaic** | **80** | 0~40 |
+| **multi_scale** | **True** (544~960) | False |
+| **erasing** | **0.4** | 0.15~0.35 |
+| **shear** | **5.0** | 2.0~3.0 |
+| **nbs** | **64** | 128 |
+| **imgsz** | **[544, 960]** | 544 或 640 固定 |
+| seed | 0 | 42 |
 
-| Resolution | mAP50-95 | mAP50 | mAP50-95(small) | Detections |
-|-----------|----------|-------|-----------------|------------|
-| 544x960 (baseline) | 0.539 | 0.791 | 0.149 | 2649/3118 |
-| 736x960 | 0.525 | 0.782 | 0.150 | 2608/3118 |
-| 816x960 | 0.526 | 0.782 | 0.146 | 2634/3118 |
+**核心结论**: mosaic=1.0 是小目标检测的关键——每张训练图4拼接,小目标出现频率翻倍.
+高 lr0 让模型充分学习,线性衰减比余弦保持更久的学习能力.
 
-**结论**: 增大分辨率无法恢复 P2 精度，FP16 量化损失是主因。Plan A 不可行。
-
----
-
-## Plan C: yolo26s from scratch @ imgsz=544
-
-**训练配置**:
-- 模型: yolo26s.pt (pretrained), 3-head, stride=[8,16,32]
-- imgsz=544, batch=64, nbs=128 (accumulate=2)
-- SGD, lr0=0.0003, cos_lr, warmup=5ep
-- Phase 1: 300ep, Phase 2: 100ep (lr0=0.0001)
-- V3 augmentations: scale=0.25, erasing=0.30, mosaic=0.15, close_mosaic=40, 9x Albumentations
-- tmux session: `planC_train`, GPU 3
-- 脚本: `src/training/run_planC.bash`, `train_planC_phase1.py`, `train_planC_phase2.py`
-
-**训练曲线** (来自 results.csv):
-| Epoch | mAP50-95 | mAP50 |
-|-------|----------|-------|
-| 25 | 0.396 | 0.735 |
-| 50 | 0.467 | 0.802 |
-| 100 | 0.525 | 0.843 |
-| 150 | 0.540 | 0.855 |
-| 200 | 0.542 | 0.856 |
-| 212 (最新) | 0.543 | 0.858 |
-
-**观察**: 从 ep150 后 mAP 已趋于平稳 (0.540→0.543)，收益递减明显。
-
-**DeepStream Benchmark** ✅ (通过 Grace 导出 ONNX → Orin TRT 编译，绕过 numpy 兼容问题):
-| Metric | Plan C | smallrocket (baseline) |
-|--------|--------|----------------------|
-| mAP50-95 (all) | 0.499 | **0.631** |
-| mAP50 | 0.790 | **0.875** |
-| mAP50-95 (small) | 0.238 | **0.341** |
-| mAP50-95 (medium) | 0.495 | - |
-| mAP50-95 (large) | 0.568 | - |
-| Detections | 2761/3118 | ~2929/3118 |
-
-**结论**: 从头训练 213ep 不够充分，FP16 量化后全面落后 baseline。
-从头训练路线可能需要更多 epoch 或更强的预训练策略才能追上 fine-tune 路线。
+来源: `/u50/loux8/datafrompega/runs/detect/train63/args.yaml`
 
 ---
 
-## Plan D: Fine-tune smallrocket @ imgsz=544 (⚠️ 小目标退步)
+## Phase 1 详细结果
 
-**训练配置**:
-- 模型: smallrocket.pt (已在 960 训练的 yolo26s)
-- imgsz=544, batch=64, nbs=128
-- SGD, lr0=0.00015 (低 LR 微调), cos_lr, warmup=3ep
-- 80 epochs, patience=25
-- No mosaic/mixup, moderate augmentations
-- tmux session: `planD_finetune` (已完成), GPU 0
-- 脚本: `src/training/run_planD.bash`, `train_planD_finetune.py`
+### Plan A (❌ 不可行)
+尝试提高 DeepStream 推理分辨率恢复 P2 精度.
+- 544x960: mAP=0.539, small=0.149
+- 736x960: mAP=0.525, small=0.150
+- 816x960: mAP=0.526, small=0.146
+结论: 提高分辨率无法恢复 P2, FP16 量化是主因.
 
-**训练结果**: Val mAP50-95=0.684, mAP50=0.935 (80 epochs)
+### Plan C (❌ 全面落后)
+yolo26s@544 从头训练, mosaic=0.15, lr0=0.0003, 300ep.
+- Val: 0.543, DS: 0.499, small: 0.238
+- 213ep 后趋平. 从头训练+低增强不够充分.
 
-**DeepStream Benchmark** ✅:
-| Metric | smallrocket (baseline) | Plan D |
-|--------|----------------------|--------|
-| mAP50-95 (all) | 0.631 | **0.641** ✅ |
-| mAP50 | 0.875 | **0.896** ✅ |
-| mAP75 | - | 0.717 |
-| mAP50-95 (small) | **0.341** | 0.312 ❌ |
-| mAP50-95 (medium) | - | 0.631 |
-| mAP50-95 (large) | - | 0.734 |
-| Detections | ~2929 | 2929/3118 |
+### Plan D (⚠️ 小目标退步)
+smallrocket@544 微调, mosaic=0, lr0=0.00015, 80ep.
+- Val: 0.684, DS: 0.641 (超baseline), small: 0.312 (低于baseline 0.341)
+- 整体mAP提升但小目标退步. 关mosaic导致遗忘.
 
-**结论**: 整体 mAP 提升 (+0.010)，但小目标 mAP 从 0.341 退步到 0.312 (-0.029)。
-对于小目标为主的应用场景，**Plan D 不满足需求**。
+### Plan E (❌ 已停止)
+yolo26s@640 从头, 200ep. Val: 0.551. 同C问题, 未做DS benchmark.
+
+### Plan F (❌ 已停止)
+smallrocket@544, mosaic=0.30, lr0=0.0002. 仍然太低, 注定不够.
 
 ---
 
-## Plan E: yolo26s from scratch @ imgsz=640
+## Phase 2 详细配置
 
-**训练配置**:
-- 模型: yolo26s.pt (pretrained, 3-head)
-- imgsz=640, batch=32, nbs=128 (accumulate=4)
-- SGD, lr0=0.0003, cos_lr, 200 epochs
-- V3 augmentations (same as Plan C)
-- tmux session: `planE_640`, GPU 1
-- 脚本: `src/training/run_planE.bash`, `train_planE_640.py`
+### Plan G: clone63 微调
+- model: smallrocket.pt, imgsz=544, batch=16, nbs=64
+- lr0=0.005 (train63一半), lrf=0.01, cos_lr=False
+- 150ep, patience=30
+- mosaic=1.0, mixup=0.1, cutmix=0.1, erasing=0.4, scale=0.3
+- close_mosaic=80, shear=5.0, degrees=180
+- tmux: `planG_clone63`, GPU 2, 脚本: `train_planG_clone63.py`
 
-**Rationale**: 640 可能比 544 学到更好的小目标特征，部署时 DeepStream 会自动 resize 到 544x960。
+### Plan H: 从头小目标无敌
+- model: yolo26s.pt (COCO pretrained), imgsz=544, batch=64, nbs=64
+- lr0=0.01, lrf=0.01, cos_lr=False
+- **420ep**, patience=30
+- mosaic=1.0, mixup=0.1, cutmix=0.1
+- **erasing=0.5** (高于train63), **scale=0.4** (高于train63)
+- **close_mosaic=100** (高于train63), shear=5.0
+- multi_scale=False (锁定544)
+- tmux: `planH_scratch`, GPU 3, 脚本: `train_planH_scratch.py`
 
-**训练曲线** (来自 results.csv):
-| Epoch | mAP50-95 | mAP50 |
-|-------|----------|-------|
-| 50 | 0.498 | 0.818 |
-| 100 | 0.537 | 0.844 |
-| 150 | 0.547 | 0.851 |
-| 183 (最新) | 0.549 | 0.853 |
+### Plan I: 切片训练
+- 数据: 15832原图 + 34909 tiles (544x544, overlap=20%) = **50741**混合
+- model: yolo26s.pt, imgsz=544, batch=64
+- train63 配方 (mosaic=1.0, lr0=0.01 等), 300ep
+- tmux: `planI_tiled`, GPU 0, 脚本: `prepare_tiles.py`, `train_planI_tiled.py`
 
-**观察**: mAP50-95 略高于 Plan C (0.549 vs 0.543), 也在趋于平稳。~1h 后完成。
-
----
-
-## Plan F: smallrocket + 小目标强化微调 @ imgsz=544
-
-**训练配置**:
-- 模型: smallrocket.pt (fine-tune)
-- imgsz=544, batch=64, nbs=128
-- SGD, lr0=0.0002 (略高于 Plan D), cos_lr, warmup=3ep
-- 80 epochs, patience=25
-- **关键区别于 Plan D**: 开启激进小目标增强
-  - mosaic=1.0 (全开), scale=0.5 (大范围缩放)
-  - erasing=0.5 (高擦除率), mixup=0.0
-- tmux session: `planF_small`, GPU 0
-- 脚本: `src/training/run_planF.bash`, `train_planF_small.py`
-
-**Rationale**: Plan D 关闭 mosaic 导致小目标退步。Plan F 反其道行之，大量使用 mosaic+scale 增大小目标比例。
-
-**状态**: 刚启动 (ep 1/80), 预计 ~2-3h 后完成
+### Plan J: 自定义 BBox Copy-Paste
+- 预提取 **3581 个小目标 crops** (sqrt_area<32px)
+- SmallObjectCopyPaste: p=0.5, 每图粘贴1-3个crops, 边缘模糊
+- monkey-patch 注入 Ultralytics 训练管线 ✅ 已确认生效
+- model: yolo26s.pt, imgsz=544, train63 配方, 420ep
+- tmux: `planJ_prep`, GPU 1, 脚本: `small_object_copypaste.py`, `train_planJ_copypaste.py`
 
 ---
 
 ## Model Inventory
 
-| Model | Architecture | Heads | Train imgsz | Val mAP50-95 | DS mAP50-95 | DS small | Location |
-|-------|-------------|-------|-------------|-------------|-------------|----------|----------|
-| maxvalue.pt | yolo26s-p2 | 4 (P2) | 960 | 0.765 | 0.539 | 0.149 | `runs/detect/v3_phase2/weights/best.pt` |
-| smallrocket.pt | yolo26s | 3 | 960 | ~0.70 | 0.631 | 0.341 | `datafrompega/models/smallrocket.pt` |
-| planC best | yolo26s | 3 | 544 | 0.543 | 0.499 | 0.238 | `runs/detect/planC_phase1/weights/best.pt` |
-| planD best | yolo26s | 3 | 960→544 ft | 0.684 | 0.641 | 0.312 | `runs/detect/planD_finetune/weights/best.pt` |
-| planE (进行中) | yolo26s | 3 | 640 | 0.549 | - | - | `runs/detect/planE_640/weights/best.pt` |
-| planF (进行中) | yolo26s | 3 | 960→544 ft | ~0.67 | - | - | `runs/detect/planF_small/weights/` |
-
----
-
-## GPU Allocation (当前)
-
-| GPU | Task | Status |
-|-----|------|--------|
-| 0 | Plan F (小目标强化微调) | 🔄 Running (ep 1/80) |
-| 1 | Plan E (yolo26s@640) | 🔄 Running (ep 184/200) |
-| 2 | (Other users) | - |
-| 3 | Plan C (yolo26s@544) | 🔄 Running (ep 213/300) |
+| Model | Arch | imgsz | Val mAP50-95 | DS mAP50-95 | DS small | Location |
+|-------|------|-------|-------------|-------------|----------|----------|
+| maxvalue.pt | yolo26s-p2 (4head) | 960 | 0.765 | 0.539 | 0.149 | `runs/detect/v3_phase2/weights/best.pt` |
+| **smallrocket.pt** | yolo26s (3head) | [544,960] | 0.694 | **0.631** | **0.341** | `datafrompega/models/smallrocket.pt` |
+| planC | yolo26s | 544 | 0.543 | 0.499 | 0.238 | `runs/detect/planC_phase1/weights/best.pt` |
+| planD | yolo26s | 960→544ft | 0.684 | 0.641 | 0.312 | `runs/detect/planD_finetune/weights/best.pt` |
+| planE | yolo26s | 640 | 0.551 | - | - | `runs/detect/planE_640/weights/best.pt` |
 
 ---
 
 ## Orin 部署注意事项
 
-### numpy PCG64 兼容性问题
-Grace (numpy 2.x) 与 Orin (numpy 1.x) 版本不一致导致 `torch.load` 反序列化失败。
-**解决方案**: 在 Grace 上直接导出 DeepStream 兼容 ONNX (`export_onnx_grace.py`)，传 ONNX 到 Orin。
-`accuracy_benchmark.py` 已新增 `--onnx` 参数支持直接传入 ONNX 文件。
+### numpy PCG64 兼容性
+Grace numpy 2.x vs Orin numpy 1.x → `torch.load` 失败.
+**解决**: Grace导出ONNX (`export_onnx_grace.py`), 传ONNX到Orin.
+`accuracy_benchmark.py` 支持 `--onnx` 参数.
 
-### benchmark 代码验证 (2026-03-28)
-- `postprocess_by_image()` 保留每图最高置信度检测: **对本数据集正确**
-- Val 集 3118 张图，每张恰好 1 个标注物体，无多目标图
-- `infer_probe` conf=0.25 预过滤 → `postprocess_by_image` top-1 → COCOeval
-
----
-
-## GitHub PRs (EXPERIMENTAL - DO NOT MERGE)
-
-| PR | Branch | Status | Label |
-|----|--------|--------|-------|
-| [#361](https://github.com/SpaceY-Labs/RoCam/pull/361) | CV_planC_544 | Draft | experiment |
-| [#362](https://github.com/SpaceY-Labs/RoCam/pull/362) | experiment/planA_highres | Draft | experiment |
+### benchmark 代码验证
+- `postprocess_by_image()` 每图保留最高置信度检测: 对本数据集正确 (每图1个GT)
+- Val集 3118 张, 每张恰好 1 个标注
+- conf=0.25 预过滤 → top-1 → COCOeval
 
 ---
 
 ## Data
 
 - Dataset: `/u50/loux8/datafrompega/rocam_data_15000/data_15000/data.yaml`
-- Train: 15832 images (4000 backgrounds)
+- Train: 15832 images (4000 backgrounds, 25%)
 - Val: 3378 images (3759 instances)
 - 1 class: rocket
+- 目标分布@544x960: 28% COCO-small, 11% ultra-small (<16px), 3.5% nano (<8px)
+- Tiled dataset: `/u50/loux8/datafrompega/rocam_data_15000/data_tiled/data.yaml` (50741 images)
 
-## Deployment Pipeline
+## Deployment
 
 - Camera: 1920x1080@60fps (locked)
-- nvinfer: auto-scales to model input size, maintain-aspect-ratio=1
+- nvinfer: auto-scales, maintain-aspect-ratio=1
 - TensorRT FP16, custom NMS (libnvdsinfer_custom_impl_Yolo.so)
-- Orin: 8GB unified memory, Jetson AGX Orin
+- Orin: 8GB unified, Jetson AGX Orin
 
----
+## GitHub PRs
+
+| PR | Branch | Status |
+|----|--------|--------|
+| [#361](https://github.com/SpaceY-Labs/RoCam/pull/361) | CV_planC_544 | Draft (experiment) |
+| [#362](https://github.com/SpaceY-Labs/RoCam/pull/362) | experiment/planA_highres | Draft (experiment) |
 
 ## Decision Criteria
 
 胜出模型必须:
-1. DeepStream mAP50-95 > 0.631 (超过 smallrocket baseline)
-2. **mAP50-95 (small) > 0.341** (超过 smallrocket 的小目标能力 — 核心指标)
-3. Orin FPS >= 60 (TensorRT FP16)
+1. DS mAP50-95 > 0.631 (超baseline)
+2. **DS mAP50-95(small) > 0.341** (核心指标)
+3. Orin FPS >= 60
 
----
+## 实验时间线
 
-## Plan G: Clone train63 recipe, fine-tune smallrocket@544 (NEW - 关键方案)
-
-**核心发现**: smallrocket (train63) 之所以小目标强，是因为用了与我们完全不同的训练策略:
-- mosaic=1.0 (我们的方案最高才 0.30)
-- lr0=0.01 (我们用 0.0002, 差了 50 倍)
-- multi_scale=True + close_mosaic=80
-- erasing=0.4, cutmix=0.1, shear=5.0
-- 420 epochs (我们的微调只有 80)
-- cos_lr=False (线性衰减, 非余弦)
-
-**Plan G 策略**: 完全复制 train63 的增强配方, fine-tune smallrocket@544
-
-**训练配置**:
-- 模型: smallrocket.pt (fine-tune)
-- imgsz=544, batch=16, nbs=64
-- SGD, **lr0=0.005** (train63 一半, 微调折中), lrf=0.01
-- **cos_lr=False** (匹配 train63)
-- **150 epochs**, patience=30
-- **mosaic=1.0**, mixup=0.1, cutmix=0.1, erasing=0.4, scale=0.3
-- **close_mosaic=80** (匹配 train63)
-- shear=5.0, degrees=180, perspective=0.0002
-- train63 原版 Albumentations
-- tmux session: `planG_clone63`, GPU 2
-- 脚本: `src/training/run_planG.bash`, `train_planG_clone63.py`
-
-**状态**: 🔄 训练中 (ep 1/150)
-
----
-
-## 失败分析: 为什么 Plan C/D/F 都没打过 baseline
-
-| 问题 | 影响 |
+| 时间 | 事件 |
 |------|------|
-| **mosaic 太低** (0~0.30 vs baseline 1.0) | 小目标出现频率不够, 模型学不到足够的小目标特征 |
-| **学习率太保守** (0.0002 vs 0.01) | 微调时模型参数几乎不动, 无法适应新分辨率 |
-| **cos_lr=True** | 学习率末期过低, 不如 train63 的线性衰减 |
-| **close_mosaic 过早** (0~40 vs 80) | 模型在精调阶段过早失去 mosaic 增强 |
-| **训练轮数不足** (80 ep vs 420 ep) | 参数空间探索不充分 |
-| **V3 方案过度"精巧"** | 9 种 Albumentations 复杂度高但对小目标贡献不如 mosaic |
-
----
-
-## Phase 2: 全面突破计划 (2026-03-28 01:30 启动)
-
-**Plan C/E/F 已停止** (已证明无效: mosaic 太低, lr 太保守)
-
-### 新方案矩阵
-
-| 方案 | GPU | 策略 | 状态 |
-|------|-----|------|------|
-| G - clone63 微调@544 | 2 | 复制 train63 配方微调 smallrocket, 150ep | 🔄 训练中 |
-| **H - 从头@544 小目标无敌** | 3 | train63 配方+小目标增强, 420ep | 🔄 训练中 |
-| **I - 切片训练** | 0 | 原图+tile 混合数据集+train63, 300ep | 🔄 预处理中 |
-| **J - Copy-Paste** | 1 | 自定义 bbox copy-paste+train63, 420ep | 🔄 训练中 |
-| K - QAT | 2 | 量化感知微调 (G 完成后) | ⏳ 等待 |
-
-脚本: `train_planH_scratch.py`, `prepare_tiles.py`, `train_planI_tiled.py`,
-`small_object_copypaste.py`, `train_planJ_copypaste.py`
+| 03-27 ~14:00 | 启动 Plan A (Orin 高分辨率验证) + Plan C (yolo26s@544 从头) |
+| 03-27 ~19:00 | Plan A 结论: 不可行. 启动 Plan D (smallrocket 微调) |
+| 03-27 ~20:00 | 启动 Plan E (yolo26s@640) |
+| 03-27 ~22:00 | Plan D 完成, DS benchmark: mAP=0.641, small=0.312 (退步) |
+| 03-27 ~23:30 | 启动 Plan F (小目标强化). Plan C DS benchmark: mAP=0.499 |
+| 03-28 ~00:00 | 关键发现: train63 配方分析, 找到失败根因 |
+| 03-28 ~00:10 | 启动 Plan G (clone63 微调) |
+| 03-28 ~00:25 | Phase 2 启动: 停止 C/F, 启动 H/I/J |
+| 03-28 ~00:30 | Plan I tiles 预处理完成 (34909 tiles), 开始缓存 |
+| 03-28 ~00:35 | Plan J crops 提取完成 (3581), 训练已注入 copy-paste |
+| 03-28 ~02:00 | G=ep14, H=ep5, I=缓存中, J=ep4. 全部正常运行 |
 
 ## Next Steps
 
-1. ⏳ 等待 Plan I tiles 预处理完成 → 自动开始训练
-2. 🔄 Plan G/H/J 持续训练
-3. 待做: 各方案完成后 → Grace 导出 ONNX → Orin DeepStream benchmark
-4. 待做: Plan K (QAT, G 完成后)
-5. 待做: 胜者部署 + PR
+1. 🔄 Plan G/H/I/J 持续训练
+2. Plan G (~150ep) 预计 ~6h 后完成 → DS benchmark → 如果好, Plan K (QAT)
+3. Plan H (420ep) 预计 ~15h 后完成
+4. Plan I (300ep, 50741图) 预计 ~20h 后完成
+5. Plan J (420ep) 预计 ~15h 后完成
+6. 每个完成后: Grace导出ONNX → scp → Orin DS benchmark
+7. 胜者部署 + PR
 
 ---
-*Last updated: 2026-03-28 ~01:45 EDT*
+*Last updated: 2026-03-28 ~02:00 EDT*

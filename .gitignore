@@ -307,3 +307,5 @@ src/labelling-app/frontend/test-results/.last-run.json
 coverage/
 coverage.xml
 coverage.json
+yolo26*.pt
+*.pt
