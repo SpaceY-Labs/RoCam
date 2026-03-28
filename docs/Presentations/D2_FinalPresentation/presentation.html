@@ -124,18 +124,7 @@
         }
         
         .speaker-badge {
-            position: absolute;
-            bottom: 50px;
-            left: 90px;
-            font-size: 16px;
-            font-weight: 600;
-            color: #AAAAAA;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            display: none;
         }
 
         /* Typography helpers */
@@ -159,11 +148,7 @@
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center items-center relative">
         <div class="z-10 flex flex-col items-center">
-            <img src="figures/logo_red.png" alt="RoCam Logo" class="h-28 mb-12">
-            
-            <h1 class="text-[160px] font-black tight-heading text-rocam-dark mb-6">
-                RoCam.
-            </h1>
+            <img src="figures/logo_red.png" alt="RoCam Logo" class="h-64 mb-6" style="filter: brightness(0) saturate(100%) invert(16%) sepia(99%) saturate(4200%) hue-rotate(352deg) brightness(90%) contrast(90%);">
             <p class="text-[36px] font-medium text-rocam-gray tracking-tight mb-20 text-center">
                 High Performance Vision-Guided Rocket Tracker
             </p>
@@ -205,7 +190,7 @@
     <!-- SLIDE 2: Group Photo -->
     <!-- ========================================== -->
     <div class="slide relative" style="background: #000; display: flex; justify-content: center; align-items: center;">
-        <img src="figures/bvigpic.webp" alt="Team Group Photo" style="width: 100%; height: 100%; object-fit: contain;">
+        <img src="figures/bvigpic.webp" alt="Team Group Photo" style="width: 100%; height: 100%; object-fit: cover;">
         <div class="slide-footer" style="color: #999;">2 / 20</div>
     </div>
 
