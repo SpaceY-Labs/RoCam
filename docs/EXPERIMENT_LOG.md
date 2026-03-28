@@ -1,7 +1,7 @@
 # Experiment Log: 小目标火箭检测模型 边缘部署优化
 
 > **上下文恢复指南**: 如果在新会话中继续，阅读本文件即可了解所有方案状态、分支映射、关键结论和下一步操作。
-> **上次更新**: 2026-03-28 ~01:00 EDT
+> **上次更新**: 2026-03-28 ~01:15 EDT
 
 ---
 
@@ -10,10 +10,10 @@
 | 方案 | GPU | Epoch | Val mAP50-95 | DS Bench mAP50-95 | DS mAP50-95(small) | 状态 |
 |------|-----|-------|-------------|-------------------|---------------------|------|
 | A - maxvalue@P2 高分辨率 | Orin | - | 0.765@960 | 0.525~0.526 | 0.146~0.150 | ❌ 已结论: 不可行 |
-| C - yolo26s@544 从头训练 | GPU 3 | 213/300 (P1) | 0.543 | ⏳ 编译TRT中 | - | 🔄 训练中 + bench进行中 |
+| C - yolo26s@544 从头训练 | GPU 3 | 213/300 (P1) | 0.543 | 0.499 | 0.238 | ❌ 全面落后 baseline |
 | D - smallrocket@544 微调 | GPU 0 | 80/80 ✅ | 0.684 | 0.641 | 0.312 | ⚠️ 整体好但小目标退步 |
-| E - yolo26s@640 折中 | GPU 1 | 184/200 | 0.549 | - | - | 🔄 训练中, ~1h完成 |
-| F - smallrocket@544 小目标强化 | GPU 0 | 1/80 | ~0.67 (ep1) | - | - | 🔄 刚开始训练 |
+| E - yolo26s@640 折中 | GPU 1 | 191/200 | 0.549 | - | - | 🔄 训练中, 即将完成 |
+| F - smallrocket@544 小目标强化 | GPU 0 | 1/80 | - | - | - | 🔄 训练中 |
 
 **Baseline (smallrocket.pt)**: DS mAP50-95=0.631, mAP50=0.875, mAP50-95(small)=0.341
 
@@ -87,9 +87,18 @@ P2 模型 (maxvalue.pt) 训练时 mAP50-95=0.765@960，但 DeepStream FP16 部�
 
 **观察**: 从 ep150 后 mAP 已趋于平稳 (0.540→0.543)，收益递减明显。
 
-**DeepStream Benchmark**: ⏳ 进行中 (在 Grace 上导出 ONNX，传到 Orin 上编译 TRT)
-- 绕过了 numpy PCG64 序列化兼容性问题 (Orin numpy 版本与 Grace 不一致)
-- 使用新增的 `--onnx` 参数直接传入 ONNX 文件
+**DeepStream Benchmark** ✅ (通过 Grace 导出 ONNX → Orin TRT 编译，绕过 numpy 兼容问题):
+| Metric | Plan C | smallrocket (baseline) |
+|--------|--------|----------------------|
+| mAP50-95 (all) | 0.499 | **0.631** |
+| mAP50 | 0.790 | **0.875** |
+| mAP50-95 (small) | 0.238 | **0.341** |
+| mAP50-95 (medium) | 0.495 | - |
+| mAP50-95 (large) | 0.568 | - |
+| Detections | 2761/3118 | ~2929/3118 |
+
+**结论**: 从头训练 213ep 不够充分，FP16 量化后全面落后 baseline。
+从头训练路线可能需要更多 epoch 或更强的预训练策略才能追上 fine-tune 路线。
 
 ---
 
@@ -171,7 +180,7 @@ P2 模型 (maxvalue.pt) 训练时 mAP50-95=0.765@960，但 DeepStream FP16 部�
 |-------|-------------|-------|-------------|-------------|-------------|----------|----------|
 | maxvalue.pt | yolo26s-p2 | 4 (P2) | 960 | 0.765 | 0.539 | 0.149 | `runs/detect/v3_phase2/weights/best.pt` |
 | smallrocket.pt | yolo26s | 3 | 960 | ~0.70 | 0.631 | 0.341 | `datafrompega/models/smallrocket.pt` |
-| planC best | yolo26s | 3 | 544 | 0.543 | ⏳ | - | `runs/detect/planC_phase1/weights/best.pt` |
+| planC best | yolo26s | 3 | 544 | 0.543 | 0.499 | 0.238 | `runs/detect/planC_phase1/weights/best.pt` |
 | planD best | yolo26s | 3 | 960→544 ft | 0.684 | 0.641 | 0.312 | `runs/detect/planD_finetune/weights/best.pt` |
 | planE (进行中) | yolo26s | 3 | 640 | 0.549 | - | - | `runs/detect/planE_640/weights/best.pt` |
 | planF (进行中) | yolo26s | 3 | 960→544 ft | ~0.67 | - | - | `runs/detect/planF_small/weights/` |
@@ -239,7 +248,7 @@ Grace (numpy 2.x) 与 Orin (numpy 1.x) 版本不一致导致 `torch.load` 反序
 
 ## Next Steps
 
-1. ⏳ **Plan C DeepStream benchmark** — Orin 上 TRT engine 编译中 (用 ONNX 绕过 numpy 问题)
+1. ✅ **Plan C DeepStream benchmark** — 结果: mAP50-95=0.499, small=0.238 ❌ 全面落后 baseline
 2. ⏳ **Plan E** — ~1h 后训练完成 → 导出 ONNX → Orin benchmark
 3. ⏳ **Plan F** — ~3h 后训练完成 → 导出 ONNX → Orin benchmark (关键期望: 小目标提升)
 4. ⏳ Plan C Phase 1 还剩 ~90 epochs → 判断是否值得继续到 Phase 2
@@ -247,4 +256,4 @@ Grace (numpy 2.x) 与 Orin (numpy 1.x) 版本不一致导致 `torch.load` 反序
 6. 待做: 胜者部署 + PR
 
 ---
-*Last updated: 2026-03-28 ~01:00 EDT*
+*Last updated: 2026-03-28 ~01:15 EDT*
