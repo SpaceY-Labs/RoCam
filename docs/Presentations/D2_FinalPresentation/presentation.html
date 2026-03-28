@@ -752,18 +752,20 @@
         </div>
 
         <div class="flex w-full mt-24 gap-16">
-            <!-- Left: Deployed Metrics -->
+            <!-- Left: Metrics Story -->
             <div class="w-[40%] flex flex-col justify-center">
                 <div class="minimal-card bg-rocam-dark text-white mb-10 shadow-2xl relative overflow-hidden">
                     <div class="absolute -right-10 -top-10 opacity-10"><i class="fa-solid fa-bullseye text-[200px]"></i></div>
-                    <div class="text-[120px] font-black leading-none tracking-tighter mb-2 relative z-10">0.631</div>
-                    <div class="text-2xl text-gray-400 font-bold uppercase tracking-widest relative z-10">Deployed mAP@50-95</div>
-                    <div class="text-lg text-gray-500 font-medium mt-2 relative z-10">DeepStream FP16 on Jetson Orin Nano</div>
+                    <div class="text-[120px] font-black leading-none tracking-tighter mb-2 relative z-10">96.2<span class="text-[60px]">%</span></div>
+                    <div class="text-2xl text-gray-400 font-bold uppercase tracking-widest relative z-10">Peak Training Accuracy</div>
+                    <div class="text-lg text-gray-500 font-medium mt-2 relative z-10">mAP@50 across 10+ experiments on H100</div>
                 </div>
-                <div class="minimal-card border-2 border-rocam-red">
-                    <div class="text-[80px] font-black text-rocam-red leading-none tracking-tighter mb-2">0.875</div>
-                    <div class="text-xl text-rocam-dark font-bold uppercase tracking-widest">Deployed mAP@50</div>
-                    <p class="mt-4 text-lg text-rocam-gray font-medium">Only 9% quantisation gap from training (0.694 &rarr; 0.631), validated on full test set.</p>
+                <div class="minimal-card border-2 border-rocam-red relative overflow-hidden">
+                    <div class="flex items-end gap-6 mb-3">
+                        <div class="text-[80px] font-black text-rocam-red leading-none tracking-tighter">9<span class="text-[40px]">%</span></div>
+                        <div class="text-3xl font-bold text-rocam-dark pb-3">Deployment Gap</div>
+                    </div>
+                    <p class="text-lg text-rocam-gray font-medium leading-relaxed">FP16 quantization on Jetson Orin Nano. Our best-in-training architecture lost <span class="font-bold text-rocam-dark">30%</span> at deployment&mdash;the production recipe held.</p>
                 </div>
             </div>
 
@@ -803,6 +805,34 @@
                 </div>
             </div>
         </div>
+        <!-- Stat badges -->
+        <div class="absolute bottom-[90px] left-0 right-0 flex justify-center gap-10">
+            <div class="bg-white rounded-xl px-6 py-3 shadow-sm border border-gray-100 text-center">
+                <div class="text-2xl font-black text-rocam-dark leading-none">94.3%</div>
+                <div class="text-[11px] text-rocam-gray font-bold uppercase tracking-wider mt-1">Precision</div>
+            </div>
+            <div class="bg-white rounded-xl px-6 py-3 shadow-sm border border-gray-100 text-center">
+                <div class="text-2xl font-black text-rocam-dark leading-none">89.8%</div>
+                <div class="text-[11px] text-rocam-gray font-bold uppercase tracking-wider mt-1">Recall</div>
+            </div>
+            <div class="bg-white rounded-xl px-6 py-3 shadow-sm border border-gray-100 text-center">
+                <div class="text-2xl font-black text-rocam-dark leading-none">60</div>
+                <div class="text-[11px] text-rocam-gray font-bold uppercase tracking-wider mt-1">FPS Pipeline</div>
+            </div>
+            <div class="bg-white rounded-xl px-6 py-3 shadow-sm border border-gray-100 text-center">
+                <div class="text-2xl font-black text-rocam-dark leading-none">9.47M</div>
+                <div class="text-[11px] text-rocam-gray font-bold uppercase tracking-wider mt-1">Parameters</div>
+            </div>
+            <div class="bg-white rounded-xl px-6 py-3 shadow-sm border border-gray-100 text-center">
+                <div class="text-2xl font-black text-rocam-dark leading-none">20.5</div>
+                <div class="text-[11px] text-rocam-gray font-bold uppercase tracking-wider mt-1">GFLOPs</div>
+            </div>
+            <div class="bg-white rounded-xl px-6 py-3 shadow-sm border border-gray-100 text-center">
+                <div class="text-2xl font-black text-rocam-red leading-none">&lt;1ms</div>
+                <div class="text-[11px] text-rocam-gray font-bold uppercase tracking-wider mt-1">Shader Latency</div>
+            </div>
+        </div>
+
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
         <div class="slide-footer">11 / 21</div>
     </div>
@@ -919,8 +949,8 @@
             </div>
             <div class="w-px h-12 bg-gray-300"></div>
             <div class="flex items-center gap-4">
-                <div class="text-[38px] font-black text-rocam-dark leading-none">4</div>
-                <div class="text-[13px] text-rocam-gray font-bold uppercase tracking-wider leading-tight">GPU-Weeks<br/>on H100</div>
+                <div class="text-[38px] font-black text-rocam-dark leading-none">100+</div>
+                <div class="text-[13px] text-rocam-gray font-bold uppercase tracking-wider leading-tight">GPU-Hours<br/>on H100</div>
             </div>
             <div class="w-px h-12 bg-gray-300"></div>
             <div class="flex items-center gap-4">
