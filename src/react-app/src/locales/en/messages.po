@@ -13,7 +13,7 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/components/ControlsCard.tsx:118
+#: src/components/ControlsCard.tsx:155
 msgid "Arm"
 msgstr "Arm"
 
@@ -29,6 +29,10 @@ msgstr "Camera Controls"
 msgid "Camera Preview"
 msgstr "Camera Preview"
 
+#: src/components/ControlsCard.tsx:188
+msgid "Cancel"
+msgstr "Cancel"
+
 #: src/components/ConfigurationMenu.tsx:81
 #: src/components/ConfigurationMenu.tsx:85
 msgid "Configuration"
@@ -38,7 +42,7 @@ msgstr "Configuration"
 msgid "Control"
 msgstr "Control"
 
-#: src/components/ControlsCard.tsx:91
+#: src/components/ControlsCard.tsx:125
 msgid "Controls"
 msgstr "Controls"
 
@@ -68,9 +72,21 @@ msgstr "Developer"
 #~ msgid "Developer Mode"
 #~ msgstr "Developer Mode"
 
-#: src/components/ControlsCard.tsx:118
+#: src/components/ControlsCard.tsx:155
 msgid "Disarm"
 msgstr "Disarm"
+
+#: src/components/ControlsCard.tsx:197
+msgid "Disarm and Manual Control"
+msgstr "Disarm and Manual Control"
+
+#: src/components/ControlsCard.tsx:171
+msgid "Disarm and switch to manual control?"
+msgstr "Disarm and switch to manual control?"
+
+#: src/components/ControlsCard.tsx:175
+msgid "Disarming will exit armed mode and re-enable manual gimbal controls."
+msgstr "Disarming will exit armed mode and re-enable manual gimbal controls."
 
 #: src/pages/recordings.tsx:254
 msgid "Download"
@@ -90,7 +106,7 @@ msgstr "Emergency Stop"
 msgid "Exit Fullscreen"
 msgstr "Exit Fullscreen"
 
-#: src/components/ControlsCard.tsx:53
+#: src/components/ControlsCard.tsx:67
 msgid "Failed to arm"
 msgstr "Failed to arm"
 
@@ -98,7 +114,7 @@ msgstr "Failed to arm"
 msgid "Failed to delete recording"
 msgstr "Failed to delete recording"
 
-#: src/components/ControlsCard.tsx:53
+#: src/components/ControlsCard.tsx:85
 msgid "Failed to disarm"
 msgstr "Failed to disarm"
 
@@ -106,7 +122,7 @@ msgstr "Failed to disarm"
 msgid "Failed to load recordings"
 msgstr "Failed to load recordings"
 
-#: src/components/ControlsCard.tsx:139
+#: src/components/ControlsCard.tsx:227
 msgid "Failed to move {actionLabel}"
 msgstr "Failed to move {actionLabel}"
 
@@ -123,15 +139,15 @@ msgstr "Failed to poll status"
 msgid "Failed to rename recording"
 msgstr "Failed to rename recording"
 
-#: src/components/ControlsCard.tsx:245
+#: src/components/ControlsCard.tsx:350
 msgid "Failed to set focal length"
 msgstr "Failed to set focal length"
 
-#: src/components/ControlsCard.tsx:78
+#: src/components/ControlsCard.tsx:111
 msgid "Failed to start recording"
 msgstr "Failed to start recording"
 
-#: src/components/ControlsCard.tsx:77
+#: src/components/ControlsCard.tsx:110
 msgid "Failed to stop recording"
 msgstr "Failed to stop recording"
 
@@ -191,6 +207,26 @@ msgstr "Logs stream connection error"
 msgid "Mem"
 msgstr "Mem"
 
+#: src/components/ControlsCard.tsx:311
+msgid "Move down"
+msgstr "Move down"
+
+#: src/components/ControlsCard.tsx:286
+msgid "Move home"
+msgstr "Move home"
+
+#: src/components/ControlsCard.tsx:274
+msgid "Move left"
+msgstr "Move left"
+
+#: src/components/ControlsCard.tsx:298
+msgid "Move right"
+msgstr "Move right"
+
+#: src/components/ControlsCard.tsx:261
+msgid "Move up"
+msgstr "Move up"
+
 #: src/components/SystemStatusCard.tsx:103
 msgid "N/A"
 msgstr "N/A"
@@ -232,11 +268,11 @@ msgstr "Rec Left"
 msgid "Recording deleted"
 msgstr "Recording deleted"
 
-#: src/components/ControlsCard.tsx:72
+#: src/components/ControlsCard.tsx:105
 msgid "Recording started"
 msgstr "Recording started"
 
-#: src/components/ControlsCard.tsx:69
+#: src/components/ControlsCard.tsx:102
 msgid "Recording stopped"
 msgstr "Recording stopped"
 
@@ -260,11 +296,11 @@ msgstr "Server Time"
 msgid "Show Logs"
 msgstr "Show Logs"
 
-#: src/components/ControlsCard.tsx:107
+#: src/components/ControlsCard.tsx:144
 msgid "Start Recording"
 msgstr "Start Recording"
 
-#: src/components/ControlsCard.tsx:105
+#: src/components/ControlsCard.tsx:142
 msgid "Stop Recording"
 msgstr "Stop Recording"
 

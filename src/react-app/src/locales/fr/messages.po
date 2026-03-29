@@ -13,7 +13,7 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/components/ControlsCard.tsx:118
+#: src/components/ControlsCard.tsx:155
 msgid "Arm"
 msgstr "Armer"
 
@@ -29,6 +29,10 @@ msgstr "Contrôles caméra"
 msgid "Camera Preview"
 msgstr "Aperçu caméra"
 
+#: src/components/ControlsCard.tsx:188
+msgid "Cancel"
+msgstr "Annuler"
+
 #: src/components/ConfigurationMenu.tsx:81
 #: src/components/ConfigurationMenu.tsx:85
 msgid "Configuration"
@@ -38,7 +42,7 @@ msgstr "Configuration"
 msgid "Control"
 msgstr "Contrôle"
 
-#: src/components/ControlsCard.tsx:91
+#: src/components/ControlsCard.tsx:125
 msgid "Controls"
 msgstr "Contrôles"
 
@@ -63,9 +67,21 @@ msgstr "Supprimer « {0} » ? Cette action est irréversible."
 msgid "Developer"
 msgstr "Développeur"
 
-#: src/components/ControlsCard.tsx:118
+#: src/components/ControlsCard.tsx:155
 msgid "Disarm"
 msgstr "Désarmer"
+
+#: src/components/ControlsCard.tsx:197
+msgid "Disarm and Manual Control"
+msgstr "Désarmer et contrôle manuel"
+
+#: src/components/ControlsCard.tsx:171
+msgid "Disarm and switch to manual control?"
+msgstr "Désarmer et passer au contrôle manuel ?"
+
+#: src/components/ControlsCard.tsx:175
+msgid "Disarming will exit armed mode and re-enable manual gimbal controls."
+msgstr "Le désarmement quitte le mode armé et réactive les commandes manuelles de la nacelle."
 
 #: src/pages/recordings.tsx:254
 msgid "Download"
@@ -85,7 +101,7 @@ msgstr "Arrêt d'urgence"
 msgid "Exit Fullscreen"
 msgstr "Quitter le plein écran"
 
-#: src/components/ControlsCard.tsx:53
+#: src/components/ControlsCard.tsx:67
 msgid "Failed to arm"
 msgstr "Échec de l'armement"
 
@@ -93,7 +109,7 @@ msgstr "Échec de l'armement"
 msgid "Failed to delete recording"
 msgstr "Échec de la suppression de l'enregistrement"
 
-#: src/components/ControlsCard.tsx:53
+#: src/components/ControlsCard.tsx:85
 msgid "Failed to disarm"
 msgstr "Échec du désarmement"
 
@@ -101,7 +117,7 @@ msgstr "Échec du désarmement"
 msgid "Failed to load recordings"
 msgstr "Échec du chargement des enregistrements"
 
-#: src/components/ControlsCard.tsx:139
+#: src/components/ControlsCard.tsx:227
 msgid "Failed to move {actionLabel}"
 msgstr "Échec du déplacement vers {actionLabel}"
 
@@ -118,15 +134,15 @@ msgstr "Échec de l'interrogation de l'état"
 msgid "Failed to rename recording"
 msgstr "Échec du renommage de l'enregistrement"
 
-#: src/components/ControlsCard.tsx:245
+#: src/components/ControlsCard.tsx:350
 msgid "Failed to set focal length"
 msgstr "Échec de la définition de la distance focale"
 
-#: src/components/ControlsCard.tsx:78
+#: src/components/ControlsCard.tsx:111
 msgid "Failed to start recording"
 msgstr "Échec du démarrage de l'enregistrement"
 
-#: src/components/ControlsCard.tsx:77
+#: src/components/ControlsCard.tsx:110
 msgid "Failed to stop recording"
 msgstr "Échec de l'arrêt de l'enregistrement"
 
@@ -186,6 +202,26 @@ msgstr "Erreur de connexion au flux de journaux"
 msgid "Mem"
 msgstr "Mémoire"
 
+#: src/components/ControlsCard.tsx:311
+msgid "Move down"
+msgstr "Descendre"
+
+#: src/components/ControlsCard.tsx:286
+msgid "Move home"
+msgstr "Retour à l'origine"
+
+#: src/components/ControlsCard.tsx:274
+msgid "Move left"
+msgstr "Vers la gauche"
+
+#: src/components/ControlsCard.tsx:298
+msgid "Move right"
+msgstr "Vers la droite"
+
+#: src/components/ControlsCard.tsx:261
+msgid "Move up"
+msgstr "Monter"
+
 #: src/components/SystemStatusCard.tsx:103
 msgid "N/A"
 msgstr "N/A"
@@ -227,11 +263,11 @@ msgstr "Enr. restant"
 msgid "Recording deleted"
 msgstr "Enregistrement supprimé"
 
-#: src/components/ControlsCard.tsx:72
+#: src/components/ControlsCard.tsx:105
 msgid "Recording started"
 msgstr "Enregistrement démarré"
 
-#: src/components/ControlsCard.tsx:69
+#: src/components/ControlsCard.tsx:102
 msgid "Recording stopped"
 msgstr "Enregistrement arrêté"
 
@@ -255,11 +291,11 @@ msgstr "Heure serveur"
 msgid "Show Logs"
 msgstr "Afficher les journaux"
 
-#: src/components/ControlsCard.tsx:107
+#: src/components/ControlsCard.tsx:144
 msgid "Start Recording"
 msgstr "Démarrer l'enregistrement"
 
-#: src/components/ControlsCard.tsx:105
+#: src/components/ControlsCard.tsx:142
 msgid "Stop Recording"
 msgstr "Arrêter l'enregistrement"
 
