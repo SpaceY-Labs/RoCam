@@ -11,9 +11,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent, waitFor } from '@testing-library/react'
 import React from 'react'
 
+import { ControlsCard } from './ControlsCard'
+
 import { renderWithI18n } from '@/test/renderWithProviders'
 import { useRocam } from '@/network/rocamProvider'
-import { ControlsCard } from './ControlsCard'
 
 // Mock useRocam to control context values
 const mockApiClient = {
@@ -104,7 +105,9 @@ describe('ControlsCard', () => {
     const upBtn = screen.getByTestId('gimbal-up')
 
     fireEvent.click(upBtn)
-    expect(screen.getByText(/Disarm and switch to manual control/i)).toBeDefined()
+    expect(
+      screen.getByText(/Disarm and switch to manual control/i)
+    ).toBeDefined()
     expect(mockApiClient.manualMove).not.toHaveBeenCalled()
 
     const confirmBtn = await screen.findByRole('button', {

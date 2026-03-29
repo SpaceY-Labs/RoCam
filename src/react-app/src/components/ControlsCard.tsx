@@ -231,7 +231,9 @@ function GimbalPad({
     }
   }
 
-  const handleDirectionPress = (direction: 'up' | 'down' | 'left' | 'right') => {
+  const handleDirectionPress = (
+    direction: 'up' | 'down' | 'left' | 'right'
+  ) => {
     if (!apiClient || isInteractionBlocked) return
     if (status?.armed) {
       onMoveAttemptWhileArmed()
@@ -255,9 +257,9 @@ function GimbalPad({
     <div className="grid gap-2 grid-cols-3 grid-rows-3 w-fit">
       <div />
       <Button
+        isIconOnly
         aria-label={t`Move up`}
         data-testid="gimbal-up"
-        isIconOnly
         isDisabled={isInteractionBlocked}
         radius="sm"
         size="lg"
@@ -268,9 +270,9 @@ function GimbalPad({
       </Button>
       <div />
       <Button
+        isIconOnly
         aria-label={t`Move left`}
         data-testid="gimbal-left"
-        isIconOnly
         isDisabled={isInteractionBlocked}
         radius="sm"
         size="lg"
@@ -280,9 +282,9 @@ function GimbalPad({
         <IconChevronLeft />
       </Button>
       <Button
+        isIconOnly
         aria-label={t`Move home`}
         data-testid="gimbal-home"
-        isIconOnly
         isDisabled={isInteractionBlocked}
         radius="sm"
         size="lg"
@@ -292,9 +294,9 @@ function GimbalPad({
         <IconHome />
       </Button>
       <Button
+        isIconOnly
         aria-label={t`Move right`}
         data-testid="gimbal-right"
-        isIconOnly
         isDisabled={isInteractionBlocked}
         radius="sm"
         size="lg"
@@ -305,9 +307,9 @@ function GimbalPad({
       </Button>
       <div />
       <Button
+        isIconOnly
         aria-label={t`Move down`}
         data-testid="gimbal-down"
-        isIconOnly
         isDisabled={isInteractionBlocked}
         radius="sm"
         size="lg"
