@@ -26,7 +26,7 @@
 | 15 | Recording Workflow | Zifan | 0:55 |
 | 16 | Testing & Quality Assurance | Xiaotian | 1:05 |
 | 17 | Project Challenges | Jianqing | 0:55 |
-| 18 | Future Scalability | Jianqing | 0:40 |
+| 18 | Future Scalability | Zifan | 0:40 |
 | 19 | Stakeholder Feedback | Zifan | 0:55 |
 | 20 | Thank You | Jianqing | 0:10 |
 
