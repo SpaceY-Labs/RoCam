@@ -1042,26 +1042,72 @@
             </div>
         </div>
 
-        <div class="w-[45%] flex flex-col justify-center pl-20 pr-32 pt-24">
-            <h2 class="text-[64px] font-black text-rocam-dark mb-6 tight-heading">Command center in a browser.</h2>
-            <p class="text-2xl text-rocam-red font-bold mb-12 tracking-wide">REACT &bull; TYPESCRIPT &bull; VITE</p>
-            
-            <div class="space-y-8">
-                <div class="minimal-card !p-6 flex items-center gap-6">
-                    <div class="w-12 text-center"><i class="fa-solid fa-video text-3xl text-rocam-dark"></i></div>
-                    <span class="text-2xl font-bold text-rocam-gray">Low-latency live preview</span>
+        <div class="w-[45%] flex flex-col justify-center pl-16 pr-28 pt-24">
+            <div class="text-lg font-black tracking-[0.38em] uppercase text-rocam-red mb-5">Field usability first</div>
+            <h2 class="text-[60px] font-black text-rocam-dark mb-5 tight-heading">Command center in a browser.</h2>
+            <p class="text-2xl text-rocam-red font-bold mb-6 tracking-wide">REACT &bull; TYPESCRIPT &bull; VITE</p>
+            <p class="text-xl text-rocam-gray font-medium leading-relaxed mb-8">
+                Everything the operator touches lives in <span class="font-bold text-rocam-dark">Mission Control</span>. Before launch, the UI must let the operator confirm framing, arm the system, override the gimbal if needed, and understand system health immediately.
+            </p>
+
+            <div class="minimal-card !p-5 border-2 border-rocam-red mb-8">
+                <div class="text-sm font-black tracking-[0.3em] uppercase text-rocam-red mb-4">Operator workflow</div>
+                <div class="grid grid-cols-2 gap-x-5 gap-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-crosshairs text-rocam-red"></i>
+                        </div>
+                        <div class="text-base font-bold text-rocam-dark">Confirm framing</div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-shield-halved text-rocam-dark"></i>
+                        </div>
+                        <div class="text-base font-bold text-rocam-dark">Arm the tracker</div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-gamepad text-rocam-dark"></i>
+                        </div>
+                        <div class="text-base font-bold text-rocam-dark">Override motion</div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-heart-pulse text-rocam-dark"></i>
+                        </div>
+                        <div class="text-base font-bold text-rocam-dark">Read health instantly</div>
+                    </div>
                 </div>
-                <div class="minimal-card !p-6 flex items-center gap-6">
-                    <div class="w-12 text-center"><i class="fa-solid fa-gamepad text-3xl text-rocam-dark"></i></div>
-                    <span class="text-2xl font-bold text-rocam-gray">Direct manual gimbal override</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-5">
+                <div class="minimal-card !p-5">
+                    <div class="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-video text-xl text-rocam-dark"></i>
+                    </div>
+                    <div class="text-xl font-black text-rocam-dark mb-2">Low-latency live preview</div>
+                    <div class="text-base text-rocam-gray font-medium leading-relaxed">See framing and target lock with minimal delay during setup and tracking.</div>
                 </div>
-                <div class="minimal-card !p-6 flex items-center gap-6">
-                    <div class="w-12 text-center"><i class="fa-solid fa-chart-line text-3xl text-rocam-dark"></i></div>
-                    <span class="text-2xl font-bold text-rocam-gray">Real-time health telemetry</span>
+                <div class="minimal-card !p-5">
+                    <div class="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-gamepad text-xl text-rocam-dark"></i>
+                    </div>
+                    <div class="text-xl font-black text-rocam-dark mb-2">Direct manual override</div>
+                    <div class="text-base text-rocam-gray font-medium leading-relaxed">Take control of the gimbal immediately when the operator needs to reframe.</div>
                 </div>
-                <div class="minimal-card !p-6 flex items-center gap-6">
-                    <div class="w-12 text-center"><i class="fa-solid fa-language text-3xl text-rocam-dark"></i></div>
-                    <span class="text-2xl font-bold text-rocam-gray">Full Bilingual (EN/FR) support</span>
+                <div class="minimal-card !p-5">
+                    <div class="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-chart-line text-xl text-rocam-dark"></i>
+                    </div>
+                    <div class="text-xl font-black text-rocam-dark mb-2">Real-time health telemetry</div>
+                    <div class="text-base text-rocam-gray font-medium leading-relaxed">Arming, device, network, and storage state stay visible at a glance.</div>
+                </div>
+                <div class="minimal-card !p-5">
+                    <div class="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-language text-xl text-rocam-dark"></i>
+                    </div>
+                    <div class="text-xl font-black text-rocam-dark mb-2">Bilingual EN / FR</div>
+                    <div class="text-base text-rocam-gray font-medium leading-relaxed">The same control surface supports English and French operators in the field.</div>
                 </div>
             </div>
         </div>
