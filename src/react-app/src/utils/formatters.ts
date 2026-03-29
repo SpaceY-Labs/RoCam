@@ -2,7 +2,7 @@
  * Pure formatting utilities shared across components.
  * Extracted to enable isolated unit testing without React/JSX dependencies.
  */
-import type { TemperatureUnit } from '@/store/languageAtom'
+import type { TemperatureUnit } from '@/store/settingsAtom'
 
 export function formatDegrees(degrees: number): string {
   return `${Math.round(degrees * 10) / 10}°`

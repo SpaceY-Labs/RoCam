@@ -6,7 +6,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import React from 'react'
 
 // Mock heavy pages to isolate routing logic
 vi.mock('@/pages/control', () => ({
