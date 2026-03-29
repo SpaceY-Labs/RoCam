@@ -183,7 +183,7 @@
             </p>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">1 / 21</div>
+        <div class="slide-footer">1 / 20</div>
     </div>
 
     <!-- ========================================== -->
@@ -191,7 +191,7 @@
     <!-- ========================================== -->
     <div class="slide relative" style="background: #000; display: flex; justify-content: center; align-items: center;">
         <img src="figures/bvigpic.webp" alt="Team Group Photo" style="width: 100%; height: 100%; object-fit: cover;">
-        <div class="slide-footer" style="color: #999;">2 / 21</div>
+        <div class="slide-footer" style="color: #999;">2 / 20</div>
     </div>
 
     <!-- ========================================== -->
@@ -254,7 +254,7 @@
         </div>
         
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">3 / 21</div>
+        <div class="slide-footer">3 / 20</div>
     </div>
 
     <!-- ========================================== -->
@@ -313,7 +313,7 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">4 / 21</div>
+        <div class="slide-footer">4 / 20</div>
     </div>
 
     <!-- ========================================== -->
@@ -328,101 +328,11 @@
         </div>
 
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: All</div>
-        <div class="slide-footer">5 / 21</div>
+        <div class="slide-footer">5 / 20</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 6: Architecture (Modular) -->
-    <!-- ========================================== -->
-    <div class="slide dot-bg flex flex-col justify-center items-center px-32 relative">
-        <div class="slide-header">
-            <div class="header-line"></div>
-            <div class="header-title">Modular System Architecture</div>
-        </div>
-
-        <div class="w-full max-w-[1500px] mt-24 bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
-            <img src="figures/pipeline.png" alt="Architecture Pipeline" class="w-full object-contain clean-img">
-        </div>
-
-        <div class="flex gap-16 mt-16 max-w-[1500px] w-full">
-            <div class="w-1/4">
-                <h3 class="text-2xl font-black text-rocam-dark mb-3 uppercase tracking-wide border-b-2 border-rocam-red pb-2">1. Input</h3>
-                <p class="text-xl text-rocam-gray font-medium">1080p @ 60fps raw video stream capture.</p>
-            </div>
-            <div class="w-1/4">
-                <h3 class="text-2xl font-black text-rocam-dark mb-3 uppercase tracking-wide border-b-2 border-rocam-red pb-2">2. Processing</h3>
-                <p class="text-xl text-rocam-gray font-medium">Jetson GPU hardware-accelerated bounding box extraction.</p>
-            </div>
-            <div class="w-1/4">
-                <h3 class="text-2xl font-black text-rocam-dark mb-3 uppercase tracking-wide border-b-2 border-rocam-red pb-2">3. Actuation</h3>
-                <p class="text-xl text-rocam-gray font-medium">STM32 PID calculation and direct servo PWM drive.</p>
-            </div>
-            <div class="w-1/4">
-                <h3 class="text-2xl font-black text-rocam-dark mb-3 uppercase tracking-wide border-b-2 border-rocam-red pb-2">4. Interface</h3>
-                <p class="text-xl text-rocam-gray font-medium">React Web UI for live telemetry and manual override.</p>
-            </div>
-        </div>
-        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">6 / 21</div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- SLIDE 7: Labelling App (Data Tooling) -->
-    <!-- ========================================== -->
-    <div class="slide dot-bg flex relative">
-        <div class="slide-header">
-            <div class="header-line"></div>
-            <div class="header-title">Data Tooling — RoCam Labeler</div>
-        </div>
-
-        <div class="w-[50%] flex flex-col justify-center pl-32 pr-12 pt-24">
-            <h2 class="text-[56px] font-black tight-heading text-rocam-dark mb-8">
-                Custom labelling platform for rocket data.
-            </h2>
-            <p class="text-2xl text-rocam-gray font-medium leading-relaxed mb-12">
-                All training data flows through our in-house <span class="font-bold text-rocam-dark">RoCam Labeler</span> — a full-stack annotation tool built from scratch to handle our unique dataset requirements.
-            </p>
-
-            <div class="space-y-6">
-                <div class="minimal-card !p-6 flex items-center gap-6">
-                    <div class="w-12 text-center"><i class="fa-solid fa-wand-magic-sparkles text-3xl text-rocam-red"></i></div>
-                    <div>
-                        <span class="text-2xl font-bold text-rocam-dark">SAM-Assisted Annotation</span>
-                        <div class="text-lg text-rocam-gray font-medium mt-1">One-click segmentation masks via Meta SAM</div>
-                    </div>
-                </div>
-                <div class="minimal-card !p-6 flex items-center gap-6">
-                    <div class="w-12 text-center"><i class="fa-solid fa-folder-tree text-3xl text-rocam-dark"></i></div>
-                    <div>
-                        <span class="text-2xl font-bold text-rocam-dark">Project Management</span>
-                        <div class="text-lg text-rocam-gray font-medium mt-1">Multi-project workspace with progress tracking</div>
-                    </div>
-                </div>
-                <div class="minimal-card !p-6 flex items-center gap-6">
-                    <div class="w-12 text-center"><i class="fa-solid fa-file-zipper text-3xl text-rocam-dark"></i></div>
-                    <div>
-                        <span class="text-2xl font-bold text-rocam-dark">Batch Upload / Export</span>
-                        <div class="text-lg text-rocam-gray font-medium mt-1">ZIP-based bulk import and YOLO-format export</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="w-[50%] flex flex-col justify-center items-center gap-8 pr-24 pt-24">
-            <div class="rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-300">
-                <img src="figures/labelling_projects.png" alt="Labelling App - Projects" class="w-full object-cover">
-            </div>
-            <div class="rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-300">
-                <img src="figures/labelling_manage.png" alt="Labelling App - Annotated Data" class="w-full object-cover">
-            </div>
-        </div>
-
-        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Mike Chen</div>
-        <div class="slide-footer">7 / 21</div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- SLIDE 8: CV Pipeline -->
+    <!-- SLIDE 6: CV Pipeline -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -518,11 +428,11 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Mike Chen / Xiaotian Lou</div>
-        <div class="slide-footer">8 / 21</div>
+        <div class="slide-footer">6 / 20</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 9: CV Pipeline - Detection Result -->
+    <!-- SLIDE 7: CV Pipeline - Detection Result -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -618,11 +528,11 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Mike Chen</div>
-        <div class="slide-footer">9 / 21</div>
+        <div class="slide-footer">7 / 20</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 10: Zero-Latency Visual Tracking -->
+    <!-- SLIDE 8: Zero-Latency Visual Tracking -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -739,11 +649,66 @@
         </div>
 
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
-        <div class="slide-footer">10 / 21</div>
+        <div class="slide-footer">8 / 20</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 11: ML Training -->
+    <!-- SLIDE 9: Labelling App (Data Tooling) -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Data Tooling — RoCam Labeler</div>
+        </div>
+
+        <div class="w-[50%] flex flex-col justify-center pl-32 pr-12 pt-24">
+            <h2 class="text-[56px] font-black tight-heading text-rocam-dark mb-8">
+                Custom labelling platform for rocket data.
+            </h2>
+            <p class="text-2xl text-rocam-gray font-medium leading-relaxed mb-12">
+                All training data flows through our in-house <span class="font-bold text-rocam-dark">RoCam Labeler</span> — a full-stack annotation tool built from scratch to handle our unique dataset requirements.
+            </p>
+
+            <div class="space-y-6">
+                <div class="minimal-card !p-6 flex items-center gap-6">
+                    <div class="w-12 text-center"><i class="fa-solid fa-wand-magic-sparkles text-3xl text-rocam-red"></i></div>
+                    <div>
+                        <span class="text-2xl font-bold text-rocam-dark">SAM-Assisted Annotation</span>
+                        <div class="text-lg text-rocam-gray font-medium mt-1">One-click segmentation masks via Meta SAM</div>
+                    </div>
+                </div>
+                <div class="minimal-card !p-6 flex items-center gap-6">
+                    <div class="w-12 text-center"><i class="fa-solid fa-folder-tree text-3xl text-rocam-dark"></i></div>
+                    <div>
+                        <span class="text-2xl font-bold text-rocam-dark">Project Management</span>
+                        <div class="text-lg text-rocam-gray font-medium mt-1">Multi-project workspace with progress tracking</div>
+                    </div>
+                </div>
+                <div class="minimal-card !p-6 flex items-center gap-6">
+                    <div class="w-12 text-center"><i class="fa-solid fa-file-zipper text-3xl text-rocam-dark"></i></div>
+                    <div>
+                        <span class="text-2xl font-bold text-rocam-dark">Batch Upload / Export</span>
+                        <div class="text-lg text-rocam-gray font-medium mt-1">ZIP-based bulk import and YOLO-format export</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-[50%] flex flex-col justify-center items-center gap-8 pr-24 pt-24">
+            <div class="rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-300">
+                <img src="figures/labelling_projects.png" alt="Labelling App - Projects" class="w-full object-cover">
+            </div>
+            <div class="rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-300">
+                <img src="figures/labelling_manage.png" alt="Labelling App - Annotated Data" class="w-full object-cover">
+            </div>
+        </div>
+
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Mike Chen</div>
+        <div class="slide-footer">9 / 20</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 10: ML Training -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -834,11 +799,11 @@
         </div>
 
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
-        <div class="slide-footer">11 / 21</div>
+        <div class="slide-footer">10 / 20</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 12: Model Development Journey -->
+    <!-- SLIDE 11: Model Development Journey -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col relative">
         <div class="slide-header">
@@ -984,77 +949,11 @@
         </div>
 
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
-        <div class="slide-footer">12 / 21</div>
+        <div class="slide-footer">11 / 20</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 13: Hardware & Firm. -->
-    <!-- ========================================== -->
-    <div class="slide dot-bg flex flex-col justify-center px-32 relative">
-        <div class="slide-header">
-            <div class="header-line"></div>
-            <div class="header-title">Hardware & Firmware Control</div>
-        </div>
-
-        <h2 class="text-[64px] font-black tight-heading text-rocam-dark mt-24 mb-16">
-            Bare-metal <span class="text-rocam-red">Rust</span> for hard real-time execution.
-        </h2>
-
-        <div class="grid grid-cols-4 gap-10 w-full mb-16">
-            <div class="minimal-card !p-8 border-t-8 border-t-rocam-dark text-center">
-                <div class="text-[56px] font-black text-rocam-dark leading-none mb-4">60 Hz</div>
-                <div class="text-xl text-rocam-gray font-bold uppercase tracking-wide">Control Loop</div>
-            </div>
-            <div class="minimal-card !p-8 border-t-8 border-t-rocam-dark text-center">
-                <div class="text-[56px] font-black text-rocam-dark leading-none mb-4">Embassy</div>
-                <div class="text-xl text-rocam-gray font-bold uppercase tracking-wide">Rust Async</div>
-            </div>
-            <div class="minimal-card !p-8 border-t-8 border-t-rocam-dark text-center">
-                <div class="text-[56px] font-black text-rocam-dark leading-none mb-4">CRC-8</div>
-                <div class="text-xl text-rocam-gray font-bold uppercase tracking-wide">Data Integrity</div>
-            </div>
-            <div class="minimal-card !p-8 border-t-8 border-t-rocam-red text-center">
-                <div class="text-[56px] font-black text-rocam-red leading-none mb-4">&lt;0.5s</div>
-                <div class="text-xl text-rocam-gray font-bold uppercase tracking-wide">Watchdog Trip</div>
-            </div>
-        </div>
-
-        <div class="w-full bg-white p-12 rounded-3xl border border-gray-200 shadow-xl flex items-center justify-between relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-r from-gray-50 to-white z-0"></div>
-            <div class="flex items-center gap-8 relative z-10 w-1/3">
-                <div class="w-20 h-20 bg-rocam-dark rounded-2xl flex items-center justify-center shadow-lg">
-                    <i class="fa-solid fa-server text-3xl text-white"></i>
-                </div>
-                <div>
-                    <div class="text-3xl font-black text-rocam-dark">Jetson Orin</div>
-                    <div class="text-lg text-rocam-gray font-medium">Vision / Math</div>
-                </div>
-            </div>
-            <div class="flex-1 px-8 relative z-10">
-                <div class="w-full h-2 bg-gray-200 rounded-full relative overflow-hidden">
-                    <div class="absolute top-0 left-0 h-full w-1/3 bg-rocam-red rounded-full"></div>
-                </div>
-                <div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-white px-6 py-2 rounded-full border border-gray-200 shadow-sm text-rocam-dark font-bold tracking-widest text-sm uppercase">
-                    115200 BAUD UART
-                </div>
-            </div>
-            <div class="flex items-center gap-8 relative z-10 w-1/3 justify-end">
-                <div class="text-right">
-                    <div class="text-3xl font-black text-rocam-dark">STM32F405</div>
-                    <div class="text-lg text-rocam-gray font-medium">Custom PCB</div>
-                </div>
-                <div class="w-20 h-20 bg-rocam-red rounded-2xl flex items-center justify-center shadow-lg">
-                    <i class="fa-solid fa-microchip text-3xl text-white"></i>
-                </div>
-            </div>
-        </div>
-        
-        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">13 / 21</div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- SLIDE 14: Fault Tolerance -->
+    <!-- SLIDE 12: Fault Tolerance -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -1117,11 +1016,19 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">14 / 21</div>
+        <div class="slide-footer">12 / 20</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 15: Web UI -->
+    <!-- SLIDE 13: Architecture (Modular) -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg relative flex justify-center items-center">
+        <img src="figures/pipeline.png" alt="Architecture Pipeline" style="width: 100%; height: 100%; object-fit: contain; padding: 40px;">
+        <div class="slide-footer">13 / 20</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 14: Web UI -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex relative">
         <div class="slide-header">
@@ -1159,11 +1066,11 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Zifan Si</div>
-        <div class="slide-footer">15 / 21</div>
+        <div class="slide-footer">14 / 20</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 16: Recording -->
+    <!-- SLIDE 15: Recording -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex relative">
         <div class="slide-header">
@@ -1276,11 +1183,11 @@
         </div>
 
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Zifan Si</div>
-        <div class="slide-footer">16 / 21</div>
+        <div class="slide-footer">15 / 20</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 17: Testing Data -->
+    <!-- SLIDE 16: Testing Data -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -1317,11 +1224,11 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
-        <div class="slide-footer">17 / 21</div>
+        <div class="slide-footer">16 / 20</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 18: Challenges -->
+    <!-- SLIDE 17: Challenges -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -1371,11 +1278,11 @@
         </div>
 
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">18 / 21</div>
+        <div class="slide-footer">17 / 20</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 19: Future -->
+    <!-- SLIDE 18: Future -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
@@ -1423,11 +1330,11 @@
             </div>
         </div>
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
-        <div class="slide-footer">19 / 21</div>
+        <div class="slide-footer">18 / 20</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 20: Stakeholder Feedback -->
+    <!-- SLIDE 19: Stakeholder Feedback -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex relative">
         <div class="slide-header">
@@ -1542,11 +1449,11 @@
         </div>
 
         <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Zifan Si</div>
-        <div class="slide-footer">20 / 21</div>
+        <div class="slide-footer">19 / 20</div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SLIDE 21: Thank you -->
+    <!-- SLIDE 20: Thank you -->
     <!-- ========================================== -->
     <div class="slide dot-bg flex flex-col justify-center items-center relative">
         <div class="absolute inset-x-0 top-0 h-[220px] bg-gradient-to-b from-red-50 to-transparent"></div>
@@ -1611,7 +1518,7 @@
                 Team #3 SpaceY &nbsp;|&nbsp; McMaster University SFWRENG 4G06
             </p>
         </div>
-        <div class="slide-footer">21 / 21</div>
+        <div class="slide-footer">20 / 20</div>
     </div>
 
 </div>
