@@ -1,6 +1,6 @@
 # RoCam Final Presentation - Speech Scripts
 
-> **Total time**: ~20 minutes + 5 min Q&A
+> **Total time**: ~21.5 minutes + 5 min Q&A
 > **Remember**: Dress professionally, use the microphone, and practice with the actual devices.
 
 ---
@@ -13,7 +13,7 @@
 | 2 | Team Photo | Jianqing | 0:10 |
 | 3 | The Challenge | Jianqing | 1:20 |
 | 4 | The RoCam Solution | Jianqing | 0:55 |
-| 5 | LIVE DEMO | All | 2:45 |
+| 5 | LIVE DEMO | All | 5:00 |
 | 6 | Computer Vision Pipeline | Mike / Xiaotian | 1:00 |
 | 7 | Computer Vision Pipeline (Detection Result) | Mike | 0:30 |
 | 8 | Zero-Latency Tracking | Xiaotian | 0:55 |
@@ -30,7 +30,7 @@
 | 19 | Stakeholder Feedback | Zifan | 0:55 |
 | 20 | Thank You | Jianqing | 0:10 |
 
-**Total approx. 20 min**
+**Total approx. 21.5 min**
 
 ---
 
