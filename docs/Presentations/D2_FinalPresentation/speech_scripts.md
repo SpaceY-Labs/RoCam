@@ -1,6 +1,6 @@
 # RoCam Final Presentation - Speech Scripts
 
-> **Total time**: ~21.5 minutes + 5 min Q&A
+> **Total time**: ~23.5 minutes + 5 min Q&A
 > **Remember**: Dress professionally, use the microphone, and practice with the actual devices.
 
 ---
@@ -10,7 +10,7 @@
 | Slide | Title | Speaker | Time |
 |-------|-------|---------|------|
 | 1 | Title | Jianqing | 0:25 |
-| 2 | Team Photo | Jianqing | 0:10 |
+| 2 | Team Photo | Jianqing | 2:00 |
 | 3 | The Challenge | Jianqing | 1:20 |
 | 4 | The RoCam Solution | Jianqing | 0:55 |
 | 5 | LIVE DEMO | All | 5:00 |
@@ -30,7 +30,7 @@
 | 19 | Stakeholder Feedback | Zifan | 0:55 |
 | 20 | Thank You | Jianqing | 0:10 |
 
-**Total approx. 21.5 min**
+**Total approx. 23.5 min**
 
 ---
 
