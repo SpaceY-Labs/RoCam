@@ -1336,131 +1336,98 @@
     <!-- ========================================== -->
     <!-- SLIDE 19: Stakeholder Feedback -->
     <!-- ========================================== -->
-    <div class="slide dot-bg flex relative">
+    <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
             <div class="header-line"></div>
             <div class="header-title">Stakeholder Feedback</div>
         </div>
 
-        <div class="w-[48%] flex flex-col justify-center pl-28 pr-14 pt-20">
-            <div class="text-lg font-black tracking-[0.42em] uppercase text-rocam-red mb-6">
-                McMaster Rocketry Team review
-            </div>
-            <h2 class="text-[68px] font-black tight-heading text-rocam-dark mb-8">
-                Built with <span class="text-rocam-red">operator feedback</span>, not just lab assumptions.
-            </h2>
+        <h2 class="text-[52px] font-black tight-heading text-rocam-dark mt-24 mb-14 max-w-5xl">
+            Built with <span class="text-rocam-red">operator feedback</span>, not just lab assumptions.
+        </h2>
 
-            <div class="minimal-card relative overflow-hidden border-2 border-rocam-red mb-10">
-                <div class="absolute top-0 left-0 w-full h-2 bg-rocam-red"></div>
-                <div class="absolute -right-4 -top-8 text-[120px] opacity-5 text-rocam-red">
-                    <i class="fa-solid fa-quote-right"></i>
+        <div class="flex w-full gap-14 mb-14">
+            <!-- Left: Quote + Responses -->
+            <div class="w-[55%] flex flex-col">
+                <div class="minimal-card relative overflow-hidden mb-10">
+                    <div class="absolute -right-4 -top-8 text-[100px] opacity-[0.03] text-rocam-dark">
+                        <i class="fa-solid fa-quote-right"></i>
+                    </div>
+                    <div class="text-sm font-bold tracking-[0.3em] uppercase text-rocam-gray mb-4">McMaster Rocketry Team</div>
+                    <div class="text-[30px] font-black text-rocam-dark leading-snug mb-4">
+                        "A more direct and intuitive way to move the gimbal."
+                    </div>
+                    <div class="text-lg text-rocam-gray font-medium leading-relaxed">
+                        Captured in stakeholder walkthrough. Turned into drag-to-move control on the live preview.
+                    </div>
                 </div>
-                <div class="text-sm font-black tracking-[0.35em] uppercase text-rocam-red mb-5">Stakeholder request</div>
-                <div class="text-[36px] font-black text-rocam-dark leading-tight mb-5">
-                    "A more direct and intuitive way to move the gimbal."
-                </div>
-                <div class="text-xl text-rocam-gray font-medium leading-relaxed">
-                    Captured in the stakeholder walkthrough and turned into drag-to-move control on the live preview.
-                </div>
-            </div>
 
-            <div class="grid grid-cols-3 gap-6">
-                <div class="minimal-card !p-5 text-center">
-                    <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center mx-auto mb-3">
-                        <i class="fa-solid fa-hand-pointer text-rocam-red text-xl"></i>
-                    </div>
-                    <div class="text-lg font-black text-rocam-dark mb-2">Direct Control</div>
-                    <div class="text-base text-rocam-gray font-medium">Drag-to-move framing added beside the D-pad.</div>
-                </div>
-                <div class="minimal-card !p-5 text-center">
-                    <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                        <i class="fa-solid fa-circle-info text-rocam-dark text-xl"></i>
-                    </div>
-                    <div class="text-lg font-black text-rocam-dark mb-2">Clear Status</div>
-                    <div class="text-base text-rocam-gray font-medium">More visible armed, target-lost, storage, and network feedback.</div>
-                </div>
-                <div class="minimal-card !p-5 text-center">
-                    <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                        <i class="fa-solid fa-hard-drive text-rocam-dark text-xl"></i>
-                    </div>
-                    <div class="text-lg font-black text-rocam-dark mb-2">Stable Recording</div>
-                    <div class="text-base text-rocam-gray font-medium">Pause/resume behavior refined for download and recording actions.</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="w-[52%] flex flex-col justify-center pr-28 pt-20">
-            <div class="minimal-card !p-8 mb-8">
-                <div class="text-sm font-black tracking-[0.35em] uppercase text-rocam-red mb-5">Feedback themes</div>
-                <div class="flex items-center gap-10">
-                    <div class="relative w-[300px] h-[300px] shrink-0 mx-4">
-                        <div class="absolute inset-0 rounded-full shadow-[0_18px_40px_rgba(0,0,0,0.08)]" style="background: conic-gradient(#D92121 0deg 150deg, #111827 150deg 270deg, #9CA3AF 270deg 360deg);"></div>
-                        <div class="absolute inset-[64px] rounded-full bg-white border border-gray-200 flex items-center justify-center">
-                            <div class="text-center">
-                                <div class="text-5xl font-black text-rocam-dark leading-none">3</div>
-                                <div class="text-sm font-black tracking-[0.24em] uppercase text-rocam-gray mt-2">Primary Themes</div>
-                            </div>
+                <div class="space-y-6">
+                    <div class="flex gap-6 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100">
+                            <i class="fa-solid fa-hand-pointer text-rocam-dark text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-rocam-dark">Direct Control</div>
+                            <div class="text-lg text-rocam-gray font-medium mt-1">Drag-to-move framing added beside the D-pad.</div>
                         </div>
                     </div>
-
-                    <div class="space-y-5 flex-1">
-                        <div class="flex items-start gap-4">
-                            <div class="w-4 h-4 rounded-full bg-rocam-red mt-1.5 shrink-0"></div>
-                            <div>
-                                <div class="text-2xl font-black text-rocam-dark">More direct camera framing</div>
-                                <div class="text-lg text-rocam-gray font-medium mt-1">Stakeholders pushed for faster, more intuitive setup before launch.</div>
-                            </div>
+                    <div class="flex gap-6 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100">
+                            <i class="fa-solid fa-circle-info text-rocam-dark text-lg"></i>
                         </div>
-                        <div class="flex items-start gap-4">
-                            <div class="w-4 h-4 rounded-full bg-gray-900 mt-1.5 shrink-0"></div>
-                            <div>
-                                <div class="text-2xl font-black text-rocam-dark">Clear operator state visibility</div>
-                                <div class="text-lg text-rocam-gray font-medium mt-1">Armed, tracking, storage, device, and network states needed to be obvious at a glance.</div>
-                            </div>
+                        <div>
+                            <div class="text-xl font-bold text-rocam-dark">Clear Status</div>
+                            <div class="text-lg text-rocam-gray font-medium mt-1">More visible armed, target-lost, storage, and network states.</div>
                         </div>
-                        <div class="flex items-start gap-4">
-                            <div class="w-4 h-4 rounded-full bg-gray-400 mt-1.5 shrink-0"></div>
-                            <div>
-                                <div class="text-2xl font-black text-rocam-dark">Reliable recording management</div>
-                                <div class="text-lg text-rocam-gray font-medium mt-1">Playback and download flows were tightened so recording interactions feel safer and less fragile.</div>
-                            </div>
+                    </div>
+                    <div class="flex gap-6 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100">
+                            <i class="fa-solid fa-hard-drive text-rocam-dark text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-rocam-dark">Stable Recording</div>
+                            <div class="text-lg text-rocam-gray font-medium mt-1">Pause/resume behavior refined for download and recording.</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="minimal-card !p-8 border-2 border-gray-800">
-                <div class="text-sm font-black tracking-[0.35em] uppercase text-rocam-dark mb-5">Active user base</div>
-                <div class="flex items-center gap-10">
-                    <div class="relative w-[220px] h-[220px] shrink-0">
-                        <div class="absolute inset-0 rounded-full shadow-[0_18px_40px_rgba(0,0,0,0.08)]" style="background: conic-gradient(#D92121 0deg 173deg, #111827 173deg 281deg, #9CA3AF 281deg 360deg);"></div>
-                        <div class="absolute inset-[50px] rounded-full bg-white border border-gray-200 flex items-center justify-center">
-                            <div class="text-center">
-                                <div class="text-5xl font-black text-rocam-dark leading-none">50</div>
-                                <div class="text-[10px] font-black tracking-[0.2em] uppercase text-rocam-gray mt-1">Members</div>
+            <!-- Right: Single donut chart -->
+            <div class="w-[45%] flex flex-col justify-center">
+                <div class="minimal-card !p-10">
+                    <div class="text-sm font-bold tracking-[0.3em] uppercase text-rocam-gray mb-8">McMaster Rocketry Team · 50 members</div>
+                    <div class="flex items-center gap-10">
+                        <div class="relative w-[240px] h-[240px] shrink-0">
+                            <div class="absolute inset-0 rounded-full" style="background: conic-gradient(#D92121 0deg 173deg, #E5E7EB 173deg 281deg, #F3F4F6 281deg 360deg);"></div>
+                            <div class="absolute inset-[56px] rounded-full bg-white flex items-center justify-center shadow-sm">
+                                <div class="text-center">
+                                    <div class="text-[56px] font-black text-rocam-dark leading-none">50</div>
+                                    <div class="text-xs font-bold tracking-[0.2em] uppercase text-rocam-gray mt-1">Users</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="space-y-4 flex-1">
-                        <div class="flex items-center gap-3">
-                            <div class="w-4 h-4 rounded-full bg-rocam-red shrink-0"></div>
+                        <div class="space-y-6 flex-1">
                             <div>
-                                <div class="text-xl font-black text-rocam-dark">Autonomous Tracking <span class="text-rocam-red">48%</span></div>
-                                <div class="text-base text-rocam-gray font-medium">24 members use AI-guided camera lock</div>
+                                <div class="flex items-center gap-3 mb-1">
+                                    <div class="w-3 h-3 rounded-full bg-rocam-red shrink-0"></div>
+                                    <div class="text-lg font-bold text-rocam-dark">Autonomous Tracking</div>
+                                </div>
+                                <div class="text-base text-rocam-gray font-medium pl-6">24 members · 48%</div>
                             </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="w-4 h-4 rounded-full bg-gray-900 shrink-0"></div>
                             <div>
-                                <div class="text-xl font-black text-rocam-dark">Manual Override <span class="font-bold text-gray-500">30%</span></div>
-                                <div class="text-base text-rocam-gray font-medium">15 members prefer direct gimbal control</div>
+                                <div class="flex items-center gap-3 mb-1">
+                                    <div class="w-3 h-3 rounded-full bg-gray-300 shrink-0"></div>
+                                    <div class="text-lg font-bold text-rocam-dark">Manual Override</div>
+                                </div>
+                                <div class="text-base text-rocam-gray font-medium pl-6">15 members · 30%</div>
                             </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="w-4 h-4 rounded-full bg-gray-400 shrink-0"></div>
                             <div>
-                                <div class="text-xl font-black text-rocam-dark">Video Recording <span class="font-bold text-gray-400">22%</span></div>
-                                <div class="text-base text-rocam-gray font-medium">11 members for post-flight analysis</div>
+                                <div class="flex items-center gap-3 mb-1">
+                                    <div class="w-3 h-3 rounded-full bg-gray-100 border border-gray-200 shrink-0"></div>
+                                    <div class="text-lg font-bold text-rocam-dark">Video Recording</div>
+                                </div>
+                                <div class="text-base text-rocam-gray font-medium pl-6">11 members · 22%</div>
                             </div>
                         </div>
                     </div>
