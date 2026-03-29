@@ -123,25 +123,25 @@ This frame shows the core challenge — the rocket occupies less than **0.1% of 
 
 ### Slide 10 - Zero-Latency Tracking (0:45)
 
-The key idea is **optical redundancy**. The camera's field of view is wider than what the operator sees. When YOLO returns a bounding box, the fast GPU shader path computes translation and scale and updates the preview in **under one millisecond** — the operator sees the rocket locked on screen within a single display frame.
+The key idea here is that our camera sees more than what the operator sees on screen. So when YOLO finds the rocket, a GPU shader can crop and zoom the preview in **under one millisecond**. The operator sees the target locked right away — within one frame.
 
-In parallel, a slower UART path sends correction commands to the STM32, which physically re-centers the gimbal. The operator perceives **zero tracking latency** while the hardware catches up in the background.
+At the same time, a second path sends commands over UART to the STM32, which moves the gimbal to re-center. So the screen updates instantly, and the hardware catches up in the background. That is how we get **zero perceived latency**.
 
 ### Slide 11 - Machine Learning Training (0:55)
 
-Our peak training accuracy across all experiments reached **96.2% mAP@50** on H100 GPUs. But the real test is edge deployment — our best-in-training architecture lost **30%** of its accuracy after FP16 quantization on the Jetson.
+Our best training accuracy was **96.2% mAP@50** on H100 GPUs. But training accuracy is not enough — what matters is how well it works after deployment. Our best-in-training model actually lost **30%** accuracy after FP16 conversion on the Jetson.
 
-The recipe that survived had three key ingredients. First, **full mosaic at 1.0** for most of training, quadrupling effective object density, then disabled for the last 80 epochs for full-resolution refinement. Second, over **15,000 labelled images plus 4,000 COCO hard negatives** to suppress false positives. Third, **multi-scale training with seven Albumentations** — motion blur, compression artifacts, sensor noise.
+The recipe that worked has three parts. First, **full mosaic at 1.0** — every training image is a 2-by-2 grid, so the model sees four times more targets. We turn this off for the last 80 epochs to fine-tune on full images. Second, **15,000 labelled images plus 4,000 COCO negatives** — background images with no rockets, to reduce false positives. Third, **multi-scale training with seven augmentations** — blur, noise, compression — to match real-world conditions.
 
-The result: only a **9% deployment gap**. **94.3% precision**, **89.8% recall**, running at **60 FPS** with under **1ms shader latency**.
+Result: only **9% accuracy loss** from training to Jetson. **94.3% precision**, **89.8% recall**, **60 FPS**, under **1ms shader latency**.
 
 ### Slide 12 - Model Development Journey (0:55)
 
-This diagram shows every major direction we explored — **six distinct research branches**, not quick tests.
+This diagram shows every major direction we tried — **six different research branches**.
 
-We tried a **P2 four-head architecture** with sub-pixel detection — highest in training but collapsed under FP16. We tested **low-mosaic regimes** at 0.15 to 0.30 — insufficient for small targets. We scaled input resolution to **640 pixels** with cosine learning rate — higher resolution actually needed even stronger augmentation. We tried **transfer learning** fine-tuning — small target accuracy regressed. We experimented with **copy-paste synthesis** — synthetic data alone was not enough. And finally **SAHI tiled detection** with over 50,000 tiled images — three times slower for marginal gain.
+First, a **P2 four-head model** — it scored highest in training, but FP16 destroyed its fine features. Second, **low mosaic** at 0.15 to 0.30 — not strong enough for small targets. Third, **higher resolution** at 640 pixels — it actually needed even more augmentation to work. Fourth, **transfer learning** from a pretrained model — small target accuracy got worse. Fifth, **copy-paste augmentation** — pasting rocket patches into new backgrounds — not enough on its own. Sixth, **SAHI tiled detection** with over 50,000 tiled images — three times slower, very small gain.
 
-The main trunk — aggressive mosaic, multi-scale, COCO negatives — was the only recipe that survived all the way to production on the Jetson. Over **100 GPU-hours**, **one survivor**.
+The main line — strong mosaic, multi-scale, COCO negatives — was the only one that survived all the way to the Jetson. Over **100 GPU-hours**, and **one survivor**.
 
 ---
 
@@ -189,9 +189,9 @@ That separation keeps capture lightweight during launch while still giving us a 
 
 ### Slide 17 - Testing & Quality Assurance (0:45)
 
-We built **481 automated tests**: **313 backend pytest tests** at **88% coverage**, **168 frontend Vitest tests** at **86% coverage**, plus system-level end-to-end tests. Every pull request runs through GitHub Actions CI with a **100% pass rate**.
+We have **481 automated tests** in total. **313 backend tests** using pytest with **88% code coverage**, and **168 frontend tests** using Vitest with **86% coverage**. Every pull request goes through GitHub Actions, and we maintain a **100% pass rate**.
 
-This mattered because we changed major parts of the system throughout the project — backend architecture, control protocol, CV pipeline. With this test suite, regressions were caught in CI instead of during field testing. The goal was not test count, but the ability to keep iterating with confidence.
+This was important because we kept changing core parts of the system — the backend, the control protocol, the CV pipeline. These tests caught bugs early in CI, not during field testing. The goal was not the number — it was making sure we could keep improving without breaking things.
 
 ---
 
