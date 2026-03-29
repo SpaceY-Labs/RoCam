@@ -13,29 +13,28 @@
 | 2 | Team Photo | Jianqing | 0:10 |
 | 3 | The Challenge | Jianqing | 1:20 |
 | 4 | The RoCam Solution | Jianqing | 0:55 |
-| 5 | Modular System Architecture | Jianqing | 1:15 |
-| 6 | LIVE DEMO | All | 2:45 |
-| 7 | Data Tooling - RoCam Labeler | Mike | 1:20 |
-| 8 | Computer Vision Pipeline | Mike | 1:00 |
-| 9 | Computer Vision Pipeline (Detection Result) | Mike | 0:30 |
-| 10 | Zero-Latency Tracking | Xiaotian | 0:55 |
-| 11 | Machine Learning Training | Xiaotian | 1:10 |
-| 12 | Model Development Journey | Xiaotian | 0:55 |
-| 13 | Hardware & Firmware Control | Jianqing | 1:10 |
-| 14 | Fault-Tolerant Architecture | Jianqing | 0:50 |
-| 15 | Mission Control UI | Zifan | 1:00 |
-| 16 | Recording Workflow | Zifan | 0:55 |
-| 17 | Testing & Quality Assurance | Xiaotian | 1:05 |
-| 18 | Project Challenges | Jianqing | 0:55 |
-| 19 | Future Scalability | Jianqing | 0:40 |
-| 20 | Stakeholder Feedback | Zifan | 0:55 |
-| 21 | Thank You | Jianqing | 0:10 |
+| 5 | LIVE DEMO | All | 2:45 |
+| 6 | Computer Vision Pipeline | Mike / Xiaotian | 1:00 |
+| 7 | Computer Vision Pipeline (Detection Result) | Mike | 0:30 |
+| 8 | Zero-Latency Tracking | Xiaotian | 0:55 |
+| 9 | Data Tooling - RoCam Labeler | Mike | 1:20 |
+| 10 | Machine Learning Training | Xiaotian | 1:10 |
+| 11 | Model Development Journey | Xiaotian | 0:55 |
+| 12 | Fault-Tolerant Architecture | Jianqing | 0:50 |
+| 13 | Modular System Architecture | Jianqing | 1:15 |
+| 14 | Mission Control UI | Zifan | 1:00 |
+| 15 | Recording Workflow | Zifan | 0:55 |
+| 16 | Testing & Quality Assurance | Xiaotian | 1:05 |
+| 17 | Project Challenges | Jianqing | 0:55 |
+| 18 | Future Scalability | Jianqing | 0:40 |
+| 19 | Stakeholder Feedback | Zifan | 0:55 |
+| 20 | Thank You | Jianqing | 0:10 |
 
 **Total approx. 20 min**
 
 ---
 
-## JIANQING LIU - Slides 1-5
+## JIANQING LIU - Slides 1-4
 
 ### Slide 1 - Title (0:25)
 
@@ -65,17 +64,9 @@ Three design pillars matter here. First, **edge AI tracking**: YOLO plus TensorR
 
 So this is not just a cheaper copy of an existing product. It is an accessible architecture built around the constraints of hobbyist rocketry.
 
-### Slide 5 - Modular System Architecture (1:15)
-
-Before the demo, here is the system in one slide.
-
-The camera captures **1080p video at 60 frames per second**. The Jetson runs hardware-accelerated computer vision and extracts the target position. That target information goes over UART to our custom STM32 board, which computes control outputs for the gimbal. And finally, the operator interacts with the system through a web interface.
-
-The important design choice is modularity. Input, processing, control, and interface are decoupled, which lets us isolate faults and restart components independently instead of taking down the whole system.
-
 ---
 
-### Slide 6 - LIVE DEMO (2:45, all members)
+### Slide 5 - LIVE DEMO (2:45, all members)
 
 **Jianqing**: Now let us show the full system live. This is RoCam running as a deployed system, not as a simulated demo.
 
@@ -89,15 +80,37 @@ The important design choice is modularity. Input, processing, control, and inter
 
 **Zifan**: I can also override the gimbal manually from the browser, then release control and return immediately to autonomous tracking.
 
-**Jianqing**: That is the core loop - detect, track, actuate - running end to end in real time. Mike will now walk through how we built the data and inference pipeline behind that demo.
+**Jianqing**: That is the core loop - detect, track, actuate - running end to end in real time. Mike will now walk through the CV inference pipeline behind that demo.
 
 ---
 
-## MIKE CHEN - Slides 7-9
+## MIKE CHEN / XIAOTIAN LOU - Slides 6-8
 
-### Slide 7 - Data Tooling - RoCam Labeler (1:20)
+### Slide 6 - Computer Vision Pipeline (1:00)
 
-Thanks, Jianqing. The first problem in any ML project is data.
+Thanks, Jianqing. Here is the deployed real-time inference path on the Jetson.
+
+The flow is: **camera capture**, then GPU **letterboxing**, then **YOLO26s** in TensorRT FP16, then **best-detection selection**, then two downstream outputs - **P-control** for the gimbal and a **GL shader** for live zoom in the operator view.
+
+We chose YOLO26s because it gave us the best deployment tradeoff on Jetson. Combined with DeepStream, the whole decode-to-inference path stays on GPU, which is how we remain inside a single-frame latency budget.
+
+### Slide 7 - Computer Vision Pipeline (Detection Result) (0:30)
+
+This frame shows the core challenge — the rocket occupies less than **0.1% of the image**, roughly **15×15 pixels** in a 1080p frame. Standard detectors struggle at this scale. Everything we did in training and pipeline design was driven by this constraint. Xiaotian will now show you how that tiny detection becomes perceptually instant tracking.
+
+### Slide 8 - Zero-Latency Tracking (0:55)
+
+The key idea here is that our camera sees more than what the operator sees on screen. So when YOLO finds the rocket, a GPU shader can crop and zoom the preview in **under one millisecond**. The operator sees the target locked right away — within one frame.
+
+At the same time, a second path sends commands over UART to the STM32, which moves the gimbal to re-center. So the screen updates instantly, and the hardware catches up in the background. That is how we get **zero perceived latency**.
+
+---
+
+## MIKE CHEN - Slide 9
+
+### Slide 9 - Data Tooling - RoCam Labeler (1:20)
+
+The first problem in any ML project is data.
 
 There is no public dataset of small hobby rockets at long range against realistic sky backgrounds, so we built our own annotation platform from scratch: the **RoCam Labeler**.
 
@@ -105,29 +118,11 @@ It gave us three core capabilities. First, **SAM-assisted annotation**, where on
 
 Every image that trained our final model passed through this tooling.
 
-### Slide 8 - Computer Vision Pipeline (1:00)
-
-Here is the deployed real-time inference path on the Jetson.
-
-The flow is: **camera capture**, then GPU **letterboxing**, then **YOLO26s** in TensorRT FP16, then **best-detection selection**, then two downstream outputs - **P-control** for the gimbal and a **GL shader** for live zoom in the operator view.
-
-We chose YOLO26s because it gave us the best deployment tradeoff on Jetson. Combined with DeepStream, the whole decode-to-inference path stays on GPU, which is how we remain inside a single-frame latency budget.
-
-### Slide 9 - Computer Vision Pipeline (Detection Result) (0:30)
-
-This frame shows the core challenge — the rocket occupies less than **0.1% of the image**, roughly **15×15 pixels** in a 1080p frame. Standard detectors struggle at this scale. Everything we did in training and pipeline design was driven by this constraint. Xiaotian will now show you how that tiny detection becomes perceptually instant tracking.
-
 ---
 
-## XIAOTIAN LOU - Slides 10-12
+## XIAOTIAN LOU - Slides 10-11
 
-### Slide 10 - Zero-Latency Tracking (0:45)
-
-The key idea here is that our camera sees more than what the operator sees on screen. So when YOLO finds the rocket, a GPU shader can crop and zoom the preview in **under one millisecond**. The operator sees the target locked right away — within one frame.
-
-At the same time, a second path sends commands over UART to the STM32, which moves the gimbal to re-center. So the screen updates instantly, and the hardware catches up in the background. That is how we get **zero perceived latency**.
-
-### Slide 11 - Machine Learning Training (0:55)
+### Slide 10 - Machine Learning Training (1:10)
 
 Our best training accuracy was **96.2% mAP@50** on H100 GPUs. But training accuracy is not enough — what matters is how well it works after deployment. Our best-in-training model actually lost **30%** accuracy after FP16 conversion on the Jetson.
 
@@ -135,7 +130,7 @@ The recipe that worked has three parts. First, **full mosaic at 1.0** — every 
 
 Result: only **9% accuracy loss** from training to Jetson. **94.3% precision**, **89.8% recall**, **60 FPS**, under **1ms shader latency**.
 
-### Slide 12 - Model Development Journey (0:55)
+### Slide 11 - Model Development Journey (0:55)
 
 This diagram shows every major direction we tried — **six different research branches**.
 
@@ -145,17 +140,9 @@ The main line — strong mosaic, multi-scale, COCO negatives — was the only on
 
 ---
 
-## JIANQING LIU - Slides 13-14
+## JIANQING LIU - Slides 12-13
 
-### Slide 13 - Hardware & Firmware Control (1:10)
-
-Once the Jetson has a target, the embedded side takes over.
-
-We designed a custom board around the **STM32F405**, and the firmware is written in **bare-metal Rust** using the Embassy async framework. The control loop runs at **60 Hz**. Every cycle, the board reads the latest target coordinates over UART, computes the correction, and updates the servo outputs.
-
-We also built safety directly into the link. UART packets are protected by **CRC-8**, and a watchdog trips in under **half a second** if the firmware becomes unresponsive. So the control path is fast, deterministic, and fail-safe.
-
-### Slide 14 - Fault-Tolerant Architecture (0:50)
+### Slide 12 - Fault-Tolerant Architecture (0:50)
 
 On the Jetson, the backend is split into independent processes: **CV**, **live video**, **control core**, and **transcode**.
 
@@ -163,11 +150,19 @@ The reason is fault isolation. If the CV process crashes, the control core can s
 
 That architecture is what lets us combine real-time performance with process-level resilience.
 
+### Slide 13 - Modular System Architecture (1:15)
+
+Here is the system in one slide.
+
+The camera captures **1080p video at 60 frames per second**. The Jetson runs hardware-accelerated computer vision and extracts the target position. That target information goes over UART to our custom STM32 board, which computes control outputs for the gimbal. And finally, the operator interacts with the system through a web interface.
+
+The important design choice is modularity. Input, processing, control, and interface are decoupled, which lets us isolate faults and restart components independently instead of taking down the whole system.
+
 ---
 
-## ZIFAN SI - Slides 15-16
+## ZIFAN SI - Slides 14-15
 
-### Slide 15 - Mission Control UI (1:00)
+### Slide 14 - Mission Control UI (1:00)
 
 Everything the operator touches lives in this **Mission Control** interface.
 
@@ -175,7 +170,7 @@ We built it with **React, TypeScript, and Vite**, but the real design goal was f
 
 So the UI centers on four things: **low-latency live preview**, **direct manual gimbal override**, **real-time health telemetry**, and **bilingual support** in English and French. It is not just a dashboard - it is the control surface for the whole system.
 
-### Slide 16 - Recording Workflow (0:55)
+### Slide 15 - Recording Workflow (0:55)
 
 When the operator hits record, we intentionally do **not** try to render a polished replay in the launch-time critical path.
 
@@ -185,9 +180,9 @@ That separation keeps capture lightweight during launch while still giving us a 
 
 ---
 
-## XIAOTIAN LOU - Slide 17
+## XIAOTIAN LOU - Slide 16
 
-### Slide 17 - Testing & Quality Assurance (0:45)
+### Slide 16 - Testing & Quality Assurance (1:05)
 
 We have **481 automated tests** in total. **313 backend tests** using pytest with **88% code coverage**, and **168 frontend tests** using Vitest with **86% coverage**. Every pull request goes through GitHub Actions, and we maintain a **100% pass rate**.
 
@@ -195,9 +190,9 @@ This was important because we kept changing core parts of the system — the bac
 
 ---
 
-## JIANQING LIU - Slides 18-19
+## JIANQING LIU - Slides 17-18
 
-### Slide 18 - Project Challenges (0:55)
+### Slide 17 - Project Challenges (0:55)
 
 No capstone like this goes smoothly, so here are the three hardest problems we had to solve.
 
@@ -205,7 +200,7 @@ First, **real-time latency**. A single-process design was not robust enough, so 
 
 These were not theoretical design choices - they were direct responses to failure modes we actually hit.
 
-### Slide 19 - Future Scalability (0:40)
+### Slide 18 - Future Scalability (0:40)
 
 RoCam is already usable, but the architecture leaves clear room to scale.
 
@@ -215,9 +210,9 @@ The next concrete target is moving from hobby-scale launches to **multi-kilomete
 
 ---
 
-## ZIFAN SI - Slide 20
+## ZIFAN SI - Slide 19
 
-### Slide 20 - Stakeholder Feedback (0:55)
+### Slide 19 - Stakeholder Feedback (0:55)
 
 Before we close, I want to show one example of stakeholder feedback directly shaping the product.
 
@@ -227,9 +222,9 @@ More broadly, the feedback clustered into the three themes shown on the right: *
 
 ---
 
-## JIANQING LIU - Slide 21
+## JIANQING LIU - Slide 20
 
-### Slide 21 - Thank You (0:10)
+### Slide 20 - Thank You (0:10)
 
 That is RoCam. Thank you for your time. Our code is open-source at the GitHub link on screen, and we would be happy to take your questions.
 
@@ -237,20 +232,20 @@ That is RoCam. Thank you for your time. Our code is open-source at the GitHub li
 
 ## Prepared Q&A - Likely Questions
 
-**Q: Why YOLO26s instead of YOLOv8 or another detector?**  
+**Q: Why YOLO26s instead of YOLOv8 or another detector?**
 A: YOLO26s gave us the best deployment tradeoff on the Jetson Orin Nano. It maintained stronger small-object performance while still fitting our latency budget in TensorRT FP16.
 
-**Q: How do you get zero perceived latency if the gimbal itself is mechanical?**  
+**Q: How do you get zero perceived latency if the gimbal itself is mechanical?**
 A: The preview is stabilized first in the GPU shader path, which updates within about one display frame. The gimbal then catches up physically through the slower servo path. So the operator sees immediate lock even though the hardware is still moving.
 
-**Q: Why store raw video and telemetry separately instead of saving the final replay directly?**  
+**Q: Why store raw video and telemetry separately instead of saving the final replay directly?**
 A: Because replay rendering is intentionally taken out of the critical launch path. Storing raw frames plus per-frame telemetry keeps capture lightweight during the event and allows stabilized preview or download to be reconstructed later.
 
-**Q: What happens if the CV process crashes during operation?**  
+**Q: What happens if the CV process crashes during operation?**
 A: The backend is split into separate processes, so the control core can stay alive and keep the system in a safe state while CV restarts. That is the main benefit of the fault-tolerant architecture.
 
-**Q: How did you validate the system beyond just one demo?**  
+**Q: How did you validate the system beyond just one demo?**
 A: We combined automated software testing with deployment validation. The repo currently has 481 automated tests, and the ML model was evaluated both during training and after Jetson deployment to measure the real edge performance gap.
 
-**Q: Is the system safe to use near people?**  
+**Q: Is the system safe to use near people?**
 A: Safety is enforced at multiple levels: controlled state transitions in the UI, CRC-protected control packets, firmware watchdog behavior, and bounded servo control on the embedded side.
