@@ -1072,110 +1072,98 @@
     <!-- ========================================== -->
     <!-- SLIDE 15: Recording -->
     <!-- ========================================== -->
-    <div class="slide dot-bg flex relative">
+    <div class="slide dot-bg flex flex-col justify-center px-32 relative">
         <div class="slide-header">
             <div class="header-line"></div>
             <div class="header-title">Recording Workflow</div>
         </div>
 
-        <div class="w-[47%] flex flex-col justify-center pl-28 pr-14 pt-20">
-            <div class="text-lg font-black tracking-[0.42em] uppercase text-rocam-red mb-6">
-                From launch to replay
-            </div>
-            <h2 class="text-[72px] font-black tight-heading text-rocam-dark mb-8">
-                Record raw. <span class="text-rocam-red">Rebuild smart.</span>
-            </h2>
-            <p class="text-2xl text-rocam-gray font-medium leading-relaxed mb-12">
-                RoCam stores the raw camera feed and per-frame telemetry separately, then reconstructs stabilized playback and downloads on demand.
-            </p>
+        <h2 class="text-[52px] font-black tight-heading text-rocam-dark mt-24 mb-4 max-w-5xl">
+            Record raw. <span class="text-rocam-red">Rebuild smart.</span>
+        </h2>
+        <p class="text-xl text-rocam-gray font-medium leading-relaxed mb-12 max-w-3xl">
+            RoCam stores the raw camera feed and per-frame telemetry separately, then reconstructs stabilized playback and downloads on demand.
+        </p>
 
-            <div class="grid grid-cols-3 gap-6 mb-10">
-                <div class="minimal-card !p-5 text-center">
-                    <div class="text-sm font-black tracking-[0.25em] uppercase text-rocam-red mb-2">Trigger</div>
-                    <div class="text-xl font-black text-rocam-dark">Browser UI</div>
-                    <div class="text-base text-rocam-gray font-medium mt-2">Start / stop from Mission Control</div>
-                </div>
-                <div class="minimal-card !p-5 text-center">
-                    <div class="text-sm font-black tracking-[0.25em] uppercase text-rocam-red mb-2">Storage</div>
-                    <div class="text-xl font-black text-rocam-dark">AVI + JSONL</div>
-                    <div class="text-base text-rocam-gray font-medium mt-2">Video frames plus OSD telemetry</div>
-                </div>
-                <div class="minimal-card !p-5 text-center">
-                    <div class="text-sm font-black tracking-[0.25em] uppercase text-rocam-red mb-2">Output</div>
-                    <div class="text-xl font-black text-rocam-dark">Preview / Download</div>
-                    <div class="text-base text-rocam-gray font-medium mt-2">Rendered after the flight event</div>
-                </div>
-            </div>
-
-            <div class="minimal-card relative overflow-hidden border-2 border-rocam-red">
-                <div class="absolute top-0 left-0 w-full h-2 bg-rocam-red"></div>
-                <div class="text-sm font-black tracking-[0.35em] uppercase text-rocam-red mb-4">Why this split matters</div>
-                <div class="space-y-4">
-                    <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-gauge-high text-rocam-red"></i>
-                        </div>
-                        <div class="text-lg text-rocam-gray font-medium leading-relaxed">
-                            Capture stays lightweight during launch instead of doing heavy replay rendering in the critical path.
-                        </div>
+        <div class="flex w-full gap-14 mb-10">
+            <!-- Left: 3-step pipeline -->
+            <div class="w-[55%] space-y-6">
+                <div class="flex gap-6 items-start">
+                    <div class="w-14 h-14 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-video text-xl text-rocam-dark"></i>
                     </div>
-                    <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-layer-group text-rocam-dark"></i>
-                        </div>
-                        <div class="text-lg text-rocam-gray font-medium leading-relaxed">
-                            The saved telemetry lets us re-apply OSD, timestamps, zoom transforms, and stabilization later for post-flight review.
-                        </div>
+                    <div>
+                        <div class="text-sm font-bold tracking-[0.2em] uppercase text-rocam-gray mb-1">1. Capture</div>
+                        <div class="text-2xl font-bold text-rocam-dark mb-1">Raw video branch to <span class="text-rocam-red">video.avi</span></div>
+                        <div class="text-lg text-rocam-gray font-medium">The CV pipeline swaps in a recording sink and writes the camera stream without waiting for replay rendering.</div>
+                    </div>
+                </div>
+
+                <div class="pl-7 text-gray-200"><i class="fa-solid fa-arrow-down"></i></div>
+
+                <div class="flex gap-6 items-start">
+                    <div class="w-14 h-14 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-file-lines text-xl text-rocam-dark"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold tracking-[0.2em] uppercase text-rocam-gray mb-1">2. Log</div>
+                        <div class="text-2xl font-bold text-rocam-dark mb-1">Per-frame OSD data to <span class="text-rocam-red">log.txt</span></div>
+                        <div class="text-lg text-rocam-gray font-medium">Each frame stores pan, tilt, focal length, FPS, timestamps, and stabilization transforms as JSONL telemetry.</div>
+                    </div>
+                </div>
+
+                <div class="pl-7 text-gray-200"><i class="fa-solid fa-arrow-down"></i></div>
+
+                <div class="flex gap-6 items-start">
+                    <div class="w-14 h-14 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-wand-magic-sparkles text-xl text-rocam-dark"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold tracking-[0.2em] uppercase text-rocam-gray mb-1">3. Replay</div>
+                        <div class="text-2xl font-bold text-rocam-dark mb-1">Separate transcode for stabilized review</div>
+                        <div class="text-lg text-rocam-gray font-medium">Preview and download are reconstructed later with the same OSD and shader path, producing a polished replay stream.</div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="w-[53%] flex items-center justify-center pr-28 pt-20">
-            <div class="w-full max-w-[860px] relative">
-                <div class="absolute right-4 top-6 text-[180px] opacity-5 text-rocam-red">
-                    <i class="fa-solid fa-film"></i>
+            <!-- Right: Summary cards -->
+            <div class="w-[45%] flex flex-col justify-center space-y-8">
+                <div class="grid grid-cols-3 gap-5">
+                    <div class="minimal-card !p-5 text-center">
+                        <div class="text-sm font-bold tracking-[0.2em] uppercase text-rocam-gray mb-2">Trigger</div>
+                        <div class="text-xl font-black text-rocam-dark">Browser UI</div>
+                        <div class="text-base text-rocam-gray font-medium mt-2">Start / stop from Mission Control</div>
+                    </div>
+                    <div class="minimal-card !p-5 text-center">
+                        <div class="text-sm font-bold tracking-[0.2em] uppercase text-rocam-gray mb-2">Storage</div>
+                        <div class="text-xl font-black text-rocam-dark">AVI + JSONL</div>
+                        <div class="text-base text-rocam-gray font-medium mt-2">Video frames plus OSD telemetry</div>
+                    </div>
+                    <div class="minimal-card !p-5 text-center">
+                        <div class="text-sm font-bold tracking-[0.2em] uppercase text-rocam-gray mb-2">Output</div>
+                        <div class="text-xl font-black text-rocam-dark">Preview / DL</div>
+                        <div class="text-base text-rocam-gray font-medium mt-2">Rendered after the flight event</div>
+                    </div>
                 </div>
 
-                <div class="space-y-8 relative z-10">
-                    <div class="minimal-card !p-7 flex items-center gap-6">
-                        <div class="w-20 h-20 rounded-2xl bg-rocam-red text-white flex items-center justify-center text-3xl shrink-0 shadow-lg">
-                            <i class="fa-solid fa-video"></i>
+                <div class="minimal-card">
+                    <div class="text-sm font-bold tracking-[0.2em] uppercase text-rocam-gray mb-4">Why this split matters</div>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-gauge-high text-rocam-dark"></i>
+                            </div>
+                            <div class="text-lg text-rocam-gray font-medium leading-relaxed">
+                                Capture stays lightweight during launch instead of doing heavy replay rendering in the critical path.
+                            </div>
                         </div>
-                        <div>
-                            <div class="text-sm font-black tracking-[0.3em] uppercase text-rocam-red mb-2">1. Capture</div>
-                            <div class="text-[34px] font-black text-rocam-dark mb-2">Raw video branch to <span class="text-rocam-red">video.avi</span></div>
-                            <div class="text-xl text-rocam-gray font-medium leading-relaxed">The CV pipeline swaps in a recording sink and writes the camera stream without waiting for replay rendering.</div>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-center text-gray-300 text-3xl">
-                        <i class="fa-solid fa-arrow-down"></i>
-                    </div>
-
-                    <div class="minimal-card !p-7 flex items-center gap-6">
-                        <div class="w-20 h-20 rounded-2xl bg-rocam-dark text-white flex items-center justify-center text-3xl shrink-0 shadow-lg">
-                            <i class="fa-solid fa-file-lines"></i>
-                        </div>
-                        <div>
-                            <div class="text-sm font-black tracking-[0.3em] uppercase text-rocam-dark mb-2">2. Log</div>
-                            <div class="text-[34px] font-black text-rocam-dark mb-2">Per-frame OSD data to <span class="text-rocam-red">log.txt</span></div>
-                            <div class="text-xl text-rocam-gray font-medium leading-relaxed">Each frame stores pan, tilt, focal length, FPS, timestamps, and stabilization transforms as JSONL telemetry.</div>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-center text-gray-300 text-3xl">
-                        <i class="fa-solid fa-arrow-down"></i>
-                    </div>
-
-                    <div class="minimal-card !p-7 flex items-center gap-6 border-2 border-gray-800">
-                        <div class="w-20 h-20 rounded-2xl bg-gray-800 text-white flex items-center justify-center text-3xl shrink-0 shadow-lg">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        </div>
-                        <div>
-                            <div class="text-sm font-black tracking-[0.3em] uppercase text-rocam-dark mb-2">3. Replay</div>
-                            <div class="text-[34px] font-black text-rocam-dark mb-2">Separate transcode for stabilized review</div>
-                            <div class="text-xl text-rocam-gray font-medium leading-relaxed">Preview and download are reconstructed later with the same OSD and shader path, producing a polished replay stream for analysis.</div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-layer-group text-rocam-dark"></i>
+                            </div>
+                            <div class="text-lg text-rocam-gray font-medium leading-relaxed">
+                                Saved telemetry lets us re-apply OSD, timestamps, zoom transforms, and stabilization later for post-flight review.
+                            </div>
                         </div>
                     </div>
                 </div>
