@@ -298,6 +298,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+node_modules/src/training/yolo26n.pt
+src/training/runs/
 node_modules/
 .cursor/
 src/labelling-app/frontend/test-results/.last-run.json
