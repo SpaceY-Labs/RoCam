@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoCam - Capstone Final Presentation</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        rocam: {
+                            red: '#D92121',     /* Clean, bright red for accent */
+                            dark: '#0A0A0A',    /* Near black for maximum contrast */
+                            gray: '#4A4A4A',    /* Darker gray for subtitles to prevent looking 'empty' */
+                            light: '#F8F9FA',   /* Base background */
+                            card: '#FFFFFF',    /* Card background */
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Base Setup - Refined Minimalist Light Theme */
+        html, body {
+            margin: 0; padding: 0;
+            background-color: #E9ECEF; 
+            color: #0A0A0A;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Dot Grid Background to add texture and fix 'empty' feeling */
+        .dot-bg {
+            background-color: #F8F9FA;
+            background-image: radial-gradient(#D1D5DB 1.5px, transparent 1.5px);
+            background-size: 32px 32px;
+        }
+
+        /* The 16:9 Canvas */
+        .slide {
+            width: 1920px;
+            height: 1080px;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+            page-break-after: always;
+            break-after: page;
+        }
+
+        /* Screen Viewer Wrapper */
+        .presentation-wrapper { width: 1920px; transform-origin: top left; }
+
+        @media print {
+            @page { size: 1920px 1080px; margin: 0; }
+            body { background: none; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .presentation-wrapper { transform: none !important; width: 100% !important; }
+            .slide { transform: none !important; box-shadow: none !important; margin: 0 !important; }
+        }
+
+        @media screen {
+            body { display: flex; flex-direction: column; align-items: center; gap: 2rem; padding: 2rem 0; background-color: #DEE2E6; }
+            .slide { 
+                box-shadow: 0 15px 40px -10px rgba(0,0,0,0.15);
+                transform: scale(calc(min(90vw / 1920, 90vh / 1080)));
+                margin-bottom: calc(-1080px * (1 - min(90vw / 1920, 90vh / 1080)));
+            }
+        }
+
+        /* Elevated UI Elements */
+        .minimal-card {
+            background-color: #FFFFFF;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.04);
+            padding: 3rem; /* Thicker padding to feel more substantial */
+        }
+
+        /* Slide Footer/Header Lines */
+        .slide-header {
+            position: absolute;
+            top: 70px;
+            left: 90px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            z-index: 20;
+        }
+        .header-line {
+            width: 48px;
+            height: 4px;
+            background-color: #D92121;
+        }
+        .header-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: #4A4A4A;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .slide-footer {
+            position: absolute;
+            bottom: 50px;
+            right: 90px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #888888;
+            letter-spacing: 0.05em;
+            z-index: 20;
+        }
+        
+        .speaker-badge {
+            display: none;
+        }
+
+        /* Typography helpers */
+        .tight-heading {
+            letter-spacing: -0.04em;
+            line-height: 1.05;
+        }
+        
+        /* Clean images */
+        .clean-img {
+            mix-blend-mode: multiply;
+        }
+    </style>
+</head>
+<body>
+
+<div class="presentation-wrapper">
+
+    <!-- ========================================== -->
+    <!-- SLIDE 1: Title -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col justify-center items-center relative">
+        <div class="z-10 flex flex-col items-center">
+            <img src="figures/logo_red.png" alt="RoCam Logo" class="h-64 mb-6" style="filter: brightness(0) saturate(100%) invert(16%) sepia(99%) saturate(4200%) hue-rotate(352deg) brightness(90%) contrast(90%);">
+            <p class="text-[36px] font-medium text-rocam-gray tracking-tight mb-20 text-center">
+                High Performance Vision-Guided Rocket Tracker
+            </p>
+            
+            <div class="w-32 h-1.5 bg-rocam-red mb-16"></div>
+
+            <div class="grid grid-cols-4 gap-16 text-center w-full max-w-[1200px] mb-12">
+                <div>
+                    <div class="text-2xl font-bold text-rocam-dark">Zifan Si</div>
+                    <div class="text-lg text-rocam-red mt-1">Full Stack & DevOps</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-rocam-dark">Jianqing Liu</div>
+                    <div class="text-lg text-rocam-red mt-1">Arch. Backend & Firmware</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-rocam-dark">Mike Chen</div>
+                    <div class="text-lg text-rocam-red mt-1">Data Tooling</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-rocam-dark">Xiaotian Lou</div>
+                    <div class="text-lg text-rocam-red mt-1">CV, ML & System Tests</div>
+                </div>
+            </div>
+
+            <p class="text-[17px] text-gray-400 font-medium tracking-wide mb-6">
+                Supervisor: Dr. Shahin Sirouspour &nbsp;&bull;&nbsp; Instructor: Dr. Spencer Smith &nbsp;&bull;&nbsp; TA: Tanya Djavaherpour
+            </p>
+
+            <p class="text-xl text-gray-500 font-bold tracking-widest uppercase">
+                Team #3 SpaceY &nbsp;|&nbsp; McMaster University SFWRENG 4G06 &nbsp;|&nbsp; McMaster Rocketry Team
+            </p>
+        </div>
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
+        <div class="slide-footer">1 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 2: Group Photo -->
+    <!-- ========================================== -->
+    <div class="slide relative" style="background: #000; display: flex; justify-content: center; align-items: center;">
+        <img src="figures/bvigpic.webp" alt="Team Group Photo" style="width: 100%; height: 100%; object-fit: cover;">
+        <div class="slide-footer" style="color: #999;">2 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 3: Problem & Roadmap -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">The Challenge</div>
+        </div>
+
+        <div class="w-[55%] flex flex-col justify-center pl-32 pr-16 pt-16">
+            <h2 class="text-[72px] font-black tight-heading text-rocam-dark mb-12">
+                Rockets reach <span class="text-rocam-red">Mach 3</span> in seconds.
+            </h2>
+            <p class="text-3xl text-rocam-gray font-medium leading-relaxed mb-16">
+                Manual optical tracking is physically impossible for small-profile hobbyist rocketry. Commercial rigs cost upwards of $10,000.
+            </p>
+            
+            <div class="grid grid-cols-2 gap-12">
+                <div class="border-l-8 border-rocam-dark pl-8 py-2">
+                    <div class="text-[64px] font-black text-rocam-dark leading-none mb-2">100<span class="text-3xl ml-2">km</span></div>
+                    <div class="text-xl text-rocam-gray font-bold uppercase tracking-wide">Max Altitude</div>
+                </div>
+                <div class="border-l-8 border-rocam-red pl-8 py-2">
+                    <div class="text-[64px] font-black text-rocam-red leading-none mb-2">&gt;10<span class="text-3xl ml-2">g</span></div>
+                    <div class="text-xl text-rocam-gray font-bold uppercase tracking-wide">Acceleration</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="w-[45%] flex flex-col justify-center items-center bg-white border-l border-gray-200 relative shadow-2xl z-10">
+            <h3 class="text-3xl font-black text-rocam-dark mb-16 tracking-widest uppercase">Presentation Roadmap</h3>
+            
+            <div class="flex flex-col gap-10 text-2xl font-bold text-rocam-gray relative">
+                <!-- Vertical Line -->
+                <div class="absolute left-[11px] top-4 bottom-4 w-1 bg-gray-200 z-0"></div>
+                
+                <div class="flex items-center gap-8 relative z-10">
+                    <div class="w-6 h-6 rounded-full bg-rocam-dark border-4 border-white shadow-md"></div>
+                    <span class="text-rocam-dark">1. Problem & Solution</span>
+                </div>
+                <div class="flex items-center gap-8 relative z-10">
+                    <div class="w-6 h-6 rounded-full bg-rocam-dark border-4 border-white shadow-md"></div>
+                    <span class="text-rocam-dark">2. Architecture & Live Demo</span>
+                </div>
+                <div class="flex items-center gap-8 relative z-10">
+                    <div class="w-6 h-6 rounded-full bg-rocam-dark border-4 border-white shadow-md"></div>
+                    <span>3. Data, CV & ML Pipeline</span>
+                </div>
+                <div class="flex items-center gap-8 relative z-10">
+                    <div class="w-6 h-6 rounded-full bg-rocam-dark border-4 border-white shadow-md"></div>
+                    <span>4. Hardware & UI Control</span>
+                </div>
+                <div class="flex items-center gap-8 relative z-10">
+                    <div class="w-6 h-6 rounded-full bg-rocam-dark border-4 border-white shadow-md"></div>
+                    <span>5. Testing, Challenges & Future</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
+        <div class="slide-footer">3 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 4: Solution (Requirements) -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">The RoCam Solution</div>
+        </div>
+
+        <div class="w-1/2 flex items-center justify-center pt-24 pl-16 relative z-10">
+            <div class="relative">
+                <div class="absolute -inset-4 bg-rocam-red/5 rounded-full blur-3xl z-0"></div>
+                <img src="figures/prototype_cutout.png" alt="RoCam Prototype" class="h-[750px] object-contain clean-img relative z-10">
+            </div>
+        </div>
+
+        <div class="w-1/2 flex flex-col justify-center pr-32 pt-24">
+            <h2 class="text-[72px] font-black tight-heading text-rocam-dark mb-10">
+                Autonomous.<br>Accessible.<br>Accurate.
+            </h2>
+            
+            <p class="text-2xl text-rocam-gray font-medium leading-relaxed mb-12">
+                A fully autonomous, closed-loop optical tracking system engineered to meet strict performance constraints.
+            </p>
+            
+            <div class="grid grid-cols-1 gap-6">
+                <div class="minimal-card !p-8 flex items-center gap-8">
+                    <div class="w-16 h-16 rounded-2xl bg-rocam-dark flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-microchip text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-rocam-dark mb-1">Autonomous Edge AI Tracking</div>
+                        <div class="text-lg text-rocam-gray">Works in remote, offline, and hazardous conditions</div>
+                    </div>
+                </div>
+                <div class="minimal-card !p-8 flex items-center gap-8">
+                    <div class="w-16 h-16 rounded-2xl bg-rocam-red flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-gauge-high text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-rocam-dark mb-1">Accurate and Precise</div>
+                        <div class="text-lg text-rocam-gray">60Hz closed-loop control and digital stabilization</div>
+                    </div>
+                </div>
+                <div class="minimal-card !p-8 flex items-center gap-8">
+                    <div class="w-16 h-16 rounded-2xl bg-gray-200 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-dollar-sign text-2xl text-rocam-dark"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-rocam-dark mb-1">Low Cost</div>
+                        <div class="text-lg text-rocam-gray">Total BOM under $500 CAD (vs $10k+ commercial)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
+        <div class="slide-footer">4 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 5: Live Demo -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col justify-center items-center relative">
+        <div class="z-10 text-center flex flex-col items-center">
+            <div class="w-32 h-32 rounded-full bg-rocam-red/10 flex items-center justify-center mb-10 border-2 border-rocam-red/30">
+                <i class="fa-solid fa-rocket text-[64px] text-rocam-red"></i>
+            </div>
+            <h1 class="text-[140px] font-black tight-heading tracking-tighter mb-6 text-rocam-dark">LIVE DEMO</h1>
+        </div>
+
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: All</div>
+        <div class="slide-footer">5 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 6: CV Pipeline -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col justify-center px-32 relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Computer Vision Pipeline</div>
+        </div>
+
+        <h2 class="text-[56px] font-black tight-heading text-rocam-dark mt-24 mb-16 max-w-5xl">
+            Optimized for extreme distance and strict latency budgets.
+        </h2>
+
+        <!-- Linear Flow: Actual CV Pipeline -->
+        <div class="flex items-center justify-between w-full mb-20 bg-white p-10 rounded-3xl shadow-lg border border-gray-100">
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-video text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">Capture</div>
+                <div class="text-sm text-rocam-gray mt-1">CSI 1080p @60fps</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-crop-simple text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">Downsampling</div>
+                <div class="text-sm text-rocam-gray mt-1">GPU 540&times;960</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:140px;">
+                <div class="w-20 h-20 rounded-2xl bg-rocam-dark flex items-center justify-center mb-4 shadow-xl transform scale-110">
+                    <i class="fa-solid fa-brain text-2xl text-white"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">YOLO26s</div>
+                <div class="text-sm text-rocam-gray mt-1">TensorRT FP16</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-crosshairs text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">Select</div>
+                <div class="text-sm text-rocam-gray mt-1">Best Detection</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-rocam-red flex items-center justify-center mb-4 shadow-lg">
+                    <i class="fa-solid fa-bullseye text-2xl text-white"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">P-Control</div>
+                <div class="text-sm text-rocam-gray mt-1">Gimbal Track</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-expand text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">GL Shader</div>
+                <div class="text-sm text-rocam-gray mt-1">Live Zoom · 1080p</div>
+            </div>
+        </div>
+
+        <!-- Image: Raw frame -->
+        <div style="position:absolute; top:80px; right:90px; text-align:center; z-index:20;">
+            <img src="figures/tiny_rocket_raw.jpg" alt="Raw frame" style="width:420px; height:236px; object-fit:cover; border-radius:14px; border:2px solid #E5E7EB; box-shadow:0 8px 30px rgba(0,0,0,0.08);">
+            <div style="font-size:14px; font-weight:700; color:#888; margin-top:6px;">Raw frame &mdash; can you spot the rocket?</div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-12 mt-8">
+            <div>
+                <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
+                    <i class="fa-solid fa-magnifying-glass text-rocam-red"></i> Why YOLO26s?
+                </h4>
+                <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
+                    One-to-one detection head eliminates NMS entirely. 9.47M parameters engineered for FP16&mdash;only 9% accuracy loss on Jetson vs. 30% for alternative architectures.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
+                    <i class="fa-solid fa-gauge-simple-high text-rocam-red"></i> Full GPU Pipeline
+                </h4>
+                <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
+                    DeepStream runs decode, downsampling, and TensorRT inference entirely on GPU. Confidence threshold filters noise; probe selects single best detection per frame.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
+                    <i class="fa-solid fa-arrows-to-circle text-rocam-red"></i> Instant Visual Lock
+                </h4>
+                <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
+                    GL fragment shader crops and zooms on target within one display frame. P-control drives gimbal via UART. Zero perceived tracking latency.
+                </p>
+            </div>
+        </div>
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Mike Chen / Xiaotian Lou</div>
+        <div class="slide-footer">6 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 7: CV Pipeline - Detection Result -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col justify-center px-32 relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Computer Vision Pipeline</div>
+        </div>
+
+        <h2 class="text-[56px] font-black tight-heading text-rocam-dark mt-24 mb-16 max-w-5xl">
+            Optimized for extreme distance and strict latency budgets.
+        </h2>
+
+        <!-- Linear Flow: Actual CV Pipeline -->
+        <div class="flex items-center justify-between w-full mb-20 bg-white p-10 rounded-3xl shadow-lg border border-gray-100">
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-video text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">Capture</div>
+                <div class="text-sm text-rocam-gray mt-1">CSI 1080p @60fps</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-crop-simple text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">Downsampling</div>
+                <div class="text-sm text-rocam-gray mt-1">GPU 540&times;960</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:140px;">
+                <div class="w-20 h-20 rounded-2xl bg-rocam-dark flex items-center justify-center mb-4 shadow-xl transform scale-110">
+                    <i class="fa-solid fa-brain text-2xl text-white"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">YOLO26s</div>
+                <div class="text-sm text-rocam-gray mt-1">TensorRT FP16</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-crosshairs text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">Select</div>
+                <div class="text-sm text-rocam-gray mt-1">Best Detection</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-rocam-red flex items-center justify-center mb-4 shadow-lg">
+                    <i class="fa-solid fa-bullseye text-2xl text-white"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">P-Control</div>
+                <div class="text-sm text-rocam-gray mt-1">Gimbal Track</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-2xl text-gray-300"></i>
+            <div class="flex flex-col items-center" style="min-width:120px;">
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-expand text-2xl text-rocam-dark"></i>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark">GL Shader</div>
+                <div class="text-sm text-rocam-gray mt-1">Live Zoom · 1080p</div>
+            </div>
+        </div>
+
+        <!-- Image: Detection result - same position as raw frame -->
+        <div style="position:absolute; top:80px; right:90px; text-align:center; z-index:20;">
+            <img src="figures/tiny_rocket_det.jpg" alt="Detection" style="width:420px; height:236px; object-fit:cover; border-radius:14px; border:2px solid #D92121; box-shadow:0 8px 30px rgba(0,0,0,0.08);">
+            <div style="font-size:14px; font-weight:700; color:#D92121; margin-top:6px;">Target &lt;0.1% of frame &mdash; detected at conf 0.52</div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-12 mt-8">
+            <div>
+                <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
+                    <i class="fa-solid fa-magnifying-glass text-rocam-red"></i> Why YOLO26s?
+                </h4>
+                <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
+                    One-to-one detection head eliminates NMS entirely. 9.47M parameters engineered for FP16&mdash;only 9% accuracy loss on Jetson vs. 30% for alternative architectures.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
+                    <i class="fa-solid fa-gauge-simple-high text-rocam-red"></i> Full GPU Pipeline
+                </h4>
+                <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
+                    DeepStream runs decode, downsampling, and TensorRT inference entirely on GPU. Confidence threshold filters noise; probe selects single best detection per frame.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-3xl font-black text-rocam-dark mb-4 flex items-center gap-4">
+                    <i class="fa-solid fa-arrows-to-circle text-rocam-red"></i> Instant Visual Lock
+                </h4>
+                <p class="text-2xl text-rocam-gray font-medium leading-relaxed">
+                    GL fragment shader crops and zooms on target within one display frame. P-control drives gimbal via UART. Zero perceived tracking latency.
+                </p>
+            </div>
+        </div>
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Mike Chen</div>
+        <div class="slide-footer">7 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 8: Zero-Latency Visual Tracking -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col justify-center px-32 relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Zero-Latency Tracking</div>
+        </div>
+
+        <h2 class="text-[52px] font-black tight-heading text-rocam-dark mt-24 mb-14 max-w-5xl">
+            Optical redundancy enables perceptually instant tracking.
+        </h2>
+
+        <!-- Dual-path diagram -->
+        <div class="flex w-full gap-12 mb-14">
+
+            <!-- Left: FOV Redundancy Diagram -->
+            <div class="w-[45%] bg-white rounded-3xl shadow-lg border border-gray-100 p-10 flex flex-col items-center justify-center">
+                <!-- Camera FOV visualisation -->
+                <div style="width:420px; height:280px; position:relative; border:3px solid #D1D5DB; border-radius:20px; background:#F8F9FA; overflow:hidden;">
+                    <!-- Outer label -->
+                    <div style="position:absolute; top:8px; left:12px; font-size:13px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:0.1em;">Camera Full FOV (1920×1080)</div>
+                    <!-- Inner display window -->
+                    <div style="position:absolute; top:50%; left:56%; transform:translate(-50%,-50%); width:220px; height:148px; border:3px dashed #D92121; border-radius:14px; background:rgba(217,33,33,0.04);">
+                        <div style="position:absolute; top:-28px; left:50%; transform:translateX(-50%); white-space:nowrap; font-size:12px; font-weight:700; color:#D92121; text-transform:uppercase; letter-spacing:0.08em;">GPU Shader Crop</div>
+                        <!-- Rocket icon -->
+                        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center;">
+                            <i class="fa-solid fa-rocket text-4xl text-rocam-dark" style="transform:rotate(-45deg);"></i>
+                            <div style="font-size:11px; font-weight:700; color:#D92121; margin-top:6px;">Target Centered</div>
+                        </div>
+                    </div>
+                    <!-- Redundancy arrows -->
+                    <div style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); font-size:12px; font-weight:600; color:#888;">
+                        <i class="fa-solid fa-arrows-left-right text-rocam-red"></i>&nbsp; Zoom Redundancy Buffer
+                    </div>
+                </div>
+                <div class="text-xl font-bold text-rocam-dark mt-6">FOV Redundancy Model</div>
+                <div class="text-base text-rocam-gray mt-1 text-center">Wide optical view guarantees target stays in frame<br>while gimbal mechanically catches up</div>
+            </div>
+
+            <!-- Right: Dual-path flow -->
+            <div class="w-[55%] flex flex-col gap-6">
+                <!-- Detection source -->
+                <div class="bg-rocam-dark rounded-2xl px-8 py-5 flex items-center gap-6 shadow-xl">
+                    <div class="w-14 h-14 rounded-xl bg-white/15 flex items-center justify-center">
+                        <i class="fa-solid fa-crosshairs text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-black text-white">Detection Result</div>
+                        <div class="text-base text-gray-400 font-medium">BBox (cx, cy, w, h) from YOLO @ 60fps</div>
+                    </div>
+                </div>
+
+                <!-- Split into two paths -->
+                <div class="flex gap-6">
+                    <!-- Fast path -->
+                    <div class="flex-1 bg-white rounded-2xl shadow-lg border-2 border-rocam-red p-6 relative">
+                        <div class="absolute -top-3 left-6 bg-rocam-red text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">~1ms</div>
+                        <div class="flex items-center gap-4 mb-4 mt-2">
+                            <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center">
+                                <i class="fa-solid fa-bolt text-xl text-rocam-red"></i>
+                            </div>
+                            <div class="text-xl font-black text-rocam-dark">GPU Shader Path</div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-xs font-bold text-rocam-red">1</div>
+                                <span class="text-base font-medium text-rocam-gray">Compute tx, ty, scale from bbox</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-xs font-bold text-rocam-red">2</div>
+                                <span class="text-base font-medium text-rocam-gray">GL shader crops &amp; centers frame</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-xs font-bold text-rocam-red">3</div>
+                                <span class="text-base font-medium text-rocam-gray">Livestream output &rarr; operator sees instant lock</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slow path -->
+                    <div class="flex-1 bg-white rounded-2xl shadow-lg border border-gray-200 p-6 relative">
+                        <div class="absolute -top-3 left-6 bg-gray-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">~35ms</div>
+                        <div class="flex items-center gap-4 mb-4 mt-2">
+                            <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+                                <i class="fa-solid fa-gears text-xl text-rocam-dark"></i>
+                            </div>
+                            <div class="text-xl font-black text-rocam-dark">Gimbal Servo Path</div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-rocam-dark">1</div>
+                                <span class="text-base font-medium text-rocam-gray">P-control &rarr; delta pan/tilt</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-rocam-dark">2</div>
+                                <span class="text-base font-medium text-rocam-gray">UART &rarr; STM32 &rarr; PWM servo</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-rocam-dark">3</div>
+                                <span class="text-base font-medium text-rocam-gray">Mechanical motion re-centers optical FOV</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result bar -->
+                <div class="bg-gradient-to-r from-rocam-red to-red-700 rounded-2xl px-8 py-5 flex items-center gap-6 shadow-lg">
+                    <i class="fa-solid fa-circle-check text-3xl text-white"></i>
+                    <div>
+                        <div class="text-xl font-black text-white">Zero Perceived Latency</div>
+                        <div class="text-base text-red-200 font-medium">Operator sees target locked within one display frame (~16ms). Gimbal catches up transparently.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
+        <div class="slide-footer">8 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 9: Labelling App (Data Tooling) -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Data Tooling — RoCam Labeler</div>
+        </div>
+
+        <div class="w-[50%] flex flex-col justify-center pl-32 pr-12 pt-24">
+            <h2 class="text-[56px] font-black tight-heading text-rocam-dark mb-8">
+                Custom labelling platform for rocket data.
+            </h2>
+            <p class="text-2xl text-rocam-gray font-medium leading-relaxed mb-12">
+                All training data flows through our in-house <span class="font-bold text-rocam-dark">RoCam Labeler</span> — a full-stack annotation tool built from scratch to handle our unique dataset requirements.
+            </p>
+
+            <div class="space-y-6">
+                <div class="minimal-card !p-6 flex items-center gap-6">
+                    <div class="w-12 text-center"><i class="fa-solid fa-wand-magic-sparkles text-3xl text-rocam-red"></i></div>
+                    <div>
+                        <span class="text-2xl font-bold text-rocam-dark">SAM-Assisted Annotation</span>
+                        <div class="text-lg text-rocam-gray font-medium mt-1">One-click segmentation masks via Meta SAM</div>
+                    </div>
+                </div>
+                <div class="minimal-card !p-6 flex items-center gap-6">
+                    <div class="w-12 text-center"><i class="fa-solid fa-folder-tree text-3xl text-rocam-dark"></i></div>
+                    <div>
+                        <span class="text-2xl font-bold text-rocam-dark">Project Management</span>
+                        <div class="text-lg text-rocam-gray font-medium mt-1">Multi-project workspace with progress tracking</div>
+                    </div>
+                </div>
+                <div class="minimal-card !p-6 flex items-center gap-6">
+                    <div class="w-12 text-center"><i class="fa-solid fa-file-zipper text-3xl text-rocam-dark"></i></div>
+                    <div>
+                        <span class="text-2xl font-bold text-rocam-dark">Batch Upload / Export</span>
+                        <div class="text-lg text-rocam-gray font-medium mt-1">ZIP-based bulk import and YOLO-format export</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-[50%] flex flex-col justify-center items-center gap-8 pr-24 pt-24">
+            <div class="rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-300">
+                <img src="figures/labelling_projects.png" alt="Labelling App - Projects" class="w-full object-cover">
+            </div>
+            <div class="rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-300">
+                <img src="figures/labelling_manage.png" alt="Labelling App - Annotated Data" class="w-full object-cover">
+            </div>
+        </div>
+
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Mike Chen</div>
+        <div class="slide-footer">9 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 10: ML Training -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col justify-center px-32 relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Machine Learning Training</div>
+        </div>
+
+        <div class="flex w-full mt-24 gap-16">
+            <!-- Left: Metrics Story -->
+            <div class="w-[40%] flex flex-col justify-center">
+                <div class="minimal-card bg-rocam-dark text-white mb-10 shadow-2xl relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 opacity-10"><i class="fa-solid fa-bullseye text-[200px]"></i></div>
+                    <div class="text-[120px] font-black leading-none tracking-tighter mb-2 relative z-10">96.2<span class="text-[60px]">%</span></div>
+                    <div class="text-2xl text-gray-400 font-bold uppercase tracking-widest relative z-10">Peak Training Accuracy</div>
+                    <div class="text-lg text-gray-500 font-medium mt-2 relative z-10">mAP@50 across 10+ experiments on H100</div>
+                </div>
+                <div class="minimal-card border-2 border-rocam-red relative overflow-hidden">
+                    <div class="flex items-end gap-6 mb-3">
+                        <div class="text-[80px] font-black text-rocam-red leading-none tracking-tighter">9<span class="text-[40px]">%</span></div>
+                        <div class="text-3xl font-bold text-rocam-dark pb-3">Deployment Gap</div>
+                    </div>
+                    <p class="text-lg text-rocam-gray font-medium leading-relaxed">FP16 quantization on Jetson Orin Nano. Our best-in-training architecture lost <span class="font-bold text-rocam-dark">30%</span> at deployment&mdash;the production recipe held.</p>
+                </div>
+            </div>
+
+            <!-- Right: Methodology -->
+            <div class="w-[60%] flex flex-col justify-center">
+                <h3 class="text-4xl font-black text-rocam-dark mb-8 tight-heading">Aggressive Augmentation Training</h3>
+                <p class="text-xl text-rocam-gray font-medium mb-10">YOLO26s trained end-to-end for <span class="font-bold text-rocam-dark">420 epochs</span> on H100 GPU. Data labelled via our custom <span class="font-bold text-rocam-dark">Labelling App</span> with SAM-assisted annotation.</p>
+
+                <div class="space-y-10">
+                    <div class="flex gap-8 items-start">
+                        <div class="w-16 h-16 rounded-full bg-rocam-red shadow-md flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-grid-2 text-xl text-white"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-2xl font-bold text-rocam-dark mb-2">Full Mosaic = 1.0 (Key Finding)</h4>
+                            <p class="text-xl text-rocam-gray font-medium leading-relaxed">Every image trained as 2&times;2 mosaic, quadrupling effective object density. Disabled last 80 epochs for full-resolution refinement. All reduced-mosaic variants failed.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-8 items-start">
+                        <div class="w-16 h-16 rounded-full bg-white shadow-md flex items-center justify-center shrink-0 border border-gray-200">
+                            <i class="fa-solid fa-image text-xl text-rocam-dark"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-2xl font-bold text-rocam-dark mb-2">15,832 Images + 4,000 COCO Hard Negatives</h4>
+                            <p class="text-xl text-rocam-gray font-medium leading-relaxed">25% of training set is pure background from COCO, forcing a harder decision boundary to suppress false positives in real-world deployment.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-8 items-start">
+                        <div class="w-16 h-16 rounded-full bg-white shadow-md flex items-center justify-center shrink-0 border border-gray-200">
+                            <i class="fa-solid fa-wand-magic-sparkles text-xl text-rocam-dark"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-2xl font-bold text-rocam-dark mb-2">Multi-Scale + 7 Albumentations</h4>
+                            <p class="text-xl text-rocam-gray font-medium leading-relaxed">Variable resolution (544&ndash;960px), 180&deg; rotation, motion blur, compression artefacts, and sensor noise transforms for real-world robustness.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Stat badges -->
+        <div class="absolute bottom-[90px] left-0 right-0 flex justify-center gap-10">
+            <div class="bg-white rounded-xl px-6 py-3 shadow-sm border border-gray-100 text-center">
+                <div class="text-2xl font-black text-rocam-dark leading-none">94.3%</div>
+                <div class="text-[11px] text-rocam-gray font-bold uppercase tracking-wider mt-1">Precision</div>
+            </div>
+            <div class="bg-white rounded-xl px-6 py-3 shadow-sm border border-gray-100 text-center">
+                <div class="text-2xl font-black text-rocam-dark leading-none">89.8%</div>
+                <div class="text-[11px] text-rocam-gray font-bold uppercase tracking-wider mt-1">Recall</div>
+            </div>
+            <div class="bg-white rounded-xl px-6 py-3 shadow-sm border border-gray-100 text-center">
+                <div class="text-2xl font-black text-rocam-dark leading-none">60</div>
+                <div class="text-[11px] text-rocam-gray font-bold uppercase tracking-wider mt-1">FPS Pipeline</div>
+            </div>
+            <div class="bg-white rounded-xl px-6 py-3 shadow-sm border border-gray-100 text-center">
+                <div class="text-2xl font-black text-rocam-dark leading-none">9.47M</div>
+                <div class="text-[11px] text-rocam-gray font-bold uppercase tracking-wider mt-1">Parameters</div>
+            </div>
+            <div class="bg-white rounded-xl px-6 py-3 shadow-sm border border-gray-100 text-center">
+                <div class="text-2xl font-black text-rocam-dark leading-none">20.5</div>
+                <div class="text-[11px] text-rocam-gray font-bold uppercase tracking-wider mt-1">GFLOPs</div>
+            </div>
+            <div class="bg-white rounded-xl px-6 py-3 shadow-sm border border-gray-100 text-center">
+                <div class="text-2xl font-black text-rocam-red leading-none">&lt;1ms</div>
+                <div class="text-[11px] text-rocam-gray font-bold uppercase tracking-wider mt-1">Shader Latency</div>
+            </div>
+        </div>
+
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
+        <div class="slide-footer">10 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 11: Model Development Journey -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Model Development Journey</div>
+        </div>
+
+        <!-- Title -->
+        <div class="flex flex-col items-center pt-[130px] px-20">
+            <h2 class="text-[52px] font-black tight-heading text-rocam-dark text-center mb-2">
+                Systematic Exploration. <span class="text-rocam-red">One Survivor.</span>
+            </h2>
+            <p class="text-[20px] text-rocam-gray font-medium text-center">
+                Every promising architecture and training strategy tested against real edge deployment constraints
+            </p>
+        </div>
+
+        <!-- Branch Diagram (6 branches) -->
+        <div class="flex-1 flex items-center justify-center px-16" style="padding-bottom: 100px;">
+            <svg viewBox="0 0 1600 500" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-height:530px;">
+                <defs>
+                    <filter id="cs12" x="-4%" y="-8%" width="108%" height="120%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.07"/>
+                    </filter>
+                </defs>
+
+                <!-- Trunk glow -->
+                <line x1="55" y1="250" x2="1500" y2="250" stroke="#0A0A0A" stroke-width="14" opacity="0.04" stroke-linecap="round"/>
+                <!-- Main trunk -->
+                <line x1="55" y1="250" x2="1500" y2="250" stroke="#0A0A0A" stroke-width="5" stroke-linecap="round"/>
+
+                <!-- Trunk label -->
+                <text x="155" y="234" font-size="9.5" font-weight="700" fill="#aaa" font-family="Inter, sans-serif" letter-spacing="0.14em">MOSAIC=1.0 &middot; MULTI-SCALE &middot; 7&times; ALBUMENTATIONS &middot; 4K COCO NEGATIVES &middot; 420 EPOCHS</text>
+
+                <!-- Start node -->
+                <circle cx="55" cy="250" r="11" fill="#0A0A0A"/>
+                <text x="55" y="288" text-anchor="middle" font-size="13" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">YOLO26s</text>
+                <text x="55" y="303" text-anchor="middle" font-size="10" fill="#999" font-family="Inter, sans-serif">9.47M params</text>
+
+                <!-- Branch point nodes -->
+                <circle cx="180" cy="250" r="6" fill="#0A0A0A"/>
+                <circle cx="370" cy="250" r="6" fill="#0A0A0A"/>
+                <circle cx="560" cy="250" r="6" fill="#0A0A0A"/>
+                <circle cx="750" cy="250" r="6" fill="#0A0A0A"/>
+                <circle cx="940" cy="250" r="6" fill="#0A0A0A"/>
+                <circle cx="1130" cy="250" r="6" fill="#0A0A0A"/>
+
+                <!-- ═══ Branch 1: P2 Sub-Pixel Detection Head (UP) ═══ -->
+                <path d="M180,250 C180,155 270,72 350,72" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="350" y1="72" x2="374" y2="72" stroke="#D92121" stroke-width="2" opacity="0.2" stroke-dasharray="4,4"/>
+                <circle cx="350" cy="72" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="382" y="30" width="210" height="84" rx="9" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="398" y="52" font-size="13.5" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">P2 Sub-Pixel Detection</text>
+                <text x="398" y="67" font-size="10" fill="#aaa" font-family="Inter, sans-serif">stride [4,8,16,32] &middot; 4 heads</text>
+                <text x="398" y="83" font-size="11" fill="#888" font-family="Inter, sans-serif">Train 0.764 &rarr; Deploy 0.539</text>
+                <text x="398" y="100" font-size="11" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; FP16 destroys fine features</text>
+
+                <!-- ═══ Branch 2: Low-Mosaic Regime (DOWN) ═══ -->
+                <path d="M370,250 C370,345 460,428 540,428" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="540" y1="428" x2="564" y2="428" stroke="#D92121" stroke-width="2" opacity="0.2" stroke-dasharray="4,4"/>
+                <circle cx="540" cy="428" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="572" y="386" width="210" height="84" rx="9" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="588" y="408" font-size="13.5" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">Low-Mosaic Regime</text>
+                <text x="588" y="423" font-size="10" fill="#aaa" font-family="Inter, sans-serif">mosaic=0.15&ndash;0.30 &middot; reduced aug</text>
+                <text x="588" y="439" font-size="11" fill="#888" font-family="Inter, sans-serif">Deploy mAP 0.499&ndash;0.551</text>
+                <text x="588" y="456" font-size="11" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; Insufficient for small targets</text>
+
+                <!-- ═══ Branch 3: High-Resolution Scaling (UP) ═══ -->
+                <path d="M560,250 C560,155 650,72 730,72" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="730" y1="72" x2="754" y2="72" stroke="#D92121" stroke-width="2" opacity="0.2" stroke-dasharray="4,4"/>
+                <circle cx="730" cy="72" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="762" y="30" width="210" height="84" rx="9" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="778" y="52" font-size="13.5" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">High-Resolution Scaling</text>
+                <text x="778" y="67" font-size="10" fill="#aaa" font-family="Inter, sans-serif">640px input &middot; cosine LR 3e-4</text>
+                <text x="778" y="83" font-size="11" fill="#888" font-family="Inter, sans-serif">Deploy mAP 0.551</text>
+                <text x="778" y="100" font-size="11" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; Higher res needs stronger aug</text>
+
+                <!-- ═══ Branch 4: Transfer Learning Fine-tuning (DOWN) ═══ -->
+                <path d="M750,250 C750,345 840,428 920,428" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="920" y1="428" x2="944" y2="428" stroke="#D92121" stroke-width="2" opacity="0.2" stroke-dasharray="4,4"/>
+                <circle cx="920" cy="428" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="952" y="386" width="210" height="84" rx="9" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="968" y="408" font-size="13.5" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">Transfer Learning</text>
+                <text x="968" y="423" font-size="10" fill="#aaa" font-family="Inter, sans-serif">cosine LR 1.5e-4 &middot; from pretrained</text>
+                <text x="968" y="439" font-size="11" fill="#888" font-family="Inter, sans-serif">Deploy mAP 0.621&ndash;0.641</text>
+                <text x="968" y="456" font-size="11" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; Small target accuracy regressed</text>
+
+                <!-- ═══ Branch 5: Copy-Paste Synthesis (UP) ═══ -->
+                <path d="M940,250 C940,155 1030,72 1110,72" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="1110" y1="72" x2="1134" y2="72" stroke="#D92121" stroke-width="2" opacity="0.2" stroke-dasharray="4,4"/>
+                <circle cx="1110" cy="72" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="1142" y="30" width="210" height="84" rx="9" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="1158" y="52" font-size="13.5" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">Copy-Paste Synthesis</text>
+                <text x="1158" y="67" font-size="10" fill="#aaa" font-family="Inter, sans-serif">bbox copy-paste &middot; synthetic oversample</text>
+                <text x="1158" y="83" font-size="11" fill="#888" font-family="Inter, sans-serif">Deploy mAP 0.618</text>
+                <text x="1158" y="100" font-size="11" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; Synthetic data insufficient</text>
+
+                <!-- ═══ Branch 6: SAHI Tiled Detection (DOWN) ═══ -->
+                <path d="M1130,250 C1130,345 1200,428 1260,428" stroke="#D92121" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+                <line x1="1260" y1="428" x2="1284" y2="428" stroke="#D92121" stroke-width="2" opacity="0.2" stroke-dasharray="4,4"/>
+                <circle cx="1260" cy="428" r="5" fill="#D92121" opacity="0.55"/>
+                <rect x="1292" y="386" width="210" height="84" rx="9" fill="white" filter="url(#cs12)" stroke="#f0f0f0" stroke-width="1"/>
+                <text x="1308" y="408" font-size="13.5" font-weight="800" fill="#0A0A0A" font-family="Inter, sans-serif">SAHI Tiled Detection</text>
+                <text x="1308" y="423" font-size="10" fill="#aaa" font-family="Inter, sans-serif">50K+ tiled images &middot; sliding window</text>
+                <text x="1308" y="439" font-size="11" fill="#888" font-family="Inter, sans-serif">Val mAP 0.604 (training)</text>
+                <text x="1308" y="456" font-size="11" fill="#D92121" font-weight="700" font-family="Inter, sans-serif">&#10005; 3&times; slower, marginal gain</text>
+
+                <!-- ═══ Deployed Endpoint ═══ -->
+                <circle cx="1500" cy="250" r="20" fill="#10B981" opacity="0.12"/>
+                <circle cx="1500" cy="250" r="14" fill="#10B981" stroke="white" stroke-width="3"/>
+                <text x="1500" y="255" text-anchor="middle" font-size="12" font-weight="900" fill="white" font-family="Inter, sans-serif">&#10003;</text>
+
+                <!-- Deployed badge -->
+                <rect x="1410" y="158" width="180" height="58" rx="10" fill="#0A0A0A"/>
+                <text x="1500" y="180" text-anchor="middle" font-size="11.5" font-weight="800" fill="white" font-family="Inter, sans-serif" letter-spacing="0.1em">DEPLOYED ON JETSON</text>
+                <text x="1500" y="198" text-anchor="middle" font-size="12" fill="#10B981" font-weight="700" font-family="Inter, sans-serif">mAP 0.631 &middot; small 0.341</text>
+                <text x="1500" y="209" text-anchor="middle" font-size="9" fill="#888" font-family="Inter, sans-serif">FP16 &middot; 9% accuracy loss</text>
+                <line x1="1500" y1="216" x2="1500" y2="236" stroke="#10B981" stroke-width="2"/>
+            </svg>
+        </div>
+
+        <!-- Bottom stats -->
+        <div class="absolute bottom-[85px] left-0 right-0 flex justify-center gap-20">
+            <div class="flex items-center gap-4">
+                <div class="text-[38px] font-black text-rocam-dark leading-none">10+</div>
+                <div class="text-[13px] text-rocam-gray font-bold uppercase tracking-wider leading-tight">Experiments<br/>Conducted</div>
+            </div>
+            <div class="w-px h-12 bg-gray-300"></div>
+            <div class="flex items-center gap-4">
+                <div class="text-[38px] font-black text-rocam-dark leading-none">100+</div>
+                <div class="text-[13px] text-rocam-gray font-bold uppercase tracking-wider leading-tight">GPU-Hours<br/>on H100</div>
+            </div>
+            <div class="w-px h-12 bg-gray-300"></div>
+            <div class="flex items-center gap-4">
+                <div class="text-[38px] font-black text-rocam-red leading-none">9%</div>
+                <div class="text-[13px] text-rocam-gray font-bold uppercase tracking-wider leading-tight">FP16 Accuracy<br/>Loss (Best)</div>
+            </div>
+            <div class="w-px h-12 bg-gray-300"></div>
+            <div class="flex items-center gap-4">
+                <div class="text-[38px] font-black text-rocam-red leading-none">1</div>
+                <div class="text-[13px] text-rocam-gray font-bold uppercase tracking-wider leading-tight">Survived<br/>Deployment</div>
+            </div>
+        </div>
+
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
+        <div class="slide-footer">11 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 12: Fault Tolerance -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col justify-center px-32 relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Fault-Tolerant Architecture</div>
+        </div>
+
+        <div class="flex w-full mt-24 gap-20">
+            <!-- Left: Architecture Diagram recreated -->
+            <div class="w-[50%] relative">
+                <div class="absolute inset-0 border-4 border-dashed border-gray-300 rounded-[40px] p-8 z-0 bg-gray-50/50">
+                    <span class="absolute -top-6 left-12 bg-white px-6 py-2 rounded-full text-xl font-bold text-gray-500 shadow-sm border border-gray-200 uppercase tracking-wide">Jetson OS</span>
+                </div>
+                
+                <div class="relative z-10 w-full h-[500px] mt-16 grid grid-cols-2 gap-x-12 gap-y-12 p-8">
+                    <div class="bg-white rounded-3xl shadow-md border border-gray-200 flex flex-col items-center justify-center p-6 text-center">
+                        <i class="fa-solid fa-eye text-4xl text-gray-400 mb-4"></i>
+                        <span class="text-2xl font-black text-rocam-dark">CV Process</span>
+                    </div>
+                    <div class="bg-white rounded-3xl shadow-md border border-gray-200 flex flex-col items-center justify-center p-6 text-center">
+                        <i class="fa-solid fa-video text-4xl text-gray-400 mb-4"></i>
+                        <span class="text-2xl font-black text-rocam-dark">Video Output</span>
+                    </div>
+                    <div class="bg-rocam-dark rounded-3xl shadow-2xl flex flex-col items-center justify-center p-6 text-center transform scale-110 relative border-4 border-rocam-dark">
+                        <div class="absolute -top-4 -right-4 bg-rocam-red w-8 h-8 rounded-full shadow-md flex items-center justify-center"><i class="fa-solid fa-star text-white text-xs"></i></div>
+                        <i class="fa-solid fa-brain text-4xl text-white mb-4"></i>
+                        <span class="text-2xl font-black text-white">Control Core</span>
+                    </div>
+                    <div class="bg-white rounded-3xl shadow-md border border-gray-200 flex flex-col items-center justify-center p-6 text-center">
+                        <i class="fa-solid fa-film text-4xl text-gray-400 mb-4"></i>
+                        <span class="text-2xl font-black text-rocam-dark">Transcode</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Text Content -->
+            <div class="w-[50%] flex flex-col justify-center">
+                <h3 class="text-[52px] font-black text-rocam-dark mb-12 tight-heading">Built for isolation and real-time survival.</h3>
+                
+                <ul class="space-y-12">
+                    <li class="flex items-start gap-8">
+                        <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-1">
+                            <i class="fa-solid fa-shield-halved text-rocam-red text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-rocam-dark mb-2">Independent Restart</div>
+                            <div class="text-2xl text-rocam-gray font-medium leading-relaxed">If the CV inference crashes, the control process maintains connection to the gimbal, preventing lock-up.</div>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-8">
+                        <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-1">
+                            <i class="fa-solid fa-bolt text-rocam-dark text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-rocam-dark mb-2">Zero-copy IPC</div>
+                            <div class="text-2xl text-rocam-gray font-medium leading-relaxed">Shared-memory architecture allows massive 1080p frames to move between processes instantly.</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
+        <div class="slide-footer">12 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 13: Architecture (Modular) -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg relative flex justify-center items-center">
+        <img src="figures/pipeline.png" alt="Architecture Pipeline" style="width: 100%; height: 100%; object-fit: contain; padding: 40px;">
+        <div class="slide-footer">13 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 14: Web UI -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Mission Control Software</div>
+        </div>
+
+        <div class="w-[55%] flex items-center justify-center pl-24 pt-24 z-10">
+            <div class="rounded-2xl overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.2)] border border-gray-300">
+                <img src="figures/rocam_ui_overview.png" alt="Web UI" class="w-full object-cover">
+            </div>
+        </div>
+
+        <div class="w-[45%] flex flex-col justify-center pl-16 pr-28 pt-24">
+            <div class="text-lg font-black tracking-[0.38em] uppercase text-rocam-red mb-5">Field usability first</div>
+            <h2 class="text-[60px] font-black text-rocam-dark mb-5 tight-heading">Command center in a browser.</h2>
+            <p class="text-2xl text-rocam-red font-bold mb-6 tracking-wide">REACT &bull; TYPESCRIPT &bull; VITE</p>
+            <p class="text-xl text-rocam-gray font-medium leading-relaxed mb-8">
+                Everything the operator touches lives in <span class="font-bold text-rocam-dark">Mission Control</span>. Before launch, the UI must let the operator confirm framing, arm the system, override the gimbal if needed, and understand system health immediately.
+            </p>
+
+            <div class="minimal-card !p-5 border-2 border-rocam-red mb-8">
+                <div class="text-sm font-black tracking-[0.3em] uppercase text-rocam-red mb-4">Operator workflow</div>
+                <div class="grid grid-cols-2 gap-x-5 gap-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-crosshairs text-rocam-red"></i>
+                        </div>
+                        <div class="text-base font-bold text-rocam-dark">Confirm framing</div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-shield-halved text-rocam-dark"></i>
+                        </div>
+                        <div class="text-base font-bold text-rocam-dark">Arm the tracker</div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-gamepad text-rocam-dark"></i>
+                        </div>
+                        <div class="text-base font-bold text-rocam-dark">Override motion</div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-heart-pulse text-rocam-dark"></i>
+                        </div>
+                        <div class="text-base font-bold text-rocam-dark">Read health instantly</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-5">
+                <div class="minimal-card !p-5">
+                    <div class="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-video text-xl text-rocam-dark"></i>
+                    </div>
+                    <div class="text-xl font-black text-rocam-dark mb-2">Low-latency live preview</div>
+                    <div class="text-base text-rocam-gray font-medium leading-relaxed">See framing and target lock with minimal delay during setup and tracking.</div>
+                </div>
+                <div class="minimal-card !p-5">
+                    <div class="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-gamepad text-xl text-rocam-dark"></i>
+                    </div>
+                    <div class="text-xl font-black text-rocam-dark mb-2">Direct manual override</div>
+                    <div class="text-base text-rocam-gray font-medium leading-relaxed">Take control of the gimbal immediately when the operator needs to reframe.</div>
+                </div>
+                <div class="minimal-card !p-5">
+                    <div class="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-chart-line text-xl text-rocam-dark"></i>
+                    </div>
+                    <div class="text-xl font-black text-rocam-dark mb-2">Real-time health telemetry</div>
+                    <div class="text-base text-rocam-gray font-medium leading-relaxed">Arming, device, network, and storage state stay visible at a glance.</div>
+                </div>
+                <div class="minimal-card !p-5">
+                    <div class="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-language text-xl text-rocam-dark"></i>
+                    </div>
+                    <div class="text-xl font-black text-rocam-dark mb-2">Bilingual EN / FR</div>
+                    <div class="text-base text-rocam-gray font-medium leading-relaxed">The same control surface supports English and French operators in the field.</div>
+                </div>
+            </div>
+        </div>
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Zifan Si</div>
+        <div class="slide-footer">14 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 15: Recording -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Recording Workflow</div>
+        </div>
+
+        <div class="w-[47%] flex flex-col justify-center pl-28 pr-14 pt-20">
+            <div class="text-lg font-black tracking-[0.42em] uppercase text-rocam-red mb-6">
+                From launch to replay
+            </div>
+            <h2 class="text-[72px] font-black tight-heading text-rocam-dark mb-8">
+                Record raw. <span class="text-rocam-red">Rebuild smart.</span>
+            </h2>
+            <p class="text-2xl text-rocam-gray font-medium leading-relaxed mb-12">
+                RoCam stores the raw camera feed and per-frame telemetry separately, then reconstructs stabilized playback and downloads on demand.
+            </p>
+
+            <div class="grid grid-cols-3 gap-6 mb-10">
+                <div class="minimal-card !p-5 text-center">
+                    <div class="text-sm font-black tracking-[0.25em] uppercase text-rocam-red mb-2">Trigger</div>
+                    <div class="text-xl font-black text-rocam-dark">Browser UI</div>
+                    <div class="text-base text-rocam-gray font-medium mt-2">Start / stop from Mission Control</div>
+                </div>
+                <div class="minimal-card !p-5 text-center">
+                    <div class="text-sm font-black tracking-[0.25em] uppercase text-rocam-red mb-2">Storage</div>
+                    <div class="text-xl font-black text-rocam-dark">AVI + JSONL</div>
+                    <div class="text-base text-rocam-gray font-medium mt-2">Video frames plus OSD telemetry</div>
+                </div>
+                <div class="minimal-card !p-5 text-center">
+                    <div class="text-sm font-black tracking-[0.25em] uppercase text-rocam-red mb-2">Output</div>
+                    <div class="text-xl font-black text-rocam-dark">Preview / Download</div>
+                    <div class="text-base text-rocam-gray font-medium mt-2">Rendered after the flight event</div>
+                </div>
+            </div>
+
+            <div class="minimal-card relative overflow-hidden border-2 border-rocam-red">
+                <div class="absolute top-0 left-0 w-full h-2 bg-rocam-red"></div>
+                <div class="text-sm font-black tracking-[0.35em] uppercase text-rocam-red mb-4">Why this split matters</div>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-gauge-high text-rocam-red"></i>
+                        </div>
+                        <div class="text-lg text-rocam-gray font-medium leading-relaxed">
+                            Capture stays lightweight during launch instead of doing heavy replay rendering in the critical path.
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-layer-group text-rocam-dark"></i>
+                        </div>
+                        <div class="text-lg text-rocam-gray font-medium leading-relaxed">
+                            The saved telemetry lets us re-apply OSD, timestamps, zoom transforms, and stabilization later for post-flight review.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-[53%] flex items-center justify-center pr-28 pt-20">
+            <div class="w-full max-w-[860px] relative">
+                <div class="absolute right-4 top-6 text-[180px] opacity-5 text-rocam-red">
+                    <i class="fa-solid fa-film"></i>
+                </div>
+
+                <div class="space-y-8 relative z-10">
+                    <div class="minimal-card !p-7 flex items-center gap-6">
+                        <div class="w-20 h-20 rounded-2xl bg-rocam-red text-white flex items-center justify-center text-3xl shrink-0 shadow-lg">
+                            <i class="fa-solid fa-video"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-black tracking-[0.3em] uppercase text-rocam-red mb-2">1. Capture</div>
+                            <div class="text-[34px] font-black text-rocam-dark mb-2">Raw video branch to <span class="text-rocam-red">video.avi</span></div>
+                            <div class="text-xl text-rocam-gray font-medium leading-relaxed">The CV pipeline swaps in a recording sink and writes the camera stream without waiting for replay rendering.</div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center text-gray-300 text-3xl">
+                        <i class="fa-solid fa-arrow-down"></i>
+                    </div>
+
+                    <div class="minimal-card !p-7 flex items-center gap-6">
+                        <div class="w-20 h-20 rounded-2xl bg-rocam-dark text-white flex items-center justify-center text-3xl shrink-0 shadow-lg">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-black tracking-[0.3em] uppercase text-rocam-dark mb-2">2. Log</div>
+                            <div class="text-[34px] font-black text-rocam-dark mb-2">Per-frame OSD data to <span class="text-rocam-red">log.txt</span></div>
+                            <div class="text-xl text-rocam-gray font-medium leading-relaxed">Each frame stores pan, tilt, focal length, FPS, timestamps, and stabilization transforms as JSONL telemetry.</div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center text-gray-300 text-3xl">
+                        <i class="fa-solid fa-arrow-down"></i>
+                    </div>
+
+                    <div class="minimal-card !p-7 flex items-center gap-6 border-2 border-gray-800">
+                        <div class="w-20 h-20 rounded-2xl bg-gray-800 text-white flex items-center justify-center text-3xl shrink-0 shadow-lg">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-black tracking-[0.3em] uppercase text-rocam-dark mb-2">3. Replay</div>
+                            <div class="text-[34px] font-black text-rocam-dark mb-2">Separate transcode for stabilized review</div>
+                            <div class="text-xl text-rocam-gray font-medium leading-relaxed">Preview and download are reconstructed later with the same OSD and shader path, producing a polished replay stream for analysis.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Zifan Si</div>
+        <div class="slide-footer">15 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 16: Testing Data -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col justify-center px-32 relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Testing & Quality Assurance</div>
+        </div>
+
+        <div class="flex flex-col items-center justify-center mt-20 mb-20">
+            <div class="text-[200px] font-black text-rocam-dark leading-none tracking-tighter mb-4 text-shadow">481</div>
+            <div class="text-4xl text-rocam-gray font-black tracking-widest uppercase border-b-4 border-rocam-red pb-4">Automated Tests Passed</div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-12 w-full max-w-[1500px] mx-auto">
+            <div class="minimal-card text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-rocam-dark"></div>
+                <i class="fa-brands fa-python text-5xl text-gray-300 mb-6"></i>
+                <div class="text-3xl font-black text-rocam-dark mb-4">Backend (pytest)</div>
+                <div class="text-xl text-rocam-gray font-medium mb-2">313 Unit Tests</div>
+                <div class="text-2xl font-bold text-green-600">88% Coverage</div>
+            </div>
+            <div class="minimal-card text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-rocam-dark"></div>
+                <i class="fa-brands fa-react text-5xl text-gray-300 mb-6"></i>
+                <div class="text-3xl font-black text-rocam-dark mb-4">Frontend (Vitest)</div>
+                <div class="text-xl text-rocam-gray font-medium mb-2">168 Component Tests</div>
+                <div class="text-2xl font-bold text-green-600">86% Coverage</div>
+            </div>
+            <div class="minimal-card text-center relative overflow-hidden border-2 border-rocam-red">
+                <div class="absolute top-0 left-0 w-full h-2 bg-rocam-red"></div>
+                <i class="fa-brands fa-github text-5xl text-rocam-red mb-6"></i>
+                <div class="text-3xl font-black text-rocam-dark mb-4">CI Pipeline</div>
+                <div class="text-xl text-rocam-gray font-medium mb-2">GitHub Actions on every PR</div>
+                <div class="text-2xl font-black text-rocam-red">100% Pass Rate</div>
+            </div>
+        </div>
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Xiaotian Lou</div>
+        <div class="slide-footer">16 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 17: Future -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col justify-center px-32 relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Future Scalability</div>
+        </div>
+
+        <h2 class="text-[56px] font-black tight-heading text-rocam-dark mt-24 mb-16 max-w-[1400px]">
+            Designed to scale from 200m hobby rockets to <span class="text-rocam-red underline decoration-8 underline-offset-8">3km+</span> high-power launches.
+        </h2>
+
+        <div class="grid grid-cols-3 gap-12 w-full">
+            <div class="minimal-card relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 opacity-5"><i class="fa-solid fa-bolt text-[150px]"></i></div>
+                <i class="fa-solid fa-bolt text-4xl text-rocam-red mb-6"></i>
+                <h3 class="text-3xl font-black text-rocam-dark mb-4">Performance</h3>
+                <ul class="text-xl text-rocam-gray space-y-4 font-medium relative z-10">
+                    <li class="flex items-center gap-3"><div class="w-2 h-2 bg-rocam-dark rounded-full"></div> 4K @ 60fps tracking</li>
+                    <li class="flex items-center gap-3"><div class="w-2 h-2 bg-rocam-dark rounded-full"></div> Authentic ML Architecture</li>
+                    <li class="flex items-center gap-3"><div class="w-2 h-2 bg-rocam-dark rounded-full"></div> Optical Auto-focus</li>
+                </ul>
+            </div>
+            
+            <div class="minimal-card relative overflow-hidden border-2 border-gray-800">
+                <div class="absolute top-0 right-0 bg-gray-800 text-white px-4 py-1 font-bold text-sm rounded-bl-xl">NEXT STEP</div>
+                <div class="absolute -right-6 -bottom-6 opacity-5"><i class="fa-solid fa-maximize text-[150px]"></i></div>
+                <i class="fa-solid fa-maximize text-4xl text-rocam-dark mb-6"></i>
+                <h3 class="text-3xl font-black text-rocam-dark mb-4">Hardware Scaling</h3>
+                <ul class="text-xl text-rocam-gray space-y-4 font-medium relative z-10">
+                    <li class="flex items-center gap-3"><div class="w-2 h-2 bg-rocam-dark rounded-full"></div> Full-size Gimbal Mounts</li>
+                    <li class="flex items-center gap-3"><div class="w-2 h-2 bg-rocam-dark rounded-full"></div> Multi-camera Arrays</li>
+                    <li class="flex items-center gap-3"><div class="w-2 h-2 bg-rocam-dark rounded-full"></div> Weatherproof Enclosures</li>
+                </ul>
+            </div>
+            
+            <div class="minimal-card relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 opacity-5"><i class="fa-solid fa-layer-group text-[150px]"></i></div>
+                <i class="fa-solid fa-layer-group text-4xl text-rocam-dark mb-6"></i>
+                <h3 class="text-3xl font-black text-rocam-dark mb-4">Software UX</h3>
+                <ul class="text-xl text-rocam-gray space-y-4 font-medium relative z-10">
+                    <li class="flex items-center gap-3"><div class="w-2 h-2 bg-rocam-dark rounded-full"></div> Mobile-native Apps</li>
+                    <li class="flex items-center gap-3"><div class="w-2 h-2 bg-rocam-dark rounded-full"></div> Post-flight Analytics</li>
+                    <li class="flex items-center gap-3"><div class="w-2 h-2 bg-rocam-dark rounded-full"></div> AR Telemetry Overlay</li>
+                </ul>
+            </div>
+        </div>
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Jianqing Liu</div>
+        <div class="slide-footer">17 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 19: Stakeholder Feedback -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col justify-center px-32 relative">
+        <div class="slide-header">
+            <div class="header-line"></div>
+            <div class="header-title">Stakeholder Feedback</div>
+        </div>
+
+        <h2 class="text-[52px] font-black tight-heading text-rocam-dark mt-24 mb-14 max-w-5xl">
+            Built with <span class="text-rocam-red">operator feedback</span>, not just lab assumptions.
+        </h2>
+
+        <div class="flex w-full gap-14 mb-14">
+            <!-- Left: Quote + Responses -->
+            <div class="w-[55%] flex flex-col">
+                <div class="minimal-card relative overflow-hidden mb-10">
+                    <div class="absolute -right-4 -top-8 text-[100px] opacity-[0.03] text-rocam-dark">
+                        <i class="fa-solid fa-quote-right"></i>
+                    </div>
+                    <div class="text-sm font-bold tracking-[0.3em] uppercase text-rocam-gray mb-4">McMaster Rocketry Team</div>
+                    <div class="text-[30px] font-black text-rocam-dark leading-snug mb-4">
+                        "A more direct and intuitive way to move the gimbal."
+                    </div>
+                    <div class="text-lg text-rocam-gray font-medium leading-relaxed">
+                        Captured in stakeholder walkthrough. Turned into drag-to-move control on the live preview.
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="flex gap-6 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100">
+                            <i class="fa-solid fa-hand-pointer text-rocam-dark text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-rocam-dark">Direct Control</div>
+                            <div class="text-lg text-rocam-gray font-medium mt-1">Drag-to-move framing added beside the D-pad.</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-6 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100">
+                            <i class="fa-solid fa-circle-info text-rocam-dark text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-rocam-dark">Clear Status</div>
+                            <div class="text-lg text-rocam-gray font-medium mt-1">More visible armed, target-lost, storage, and network states.</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-6 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100">
+                            <i class="fa-solid fa-hard-drive text-rocam-dark text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-rocam-dark">Stable Recording</div>
+                            <div class="text-lg text-rocam-gray font-medium mt-1">Pause/resume behavior refined for download and recording.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Single donut chart -->
+            <div class="w-[45%] flex flex-col justify-center">
+                <div class="minimal-card !p-10">
+                    <div class="text-sm font-bold tracking-[0.3em] uppercase text-rocam-gray mb-8">McMaster Rocketry Team · 50 members</div>
+                    <div class="flex items-center gap-10">
+                        <div class="relative w-[240px] h-[240px] shrink-0">
+                            <div class="absolute inset-0 rounded-full" style="background: conic-gradient(#D92121 0deg 173deg, #E5E7EB 173deg 281deg, #F3F4F6 281deg 360deg);"></div>
+                            <div class="absolute inset-[56px] rounded-full bg-white flex items-center justify-center shadow-sm">
+                                <div class="text-center">
+                                    <div class="text-[56px] font-black text-rocam-dark leading-none">50</div>
+                                    <div class="text-xs font-bold tracking-[0.2em] uppercase text-rocam-gray mt-1">Users</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-6 flex-1">
+                            <div>
+                                <div class="flex items-center gap-3 mb-1">
+                                    <div class="w-3 h-3 rounded-full bg-rocam-red shrink-0"></div>
+                                    <div class="text-lg font-bold text-rocam-dark">Autonomous Tracking</div>
+                                </div>
+                                <div class="text-base text-rocam-gray font-medium pl-6">24 members · 48%</div>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-3 mb-1">
+                                    <div class="w-3 h-3 rounded-full bg-gray-300 shrink-0"></div>
+                                    <div class="text-lg font-bold text-rocam-dark">Manual Override</div>
+                                </div>
+                                <div class="text-base text-rocam-gray font-medium pl-6">15 members · 30%</div>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-3 mb-1">
+                                    <div class="w-3 h-3 rounded-full bg-gray-100 border border-gray-200 shrink-0"></div>
+                                    <div class="text-lg font-bold text-rocam-dark">Video Recording</div>
+                                </div>
+                                <div class="text-base text-rocam-gray font-medium pl-6">11 members · 22%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="speaker-badge"><i class="fa-solid fa-microphone"></i> Speaker: Zifan Si</div>
+        <div class="slide-footer">18 / 19</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 20: Thank you -->
+    <!-- ========================================== -->
+    <div class="slide dot-bg flex flex-col justify-center items-center relative">
+        <div class="absolute inset-x-0 top-0 h-[220px] bg-gradient-to-b from-red-50 to-transparent"></div>
+
+        <div class="z-10 flex flex-col items-center w-full px-24">
+            <img src="figures/logo_red.png" alt="RoCam Logo" class="h-24 mb-8 drop-shadow-lg">
+
+            <h1 class="text-[112px] font-black tight-heading text-rocam-dark mb-4">
+                Thank You.
+            </h1>
+            <p class="text-[44px] font-medium text-rocam-gray tracking-wide mb-12">
+                Questions?
+            </p>
+
+            <div class="bg-white px-10 py-5 rounded-full shadow-lg border border-gray-200 flex items-center gap-6 text-[30px] text-rocam-dark font-bold mb-10">
+                <i class="fa-brands fa-github text-4xl"></i>
+                <span>https://github.com/SpaceY-Labs/RoCam</span>
+            </div>
+
+            <div class="flex flex-col items-center mb-10 w-full">
+                <div class="text-lg font-black tracking-[0.45em] uppercase text-rocam-red mb-6">
+                    With thanks to
+                </div>
+
+                <div class="grid grid-cols-3 gap-10 w-full max-w-[1460px]">
+                    <div class="minimal-card !p-6 !border-2 !border-rocam-red flex items-center gap-6 relative overflow-hidden">
+                        <div class="w-28 h-28 rounded-full overflow-hidden border border-red-200 bg-gray-100 shrink-0">
+                            <img src="last_page/Shahin_Sirouspour_headshot.jpg" alt="Dr. Shahin Sirouspour" class="w-full h-full object-cover">
+                        </div>
+                        <div class="text-left">
+                            <div class="text-sm font-black tracking-[0.3em] uppercase text-rocam-red mb-2">Supervisor</div>
+                            <div class="text-[32px] font-black text-rocam-dark leading-tight">Dr. Shahin Sirouspour</div>
+                            <div class="text-xl text-rocam-gray font-medium mt-2">Faculty guidance and project support</div>
+                        </div>
+                    </div>
+
+                    <div class="minimal-card !p-6 !border-2 !border-blue-500 flex items-center gap-6 relative overflow-hidden">
+                        <div class="w-28 h-28 rounded-full overflow-hidden border border-blue-200 bg-gray-100 shrink-0">
+                            <img src="last_page/Spencer_Smith_headshot.jpg" alt="Dr. Spencer Smith" class="w-full h-full object-cover">
+                        </div>
+                        <div class="text-left">
+                            <div class="text-sm font-black tracking-[0.3em] uppercase text-blue-600 mb-2">Instructor</div>
+                            <div class="text-[32px] font-black text-rocam-dark leading-tight">Dr. Spencer Smith</div>
+                            <div class="text-xl text-rocam-gray font-medium mt-2">Thanks to the course for the structure and direction.</div>
+                        </div>
+                    </div>
+
+                    <div class="minimal-card !p-6 !border-2 !border-blue-500 flex items-center gap-6 relative overflow-hidden">
+                        <div class="w-28 h-28 rounded-full overflow-hidden border border-blue-200 bg-gray-100 shrink-0">
+                            <img src="last_page/Tanya_headshot.jpg" alt="Tanya Djavaherpour" class="w-full h-full object-cover" style="object-position: center 18%;">
+                        </div>
+                        <div class="text-left">
+                            <div class="text-sm font-black tracking-[0.3em] uppercase text-blue-600 mb-2">Teaching Assistant</div>
+                            <div class="text-[32px] font-black text-rocam-dark leading-tight">Tanya Djavaherpour</div>
+                            <div class="text-xl text-rocam-gray font-medium mt-2">Thanks for the feedback throughout the project.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-2xl text-rocam-gray font-bold tracking-widest uppercase">
+                Team #3 SpaceY &nbsp;|&nbsp; McMaster University SFWRENG 4G06
+            </p>
+        </div>
+        <div class="slide-footer">19 / 19</div>
+    </div>
+
+</div>
+
+<script>
+    function scaleSlides() {
+        const slides = document.querySelectorAll('.slide');
+        if (window.matchMedia('print').matches) return;
+        slides.forEach(slide => {
+            const scaleX = (window.innerWidth * 0.95) / 1920;
+            const scaleY = (window.innerHeight * 0.95) / 1080;
+            const scale = Math.min(scaleX, scaleY);
+            slide.style.transform = `scale(${scale})`;
+            slide.style.marginBottom = `${-1080 * (1 - scale)}px`;
+        });
+    }
+    window.addEventListener('resize', scaleSlides);
+    window.addEventListener('load', scaleSlides);
+    window.matchMedia('print').addListener((mql) => {
+        if (mql) {
+            document.querySelectorAll('.slide').forEach(slide => {
+                slide.style.transform = 'none';
+                slide.style.marginBottom = '0';
+            });
+        } else { scaleSlides(); }
+    });
+</script>
+
+</body>
+</html>
+
