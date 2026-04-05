@@ -1,6 +1,6 @@
 /**
  * Author: Zifan Si
- * Date: 2026-04-05
+ * Date: 2026-03-05
  * Purpose: Provides shared frontend utility helpers for UI-facing errors.
  */
 /** Extracts a readable message from thrown values used in toast and UI errors. */

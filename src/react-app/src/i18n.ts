@@ -1,6 +1,6 @@
 /**
  * Author: Shik Chen
- * Date: 2026-04-05
+ * Date: 2026-02-01
  * Purpose: Provides locale activation helpers and translation typing utilities.
  */
 import { i18n } from '@lingui/core'

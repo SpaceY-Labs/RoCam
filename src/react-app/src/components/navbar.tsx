@@ -1,6 +1,6 @@
 /**
  * Author: Zifan Si
- * Date: 2026-04-05
+ * Date: 2025-11-15
  * Purpose: Displays primary navigation and global frontend actions.
  */
 import { NavLink, useLocation } from 'react-router-dom'

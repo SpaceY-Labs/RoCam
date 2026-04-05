@@ -1,6 +1,6 @@
 /**
  * Author: Zifan Si
- * Date: 2026-04-05
+ * Date: 2025-11-15
  * Purpose: Renders the recordings management and preview page.
  */
 import type { Recording, ApiClient } from '@/network/api'

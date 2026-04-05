@@ -1,6 +1,6 @@
 /**
  * Author: Zifan Si
- * Date: 2026-04-05
+ * Date: 2025-11-15
  * Purpose: Renders the live control dashboard for camera operation.
  */
 import { useCallback, useEffect, useRef } from 'react'

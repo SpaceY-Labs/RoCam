@@ -1,6 +1,6 @@
 /**
  * Author: Zifan Si
- * Date: 2026-04-05
+ * Date: 2026-02-03
  * Purpose: Displays live system telemetry and status metrics.
  */
 import type { ReactNode } from 'react'

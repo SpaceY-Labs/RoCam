@@ -1,6 +1,6 @@
 /**
  * Author: Zifan Si
- * Date: 2026-04-05
+ * Date: 2025-11-15
  * Purpose: Boots the React frontend with routing and shared providers.
  */
 import React from 'react'

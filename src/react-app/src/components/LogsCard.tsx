@@ -1,6 +1,6 @@
 /**
  * Author: Zifan Si
- * Date: 2026-04-05
+ * Date: 2026-02-18
  * Purpose: Displays live backend logs in the control dashboard.
  */
 import { Card, CardBody } from '@heroui/card'

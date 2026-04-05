@@ -1,6 +1,6 @@
 /**
  * Author: Zifan Si
- * Date: 2026-04-05
+ * Date: 2025-11-15
  * Purpose: Composes shared providers for state, i18n, UI, and backend access.
  */
 import type { NavigateOptions } from 'react-router-dom'

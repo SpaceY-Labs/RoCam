@@ -1,6 +1,6 @@
 /**
  * Author: Zifan Si
- * Date: 2026-04-05
+ * Date: 2026-02-01
  * Purpose: Stores persisted user preferences shared across the frontend.
  */
 import { atomWithStorage } from 'jotai/utils'

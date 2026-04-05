@@ -1,6 +1,6 @@
 /**
  * Author: Zifan Si
- * Date: 2026-04-05
+ * Date: 2026-03-04
  * Purpose: Provides shared formatting helpers for frontend status and recording data.
  */
 import type { TemperatureUnit } from '@/store/languageAtom'

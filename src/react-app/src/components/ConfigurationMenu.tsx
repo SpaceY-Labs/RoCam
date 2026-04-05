@@ -1,6 +1,6 @@
 /**
  * Author: Zifan Si
- * Date: 2026-04-05
+ * Date: 2026-02-01
  * Purpose: Displays the configuration menu for persisted frontend preferences.
  */
 import {
