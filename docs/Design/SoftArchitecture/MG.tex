@@ -46,13 +46,13 @@
 \section{Revision History}
 
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
-  \toprule {\bf Date} & {\bf Version} & {\bf Notes}                         \\
+  \toprule {\bf Date} & {\bf Version} & {\bf Notes}                                              \\
   \midrule
-  Nov. 10, 2025       & Rev -1        & Initial Draft                       \\
-  Nov. 16, 2025       & -             & Fix Peer Review Comments            \\
-  Jan. 21, 2026       & Rev 0         & Complete module guide first version \\
+  Nov. 10, 2025       & Rev -1        & Initial Draft                                            \\
+  Nov. 16, 2025       & -             & Fix Peer Review Comments                                 \\
+  Jan. 21, 2026       & Rev 0         & Complete module guide first version                      \\
   Apr. 5, 2026        & Rev 1         & Address TA, peer, and instructor feedback; fix typos and
-                                        template comments; verify traceability matrices           \\
+  template comments; verify traceability matrices                                                \\
   \bottomrule
 \end{tabularx}
 
@@ -96,14 +96,13 @@ This section records information for easy reference.
 
 \section{Introduction}
 
-Decomposing a system into modules is a commonly accepted approach to
-developing software. A module is a work assignment for a programmer or
-programming team~\citep{ParnasEtAl1984}. We advocate a decomposition based on
-the principle of information hiding~\citep{Parnas1972a}. This principle
-supports design for change, because the ``secrets'' that each module hides
-represent likely future changes. Design for change is valuable in SC, where
-modifications are frequent, especially during initial development as the
-solution space is explored.
+Decomposing a system into modules is a commonly accepted approach to developing
+software. A module is a work assignment for a programmer or programming
+team~\citep{ParnasEtAl1984}. We advocate a decomposition based on the principle
+of information hiding~\citep{Parnas1972a}. This principle supports design for
+change, because the ``secrets'' that each module hides represent likely future
+changes. Design for change is valuable in SC, where modifications are frequent,
+especially during initial development as the solution space is explored.
 
 Our design follows the rules laid out by \citet{ParnasEtAl1984}, as follows:
 \begin{itemize}
@@ -387,8 +386,8 @@ system or by standard programming language libraries. \emph{\progname{}} means
 the module will be implemented by the \progname{} software.
 
 Only the leaf modules in the hierarchy have to be implemented. If a dash
-(\emph{--}) is shown, this means that the module is not a leaf and will not have
-to be implemented.
+(\emph{--}) is shown, this means that the module is not a leaf and will not
+have to be implemented.
 
 \subsection{Jetson Module (\mref{mJetson})}
 
@@ -853,8 +852,7 @@ and calibration (e.g., aiming at the expected launch area before liftoff) and
 as a fallback when manual intervention is required. Manual control commands are
 sent to the backend through the API Gateway, which relays them to the gimbal
 control logic running on the Jetson. The UI continuously updates the displayed
-gimbal angles to show the operator the immediate effect of each
-command.
+gimbal angles to show the operator the immediate effect of each command.
 
 \begin{figure}[H]
   \centering

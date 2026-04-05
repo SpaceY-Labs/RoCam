@@ -46,10 +46,10 @@
   \caption{Revision History} \label{TblRevisionHistory}
   \begin{tabularx}{\textwidth}{llX}
     \toprule
-    \textbf{Date} & \textbf{Developer(s)} & \textbf{Change} \\
+    \textbf{Date} & \textbf{Developer(s)} & \textbf{Change}                                                                                                    \\
     \midrule
-    Oct. 5, 2025  & Shike Chen            & Initial draft   \\
-    Oct. 19, 2025 & Shike Chen            & Detailed draft  \\
+    Oct. 5, 2025  & Shike Chen            & Initial draft                                                                                                      \\
+    Oct. 19, 2025 & Shike Chen            & Detailed draft                                                                                                     \\
     Apr. 5, 2026  & All team members      & Rev 1: Address feedback, fix typos, remove template comments, add traceability to SRS, improve safety requirements \\
     \bottomrule
   \end{tabularx}
@@ -80,10 +80,10 @@ includes hazards effects in the events of malfunction, misuse or environmental
 damage. However, since the project is open source, any use case that is beyond
 the scope of this project will not be included in this hazard analysis.
 
-Such hazard analysis will not only be used to identify potential hazards caused by
-the system, but also to minimize risks related to unforeseen cases. The purpose
-of this hazard analysis is to properly address the potential harm and risks
-caused by the product to the user and the external environment.
+Such hazard analysis will not only be used to identify potential hazards caused
+by the system, but also to minimize risks related to unforeseen cases. The
+purpose of this hazard analysis is to properly address the potential harm and
+risks caused by the product to the user and the external environment.
 
 \section{System Boundaries and Components}
 
@@ -100,8 +100,8 @@ the gimbal, we can only estimate the potential hazards based on similar
 products in the market.
 \subsubsection{Jetson Orin Nano}
 The Jetson Orin Nano is a small, lightweight AI computer designed by NVIDIA. It
-is used to deploy our computer vision module and communicate directly
-with the motion control module.
+is used to deploy our computer vision module and communicate directly with the
+motion control module.
 \subsubsection{Camera}
 The camera is an off-the-shelf camera that is compatible with the Jetson Orin
 Nano. It is able to provide 4K video input in real time.
@@ -320,12 +320,12 @@ safety-related requirements trace back to an identified hazard.
   \caption{Traceability Matrix: HA Safety Requirements $\leftrightarrow$ SRS Requirements}\label{tab:ha-srs-trace}
   \begin{tabularx}{\textwidth}{l l Y}
     \toprule
-    \textbf{HA Safety Req.} & \textbf{SRS Requirement(s)} & \textbf{Rationale} \\
+    \textbf{HA Safety Req.}        & \textbf{SRS Requirement(s)} & \textbf{Rationale}                                                                                                       \\
     \midrule
-    SR1 (Angular Velocity Limit) & SCR-1, RFR-2, IR-1, INT-2 & Gimbal velocity/angle limits enforced in software; manual override and safe-state transitions prevent mechanical damage. \\
-    SR2 (PPE) & SCR-3 & Remote operation reduces physical proximity risk; PPE required when near hardware. \\
-    SR3 (Self-Correcting Tracking) & FR-7, RFR-4, RFR-5 & Autonomous tracking with re-acquisition ensures robust rocket following and graceful degradation on target loss. \\
-    SR4 (Emergency Stop) & SCR-1, RFR-2, EZ-4 & Manual exit to idle within 0.5\,s; safe-state halt on unrecoverable error; confirmation prompts for dangerous commands. \\
+    SR1 (Angular Velocity Limit)   & SCR-1, RFR-2, IR-1, INT-2   & Gimbal velocity/angle limits enforced in software; manual override and safe-state transitions prevent mechanical damage. \\
+    SR2 (PPE)                      & SCR-3                       & Remote operation reduces physical proximity risk; PPE required when near hardware.                                       \\
+    SR3 (Self-Correcting Tracking) & FR-7, RFR-4, RFR-5          & Autonomous tracking with re-acquisition ensures robust rocket following and graceful degradation on target loss.         \\
+    SR4 (Emergency Stop)           & SCR-1, RFR-2, EZ-4          & Manual exit to idle within 0.5\,s; safe-state halt on unrecoverable error; confirmation prompts for dangerous commands.  \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -385,7 +385,7 @@ safety-related requirements trace back to an identified hazard.
     8                                                                                                                             &
     Verification \& docs: finalize FMEA, traceability, test report.                                                               &
     FMEA v2; SRS trace matrix; safety test report; demo video.                                                                    &
-    All SRs: SR1--SR4 complete and traced.                                                                                         &
+    All SRs: SR1--SR4 complete and traced.                                                                                        &
     Pass/fail summary; residual-risk log; release tag.                                                                                                                                                                                                       \\
     \bottomrule
   \end{tabularx}
@@ -396,14 +396,15 @@ safety-related requirements trace back to an identified hazard.
   \item M1 (End Sprint 2): Motion MVP with enforceable soft limits (SR1 draft).
   \item M2 (End Sprint 4): UI prototype with health/status and safe-state control.
   \item M3 (End Sprint 6): Closed-loop tracking with recovery/self-correction (SR3).
-  \item M4 (End Sprint 8): Safety package complete (FMEA v2, SR1--SR4 verified, documentation).
+  \item M4 (End Sprint 8): Safety package complete (FMEA v2, SR1--SR4 verified,
+        documentation).
 \end{enumerate}
 
 \subsection{Traceability Plan}
 \begin{itemize}
   \item FMEA \(\rightarrow\) SR mapping: “Gimbal snaps/overshoots” \(\rightarrow\) SR1;
-        “Tracking lost” \(\rightarrow\) SR3; “Emergency halt needed” \(\rightarrow\) SR4;
-        “UI unavailable/unclear” \(\rightarrow\) UI alarms, SOP, tests.
+        “Tracking lost” \(\rightarrow\) SR3; “Emergency halt needed” \(\rightarrow\)
+        SR4; “UI unavailable/unclear” \(\rightarrow\) UI alarms, SOP, tests.
   \item Each sprint closes with: (a) updated FMEA row(s), (b) test artifacts linked to
         SR IDs, (c) residual risk review.
 \end{itemize}
