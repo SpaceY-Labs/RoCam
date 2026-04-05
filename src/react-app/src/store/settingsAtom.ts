@@ -1,5 +1,11 @@
+/**
+ * Author: Zifan Si
+ * Date: 2026-04-05
+ * Purpose: Stores persisted user preferences shared across the frontend.
+ */
 import { atomWithStorage } from 'jotai/utils'
 
+/** Persisted user preferences shared across the frontend experience. */
 export type Language = 'en' | 'fr'
 export type TemperatureUnit = 'celsius' | 'fahrenheit'
 

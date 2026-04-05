@@ -1,13 +1,20 @@
+/**
+ * Author: Zifan Si
+ * Date: 2026-04-05
+ * Purpose: Displays live backend logs in the control dashboard.
+ */
 import { Card, CardBody } from '@heroui/card'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useEffect, useRef } from 'react'
 
 import { useRocam } from '@/network/rocamProvider'
 
+/** Displays the live backend log stream with auto-scroll behavior. */
 export function LogsCard() {
   const { t } = useLingui()
   const { logs } = useRocam()
   const scrollRef = useRef<HTMLDivElement>(null)
+  // Track whether the user is already at the end before auto-scrolling new logs.
   const isAtBottomRef = useRef(true)
 
   const checkIsAtBottom = () => {
@@ -57,6 +64,7 @@ export function LogsCard() {
   )
 }
 
+/** Maps backend log levels to the color treatment used in the log viewer. */
 function levelColor(level: string): string {
   switch (level.toUpperCase()) {
     case 'ERROR':
@@ -72,6 +80,7 @@ function levelColor(level: string): string {
   }
 }
 
+/** Formats log timestamps as local time for compact inline display. */
 function formatTime(timestampMs: number): string {
   return new Date(timestampMs).toLocaleTimeString(undefined, {
     hour: '2-digit',

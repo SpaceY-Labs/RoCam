@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2026-04-05
+ * Purpose: Exposes backend status, logs, and API access through React context.
+ */
 import {
   createContext,
   useContext,
@@ -35,12 +40,14 @@ interface RocamProviderProps {
   children: ReactNode
 }
 
+/** Provides shared backend status, logs, and API access to the app tree. */
 export function RocamProvider({ children }: RocamProviderProps) {
   const { t } = useLingui()
   const [apiClient, setApiClient] = useState<ApiClient | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [status, setStatus] = useState<StatusResponse | null>(null)
   const [logs, setLogs] = useState<LogEntry[]>([])
+  // Stable refs support incremental log parsing and duplicate toast suppression.
   const nextLogIdRef = useRef(1)
   const logsErrorMessageRef = useRef<string | null>(null)
 
@@ -170,6 +177,7 @@ export function useRocam() {
   return context
 }
 
+/** Converts raw SSE log payloads into normalized log entries for display. */
 function parseLogEvent(rawData: string, id: number): LogEntry | null {
   try {
     const data = JSON.parse(rawData) as {

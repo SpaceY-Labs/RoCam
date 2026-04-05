@@ -1,6 +1,7 @@
 /**
- * Pure formatting utilities shared across components.
- * Extracted to enable isolated unit testing without React/JSX dependencies.
+ * Author: Zifan Si
+ * Date: 2026-04-05
+ * Purpose: Provides shared formatting helpers for frontend status and recording data.
  */
 import type { TemperatureUnit } from '@/store/languageAtom'
 

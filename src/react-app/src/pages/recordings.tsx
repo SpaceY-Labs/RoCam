@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2026-04-05
+ * Purpose: Renders the recordings management and preview page.
+ */
 import type { Recording, ApiClient } from '@/network/api'
 
 import { useEffect, useRef, useState } from 'react'
@@ -21,16 +26,19 @@ import { useRocam } from '@/network/rocamProvider'
 import { getErrorMessage } from '@/utils'
 import { Navbar } from '@/components/navbar'
 
+/** Displays saved recordings with inline management and preview actions. */
 export default function RecordingsPage() {
   const { t } = useLingui()
   const { apiClient } = useRocam()
 
+  // Page state keeps the fetched list, loading shell, and active preview modal.
   const [recordings, setRecordings] = useState<Recording[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedRecording, setSelectedRecording] = useState<Recording | null>(
     null
   )
 
+  /** Loads the current recording list once an API client is available. */
   async function loadRecordings() {
     if (!apiClient) return
 
@@ -156,6 +164,7 @@ function RecordingItem({
   onDelete,
   onPreview,
 }: RecordingItemProps) {
+  /** Local draft state lets the filename be edited inline before persisting. */
   const [filenameDraft, setFilenameDraft] = useState(r.name)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -279,10 +288,12 @@ interface PreviewModalProps {
   onClose: () => void
 }
 
+/** Plays the stabilized preview for the selected recording inside a modal. */
 function PreviewModal({ recording, onClose }: PreviewModalProps) {
   const { t } = useLingui()
   const { apiClient } = useRocam()
   const videoRef = useRef<HTMLVideoElement>(null)
+  // Playback state drives the overlay controls and loading feedback.
   const [currentTime, setCurrentTime] = useState(0)
   const [isWaiting, setIsWaiting] = useState(true)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -425,6 +436,7 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
  * UTILS
  */
 
+/** Formats a recording start timestamp for the metadata row. */
 function formatDate(timestampMs: number | null): string {
   if (timestampMs === null || !Number.isFinite(timestampMs)) return ''
   const d = new Date(timestampMs)
@@ -440,6 +452,7 @@ function formatDate(timestampMs: number | null): string {
   })
 }
 
+/** Formats a recording duration in minutes and seconds for list display. */
 function formatDuration(durationMs: number | null): string {
   if (durationMs === null || !Number.isFinite(durationMs) || durationMs < 0)
     return ''
@@ -450,6 +463,7 @@ function formatDuration(durationMs: number | null): string {
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
+/** Converts byte counts into compact human-readable storage units. */
 function formatBytes(bytes: number) {
   if (!Number.isFinite(bytes) || bytes < 0) return '-'
   const units = ['B', 'KB', 'MB', 'GB']

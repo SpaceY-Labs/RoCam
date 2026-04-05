@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2026-04-05
+ * Purpose: Defines backend API types and the frontend API client.
+ */
 // API Types
 
 export type BoundingBox = {
@@ -110,14 +115,17 @@ export class ApiClient {
     return `${this.baseUrl}/api/generate_204`
   }
 
+  /** URL for a stabilized recording preview stream. */
   getPreviewStabilizedUrl(recordingId: string): string {
     return `${this.baseUrl}/api/recordings/${recordingId}/preview-stabilized`
   }
 
+  /** URL for downloading a stabilized recording file. */
   getDownloadStabilizedUrl(recordingId: string): string {
     return `${this.baseUrl}/api/recordings/${recordingId}/download-stabilized`
   }
 
+  /** Sends JSON requests and normalizes backend errors into ApiError instances. */
   private async requestJson<T>(
     method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
     endpoint: string,
@@ -187,18 +195,22 @@ export class ApiClient {
     return this.requestJson<ApiResponse>('POST', '/api/disarm')
   }
 
+  /** Starts backend-side recording for the active session. */
   async startRecording(): Promise<ApiResponse> {
     return this.requestJson<ApiResponse>('POST', '/api/recordings/start')
   }
 
+  /** Stops the current backend recording session. */
   async stopRecording(): Promise<ApiResponse> {
     return this.requestJson<ApiResponse>('POST', '/api/recordings/stop')
   }
 
+  /** Fetches the available recording list for the recordings page. */
   async listRecordings(): Promise<RecordingListResponse> {
     return this.requestJson<RecordingListResponse>('GET', '/api/recordings')
   }
 
+  /** Renames a recording and returns the backend response payload. */
   async renameRecording(
     recordingId: string,
     newName: string
@@ -212,12 +224,14 @@ export class ApiClient {
     )
   }
 
+  /** Updates the lens focal length used by camera controls. */
   async setFocalLength(focalLengthMm: number): Promise<ApiResponse> {
     return this.requestJson<ApiResponse>('POST', '/api/set_focal_length', {
       focal_length_mm: focalLengthMm,
     })
   }
 
+  /** Removes a recording from backend storage. */
   async deleteRecording(recordingId: string): Promise<ApiResponse> {
     return this.requestJson<ApiResponse>(
       'DELETE',

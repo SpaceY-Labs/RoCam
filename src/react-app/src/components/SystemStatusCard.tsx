@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2026-04-05
+ * Purpose: Displays live system telemetry and status metrics.
+ */
 import type { ReactNode } from 'react'
 import type { StatusResponse } from '@/network/api'
 
@@ -36,6 +41,7 @@ type StatusItem = {
   progress?: number
 }
 
+/** Shared presentation helpers for status values displayed in the dashboard. */
 function formatDegrees(degrees: number) {
   return `${Math.round(degrees * 10) / 10}°`
 }
@@ -121,6 +127,7 @@ function buildStatusItems(
   status: StatusResponse,
   temperatureUnit: TemperatureUnit
 ): StatusItem[] {
+  // Convert backend status into display-ready rows so rendering stays declarative.
   const recLeftMs = status.recording_duration_left_s * 1000
 
   return [
@@ -213,9 +220,11 @@ function buildStatusItems(
   ]
 }
 
+/** Shows live telemetry reported by the backend along with freshness metadata. */
 export function SystemStatusCard() {
   const { status } = useRocam()
   const temperatureUnit = useAtomValue(temperatureUnitAtom)
+  // A local timer refreshes the "last updated" label between status events.
   const [now, setNow] = useState(Date.now())
   const lastStatusChangeMsRef = useRef(0)
 
@@ -274,6 +283,7 @@ export function SystemStatusCard() {
   )
 }
 
+/** Renders one metric row, optionally including a progress indicator. */
 function StatusItemRow({ item }: { item: StatusItem }) {
   return (
     <div className="grow basis-0 my-4 min-w-48">

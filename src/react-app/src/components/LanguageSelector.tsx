@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2026-04-05
+ * Purpose: Displays a compact control for switching application language.
+ */
 import {
   Dropdown,
   DropdownTrigger,
@@ -15,6 +20,7 @@ const LANGUAGES: { key: Language; label: string }[] = [
   { key: 'fr', label: 'FR' },
 ]
 
+/** Switches the active locale from a compact language dropdown. */
 export function LanguageSelector() {
   const { t } = useLingui()
   const [language, setLanguage] = useAtom(languageAtom)

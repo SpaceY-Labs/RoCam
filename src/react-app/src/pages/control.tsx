@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2026-04-05
+ * Purpose: Renders the live control dashboard for camera operation.
+ */
 import { useCallback, useEffect, useRef } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { Spinner } from '@heroui/spinner'
@@ -19,6 +24,7 @@ import { Navbar } from '@/components/navbar'
 /** Minimum milliseconds between consecutive manualMoveTo API calls. */
 const DRAG_THROTTLE_MS = 50
 
+/** Renders the live control dashboard for preview, status, and camera input. */
 export default function ControlPage() {
   const { t } = useLingui()
   const { apiClient, status } = useRocam()
@@ -48,6 +54,7 @@ export default function ControlPage() {
 
   dragSensitivityRef.current = dragSensitivity
 
+  // Tracks the origin and latest throttle timestamp for drag-based camera moves.
   const dragRef = useRef({
     isDragging: false,
     startX: 0,
@@ -100,6 +107,7 @@ export default function ControlPage() {
 
   // ── Scroll-to-zoom (focal length) ────────────────────────────────────
   const wheelLastCallRef = useRef(0)
+  // The overlay captures gestures without interfering with the rendered preview.
   const overlayRef = useRef<HTMLDivElement>(null)
 
   const handleWheel = useCallback((e: WheelEvent) => {

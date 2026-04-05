@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2026-04-05
+ * Purpose: Displays manual camera, zoom, arm, and recording controls.
+ */
 import { useState } from 'react'
 import { Button } from '@heroui/button'
 import { Card, CardBody } from '@heroui/card'
@@ -17,6 +22,7 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { useRocam } from '@/network/rocamProvider'
 import { getErrorMessage } from '@/utils'
 
+/** Groups manual movement, zoom, arming, and recording controls. */
 export function ControlsCard() {
   const { t } = useLingui()
   const { apiClient, status } = useRocam()
@@ -27,6 +33,7 @@ export function ControlsCard() {
   const isArmed = !!status?.armed
   const isRecording = !!status?.is_recording
 
+  // A short cooldown prevents rapid duplicate control requests from the UI.
   const [, , reset] = useTimeoutFn(() => {
     setIsCooldownActive(false)
   }, 1500)
@@ -124,6 +131,7 @@ export function ControlsCard() {
   )
 }
 
+/** Renders the directional pad used for manual gimbal movement commands. */
 function GimbalPad() {
   const { t } = useLingui()
   const { apiClient, status } = useRocam()
@@ -218,6 +226,7 @@ function GimbalPad() {
   )
 }
 
+/** Renders focal-length controls that step within the backend-reported range. */
 function ZoomControls() {
   const { t } = useLingui()
   const { apiClient, status } = useRocam()
