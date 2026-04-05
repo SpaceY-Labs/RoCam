@@ -77,8 +77,10 @@ urlcolor=cyan          % color of external links
   \midrule
   Nov. 10, 2025       & Rev -1        & Initial Draft            \\
   Nov. 16, 2025       & -             & Fix Peer Review Comments \\
-  Jan. 19, 2025       & Rev 0         & Team Work                \\
-  Jan. 21, 2025       & Rev 0         & Team Review              \\
+  Jan. 19, 2026       & Rev 0         & Team Work                \\
+  Jan. 21, 2026       & Rev 0         & Team Review              \\
+  Apr. 5, 2026        & Rev 1         & Address TA, peer, and instructor feedback; fix typos,
+                                        remove template comments; improve descriptions           \\
   \bottomrule
 \end{tabularx}
 
@@ -90,8 +92,6 @@ urlcolor=cyan          % color of external links
 See SRS Documentation at:
 
 \href{https://github.com/ZifanSi/vision-guided-tracker/blob/main/docs/SRS/SRS.pdf}{https://github.com/ZifanSi/vision-guided-tracker/blob/main/docs/SRS/SRS.pdf}
-
-\wss{Also add any additional symbols, abbreviations or acronyms}
 
 \begin{table}[h]
   \centering
@@ -137,9 +137,6 @@ Module Guide. The full documentation and implementation can be found at:
 
 %4
 \section{Notation}
-
-\wss{You should describe your notation.  You can use what is below as
-  a starting point.}
 
 The structure of the MIS for modules comes from \citet{HoffmanAndStrooper1995},
 with the addition that template modules have been adapted from
@@ -355,18 +352,11 @@ implemented since they are not leaf modules.
 \newpage
 
 %7
-\section{MIS of CV Process Module (\mref{mCV})}  \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of CV Process Module (\mref{mCV})}
 
 \subsection{Module}
 
 cv\_process
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -408,25 +398,15 @@ cv\_process
         rendering).
 \end{itemize}
 
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
-
 \subsubsection{Environment Variables}
 
 \begin{itemize}
   \item External camera sensor.
 \end{itemize}
 
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
-
 \subsubsection{Assumptions}
 
 Camera is assumed to be connected and working properly.
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -447,13 +427,6 @@ Camera is assumed to be connected and working properly.
         \end{itemize}
   \item exception: None
 \end{itemize}
-
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
 
 \subsubsection{Local Functions}
 
@@ -497,24 +470,14 @@ Camera is assumed to be connected and working properly.
   \item exception: None
 \end{itemize}
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 %8
-\section{MIS of Live Video Process Module (\mref{mVideo})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of Live Video Process Module (\mref{mVideo})}
 
 \subsection{Module}
 
 live\_video\_process
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -546,25 +509,15 @@ This module does not have any exported constants.
 
 This module does not have any state variables.
 
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
-
 \subsubsection{Environment Variables}
 
 \begin{itemize}
   \item HDMI monitor connected to the Jetson (for displaying frames).
 \end{itemize}
 
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
-
 \subsubsection{Assumptions}
 
 HDMI monitor is assumed to be connected and working properly.
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -580,35 +533,18 @@ HDMI monitor is assumed to be connected and working properly.
   \item exception: None
 \end{itemize}
 
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
-
 \subsubsection{Local Functions}
 
 This module does not have any local functions.
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 %9
-\section{MIS of Transcode Process Module (\mref{mTranscode})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of Transcode Process Module (\mref{mTranscode})}
 
 \subsection{Module}
 
 transcode\_process
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -640,16 +576,9 @@ This module does not have any exported constants.
 
 This module does not have any state variables.
 
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
-
 \subsubsection{Environment Variables}
 
 This module does not have any environment variables.
-
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
 
 \subsubsection{Assumptions}
 
@@ -657,9 +586,6 @@ This module does not have any environment variables.
   \item The provided \texttt{RecordingInfo} is valid.
   \item The provided \texttt{output\_video\_path} is writable.
 \end{itemize}
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -684,47 +610,25 @@ This module does not have any environment variables.
   \item exception: None
 \end{itemize}
 
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
-
 \subsubsection{Local Functions}
 
 This module does not have any local functions.
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 %10
-\section{MIS of Video Stream Abstraction Module (\mref{mStream})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of Video Stream Abstraction Module (\mref{mStream})}
 
 Nvidia Deepstream SDK is too complex to specify in this MIS, even if we only
 include the functionalities we need. Its full documentation is available at
 \url{https://docs.nvidia.com/metropolis/deepstream/7.1/index.html}.
 
 %11
-\section{MIS of CV Process Management Module (\mref{mCVManagement})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of CV Process Management Module (\mref{mCVManagement})}
 
 \subsection{Module}
 
 cv\_process\_management
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -764,23 +668,13 @@ This module does not have any exported constants.
   \item IPC connection to the CV Process Module (\mref{mCV}).
 \end{itemize}
 
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
-
 \subsubsection{Environment Variables}
 
 This module does not have any environment variables.
 
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
-
 \subsubsection{Assumptions}
 
 This module does not have any assumptions.
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -822,13 +716,6 @@ This module does not have any assumptions.
   \item exception: IPCError if failed to send the value through the IPC connection.
 \end{itemize}
 
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
-
 \subsubsection{Local Functions}
 
 \noindent receive\_cv\_data\_loop():
@@ -846,24 +733,14 @@ This module does not have any assumptions.
   \item exception: None
 \end{itemize}
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 %12
-\section{MIS of Live Video Process Management Module (\mref{mVideoManagement})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of Live Video Process Management Module (\mref{mVideoManagement})}
 
 \subsection{Module}
 
 live\_video\_process\_management
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -895,23 +772,13 @@ This module does not have any exported constants.
 
 This module does not have any state variables.
 
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
-
 \subsubsection{Environment Variables}
 
 This module does not have any environment variables.
 
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
-
 \subsubsection{Assumptions}
 
 This module does not have any assumptions.
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -921,13 +788,6 @@ This module does not have any assumptions.
   \item output: None
   \item exception: processStartError
 \end{itemize}
-
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
 
 \subsubsection{Local Functions}
 
@@ -945,24 +805,14 @@ This module does not have any assumptions.
   \item exception: None
 \end{itemize}
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 %13
-\section{MIS of Transcode Process Management Module (\mref{mTranscodeManagement})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of Transcode Process Management Module (\mref{mTranscodeManagement})}
 
 \subsection{Module}
 
 transcode\_process\_management
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -994,25 +844,15 @@ This module does not have any exported constants.
 
 This module does not have any state variables.
 
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
-
 \subsubsection{Environment Variables}
 
 This module does not have any environment variables.
-
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
 
 \subsubsection{Assumptions}
 
 \begin{itemize}
   \item The provided \texttt{RecordingInfo} is valid.
 \end{itemize}
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -1029,35 +869,18 @@ This module does not have any environment variables.
   \item exception: None
 \end{itemize}
 
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
-
 \subsubsection{Local Functions}
 
 This module does not have any local functions.
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 %14
-\section{MIS of Tracking Module (\mref{mTrack})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of Tracking Module (\mref{mTrack})}
 
 \subsection{Module}
 
 tracking
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -1092,9 +915,6 @@ This module does not have any exported constants.
 \begin{itemize}
   \item gimbal: Gimbal Abstraction Module (\mref{mGimbal})
 \end{itemize}
-
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
 
 \subsubsection{Formal Specification (LO\_SpecMath)}
 
@@ -1164,16 +984,9 @@ $(cx(b), cy(b), h(b))$ toward $(0.5, 0.5, 0.5)$.
 
 This module does not have any environment variables.
 
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
-
 \subsubsection{Assumptions}
 
 This module does not have any assumptions.
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -1199,35 +1012,18 @@ This module does not have any assumptions.
   \item exception: GimbalError if the functions in \texttt{gimbal} return an error.
 \end{itemize}
 
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
-
 \subsubsection{Local Functions}
 
 This module does not have any local functions.
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 %15
-\section{MIS of Gimbal Abstraction Module (\mref{mGimbal})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of Gimbal Abstraction Module (\mref{mGimbal})}
 
 \subsection{Module}
 
 gimbal
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -1279,25 +1075,15 @@ This module does not have any exported constants.
   \item Opened hardware serial port to the gimbal.
 \end{itemize}
 
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
-
 \subsubsection{Environment Variables}
 
 \begin{itemize}
   \item This module interacts with an external gimbal device.
 \end{itemize}
 
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
-
 \subsubsection{Assumptions}
 
 This module does not have any assumptions.
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -1393,34 +1179,17 @@ This module does not have any assumptions.
   \item exception: GimbalError
 \end{itemize}
 
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
-
 \subsubsection{Local Functions}
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 % 16
 %16
-\section{MIS of Serial Abstraction Module (\mref{mSerial})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of Serial Abstraction Module (\mref{mSerial})}
 
 \subsection{Module}
 
 serial
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -1467,18 +1236,11 @@ serial
   \item baudrate: int $|$ null
 \end{itemize}
 
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
-
 \subsubsection{Environment Variables}
 
 \begin{itemize}
   \item Hardware serial port.
 \end{itemize}
-
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
 
 \subsubsection{Assumptions}
 \begin{itemize}
@@ -1487,9 +1249,6 @@ serial
   \item The caller invokes \texttt{open\_port} successfully before calling
         \texttt{send\_bytes} or \texttt{receive\_bytes}.
 \end{itemize}
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -1514,36 +1273,19 @@ serial
   \item exception: serialReadError
 \end{itemize}
 
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
-
 \subsubsection{Local Functions}
 
 This module does not have any local functions.
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 % 17
 %17
-\section{MIS of System Status Module (\mref{mStatus})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of System Status Module (\mref{mStatus})}
 
 \subsection{Module}
 
 jetson-stats
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -1581,25 +1323,15 @@ This module does not have any exported constants.
 
 This module does not have any state variables.
 
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
-
 \subsubsection{Environment Variables}
 
 \begin{itemize}
   \item The Jetson system.
 \end{itemize}
 
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
-
 \subsubsection{Assumptions}
 
 This module does not have any assumptions.
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -1631,35 +1363,18 @@ This module does not have any assumptions.
   \item exception: statusError
 \end{itemize}
 
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
-
 \subsubsection{Local Functions}
 
 This module does not have any local functions.
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 %18
-\section{MIS of Recording Database Module (\mref{mRecord})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of Recording Database Module (\mref{mRecord})}
 
 \subsection{Module}
 
 recording
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -1705,9 +1420,6 @@ This module does not have any exported constants.
 \begin{itemize}
   \item \texttt{base\_path}: Base path for recording video and log files.
 \end{itemize}
-
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
 
 \subsubsection{Formal Specification (LO\_SpecMath)}
 
@@ -1823,16 +1535,9 @@ where \(used,total \in \mathbb{N}\) summarize storage usage under \(bp\).
 
 This module does not have any environment variables.
 
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
-
 \subsubsection{Assumptions}
 
 This module does not have any assumptions.
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -1963,36 +1668,19 @@ This module does not have any assumptions.
   \item exception: -
 \end{itemize}
 
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
-
 \subsubsection{Local Functions}
 
 This module does not have any local functions.
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 %19
-\section{MIS of State Management Module (\mref{mState})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of State Management Module (\mref{mState})}
 
 % 19.1
 \subsection{Module}
 
 stateManagement
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -2060,9 +1748,6 @@ This module does not have any exported constants.
   \item in\_progress\_recording\_id: str $|$ null (if not null, a recording is in
         progress)
 \end{itemize}
-
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
 
 \subsubsection{Formal Specification (LO\_SpecMath)}
 
@@ -2148,10 +1833,6 @@ If \(recId\neq\bot\), disarm is either disallowed or must first stop recording
 
 This module does not have any environment variables.
 
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
-
 % 19.4.3
 \subsubsection{Assumptions}
 
@@ -2171,9 +1852,6 @@ This module does not have any environment variables.
         way that violates the Gimbal Abstraction Module interface (i.e., gimbal
         commands are serialized at the abstraction boundary).
 \end{itemize}
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -2318,13 +1996,6 @@ This module does not have any environment variables.
   \item exception: recordingNotFoundError, recordingInProgressError
 \end{itemize}
 
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
-
 \subsubsection{Local Functions}
 
 \noindent create\_osd\_data(cv\_data: \texttt{CVData}):
@@ -2405,26 +2076,16 @@ This module does not have any environment variables.
   \item exception: None
 \end{itemize}
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 % 20
 
 %20
-\section{MIS of API Gateway Module (\mref{mAPI})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of API Gateway Module (\mref{mAPI})}
 
 \subsection{Module}
 
 apiGateway
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -2458,23 +2119,13 @@ This module does not have any exported constants.
   \item state\_management: State Management Module (\mref{mState})
 \end{itemize}
 
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
-
 \subsubsection{Environment Variables}
 
 This module does not have any environment variables.
 
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
-
 \subsubsection{Assumptions}
 
 This module does not have any assumptions.
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -2600,35 +2251,18 @@ This module does not have any assumptions.
   \item exception: recordingNotFoundError (returns 404 HTTP status)
 \end{itemize}
 
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
-
 \subsubsection{Local Functions}
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 %21
 
 %21
-\section{MIS of Preview Module (\mref{mPreview})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of Preview Module (\mref{mPreview})}
 
 \subsection{Module}
 
 preview
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -2737,18 +2371,11 @@ This module does not have any exported access programs.
 This module does not have any local functions.
 
 %22
-\section{MIS of Manual Control Module (\mref{mManual})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of Manual Control Module (\mref{mManual})}
 
 \subsection{Module}
 
 manualControl
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -2790,9 +2417,6 @@ This module does not have any exported access programs.
   \item step\_size\_deg > 0
 \end{itemize}
 
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
-
 \subsubsection{Environment Variables}
 
 \begin{itemize}
@@ -2800,10 +2424,6 @@ This module does not have any exported access programs.
   \item User input device (mouse/keyboard/touch) for issuing commands.
   \item Network connection to the API Gateway Module (\mref{mAPI}).
 \end{itemize}
-
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
 
 \subsubsection{Assumptions}
 
@@ -2817,9 +2437,6 @@ This module does not have any exported access programs.
   \item Commands are user-driven; the UI does not automatically issue movement commands
         without a user action.
 \end{itemize}
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -2901,35 +2518,18 @@ by responses to user interactions, which invoke API endpoints on \mref{mAPI}.
   \item exception: None
 \end{itemize}
 
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
-
 \subsubsection{Local Functions}
 
 This module does not have any local functions.
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 %23
-\section{MIS of Recording Management Module (\mref{mRecordMng})} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+\section{MIS of Recording Management Module (\mref{mRecordMng})}
 
 \subsection{Module}
 
 recordingManagement
-
-\wss{Short name for the module}
 
 \subsection{Uses}
 
@@ -2965,9 +2565,6 @@ This module does not have any exported access programs.
           = selected\_recording\_id$
 \end{itemize}
 
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
-
 \subsubsection{Environment Variables}
 
 \begin{itemize}
@@ -2975,10 +2572,6 @@ This module does not have any exported access programs.
   \item User input device (mouse/keyboard/touch).
   \item Network connection to the API Gateway Module (\mref{mAPI}).
 \end{itemize}
-
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
 
 \subsubsection{Assumptions}
 
@@ -2992,9 +2585,6 @@ This module does not have any exported access programs.
   \item Recording IDs are stable for the lifetime of a recording and uniquely identify
         a recording.
 \end{itemize}
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
 
 \subsubsection{Access Routine Semantics}
 
@@ -3104,13 +2694,6 @@ by responses to user interactions, which invoke API endpoints on \mref{mAPI}.
   \item exception: None
 \end{itemize}
 
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
-
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
-
 \subsubsection{Local Functions}
 
 \noindent fetch\_recordings() $\rightarrow$ list[\texttt{RecordingInfo}] $|$ null:
@@ -3142,10 +2725,7 @@ by responses to user interactions, which invoke API endpoints on \mref{mAPI}.
   \item exception: None
 \end{itemize}
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\ \
 
 %24
 \section{MIS of Configuration Module (\mref{mConfig})}
@@ -3385,8 +2965,6 @@ helps readers navigate the detailed module specifications.
 \newpage{}
 
 \section*{Appendix --- Reflection}
-
-\wss{Not required for CAS 741 projects}
 
 The information in this section will be used to evaluate the team members on
 the graduate attribute of Problem Analysis and Design.

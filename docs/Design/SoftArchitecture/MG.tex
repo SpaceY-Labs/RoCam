@@ -51,6 +51,8 @@
   Nov. 10, 2025       & Rev -1        & Initial Draft                       \\
   Nov. 16, 2025       & -             & Fix Peer Review Comments            \\
   Jan. 21, 2026       & Rev 0         & Complete module guide first version \\
+  Apr. 5, 2026        & Rev 1         & Address TA, peer, and instructor feedback; fix typos and
+                                        template comments; verify traceability matrices           \\
   \bottomrule
 \end{tabularx}
 
@@ -77,7 +79,6 @@ This section records information for easy reference.
   SRS             & Software Requirements Specification \\
   \progname       & Explanation of program name         \\
   UC              & Unlikely Change                     \\
-  \wss{etc.}      & \wss{...}                           \\
   \bottomrule
 \end{tabular}\\
 
@@ -95,7 +96,7 @@ This section records information for easy reference.
 
 \section{Introduction}
 
-Decomposing a system into modules as is a commonly accepted approach to
+Decomposing a system into modules is a commonly accepted approach to
 developing software. A module is a work assignment for a programmer or
 programming team~\citep{ParnasEtAl1984}. We advocate a decomposition based on
 the principle of information hiding~\citep{Parnas1972a}. This principle
@@ -163,10 +164,6 @@ approach adapted here is called design for change.
   \item[\refstepcounter{acnum} \actheacnum \label{acUI}:] The user interface. The user interface may need to be updated based on the feedback of our customers during the field test.
 \end{description}
 
-\wss{Anticipated changes relate to changes that would be made in requirements,
-  design or implementation choices.  They are not related to changes that are made
-  at run-time, like the values of parameters.}
-
 \subsection{Unlikely Changes} \label{SecUchange}
 
 The module design should be as general as possible. However, a general system
@@ -178,7 +175,7 @@ decisions will be changed.
 
 \begin{description}
   \item[\refstepcounter{ucnum} \uctheucnum \label{ucHW}:]
-        The hardware platform. The system relies hardware acceleration for running the
+        The hardware platform. The system relies on hardware acceleration for running the
         computer vision model, encoding, and video output. Changing the hardware
         platform may require refactoring all the related algorithms.
   \item[\refstepcounter{ucnum} \uctheucnum \label{ucRocket}:]
@@ -377,13 +374,6 @@ The conventions used are:
 
 \end{itemize}
 
-\wss{The intention of this section is to document decisions that are made
-  ``between'' the requirements and the design.  To satisfy some requirements,
-  design decisions need to be made.  Rather than make these decisions implicit,
-  they are explicitly recorded here.  For instance, if a program has security
-  requirements, a specific design decision may be made to satisfy those
-  requirements with a password.}
-
 \section{Module Decomposition} \label{SecMD}
 
 Modules are decomposed according to the principle of ``information hiding''
@@ -397,7 +387,7 @@ system or by standard programming language libraries. \emph{\progname{}} means
 the module will be implemented by the \progname{} software.
 
 Only the leaf modules in the hierarchy have to be implemented. If a dash
-(\emph{--}) is shown,this means that the module is not a leaf and will not have
+(\emph{--}) is shown, this means that the module is not a leaf and will not have
 to be implemented.
 
 \subsection{Jetson Module (\mref{mJetson})}
@@ -435,7 +425,7 @@ The jetson module contains all the code that runs on the Nvidia Jetson.
         \end{itemize}
   \item[Services:] \leavevmode
         \begin{itemize}
-          \item Stablize and overlay text to the live stream video feed
+          \item Stabilize and overlay text to the live stream video feed
           \item Output the live stream video feed to HDMI
         \end{itemize}
   \item[Implemented By:] \progname
@@ -448,9 +438,9 @@ The jetson module contains all the code that runs on the Nvidia Jetson.
   \item[Secrets:] \leavevmode
         \begin{itemize}
           \item How to encode recorded video to a more efficient format
-          \item How to stablize and overlay text to the recorded video
+          \item How to stabilize and overlay text to the recorded video
         \end{itemize}
-  \item[Services:] Transcode a recording with optional stablization and text overlay
+  \item[Services:] Transcode a recording with optional stabilization and text overlay
   \item[Implemented By:] \progname
   \item[Type of Module:] Process
 \end{description}
@@ -826,15 +816,6 @@ Each level of the hierarchy offers a testable and usable subset of the system,
 and modules in the higher level of the hierarchy are essentially simpler
 because they use modules from the lower levels.
 
-\wss{The uses relation is not a data flow diagram.  In the code there will often
-  be an import statement in module A when it directly uses module B.  Module B
-  provides the services that module A needs.  The code for module A needs to be
-  able to see these services (hence the import statement).  Since the uses
-  relation is transitive, there is a use relation without an import, but the
-  arrows in the diagram typically correspond to the presence of import statement.}
-
-\wss{If module A uses module B, the arrow is directed from A to B.}
-
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{../../Images/module_use_hierarchy.png}
@@ -872,7 +853,7 @@ and calibration (e.g., aiming at the expected launch area before liftoff) and
 as a fallback when manual intervention is required. Manual control commands are
 sent to the backend through the API Gateway, which relays them to the gimbal
 control logic running on the Jetson. The UI continuously updates the displayed
-gimbal angles so the emphasizes to the operator the immediate effect of each
+gimbal angles to show the operator the immediate effect of each
 command.
 
 \begin{figure}[H]
@@ -908,8 +889,6 @@ The Gimbal Protocol is specified at:
 
 The Operator Interface API Protocol is specified at:
 \url{https://github.com/SpaceY-Labs/RoCam/blob/main/docs/Design/EndpointsSpecification/openapi.yaml}
-
-\wss{If appropriate}
 
 \section{Timeline} \label{SecTimeline}
 
