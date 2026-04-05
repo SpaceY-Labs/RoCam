@@ -181,13 +181,13 @@
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
   \toprule {\bf Date} & {\bf Version} & {\bf Notes}                                                                                                                                               \\
   \midrule
-  2025-10-21          & 1.0           & Initial Draft                                                                                                                                             \\
-  2025-10-23          & 2.0           & Revised on section 3                                                                                                                                      \\
-  2025-10-26          & 3.0           & Revised on section 3 based on TA and peer feedback                                                                                                        \\
-  2025-10-27          & 4.0           & Added system tests                                                                                                                                        \\
-  2026-03-04          & 5.0           & Scope limited to unit testing and stakeholder (McMaster Rocketry Team) review only; removed supervisor, classmate, task-based inspection, field testing   \\
-  2026-03-05          & 6.0           & Added unit testing plan                                                                                                                                   \\
-  2026-04-05          & 7.0           & Rev~1: Removed template comments; added unit test summary section; fixed typos and grammar; updated traceability matrices; addressed TA and peer feedback \\
+  2025-10-21          & 1.0           & Initial Draft                                                                                                                                           \\
+  2025-10-23          & 2.0           & Revised on section 3                                                                                                                                    \\
+  2025-10-26          & 3.0           & Revised on section 3 based on TA and peer feedback                                                                                                      \\
+  2025-10-27          & 4.0           & Added system tests                                                                                                                                      \\
+  2026-03-04          & 5.0           & Scope limited to unit testing and stakeholder (McMaster Rocketry Team) review only; removed supervisor, classmate, task-based inspection, field testing \\
+  2026-03-05          & 6.0           & Added unit testing plan                                                                                                                                 \\
+  2026-04-05          & 7.0           & Rev~1: Removed template comments; added unit test summary section; fixed typos and grammar; updated traceability matrices; addressed TA and peer feedback; added test environment details and timing requirements per peer review \\
   \bottomrule
 \end{tabularx}
 
@@ -797,7 +797,7 @@ edge cases.
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System initialized; idle state; storage nearly full (simulate by filling disk leaving $<1$min recording capacity).
   \item \textbf{Input:} Start recording and allow disk to fill.
-  \item \textbf{Expected Output:} UI shows a clear "Storage Full" alert; current recording is stopped and the file is saved to the disk; no crash.
+  \item \textbf{Expected Output:} UI shows a clear "Storage Full" alert \textbf{within 2 seconds} of exhaustion; current recording is stopped and the file is saved to the disk; no crash.
   \item \textbf{Test Case Derivation:} The system should be able to handle storage exhaustion gracefully.
   \item \textbf{How Test Will Be Performed:} Fill the disk with data until it is nearly full; start recording; observe the UI for the "Storage Full" alert; check the disk for the saved file.
 \end{itemize}
@@ -838,10 +838,10 @@ edge cases.
 \begin{itemize}
   \item \textbf{Control:} Manual
   \item \textbf{Initial State:} System initialized; tracking state; preview and HDMI output active.
-  \item \textbf{Input:} Continue waving the model rocket in front of the camera.
-  \item \textbf{Expected Output:} Gimbal should continuously adjust its position to keep the rocket in the frame for the duration of the test.
-  \item \textbf{Test Case Derivation:} The system should be able to keep the rocket in the frame while tracking.
-  \item \textbf{How Test Will Be Performed:} Wave the model rocket in front of the camera; observe the gimbal movement; observe the preview in the UI.
+  \item \textbf{Input:} Wave a model rocket (approx.\ 30\,cm length) at 1--3\,m distance from the camera in an indoor lab environment with standard overhead lighting. Move the target at moderate speed (approx.\ 0.5--1\,m/s lateral) across the camera's field of view.
+  \item \textbf{Expected Output:} Gimbal should continuously adjust its position to keep the rocket within the center 80\% of the frame for the duration of the test (minimum 10\,s of sustained tracking).
+  \item \textbf{Test Case Derivation:} The system should be able to keep the rocket in the frame while tracking. This test verifies FR-7.
+  \item \textbf{How Test Will Be Performed:} In a controlled indoor environment, wave the model rocket at the specified distance and speed in front of the camera; observe the gimbal movement tracks the target; observe the preview in the UI to confirm the rocket stays in frame.
 \end{itemize}
 
 \subsubsection*{\tid{test-return-to-idle}: Return to Idle When Rocket is Lost}
@@ -983,8 +983,8 @@ before the field test.
   \item \textbf{Type:} Manual
   \item \textbf{Initial State:} System initialized and idle.
   \item \textbf{Input/Condition:} Manually trigger hardware, communication, and software faults.
-  \item \textbf{Output/Result:} Each error generates a visible and descriptive message on the user interface.
-  \item \textbf{How Test Will Be Performed:} Disconnect devices, kill processes, and simulate faults while observing the UI for clear error reporting.
+  \item \textbf{Output/Result:} Each error generates a visible and descriptive message on the user interface \textbf{within 2 seconds} of fault occurrence.
+  \item \textbf{How Test Will Be Performed:} Disconnect devices, kill processes, and simulate faults while observing the UI for clear error reporting. Time the interval between fault injection and the appearance of the error notification; verify it does not exceed 2\,s.
 \end{itemize}
 
 \subsubsection*{\tid{test-stop-immediately}: Stop Immediately on Unrecoverable Error}
@@ -992,8 +992,8 @@ before the field test.
   \item \textbf{Type:} Manual
   \item \textbf{Initial State:} System operating in tracking mode.
   \item \textbf{Input/Condition:} Introduce a fatal condition such as gimbal communication loss or corrupted control process.
-  \item \textbf{Output/Result:} The system immediately stops all automated operations and transitions to a safe idle state.
-  \item \textbf{How Test Will Be Performed:} Disconnect the gimbal or crash the tracking process, verify that motion stops and the system displays a clear unrecoverable error message.
+  \item \textbf{Output/Result:} The system stops all automated operations and transitions to a safe idle state \textbf{within 0.5 seconds} of the unrecoverable fault.
+  \item \textbf{How Test Will Be Performed:} Disconnect the gimbal or crash the tracking process; time the interval until motion ceases and the system reaches idle state; verify that the interval does not exceed 0.5\,s and that a clear unrecoverable error message is displayed.
 \end{itemize}
 
 \subsubsection*{\tid{test-validate-commands}: Validate All Commands}

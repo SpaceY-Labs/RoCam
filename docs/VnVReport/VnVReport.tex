@@ -72,10 +72,10 @@
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
   \toprule {\bf Date} & {\bf Version} & {\bf Notes}                                                                              \\
   \midrule
-  2026-03-04          & 1.0           & Add Document Evaluation                                                                  \\
-  2026-03-05          & 1.1           & Add Unit Tests based on run                                                              \\
-  2026-03-09          & 1.2           & Add Reflection Section and small fixes                                                   \\
-  2026-04-05          & 1.3           & Rev 1: Addressed TA and peer feedback; verified traceability to requirements and modules \\
+  2026-03-04          & 1.0           & Add Document Evaluation                \\
+  2026-03-05          & 1.1           & Add Unit Tests based on run            \\
+  2026-03-09          & 1.2           & Add Reflection Section and small fixes \\
+  2026-04-05          & 1.3           & Rev 1: Addressed TA and peer feedback; improved Pass text accessibility; clarified lab vs field testing scope; added planned future improvements; reduced duplication with VnV Plan; verified traceability \\
   \bottomrule
 \end{tabularx}
 
@@ -290,7 +290,14 @@ The FRs are mostly testable because they describe observable outcomes that can
 be checked via logs, UI state, or recorded artifacts (e.g., a created video
 file). However, due to the final project scope constraint that \textbf{only
   field testing is out of scope} (unit and system tests are executed), some FRs
-are not directly testable end-to-end within this iteration. To preserve
+are not directly testable end-to-end within this iteration.
+\textit{Note on hardware-in-the-loop system tests:} System tests documented in
+this report (e.g., camera acquisition, gimbal control, tracking) were conducted
+in a \textbf{controlled lab environment} using real hardware (Jetson Orin Nano,
+camera, gimbal, and a hand-held model rocket). This is distinct from
+\textbf{field testing}---validation at an actual rocket launch site with live
+flights---which remains out of scope due to scheduling and logistical
+constraints. To preserve
 testability under the reduced scope, FR evaluation in this project is performed
 through:
 \begin{itemize}
@@ -454,13 +461,18 @@ tests \textbf{passed}.
 
 \subsubsection{System Tests}
 
+\noindent\textit{Note:} Full test descriptions, rationale, and acceptance
+criteria for each system test are documented in the
+\VnVPlan~\cite{VnVPlan}. This section reports \textbf{execution results
+only} to avoid unnecessary duplication between the two documents.
+
 \subsubsection*{Area: Video Acquisition and Output}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
   \hline \textbf{Test ID}          & \tid{test-acquire-frame}                                          \\
   \hline \textbf{Initial State}    & System powered off; camera connected; HDMI monitor attached       \\
   \hline \textbf{Input}            & Power on the system and allow it to fully initialize              \\
   \hline \textbf{Expected Results} & Within 10s of boot, logs show that the camera is acquiring frames \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                           \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                           \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -470,7 +482,7 @@ tests \textbf{passed}.
   \hline \textbf{Initial State}    & System initialized; preview and HDMI output active      \\
   \hline \textbf{Input}            & Physically disconnect the camera from the system        \\
   \hline \textbf{Expected Results} & UI and HDMI output show a clear error message; no crash \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                 \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                 \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -480,7 +492,7 @@ tests \textbf{passed}.
   \hline \textbf{Initial State}    & System initialized; preview and HDMI output active \\
   \hline \textbf{Input}            & Physically disconnect the HDMI cable               \\
   \hline \textbf{Expected Results} & UI shows a clear error message; no crash           \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                            \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                            \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -490,7 +502,7 @@ tests \textbf{passed}.
   \hline \textbf{Initial State}    & System initialized; idle state; preview and HDMI output active      \\
   \hline \textbf{Input}            & Move the gimbal manually through the UI                             \\
   \hline \textbf{Expected Results} & HDMI shows 1080p60 camera feed with text overlay of pan/tilt angles \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                             \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                             \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -500,7 +512,7 @@ tests \textbf{passed}.
   \hline \textbf{Initial State}    & System initialized; idle state; preview and HDMI output active          \\
   \hline \textbf{Input}            & Move the gimbal manually through the UI                                 \\
   \hline \textbf{Expected Results} & Preview updates fluidly ($\geq$15fps); displays current pan/tilt angles \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                 \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                 \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -510,7 +522,7 @@ tests \textbf{passed}.
   \hline \textbf{Initial State}    & System initialized; preview and HDMI output active                                      \\
   \hline \textbf{Input}            & Disconnect the system from the network for 30s; reconnect                               \\
   \hline \textbf{Expected Results} & System keeps functioning; UI shows clear error; session restores within 5s on reconnect \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                                 \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                                 \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -521,7 +533,7 @@ tests \textbf{passed}.
   \hline \textbf{Initial State}    & System initialized; idle state; sufficient disk space              \\
   \hline \textbf{Input}            & Press ``Start Recording'', wait 10s, then press ``Stop Recording'' \\
   \hline \textbf{Expected Results} & A 10 second 1080p60 video file is created and saved to disk        \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                            \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                            \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -531,7 +543,7 @@ tests \textbf{passed}.
   \hline \textbf{Initial State}    & System initialized; idle state; storage nearly full                         \\
   \hline \textbf{Input}            & Start recording and allow disk to fill                                      \\
   \hline \textbf{Expected Results} & UI shows ``Storage Full'' alert; recording stopped and file saved; no crash \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                     \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                     \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -541,7 +553,7 @@ tests \textbf{passed}.
   \hline \textbf{Initial State}    & At least two prior recordings exist                                              \\
   \hline \textbf{Input}            & Open recordings list; download latest and older file; delete a test clip         \\
   \hline \textbf{Expected Results} & List shows correct entries; downloads succeed; delete removes selected item only \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                          \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                          \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -552,7 +564,7 @@ tests \textbf{passed}.
   \hline \textbf{Initial State}    & System initialized; idle state; preview and HDMI output active \\
   \hline \textbf{Input}            & Issue manual pan and tilt commands via UI                      \\
   \hline \textbf{Expected Results} & Gimbal follows commands smoothly                               \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                        \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                        \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -562,7 +574,7 @@ tests \textbf{passed}.
   \hline \textbf{Initial State}    & System initialized; idle state; preview and HDMI output active               \\
   \hline \textbf{Input}            & Arm the system via UI; wave a model rocket in front of the camera            \\
   \hline \textbf{Expected Results} & System transitions to tracking when rocket detected; UI shows tracking state \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                      \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                      \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -572,7 +584,7 @@ tests \textbf{passed}.
   \hline \textbf{Initial State}    & System initialized; tracking state; preview and HDMI output active \\
   \hline \textbf{Input}            & Continue waving the model rocket in front of the camera            \\
   \hline \textbf{Expected Results} & Gimbal continuously adjusts to keep rocket in frame                \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                            \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                            \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -582,7 +594,7 @@ tests \textbf{passed}.
   \hline \textbf{Initial State}    & System initialized; tracking state; preview and HDMI output active                    \\
   \hline \textbf{Input}            & Occlude the model rocket                                                              \\
   \hline \textbf{Expected Results} & Within 2s of sustained loss, system transitions to idle; UI indicates ``target lost'' \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                               \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                               \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -592,7 +604,7 @@ tests \textbf{passed}.
   \hline \textbf{Initial State}    & System initialized; tracking state; preview and HDMI output active               \\
   \hline \textbf{Input}            & Move the model rocket outside of the gimbal's range of motion                    \\
   \hline \textbf{Expected Results} & Gimbal moves to mechanical limit and stops; no errors; system remains responsive \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                          \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                          \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -620,7 +632,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & Components with loading/null states                 \\
   \hline \textbf{Input}            & Null or undefined data                              \\
   \hline \textbf{Expected Results} & Loading spinners or placeholder content; no crashes \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                             \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                             \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -630,7 +642,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & LanguageSelector component            \\
   \hline \textbf{Input}            & Language selection change             \\
   \hline \textbf{Expected Results} & Language atom updated; i18n activated \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}               \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}               \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -640,7 +652,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & ConfigurationMenu component                                        \\
   \hline \textbf{Input}            & Settings changes (temperature unit, drag sensitivity, invert drag) \\
   \hline \textbf{Expected Results} & Setting atoms updated with new values                              \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                            \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                            \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -651,7 +663,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & System initialized; idle state; preview and HDMI output active            \\
   \hline \textbf{Input}            & Go through the UI twice, once with metric units, once with imperial units \\
   \hline \textbf{Expected Results} & Units are consistent and changeable                                       \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                   \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                   \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -661,7 +673,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & System initialized; language = English                                                     \\
   \hline \textbf{Input}            & Switch UI language to French and back; navigate all UI sections                            \\
   \hline \textbf{Expected Results} & All visible strings appear in selected language; no truncation; formats localize correctly \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                                    \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                                    \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -671,7 +683,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & System idle; UI ready                                                    \\
   \hline \textbf{Input}            & Trigger actions: button press, toggle, menu selection, recording, arming \\
   \hline \textbf{Expected Results} & Visible confirmation within 0.2s for each action                         \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                  \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                  \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -681,7 +693,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & System initialized; speakers muted or disconnected                                                        \\
   \hline \textbf{Input}            & Trigger statuses/alerts: armed, tracking, target lost, storage low/full, network disconnect, device error \\
   \hline \textbf{Expected Results} & Every status/alert presented visually; no action-critical info is audio-only                              \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                                                   \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                                                   \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -691,7 +703,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & System idle; gimbal powered                                                                                                                     \\
   \hline \textbf{Input}            & Attempt potentially hazardous actions: force home while tracking, hard stop, high-speed slew, firmware update during armed state, factory reset \\
   \hline \textbf{Expected Results} & Blocking confirmation dialog for each action; default is ``Cancel''; action proceeds only after explicit confirmation                           \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                                                                                         \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                                                                                         \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -701,7 +713,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & System armed or tracking                                                                     \\
   \hline \textbf{Input}            & Press ``Idle'' control while tracking                                                        \\
   \hline \textbf{Expected Results} & System transitions to idle within 1\,s; autonomous commands cease; manual controls available \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                                      \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                                      \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -711,7 +723,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & System initialized; default configuration                                                    \\
   \hline \textbf{Input}            & Inspect all settings, logs, exported files, filenames/paths, and network-configurable fields \\
   \hline \textbf{Expected Results} & No fields request or store personal identifiers; logs contain only technical data            \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                                      \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                                      \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -721,7 +733,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & System initialized; all status indicators visible                                    \\
   \hline \textbf{Input}            & Review all status/alert states under simulated Protanopia/Deuteranopia/Tritanopia    \\
   \hline \textbf{Expected Results} & Each state distinguishable without relying on hue alone; contrast ratio $\geq$ 4.5:1 \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                              \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                              \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -732,7 +744,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & N/A                                                                                  \\
   \hline \textbf{Input}            & Inspect all state transition code and configuration defaults                         \\
   \hline \textbf{Expected Results} & System only enters armed mode when explicitly commanded by user, never automatically \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                              \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                              \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -742,7 +754,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & N/A                                                                                      \\
   \hline \textbf{Input}            & Review interface specification with client: command set, telemetry, timing, safety notes \\
   \hline \textbf{Expected Results} & Client confirms interface documentation is complete, clear, and suitable                 \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                                  \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                                  \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -753,7 +765,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & System initialized and idle                                      \\
   \hline \textbf{Input}            & Manually trigger hardware, communication, and software faults    \\
   \hline \textbf{Expected Results} & Each error generates a visible and descriptive message on the UI \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                          \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                          \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -763,7 +775,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & System operating in tracking mode                                                    \\
   \hline \textbf{Input}            & Introduce fatal condition (gimbal communication loss or corrupted control process)   \\
   \hline \textbf{Expected Results} & System immediately stops all automated operations and transitions to safe idle state \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                              \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                              \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -773,7 +785,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & System idle                                                                             \\
   \hline \textbf{Input}            & Enter invalid or out-of-range user commands through UI or API                           \\
   \hline \textbf{Expected Results} & System rejects invalid commands and displays validation error without sending to gimbal \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                                 \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                                 \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -783,7 +795,7 @@ Unit tests and manual walkthrough tests verify usability-related behaviour.
   \hline \textbf{Initial State}    & System initialized                                                    \\
   \hline \textbf{Input}            & Perform user operations: arming, tracking, recording                  \\
   \hline \textbf{Expected Results} & Each action logged with timestamp and operation details in system log \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                               \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                               \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -798,7 +810,7 @@ watchdog timing).
   \hline \textbf{Initial State}    & StateManagement with mocked dependencies and cached metrics              \\
   \hline \textbf{Input}            & status() called repeatedly                                               \\
   \hline \textbf{Expected Results} & Status returned within milliseconds; cached values without recalculation \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                  \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                  \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -808,7 +820,7 @@ watchdog timing).
   \hline \textbf{Initial State}    & MessageAnnouncer with multiple listeners registered                \\
   \hline \textbf{Input}            & Rapid announce() calls with status updates                         \\
   \hline \textbf{Expected Results} & All listeners receive messages; full queues drop messages silently \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                            \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                            \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -818,7 +830,7 @@ watchdog timing).
   \hline \textbf{Initial State}    & SystemStatusMonitor with mocked jtop                              \\
   \hline \textbf{Input}            & Multiple getter calls between updates                             \\
   \hline \textbf{Expected Results} & Cached values returned immediately; no redundant hardware queries \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                           \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                           \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -828,7 +840,7 @@ watchdog timing).
   \hline \textbf{Initial State}    & Watchdog with specific timeout value                                 \\
   \hline \textbf{Input}            & refresh() calls at various intervals                                 \\
   \hline \textbf{Expected Results} & Timer created with correct timeout; callback triggered after timeout \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                              \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                              \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -842,7 +854,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
   \hline \textbf{Initial State}    & StateManagement with mocked components that may raise exceptions  \\
   \hline \textbf{Input}            & Various operations with components configured to raise exceptions \\
   \hline \textbf{Expected Results} & Operations fail gracefully; no unhandled exceptions propagate     \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                           \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                           \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -852,7 +864,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
   \hline \textbf{Initial State}    & Flask test client                                           \\
   \hline \textbf{Input}            & Invalid JSON, missing required fields, malformed requests   \\
   \hline \textbf{Expected Results} & HTTP 400 with descriptive error messages; no server crashes \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                     \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                     \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -862,7 +874,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
   \hline \textbf{Initial State}    & MessageAnnouncer with concurrent operations                           \\
   \hline \textbf{Input}            & Simultaneous listen(), remove(), and announce() from multiple threads \\
   \hline \textbf{Expected Results} & No race conditions; all operations complete safely                    \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                               \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                               \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -872,7 +884,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
   \hline \textbf{Initial State}    & IPCBufferReceiver with head ahead of tail (overrun condition) \\
   \hline \textbf{Input}            & receive() call during overrun                                 \\
   \hline \textbf{Expected Results} & Tail advanced to catch up; data retrieved without corruption  \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                       \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                       \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -882,7 +894,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
   \hline \textbf{Initial State}    & CVProcessManagement with connection in various states          \\
   \hline \textbf{Input}            & Operations during broken pipe, EOF, and other error conditions \\
   \hline \textbf{Expected Results} & Exceptions caught and swallowed; component continues operating \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                        \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                        \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -892,7 +904,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
   \hline \textbf{Initial State}    & Database with simulated filesystem errors                            \\
   \hline \textbf{Input}            & Operations with mocked os/path functions raising OSError             \\
   \hline \textbf{Expected Results} & Graceful degradation; sensible defaults returned; exceptions handled \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                              \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                              \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -902,7 +914,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
   \hline \textbf{Initial State}    & RocamProvider with mocked API that fails to connect                \\
   \hline \textbf{Input}            & API initialization failure                                         \\
   \hline \textbf{Expected Results} & Error state set; error message displayed; component does not crash \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                            \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                            \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -912,7 +924,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
   \hline \textbf{Initial State}    & Components with mocked API that returns errors        \\
   \hline \textbf{Input}            & API errors, network failures, malformed responses     \\
   \hline \textbf{Expected Results} & Graceful error display; component remains interactive \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                               \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                               \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -922,7 +934,7 @@ Unit tests verify error handling, fault tolerance, and thread safety.
   \hline \textbf{Initial State}    & Formatter functions loaded                                        \\
   \hline \textbf{Input}            & Edge values (null, undefined, negative, zero, very large numbers) \\
   \hline \textbf{Expected Results} & Sensible defaults; no crashes; formatted output for all inputs    \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                           \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                           \\
   \hline
 \end{tabularx}
 
@@ -940,7 +952,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & StateManagement instance with mocked dependencies                 \\
   \hline \textbf{Input}            & Call arm() and disarm() methods                                   \\
   \hline \textbf{Expected Results} & Internal armed flag set appropriately; gimbal LED commands issued \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                           \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                           \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -950,7 +962,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Disarmed system with gimbal at known position           \\
   \hline \textbf{Input}            & manual\_move() with directions up/down/left/right       \\
   \hline \textbf{Expected Results} & Gimbal set\_deg() called with correctly adjusted angles \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                 \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                 \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -960,7 +972,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Disarmed system with gimbal near limits                       \\
   \hline \textbf{Input}            & manual\_move() commands that would exceed gimbal limits       \\
   \hline \textbf{Expected Results} & Angles clamped to valid ranges (tilt 0--90°, pan -45° to 45°) \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                       \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                       \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -970,7 +982,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & System with mocked database and CV process                                 \\
   \hline \textbf{Input}            & start\_recording() and stop\_recording() calls                             \\
   \hline \textbf{Expected Results} & Recording allocated in database; CV process notified; recording ID tracked \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                    \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                    \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -980,7 +992,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Active recording session                                               \\
   \hline \textbf{Input}            & on\_download\_start() and on\_download\_end() calls during recording   \\
   \hline \textbf{Expected Results} & CV pipeline paused on first download, resumed after last download ends \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -990,7 +1002,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Empty BoundingBoxCollection                                                                    \\
   \hline \textbf{Input}            & Sequential CVData with bounding boxes and timestamps                                           \\
   \hline \textbf{Expected Results} & Correct bbox retrieval within 40ms window; latest valid bbox returned; max 10 entries enforced \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                                        \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                                        \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1000,7 +1012,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & StateManagement with mocked dependencies and cached metrics                       \\
   \hline \textbf{Input}            & status() called repeatedly                                                        \\
   \hline \textbf{Expected Results} & Status returned within milliseconds; cached values returned without recalculation \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                           \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                           \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1010,7 +1022,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & StateManagement with mocked components that may raise exceptions  \\
   \hline \textbf{Input}            & Various operations with components configured to raise exceptions \\
   \hline \textbf{Expected Results} & Operations fail gracefully; no unhandled exceptions propagate     \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                           \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                           \\
   \hline
 \end{tabularx}
 \subsubsection{Module: API Gateway}
@@ -1019,7 +1031,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Flask test client with mocked StateManagement                                                                                 \\
   \hline \textbf{Input}            & HTTP requests to /api/arm, /api/disarm, /api/manual\_move, /api/manual\_move\_to, /api/recordings/start, /api/recordings/stop \\
   \hline \textbf{Expected Results} & HTTP 200 responses; correct methods called on StateManagement                                                                 \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                                                                       \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                                                                       \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1029,7 +1041,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Flask test client with mocked database                                       \\
   \hline \textbf{Input}            & GET /api/recordings, PATCH /api/recordings/<id>, DELETE /api/recordings/<id> \\
   \hline \textbf{Expected Results} & Recording list returned; rename and delete operations delegated to database  \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                      \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                      \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1039,7 +1051,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Flask test client                                            \\
   \hline \textbf{Input}            & PATCH /api/recordings/<id> with missing or invalid new\_name \\
   \hline \textbf{Expected Results} & HTTP 400 Bad Request with appropriate error message          \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                      \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                      \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1049,7 +1061,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Flask test client                                           \\
   \hline \textbf{Input}            & Invalid JSON, missing required fields, malformed requests   \\
   \hline \textbf{Expected Results} & HTTP 400 with descriptive error messages; no server crashes \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                     \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                     \\
   \hline
 \end{tabularx}
 \subsubsection{Module: Recording Database}
@@ -1058,7 +1070,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Empty temporary directory                                                           \\
   \hline \textbf{Input}            & allocate\_recording() call                                                          \\
   \hline \textbf{Expected Results} & Recording directory created with meta.json; RecordingInfo returned with valid paths \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                             \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                             \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1068,7 +1080,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Database with multiple recordings                   \\
   \hline \textbf{Input}            & list\_all\_recordings() call                        \\
   \hline \textbf{Expected Results} & Sorted list of RecordingInfo objects (newest first) \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                             \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                             \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1078,7 +1090,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Database with existing recording                             \\
   \hline \textbf{Input}            & rename\_recording() and delete\_recording() calls            \\
   \hline \textbf{Expected Results} & meta.json updated with new name; directory removed on delete \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                      \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                      \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1088,7 +1100,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Database with validation enabled                                 \\
   \hline \textbf{Input}            & Recording IDs containing path traversal patterns (../etc/passwd) \\
   \hline \textbf{Expected Results} & ValueError raised; no filesystem access outside base path        \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                          \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                          \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1098,7 +1110,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Mocked disk usage                                                          \\
   \hline \textbf{Input}            & space\_usage\_bytes() and recording\_duration\_left\_s() calls             \\
   \hline \textbf{Expected Results} & Correct used/total bytes; estimated recording duration based on free space \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                    \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                    \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1108,7 +1120,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Database with simulated filesystem errors                            \\
   \hline \textbf{Input}            & Operations with mocked os/path functions raising OSError             \\
   \hline \textbf{Expected Results} & Graceful degradation; sensible defaults returned; exceptions handled \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                              \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                              \\
   \hline
 \end{tabularx}
 \subsubsection{Module: Gimbal Abstraction}
@@ -1117,7 +1129,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & GimbalSerial instance                                               \\
   \hline \textbf{Input}            & Various byte sequences for CRC calculation                          \\
   \hline \textbf{Expected Results} & Correct CRC-8 values; consistent results; valid byte range (0--255) \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                             \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                             \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1127,7 +1139,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & GimbalSerial with mocked serial port                                \\
   \hline \textbf{Input}            & create\_request\_data() with various request IDs and payloads       \\
   \hline \textbf{Expected Results} & Properly formatted packets with CRC at byte 0, request ID at byte 1 \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                             \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                             \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1137,7 +1149,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & GimbalSerial with mocked serial port returning ACK         \\
   \hline \textbf{Input}            & set\_deg(tilt, pan) and get\_deg() calls                   \\
   \hline \textbf{Expected Results} & True on success; correct angle values parsed from response \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                    \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                    \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1147,7 +1159,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & GimbalSerial with mocked serial port                       \\
   \hline \textbf{Input}            & set\_arm\_led(True/False) and set\_status\_led(True/False) \\
   \hline \textbf{Expected Results} & True on success; serial write called with correct packets  \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                    \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                    \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1157,7 +1169,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & GimbalSerial with mocked response                              \\
   \hline \textbf{Input}            & gimbal\_info() call                                            \\
   \hline \textbf{Expected Results} & Tilt range, pan range, and focal length range parsed correctly \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                        \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                        \\
   \hline
 \end{tabularx}
 \subsubsection{Module: Tracking}
@@ -1166,7 +1178,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Tracking instance with mocked gimbal                             \\
   \hline \textbf{Input}            & Sequential on\_detection() calls with bounding box coordinates   \\
   \hline \textbf{Expected Results} & Detections queued; oldest dropped when queue full; None accepted \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                          \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                          \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1176,7 +1188,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Tracking instance with mocked gimbal at known position                       \\
   \hline \textbf{Input}            & Detection coordinates off-center from frame                                  \\
   \hline \textbf{Expected Results} & gimbal.set\_deg() called with corrected angles based on proportional control \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                      \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                      \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1186,7 +1198,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Tracking instance with mocked gimbal near angle limits \\
   \hline \textbf{Input}            & Detection that would push angles beyond valid range    \\
   \hline \textbf{Expected Results} & New angles clamped to valid tilt/pan ranges            \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1196,7 +1208,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Running Tracking instance                         \\
   \hline \textbf{Input}            & stop() call                                       \\
   \hline \textbf{Expected Results} & Stop event set; worker thread joined successfully \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                           \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                           \\
   \hline
 \end{tabularx}
 \subsubsection{Module: CV Process Management}
@@ -1205,7 +1217,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & CVProcessManagement with open IPC connection    \\
   \hline \textbf{Input}            & send\_osd\_data() with OSDData                  \\
   \hline \textbf{Expected Results} & Data sent over IPC; exceptions swallowed safely \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                         \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                         \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1215,7 +1227,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & CVProcessManagement with open IPC connection             \\
   \hline \textbf{Input}            & start\_recording() with RecordingInfo; stop\_recording() \\
   \hline \textbf{Expected Results} & Recording info sent; StopRecording sentinel sent         \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                  \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                  \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1225,7 +1237,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & CVProcessManagement with active process                 \\
   \hline \textbf{Input}            & pause\_pipeline() and resume\_pipeline() calls          \\
   \hline \textbf{Expected Results} & Process terminated on pause; resume event set on resume \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                 \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                 \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1235,7 +1247,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & CVProcessManagement with mocked connection               \\
   \hline \textbf{Input}            & Simulated CVData and PreviewData via recv loop           \\
   \hline \textbf{Expected Results} & Callbacks dispatched correctly; connection closed on EOF \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                  \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                  \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1245,7 +1257,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & CVProcessManagement with connection in various states          \\
   \hline \textbf{Input}            & Operations during broken pipe, EOF, and other error conditions \\
   \hline \textbf{Expected Results} & Exceptions caught and swallowed; component continues operating \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                        \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                        \\
   \hline
 \end{tabularx}
 \subsubsection{Module: Live Video Process Management}
@@ -1254,7 +1266,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & System ready for process management           \\
   \hline \textbf{Input}            & LivestreamProcessManagement instantiation     \\
   \hline \textbf{Expected Results} & Daemon thread started for process supervision \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                       \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                       \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1264,7 +1276,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & LivestreamProcessManagement instance                               \\
   \hline \textbf{Input}            & Simulated process loop iteration                                   \\
   \hline \textbf{Expected Results} & subprocess.Popen called with livestream command; process monitored \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                            \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                            \\
   \hline
 \end{tabularx}
 \subsubsection{Module: Transcode API}
@@ -1273,7 +1285,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Flask app with transcode routes registered; recording not found      \\
   \hline \textbf{Input}            & GET /api/recordings/<id>/preview-stabilized and /download-stabilized \\
   \hline \textbf{Expected Results} & HTTP 404 when recording not found                                    \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                              \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                              \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1283,7 +1295,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Flask app with valid recording                                        \\
   \hline \textbf{Input}            & GET preview-stabilized or download-stabilized with valid recording ID \\
   \hline \textbf{Expected Results} & HTTP 200 with video/webm content type; on\_download\_start/end called \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                               \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                               \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1293,7 +1305,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Named pipe exists on filesystem                                \\
   \hline \textbf{Input}            & \_cleanup\_pipe() call                                         \\
   \hline \textbf{Expected Results} & Pipe file removed; no error if pipe missing; OSError swallowed \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                        \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                        \\
   \hline
 \end{tabularx}
 \subsubsection{Module: Transcode Process}
@@ -1302,7 +1314,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & TranscodeProcess instance with mocked GStreamer                 \\
   \hline \textbf{Input}            & JSONL log file with OSD entries                                 \\
   \hline \textbf{Expected Results} & List of OSDData objects parsed correctly; invalid lines skipped \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                         \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                         \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1312,7 +1324,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & TranscodeProcess with OSD data list                                                     \\
   \hline \textbf{Input}            & Shader probe calls with various PTS values                                              \\
   \hline \textbf{Expected Results} & Correct OSD data selected; pointer advanced appropriately for preview vs download modes \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                                 \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                                 \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1322,7 +1334,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & TranscodeProcess with mocked GStreamer bus       \\
   \hline \textbf{Input}            & EOS, WARNING, and ERROR messages                 \\
   \hline \textbf{Expected Results} & Loop quit on EOS and ERROR; continued on WARNING \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                          \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                          \\
   \hline
 \end{tabularx}
 \subsubsection{Module: CV Process}
@@ -1331,7 +1343,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & CV process utilities loaded                             \\
   \hline \textbf{Input}            & Millisecond timestamps                                  \\
   \hline \textbf{Expected Results} & Human-readable formatted time strings with milliseconds \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                 \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                 \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1341,7 +1353,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Mocked GStreamer osd and shader elements                      \\
   \hline \textbf{Input}            & OSDData with gimbal angles, GPS coordinates, IP addresses     \\
   \hline \textbf{Expected Results} & Text property set with formatted OSD; shader uniforms updated \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                       \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                       \\
   \hline
 \end{tabularx}
 \subsubsection{Module: Common IPC}
@@ -1350,7 +1362,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & BoundingBox instance                     \\
   \hline \textbf{Input}            & Various bounding box coordinates         \\
   \hline \textbf{Expected Results} & Correct center point (cx, cy) calculated \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                  \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                  \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1360,7 +1372,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & BoundingBox instance                     \\
   \hline \textbf{Input}            & Bounding box for 90-degree rotated frame \\
   \hline \textbf{Expected Results} & Correctly transformed bounding box       \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                  \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                  \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1370,7 +1382,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & IPC module loaded                                                          \\
   \hline \textbf{Input}            & Construction of CVData, OSDData, PreviewData, RecordingInfo, StopRecording \\
   \hline \textbf{Expected Results} & Objects created with correct field values                                  \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                    \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                    \\
   \hline
 \end{tabularx}
 \subsubsection{Module: Common IPC Buffer}
@@ -1379,7 +1391,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & IPCBufferSender with mocked shared memory                              \\
   \hline \textbf{Input}            & send() calls with fixed-size payloads                                  \\
   \hline \textbf{Expected Results} & Head advanced; data written at correct offset; returns False when full \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1389,7 +1401,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & IPCBufferReceiver with mocked shared memory containing data         \\
   \hline \textbf{Input}            & receive() calls with various head/tail positions                    \\
   \hline \textbf{Expected Results} & Data retrieved correctly; tail advanced; overrun handled gracefully \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                             \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                             \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1399,7 +1411,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & IPCBufferReceiver with head significantly ahead of tail (overrun condition) \\
   \hline \textbf{Input}            & receive() call during overrun                                               \\
   \hline \textbf{Expected Results} & Tail advanced to catch up; data retrieved without corruption                \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                     \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                     \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1409,7 +1421,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & IPCBuffer with various head/tail positions including edge cases \\
   \hline \textbf{Input}            & Operations at buffer boundaries                                 \\
   \hline \textbf{Expected Results} & No out-of-bounds access; proper ring buffer wrapping            \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                         \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                         \\
   \hline
 \end{tabularx}
 \subsubsection{Module: Common Watchdog}
@@ -1418,7 +1430,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Watchdog instance with timeout and callback         \\
   \hline \textbf{Input}            & refresh() calls                                     \\
   \hline \textbf{Expected Results} & Timer created and started; previous timer cancelled \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                             \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                             \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1428,7 +1440,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Watchdog with active timer                                   \\
   \hline \textbf{Input}            & clear() call                                                 \\
   \hline \textbf{Expected Results} & Timer cancelled; reference cleared; idempotent when no timer \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                      \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                      \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1438,7 +1450,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Watchdog with specific timeout value                                 \\
   \hline \textbf{Input}            & refresh() calls at various intervals                                 \\
   \hline \textbf{Expected Results} & Timer created with correct timeout; callback triggered after timeout \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                              \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                              \\
   \hline
 \end{tabularx}
 \subsubsection{Module: System Status}
@@ -1447,7 +1459,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & SystemStatusMonitor with mocked jtop                              \\
   \hline \textbf{Input}            & Multiple getter calls between updates                             \\
   \hline \textbf{Expected Results} & Cached values returned immediately; no redundant hardware queries \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                           \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                           \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1457,7 +1469,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & SystemStatusMonitor with initial readings \\
   \hline \textbf{Input}            & jtop callback with updated sensor values  \\
   \hline \textbf{Expected Results} & All cached metrics updated to new values  \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                   \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                   \\
   \hline
 \end{tabularx}
 \subsubsection{Module: Common Utils}
@@ -1466,7 +1478,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Utils module with mocked netifaces                                      \\
   \hline \textbf{Input}            & Network interface configurations with various IPv4 addresses            \\
   \hline \textbf{Expected Results} & List of IP addresses extracted correctly; empty list when no interfaces \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                 \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                 \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1476,7 +1488,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Scheduler functions with mocked OS calls                                          \\
   \hline \textbf{Input}            & Various priority values (valid and invalid) for FIFO, OTHER, and BATCH schedulers \\
   \hline \textbf{Expected Results} & ValueError raised for out-of-range priorities; successful calls for valid values  \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                           \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                           \\
   \hline
 \end{tabularx}
 \subsubsection{Module: Recording-Only State Management}
@@ -1485,7 +1497,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & StateManagementRecordingManagementOnly instance                                                     \\
   \hline \textbf{Input}            & Calls to arm(), disarm(), manual\_move(), manual\_move\_to(), start\_recording(), stop\_recording() \\
   \hline \textbf{Expected Results} & All operations are no-ops (do not raise exceptions)                                                 \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                                             \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                                             \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1495,7 +1507,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & StateManagementRecordingManagementOnly with mocked database and system status  \\
   \hline \textbf{Input}            & status() call                                                                  \\
   \hline \textbf{Expected Results} & StatusResponse with is\_recording=False, armed=False, system metrics populated \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                        \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                        \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1505,7 +1517,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Mocked StateManagement and threading                           \\
   \hline \textbf{Input}            & run\_control\_process() and run\_recording\_management() calls \\
   \hline \textbf{Expected Results} & API thread started and joined; StateManagement instantiated    \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                        \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                        \\
   \hline
 \end{tabularx}
 \subsubsection{Module: Main Entry Point}
@@ -1514,7 +1526,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Mocked sys.argv with no arguments        \\
   \hline \textbf{Input}            & Default execution (no command line args) \\
   \hline \textbf{Expected Results} & run\_control\_process() called           \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                  \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                  \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1524,7 +1536,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Mocked sys.argv with [``cv''] argument \\
   \hline \textbf{Input}            & CV process launch command              \\
   \hline \textbf{Expected Results} & run\_cv\_process() called              \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1534,7 +1546,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Mocked sys.argv with [``livestream''] argument \\
   \hline \textbf{Input}            & Livestream process launch command              \\
   \hline \textbf{Expected Results} & run\_livestream\_process() called              \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                        \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                        \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1544,7 +1556,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Mocked sys.argv with [``download-stabilized''] or [``preview-stabilized''] arguments \\
   \hline \textbf{Input}            & Transcode process launch command with video and log paths                            \\
   \hline \textbf{Expected Results} & start\_transcode\_process() called with correct mode and paths                       \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                              \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                              \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1554,7 +1566,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Mocked sys.argv with unknown command \\
   \hline \textbf{Input}            & Unknown command line argument        \\
   \hline \textbf{Expected Results} & System exits with code 1             \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}              \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}              \\
   \hline
 \end{tabularx}
 \subsubsection{Module: SSE}
@@ -1563,7 +1575,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & MessageAnnouncer with multiple listeners registered                              \\
   \hline \textbf{Input}            & Rapid announce() calls with status updates                                       \\
   \hline \textbf{Expected Results} & All listeners receive messages; full queues drop messages silently (no blocking) \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                          \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                          \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1573,7 +1585,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & MessageAnnouncer with concurrent operations                           \\
   \hline \textbf{Input}            & Simultaneous listen(), remove(), and announce() from multiple threads \\
   \hline \textbf{Expected Results} & No race conditions; all operations complete safely                    \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                               \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                               \\
   \hline
 \end{tabularx}
 \subsection{Frontend Unit Tests (\texttt{Vitest})}
@@ -1582,7 +1594,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & React component with mocked dependencies                                                                    \\
   \hline \textbf{Input}            & Various status states (null, with/without preview, armed/disarmed, recording)                               \\
   \hline \textbf{Expected Results} & Preview image rendered when available; spinner shown when loading; REC/ARMED indicators displayed correctly \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                                                     \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                                                     \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1592,7 +1604,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Control page with status containing bbox            \\
   \hline \textbf{Input}            & Status with bounding box coordinates and confidence \\
   \hline \textbf{Expected Results} & Bounding box overlay rendered with confidence value \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                             \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                             \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1602,7 +1614,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & ControlsCard component with mocked API                               \\
   \hline \textbf{Input}            & Various system states (armed/disarmed)                               \\
   \hline \textbf{Expected Results} & Directional controls rendered; manual move API called on interaction \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                              \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                              \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1612,7 +1624,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Control page in disarmed mode                           \\
   \hline \textbf{Input}            & Pointer drag gestures on preview area                   \\
   \hline \textbf{Expected Results} & manualMoveTo API called with calculated tilt/pan values \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                 \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                 \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1622,7 +1634,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & SystemStatusCard component with status payload fixtures             \\
   \hline \textbf{Input}            & Status payload fixtures with CPU/FPS/temperature/GPS combinations   \\
   \hline \textbf{Expected Results} & Correct metric text rendering and safe handling when status is null \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                             \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                             \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1632,7 +1644,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Rendered navbar with mocked fullscreen API                                         \\
   \hline \textbf{Input}            & Navbar interactions (link clicks, configuration toggle, fullscreen)                \\
   \hline \textbf{Expected Results} & Required navigation links exist; fullscreen requests/exit call correct browser API \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                            \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                            \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1642,7 +1654,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Recordings page mounted            \\
   \hline \textbf{Input}            & API loading state                  \\
   \hline \textbf{Expected Results} & Loading spinner displayed          \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}            \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}            \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1652,7 +1664,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Recordings page with empty list     \\
   \hline \textbf{Input}            & API returns empty recordings array  \\
   \hline \textbf{Expected Results} & ``No recordings'' message displayed \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}             \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}             \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1662,7 +1674,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Recordings page with sample data                        \\
   \hline \textbf{Input}            & API returns list of recordings                          \\
   \hline \textbf{Expected Results} & Recording names rendered; dates and durations formatted \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                 \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                 \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1672,7 +1684,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Recordings page with sample recording      \\
   \hline \textbf{Input}            & Delete button clicked with confirmation    \\
   \hline \textbf{Expected Results} & deleteRecording API called with correct ID \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                    \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                    \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1682,7 +1694,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Recordings page with editable name                            \\
   \hline \textbf{Input}            & Name changed and blurred (or Escape pressed)                  \\
   \hline \textbf{Expected Results} & renameRecording API called with new name; cancelled on Escape \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                       \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                       \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1692,7 +1704,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & LanguageSelector component            \\
   \hline \textbf{Input}            & Language selection change             \\
   \hline \textbf{Expected Results} & Language atom updated; i18n activated \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}               \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}               \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1702,7 +1714,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & ConfigurationMenu component                                        \\
   \hline \textbf{Input}            & Settings changes (temperature unit, drag sensitivity, invert drag) \\
   \hline \textbf{Expected Results} & Setting atoms updated with new values                              \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                            \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                            \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1712,7 +1724,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & ApiClient instance                                                      \\
   \hline \textbf{Input}            & Base URL configuration                                                  \\
   \hline \textbf{Expected Results} & Correct endpoint URLs generated for status stream, recordings, previews \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                 \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                 \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1722,7 +1734,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Network with multiple potential server URLs                  \\
   \hline \textbf{Input}            & createAutomatic() with probe URLs                            \\
   \hline \textbf{Expected Results} & Client created with first responding URL; throws if all fail \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                      \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                      \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1732,7 +1744,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & ApiClient with mocked fetch                                                                                              \\
   \hline \textbf{Input}            & manualMove(), arm(), disarm(), startRecording(), stopRecording(), listRecordings(), renameRecording(), deleteRecording() \\
   \hline \textbf{Expected Results} & Correct HTTP methods and URLs; proper request bodies; ApiError thrown on failure                                         \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                                                                  \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                                                                  \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1742,7 +1754,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & RocamProvider component with mocked createAutomatic               \\
   \hline \textbf{Input}            & Provider mounted with children                                    \\
   \hline \textbf{Expected Results} & API client created; status polling started; loading state managed \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                           \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                           \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1752,7 +1764,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & RocamProvider with mocked API that fails to connect               \\
   \hline \textbf{Input}            & API initialization failure                                        \\
   \hline \textbf{Expected Results} & Error state set; error message displayed; component doesn't crash \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                           \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                           \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1762,7 +1774,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & RocamProvider with mocked API client                                   \\
   \hline \textbf{Input}            & Status stream events and polling intervals                             \\
   \hline \textbf{Expected Results} & Status state updated; polling continues with proper cleanup on unmount \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                                \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                                \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1772,7 +1784,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Component wrapped in RocamProvider                       \\
   \hline \textbf{Input}            & useRocam() hook called                                   \\
   \hline \textbf{Expected Results} & API client and status accessible to consuming components \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                  \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                  \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1782,7 +1794,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Formatter functions loaded                                       \\
   \hline \textbf{Input}            & Various numeric values for degrees, FPS, percentages             \\
   \hline \textbf{Expected Results} & Correctly formatted strings with appropriate precision and units \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                          \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                          \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1792,7 +1804,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Formatter functions loaded                           \\
   \hline \textbf{Input}            & Celsius temperatures; Fahrenheit unit preference     \\
   \hline \textbf{Expected Results} & Correct conversion and formatting with degree symbol \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                              \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                              \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1802,7 +1814,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Formatter functions loaded           \\
   \hline \textbf{Input}            & Byte counts of various magnitudes    \\
   \hline \textbf{Expected Results} & Human-readable sizes (B, KB, MB, GB) \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}              \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}              \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1812,7 +1824,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Formatter functions loaded                  \\
   \hline \textbf{Input}            & Millisecond durations                       \\
   \hline \textbf{Expected Results} & Formatted HH:MM:SS or relative time strings \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                     \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                     \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1822,7 +1834,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & i18n module with mocked lingui                      \\
   \hline \textbf{Input}            & dynamicActivate() with locale string                \\
   \hline \textbf{Expected Results} & Messages loaded; i18n activated with correct locale \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                             \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                             \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1832,7 +1844,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & App component with MemoryRouter                               \\
   \hline \textbf{Input}            & Navigation to / and /recordings routes                        \\
   \hline \textbf{Expected Results} & Correct page components rendered; unknown paths redirect to / \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                       \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                       \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1842,7 +1854,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Formatter functions loaded                                        \\
   \hline \textbf{Input}            & Edge values (null, undefined, negative, zero, very large numbers) \\
   \hline \textbf{Expected Results} & Sensible defaults; no crashes; formatted output for all inputs    \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                                           \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                                           \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1852,7 +1864,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Formatters with various locale considerations     \\
   \hline \textbf{Input}            & Values requiring locale-specific formatting       \\
   \hline \textbf{Expected Results} & Consistent formatting regardless of system locale \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                           \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                           \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1862,7 +1874,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Components with loading/null states                 \\
   \hline \textbf{Input}            & Null or undefined data                              \\
   \hline \textbf{Expected Results} & Loading spinners or placeholder content; no crashes \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                             \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                             \\
   \hline
 \end{tabularx}
 \vspace{0.75em}
@@ -1872,7 +1884,7 @@ Not applicable, there is no existing implementation.
   \hline \textbf{Initial State}    & Components with mocked API that returns errors        \\
   \hline \textbf{Input}            & API errors, network failures, malformed responses     \\
   \hline \textbf{Expected Results} & Graceful error display; component remains interactive \\
-  \hline \textbf{Success}          & \textcolor{green}{Pass}                               \\
+  \hline \textbf{Success}          & \textbf{\textcolor{teal}{Pass}}                               \\
   \hline
 \end{tabularx}
 
@@ -1947,6 +1959,44 @@ resulting changes, and their impact on project quality.
 
 Overall, these updates show that verification results were used to make
 concrete product improvements, not only to report pass/fail status.
+
+\subsection{Planned Future Improvements}
+
+The following improvements have been identified through the V\&V process and
+stakeholder feedback but have \textbf{not yet been implemented} due to time
+and resource constraints. They are documented here for future development
+iterations.
+
+\begin{table}[H]
+  \centering
+  \caption{Planned Future Improvements Identified During V\&V}
+  \label{TblPlannedFutureChanges}
+  \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{4.5cm}|X|}
+    \hline
+    \textbf{Source of Feedback}  & \textbf{Planned Change} \\
+    \hline
+    Peer Review (\#342)          &
+    Conduct formal usability testing with end-users (task completion timing,
+    satisfaction surveys, SUS scoring) and summarize results with charts and
+    statistical analysis.                                                     \\
+    \hline
+    Stakeholder Review           &
+    Perform field validation at an actual rocket launch site to confirm
+    tracking performance, latency, and HDMI output quality under real flight
+    conditions (wind, distance, lighting variability).                        \\
+    \hline
+    TA Feedback                  &
+    Extend code coverage targets to 90\% line coverage for safety-critical
+    modules (state management, gimbal abstraction) and add mutation testing
+    for critical state transitions.                                           \\
+    \hline
+    Testing Observations         &
+    Add automated regression tests for the HDMI output pipeline and recording
+    workflow to detect freeze or corruption issues without manual
+    intervention.                                                             \\
+    \hline
+  \end{tabularx}
+\end{table}
 
 \section{Automated Testing}
 \label{sec:automated_testing}
