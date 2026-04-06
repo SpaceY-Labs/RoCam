@@ -52,10 +52,11 @@
 \section*{Revision History}
 
 \begin{tabularx}{\textwidth}{llX}
-  \toprule {\textbf{Date}} & {\textbf{Developer(s)}} & {\textbf{Change}}        \\
+  \toprule {\textbf{Date}} & {\textbf{Developer(s)}} & {\textbf{Change}}                                                                                                                                             \\
   \midrule
-  Oct. 10, 2025            & All team members        & Initial release          \\
-  Nov. 16, 2025            & Jianqing Liu            & Fix Peer Review Comments \\
+  Oct. 10, 2025            & All team members        & Initial release                                                                                                                                               \\
+  Nov. 16, 2025            & Jianqing Liu            & Fix Peer Review Comments                                                                                                                                      \\
+  Apr. 5, 2026             & All team members        & Rev 1: Address TA/instructor feedback, fix typos and grammar, add traceability to Hazard Analysis safety requirements (SR1--SR4), improve requirement clarity \\
   \bottomrule
 \end{tabularx}
 
@@ -108,8 +109,8 @@ characteristics so later requirements and tests are grounded in real roles.
 
 \subsection{Client}
 
-The client of this project is McMaster Rocketry Team. they are the primary end
-users who will deploy the system during launches.
+The client of this project is the McMaster Rocketry Team. They are the primary
+end users who will deploy the system during launches.
 
 \subsection{Customer}
 
@@ -150,8 +151,8 @@ trained on the use of the product.
 \textbf{Role: Live Stream Technician}
 
 The live stream technician manages the video feed from the system to the live
-streaming equipments. The live stream technician is assumed to have a high
-level of familiarity with live streaming software and hardware.
+streaming equipment. The live stream technician is assumed to have a high level
+of familiarity with live streaming software and hardware.
 
 \textbf{Role: Flight Performance Analyst}
 
@@ -255,7 +256,7 @@ keeps the broadcast running when chaos hits.
 
 \subsection{User Participation}
 
-Through out the development process, the development team will continue to
+Throughout the development process, the development team will continue to
 iterate on the requirements based on feedback from these users:
 
 \begin{enumerate}
@@ -351,9 +352,9 @@ access.
 \subsection{Budget Constraints}
 
 \begin{itemize}[leftmargin=*]
-  \item[BC-1] \emph{The project shall not exceed the budget of 500CAD.}\\[2mm]
+  \item[BC-1] \emph{The project shall not exceed the budget of 500 CAD.}\\[2mm]
         \textbf{Rationale:} Limited by the capstone project requirement.\\
-        \textbf{Fit Criterion:} The sum of the costs of the hardware components required for the project must be less than 500CAD.\\
+        \textbf{Fit Criterion:} The sum of the costs of the hardware components required for the project must be less than 500 CAD.\\
         \textbf{Source PUC:} all\\
         \textbf{Priority:} High
 \end{itemize}
@@ -516,7 +517,7 @@ individual business use case (BUC) which describes business logic in detail.
 
 \textbf{Main Flow of Steps:}
 \begin{enumerate}
-  \item The camera operator connect the camera to the live streaming equipments.
+  \item The camera operator connects the camera to the live streaming equipment.
 \end{enumerate}
 
 \textbf{Outcome:} The live stream receives a video feed from the camera.
@@ -727,10 +728,10 @@ primary use cases of the system.
 
 \textbf{Main Flow of Steps:}
 \begin{enumerate}
-  \item The camera operator connects the system to the live streaming equipments.
+  \item The camera operator connects the system to the live streaming equipment.
 \end{enumerate}
 
-\textbf{Outcome:} The live streaming equipments receive a video feed from the system.
+\textbf{Outcome:} The live streaming equipment receives a video feed from the system.
 
 ~\\
 
@@ -1049,7 +1050,7 @@ response times, success rates) aligned with user needs.
 \begin{itemize}[leftmargin=*]
   \item[LR-1] \emph{The system shall be easy to learn for new users.}\\[2mm]
         \textbf{Rationale:} Reducing the learning curve for technically literate users allows for faster and safer adoption, especially in time-pressured launch scenarios.\\
-        \textbf{Fit Criterion:} New users with a reasonable levelof technological familiarity who have read the manual are able to successfully perform all product use cases within 20 minutes without external assistance.\\
+        \textbf{Fit Criterion:} New users with a reasonable level of technological familiarity who have read the manual are able to successfully perform all product use cases within 20 minutes without external assistance.\\
         \textbf{Source PUC:} 2.1, 2.2, 2.3, 4.1, 4.2, 5 \\
         \textbf{Priority:} High
 
@@ -1080,7 +1081,7 @@ response times, success rates) aligned with user needs.
 
 \subsection{Accessibility Requirements}
 \begin{itemize}[leftmargin=*]
-  \item[AR-1] \emph{Status indicators shall remain distinguishable under common
+  \item[ACR-1] \emph{Status indicators shall remain distinguishable under common
           color-vision deficiencies.}\\[2mm]
         \textbf{Rationale:} Ensures legibility for diverse users and conditions.\\
         \textbf{Fit Criterion:} UI passes color-vision simulations.\\
@@ -1089,6 +1090,7 @@ response times, success rates) aligned with user needs.
 \end{itemize}
 
 \section{Performance Requirements}
+\label{sec:performance}
 This section defines measurable non-functional targets: latency, throughput,
 accuracy, robustness, capacity, safety-critical behaviors. Each item is
 testable in bench or field conditions.
@@ -1119,30 +1121,34 @@ testable in bench or field conditions.
 \begin{itemize}[leftmargin=*]
   \item[SCR-1] \emph{The system must allow the user to manually exit armed or tracking
           mode, transitioning the system to idle mode.}\\[2mm]
-        \textbf{Rationale:} Manual override is necessary to ensure safety, provide user control in unexpected circumstances.\\
-        \textbf{Fit Criterion:} When the user issues an exit command during armed or tracking mode, the system transitions to idle mode within 0.5 second and ceases any automated gimbal movement.\\
+        \textbf{Rationale:} Manual override is necessary to ensure safety and provide user control in unexpected circumstances.\\
+        \textbf{Fit Criterion:} When the user issues an exit command during armed or tracking mode, the system transitions to idle mode within 0.5 seconds and ceases any automated gimbal movement.\\
         \textbf{Source PUC:} 4.2 \\
-        \textbf{Priority:} High
+        \textbf{Priority:} High \\
+        \textbf{HA Trace:} SR1 (angular velocity limit enforcement), SR4 (emergency stop)
 
   \item[SCR-2] \emph{The system must be hands-off (autonomous) from rocket ignition
           through landing.}\\[2mm]
         \textbf{Rationale:} During live launches, human operators must prioritize range safety and situational awareness.\\
         \textbf{Fit Criterion:} Once ready, no manual inputs are necessary for the nominal operation of the system until a declared "landed/clear" signal from mission control.\\
         \textbf{Source PUC:} 3 \\
-        \textbf{Priority:} High
+        \textbf{Priority:} High \\
+        \textbf{HA Trace:} SR2 (PPE -- reduces need for physical proximity during autonomous flight), SR3 (self-correcting tracking)
 
-  \item[SCR-3] \emph{The system must be remote operatable over a local network.}\\[2mm]
+  \item[SCR-3] \emph{The system must be remotely operable over a local network.}\\[2mm]
         \textbf{Rationale:} The system may need to be positioned inside hazardous zones (launch pad, ballistic landing areas) or at distant vantage points with no safe operator access during the countdown and flight.\\
         \textbf{Fit Criterion:} The system should be able to perform all the product use cases over a local network with no physical interaction at the camera site once deployed.\\
         \textbf{Source PUC:} all \\
-        \textbf{Priority:} High
+        \textbf{Priority:} High \\
+        \textbf{HA Trace:} SR2 (PPE -- remote operation reduces operator proximity to gimbal hardware)
 
   \item[SCR-4] \emph{The system must only enter armed mode when explicitly instructed
           by the user.}\\[2mm]
         \textbf{Rationale:} Prevents accidental or unintended transitions to armed state, ensuring safe and predictable operation for all users.\\
         \textbf{Fit Criterion:} The system transitions from idle to armed mode only in response to a clear, user-initiated command, and never automatically or implicitly.\\
         \textbf{Source PUC:} 2.3 \\
-        \textbf{Priority:} High
+        \textbf{Priority:} High \\
+        \textbf{HA Trace:} SR1 (prevents uncontrolled gimbal movement), SR4 (emergency stop available from any state)
 \end{itemize}
 
 \subsection{Precision or Accuracy Requirements}
@@ -1167,7 +1173,8 @@ testable in bench or field conditions.
         \textbf{Rationale:} Rapid cessation of activity prevents damage to equipment and ensures user safety when continued operation is unsafe.\\
         \textbf{Fit Criterion:} Simulated unrecoverable errors cause the system to halt actuation.\\
         \textbf{Source PUC:} all \\
-        \textbf{Priority:} High
+        \textbf{Priority:} High \\
+        \textbf{HA Trace:} SR1 (prevents gimbal damage), SR4 (emergency stop safe state)
   \item[RFR-3] \emph{The system must operate normally without access to the public
           internet.}\\[2mm]
         \textbf{Rationale:} Launch sites are often located in remote areas without reliable internet connectivity.\\
@@ -1231,7 +1238,7 @@ None.
 
 \begin{itemize}[leftmargin=*]
   \item[INT-1] \emph{The system must output a live video stream via HDMI.}\\[2mm]
-        \textbf{Rationale:} The customer's live streaming equipments accept HDMI as the integration standard, alternative connectors would require additional adapters.\\
+        \textbf{Rationale:} The customer's live streaming equipment accepts HDMI as the integration standard, alternative connectors would require additional adapters.\\
         \textbf{Fit Criterion:} The system should be able to output a live video stream via HDMI, confirmed by connecting a monitor to the system.\\
         \textbf{Source PUC:} 1 \\
         \textbf{Priority:} High
@@ -1859,8 +1866,8 @@ system we developed.
 \subsection{Requirements for Migration to the New Product}
 
 \begin{enumerate}
-  \item The client need to select a place with power source to deploy the system.
-  \item The client need to set up a local network between the operator and the system.
+  \item The client needs to select a place with a power source to deploy the system.
+  \item The client needs to set up a local network between the operator and the system.
 \end{enumerate}
 
 \subsection{Data That Has to be Modified or Translated for the New System}
@@ -2156,9 +2163,9 @@ proof of concept and later phases.
 
 \begin{enumerate}
   \item What went well while writing this deliverable?\\[2mm] The scope of the work and the
-        scope of the product are well defined, thanks to the detailed explaination from
-        the author of the template. (There is a 80 page pdf explaination can be found
-        on line) In addition, one of the team member have experience being in a
+        scope of the product are well defined, thanks to the detailed explanation from
+        the author of the template. (There is an 80-page PDF explanation that can be found
+        online.) In addition, one of the team member have experience being in a
         rocketry competition, so we are able to understand the work and the working
         environment.
   \item What pain points did you experience during this deliverable, and how did you

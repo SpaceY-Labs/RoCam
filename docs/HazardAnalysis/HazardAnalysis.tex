@@ -46,10 +46,11 @@
   \caption{Revision History} \label{TblRevisionHistory}
   \begin{tabularx}{\textwidth}{llX}
     \toprule
-    \textbf{Date} & \textbf{Developer(s)} & \textbf{Change} \\
+    \textbf{Date} & \textbf{Developer(s)} & \textbf{Change}                                                                                                    \\
     \midrule
-    Date1         & Shike Chen            & Initial draft   \\
-    Date2         & Shike Chen            & Detailed draft  \\
+    Oct. 5, 2025  & Shike Chen            & Initial draft                                                                                                      \\
+    Oct. 19, 2025 & Shike Chen            & Detailed draft                                                                                                     \\
+    Apr. 5, 2026  & All team members      & Rev 1: Address feedback, fix typos, remove template comments, add traceability to SRS, improve safety requirements \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -59,8 +60,6 @@
 \tableofcontents
 
 ~\newpage
-
-\wss{You are free to modify this template.}
 
 \section{Introduction}
 Hazard is generally defined as a harm or potential harm or effect caused by a
@@ -81,10 +80,10 @@ includes hazards effects in the events of malfunction, misuse or environmental
 damage. However, since the project is open source, any use case that is beyond
 the scope of this project will not be included in this hazard analysis.
 
-Such hazard analysis will not only used to identify potential hazards caused by
-the system, but also to minimize risks related in unforeseen cases. The purpose
-of this hazard analysis is to properly address the potential harm and risks
-caused by the product to the user and the external environment.
+Such hazard analysis will not only be used to identify potential hazards caused
+by the system, but also to minimize risks related to unforeseen cases. The
+purpose of this hazard analysis is to properly address the potential harm and
+risks caused by the product to the user and the external environment.
 
 \section{System Boundaries and Components}
 
@@ -95,54 +94,43 @@ STM32 microcontroller. This module is responsible for controlling the movement
 of the camera gimbal. It receives commands from our Computer Vision module and
 translates them into precise motor movements in real time.
 \subsubsection{Camera gimbal}
-The camera gimbal used in this project is a existing Camera Gimbal designed by
-the McMaster Rocketry team. Since our team is not responsible for the design of
+The camera gimbal used in this project is an existing camera gimbal designed by
+the McMaster Rocketry Team. Since our team is not responsible for the design of
 the gimbal, we can only estimate the potential hazards based on similar
 products in the market.
 \subsubsection{Jetson Orin Nano}
-The Jetson Orin Nano is small, lightweight AI computer designed by NVIDIA. It
-will be used to deploy our computer vision moodule and communicate directly
-with the motion control module.
+The Jetson Orin Nano is a small, lightweight AI computer designed by NVIDIA. It
+is used to deploy our computer vision module and communicate directly with the
+motion control module.
 \subsubsection{Camera}
-The camera is a off the shelf camera that is compatible with the Jetson Orin
-Nano. It is able to provide 4k video input in real time.
+The camera is an off-the-shelf camera that is compatible with the Jetson Orin
+Nano. It is able to provide 4K video input in real time.
 
 \subsection{Software Components}
 \subsubsection{Computer Vision Module}
 Our computer vision module will be developed in Python. The base architecture
-will be torch and pandas. It will be accerlerated with TensorRT in Jetson to
-achieve real time stable performance.
+will be torch and pandas. It will be accelerated with TensorRT on the Jetson to
+achieve real-time stable performance.
 \subsubsection{User Interface Module}
 The user interface module will be developed using React. It will provide a
 web-based interface for users to interact with the system, view camera feeds,
 and control the camera gimbal.
 
-\wss{Dividing the system into components will help you brainstorm the hazards.
-  You shouldn't do a full design of the components, just get a feel for the major
-  ones.  For projects that involve hardware, the components will typically include
-  each individual piece of hardware.  If your software will have a database, or an
-  important library, these are also potential components.}
-
 \section{Critical Assumptions}
 
 \subsection{Assumptions about the Operating Environment}
-The system will not operating in any extreme environment (e.g., extreme
+The system will not operate in any extreme environment (e.g., extreme
 temperature, acidic environments, etc.). The system will be operating within 10
-to 25 degree Celsius. The system will operate with a stable power supply.
+to 25 degrees Celsius. The system will operate with a stable power supply.
 \subsection{Assumptions about the User}
-Anyone above 14 years old who uses electronic and exposed to software interface
-on a daily basis for over 2 years with good intent.
-\subsection{Assumptions about general of the shelf hardware components}
+Anyone above 14 years old who uses electronic devices and is familiar with
+software interfaces on a daily basis for over 2 years, with good intent.
+\subsection{Assumptions about Off-the-Shelf Hardware Components}
 All off-the-shelf hardware components will function as advertised and will be
 compatible with our system. This includes the camera, gimbal, Jetson Orin Nano
 etc.
 \subsection{Assumptions about the software libraries}
 All software libraries used will not have any unknown security vulnerabilities.
-
-\wss{These assumptions that are made about the software or system.  You should
-  minimize the number of assumptions that remove potential hazards.  For instance,
-  you could assume a part will never fail, but it is generally better to include
-  this potential failure mode.}
 
 \newpage
 \section{Failure Mode and Effect Analysis}
@@ -181,13 +169,13 @@ All software libraries used will not have any unknown security vulnerabilities.
       \begin{enumerate}
         \item \begin{enumerate}
                 \item failed in communication between the motion control module and the gimbal
-                \item failed in communication then CV module and the motion control module
+                \item failed in communication between CV module and the motion control module
                 \item firmware bug in the motion control module or compatibility issue
                 \item fried electric components in the motion control module or gimbal
               \end{enumerate}
         \item \begin{enumerate}
                 \item improper instruction from the motion control module
-                \item rocket angular velocity to the gimbal excesses the design limit
+                \item rocket angular velocity relative to the gimbal exceeds the design limit
               \end{enumerate}
         \item \begin{enumerate}
                 \item improper instruction from the motion control module
@@ -215,7 +203,7 @@ All software libraries used will not have any unknown security vulnerabilities.
                 \item design CV module to be robust in different environment
                 \item design motion control module and CV module speed to have self-correcting (SR3)
                       mechanism
-                \item design multiple tracking algorithms to avoid losing of the rocket
+                \item design multiple tracking algorithms to avoid losing the rocket
 
               \end{enumerate}
       \end{enumerate}
@@ -288,25 +276,59 @@ All software libraries used will not have any unknown security vulnerabilities.
   }
 \end{table}
 
-\wss{Include your FMEA table here. This is the most important part of this document.}
-\wss{The safety requirements in the table do not have to have the prefix SR.
-  The most important thing is to show traceability to your SRS. You might trace to
-  requirements you have already written, or you might need to add new
-  requirements.}
-\wss{If no safety requirement can be devised, other mitigation strategies can be
-  entered in the table, including strategies involving providing additional
-  documentation, and/or test cases.}
-
 \newpage
 \section{Safety and Security Requirements}
 
 \begin{enumerate}
-  \item SR1: The system will be placed in a distance which the expected angular
-        velocity will not exceed the design limit of the gimbal.
-  \item SR2: all operators must wear safety goggles when operating the system.
-  \item SR3: The system will have a self-correcting mechanism to ensure the camera can
-        track the rocket smoothly in real time.
+  \item \textbf{SR1} (Angular Velocity Limit): The system shall be placed at a distance
+        such that the expected angular velocity of the rocket relative to the camera
+        does not exceed the design limit of the gimbal. The system shall enforce
+        software-defined angular velocity and angle limits to prevent mechanical
+        damage.\\
+        \textit{Traced to SRS:} SCR-1 (manual override to idle), RFR-2 (safe state on
+        unrecoverable error), IR-1 (input validation for gimbal commands).
+
+  \item \textbf{SR2} (Personal Protective Equipment): All operators must wear safety
+        goggles when operating the system in proximity to the gimbal hardware.\\
+        \textit{Traced to SRS:} SCR-3 (remote operation over local network reduces need
+        for physical proximity during flight).
+
+  \item \textbf{SR3} (Self-Correcting Tracking): The system shall have a self-correcting
+        mechanism to ensure the camera can track the rocket smoothly in real time.
+        If the target is temporarily lost, the system shall attempt re-acquisition
+        before declaring the target lost and returning to idle state.\\
+        \textit{Traced to SRS:} FR-7 (keep rocket within frame), RFR-4
+        (autonomous re-acquisition before declaring loss), RFR-5 (high success
+        rate of tracking).
+
+  \item \textbf{SR4} (Emergency Stop): The system shall provide an emergency stop
+        mechanism that immediately ceases all automated gimbal movement and
+        transitions the system to a safe idle state within 0.5 seconds.\\
+        \textit{Traced to SRS:} SCR-1 (manual exit from armed/tracking mode),
+        RFR-2 (halt on unrecoverable error), EZ-4 (help user avoid mistakes).
 \end{enumerate}
+
+\section{Traceability Between Hazard Analysis and SRS}
+
+Table~\ref{tab:ha-srs-trace} maps each safety requirement identified in this
+hazard analysis to the corresponding requirements in the Software Requirements
+Specification (SRS). This ensures bi-directional traceability: every safety
+concern is addressed by at least one verifiable SRS requirement, and key SRS
+safety-related requirements trace back to an identified hazard.
+
+\begin{table}[H]
+  \caption{Traceability Matrix: HA Safety Requirements $\leftrightarrow$ SRS Requirements}\label{tab:ha-srs-trace}
+  \begin{tabularx}{\textwidth}{l l Y}
+    \toprule
+    \textbf{HA Safety Req.}        & \textbf{SRS Requirement(s)} & \textbf{Rationale}                                                                                                       \\
+    \midrule
+    SR1 (Angular Velocity Limit)   & SCR-1, RFR-2, IR-1, INT-2   & Gimbal velocity/angle limits enforced in software; manual override and safe-state transitions prevent mechanical damage. \\
+    SR2 (PPE)                      & SCR-3                       & Remote operation reduces physical proximity risk; PPE required when near hardware.                                       \\
+    SR3 (Self-Correcting Tracking) & FR-7, RFR-4, RFR-5          & Autonomous tracking with re-acquisition ensures robust rocket following and graceful degradation on target loss.         \\
+    SR4 (Emergency Stop)           & SCR-1, RFR-2, EZ-4          & Manual exit to idle within 0.5\,s; safe-state halt on unrecoverable error; confirmation prompts for dangerous commands.  \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 
 \section{Roadmap}
 
@@ -363,7 +385,7 @@ All software libraries used will not have any unknown security vulnerabilities.
     8                                                                                                                             &
     Verification \& docs: finalize FMEA, traceability, test report.                                                               &
     FMEA v2; SRS trace matrix; safety test report; demo video.                                                                    &
-    All SRs: SR1–SR3 complete and traced.                                                                                         &
+    All SRs: SR1--SR4 complete and traced.                                                                                        &
     Pass/fail summary; residual-risk log; release tag.                                                                                                                                                                                                       \\
     \bottomrule
   \end{tabularx}
@@ -374,14 +396,15 @@ All software libraries used will not have any unknown security vulnerabilities.
   \item M1 (End Sprint 2): Motion MVP with enforceable soft limits (SR1 draft).
   \item M2 (End Sprint 4): UI prototype with health/status and safe-state control.
   \item M3 (End Sprint 6): Closed-loop tracking with recovery/self-correction (SR3).
-  \item M4 (End Sprint 8): Safety package complete (FMEA v2, SR1–SR3 verified, docs).
+  \item M4 (End Sprint 8): Safety package complete (FMEA v2, SR1--SR4 verified,
+        documentation).
 \end{enumerate}
 
 \subsection{Traceability Plan}
 \begin{itemize}
   \item FMEA \(\rightarrow\) SR mapping: “Gimbal snaps/overshoots” \(\rightarrow\) SR1;
-        “Tracking lost” \(\rightarrow\) SR3; “UI unavailable/unclear” \(\rightarrow\)
-        UI alarms, SOP, tests.
+        “Tracking lost” \(\rightarrow\) SR3; “Emergency halt needed” \(\rightarrow\)
+        SR4; “UI unavailable/unclear” \(\rightarrow\) UI alarms, SOP, tests.
   \item Each sprint closes with: (a) updated FMEA row(s), (b) test artifacts linked to
         SR IDs, (c) residual risk review.
 \end{itemize}
@@ -391,6 +414,7 @@ All software libraries used will not have any unknown security vulnerabilities.
   \item \textbf{SR1}: Max angular velocity/angle never exceeded in any commanded or fault path; evidence: logs + plotted limits across stress tests.
   \item \textbf{SR2}: Operators use PPE; SOP and checklist enforced; evidence: signed checklist + demo footage.
   \item \textbf{SR3}: From target-loss events, system recovers or safely recenters within \(T_{\max}\) seconds in \(\geq 95\%\) of trials.
+  \item \textbf{SR4}: Emergency stop reaches idle state within 0.5\,s from any operational state; evidence: timed tests + command logs.
 \end{itemize}
 
 \subsection{Post-Capstone Backlog (Future Work)}
@@ -404,8 +428,6 @@ All software libraries used will not have any unknown security vulnerabilities.
 \newpage{}
 
 \section*{Appendix --- Reflection}
-
-\wss{Not required for CAS 741}
 
 \input{../Reflection.tex}
 
