@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 """
+Author: Xiaotian Lou
+Date: 2026-03-17
+Purpose: Visualize and compare augmentation effects on small targets at different mosaic levels.
+"""
+"""
 Level 0 验证: 增强可视化 (0 GPU 时间)
 对比 mosaic=0.8 vs mosaic=0.4 下小目标是否可见
 用法:

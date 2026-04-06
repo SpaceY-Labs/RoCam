@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Zod validation schemas for labelling-app data models (labels, masks, projects, images).
+ */
 import { z } from "zod";
 
 // ============================================================================

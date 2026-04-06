@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Define HttpError class and Express error-handling middleware for consistent error responses.
+ */
 import type { Request, Response, NextFunction } from "express";
 
 export class HttpError extends Error {

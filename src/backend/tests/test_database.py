@@ -1,17 +1,7 @@
 """
-Unit tests for src/control_process/database.py
-
-Covers:
-  - RecordingDatabase._validate_id() - path-traversal protection
-  - RecordingDatabase._get_size_bytes() - file size helper
-  - RecordingDatabase._get_log_summary() - JSONL first/last timestamp parsing
-  - RecordingDatabase.allocate_recording() - creates dir and meta.json
-  - RecordingDatabase.get_recording_by_id() - happy path and error paths
-  - RecordingDatabase.list_all_recordings() - sorting and filtering
-  - RecordingDatabase.rename_recording() - updates meta.json name field
-  - RecordingDatabase.delete_recording() - removes directory
-  - RecordingDatabase.space_usage_bytes() - delegates to shutil.disk_usage
-  - RecordingDatabase.recording_duration_left_s() - calculates from free space
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for RecordingDatabase CRUD, validation, and disk-space helpers.
 """
 import json
 import os

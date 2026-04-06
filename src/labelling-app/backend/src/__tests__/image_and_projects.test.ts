@@ -1,4 +1,9 @@
 /**
+ * Author: Xiaotian Lou
+ * Date: 2026-03-04
+ * Purpose: Unit tests for image processing and project service functions.
+ */
+/**
  * Unit tests for src/services/image.ts and src/services/projects.ts
  *
  * sharp is mocked so we can control metadata/resize results.

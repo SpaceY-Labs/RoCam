@@ -1,3 +1,8 @@
+/**
+ * Author: Xiaotian Lou
+ * Date: 2026-03-04
+ * Purpose: Unit tests for shared Zod validation schemas (labels, masks, projects, images).
+ */
 import { describe, it, expect } from "vitest";
 import {
   colorSchema,

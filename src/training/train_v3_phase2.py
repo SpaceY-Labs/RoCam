@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 """
+Author: Xiaotian Lou
+Date: 2026-03-19
+Purpose: V3 Phase 2 low learning rate fine-tuning with reduced augmentation (80 epochs).
+"""
+"""
 V3 Phase 2: 低 LR 精调 (80 epochs)
 - 单卡 H100, batch=32, nbs=128 (与 Phase 1 一致, 避免 regime 变化)
 - SGD, lr0=0.0001, cos_lr=True

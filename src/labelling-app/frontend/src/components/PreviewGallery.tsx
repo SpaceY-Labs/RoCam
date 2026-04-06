@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Paginated gallery component for previewing project images with mask overlays.
+ */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Project, ProjectImage, SparseColorMap } from '../types';
 import { listImages, getColorMap } from '../modules/API_Helps';

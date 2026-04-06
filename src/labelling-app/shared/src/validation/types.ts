@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Shared TypeScript type definitions for labelling-app data models (labels, masks, projects, images).
+ */
 // ============================================================================
 // LABEL TYPES
 // ============================================================================

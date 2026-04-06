@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 """
+Author: Xiaotian Lou
+Date: 2026-03-17
+Purpose: Stage 3 ultra-low learning rate polishing with reduced augmentation (40 epochs).
+"""
+"""
 Stage 3: 极低 LR 抛光 (40 epochs)
 - 单卡训练: rect=True + Albumentations (概率降低 30%)
 - optimizer=SGD, lr0=0.0001 (ultra-low for polishing)

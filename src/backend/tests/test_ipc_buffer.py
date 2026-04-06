@@ -1,13 +1,7 @@
 """
-Unit tests for src/common/ipc_buffer.py
-
-Covers:
-  - cleanup_shared_memory() success and exception-swallowing
-  - IPCBufferSender.send() length validation, full-buffer detection, head advance
-  - IPCBufferSender.get_stats() head/tail/used computation
-  - IPCBufferReceiver._try_receive() empty, normal read, overrun handling
-  - IPCBufferReceiver.get_stats()
-  - IPCBufferReceiver.receive() non-blocking and blocking (timeout) paths
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for shared-memory IPC ring buffer sender and receiver.
 """
 import struct
 import pytest

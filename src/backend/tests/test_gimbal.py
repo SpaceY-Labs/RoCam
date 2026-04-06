@@ -1,15 +1,7 @@
 """
-Unit tests for src/control_process/gimbal.py
-
-Covers:
-  - GimbalSerial._crc8_smbus() - pure CRC-8 computation
-  - GimbalSerial.create_request_data() - packet construction
-  - GimbalSerial.set_arm_led() / set_status_led() - LED commands (mocked serial)
-  - GimbalSerial.set_deg() - angle command (mocked serial)
-  - GimbalSerial.get_deg() - angle query (mocked serial response)
-  - GimbalSerial.gimbal_info() - info query (mocked serial response)
-  - GimbalSerial.get_gps_data() - GPS data parsing
-  - GimbalSerial.close() - closes port
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for GimbalSerial CRC, packet construction, and serial commands.
 """
 import math
 import struct

@@ -1,8 +1,7 @@
 """
-Unit tests for src/control_process/api/api.py
-
-Uses Flask's built-in test client to exercise all REST endpoints.
-StateManagement and the SSE/transcode sub-routers are fully mocked.
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for the REST API endpoints in control_process/api/api.py.
 """
 import json
 import pytest

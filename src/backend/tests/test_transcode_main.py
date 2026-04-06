@@ -1,8 +1,7 @@
 """
-Unit tests for src/transcode_process/main.py
-
-Covers the pure/testable method:
-  - TranscodeProcess._read_log() - JSONL parsing of OSD log files
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for TranscodeProcess log parsing, shader probe, and bus callback.
 """
 import json
 import os

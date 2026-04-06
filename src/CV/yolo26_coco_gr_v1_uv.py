@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Author: Xiaotian Lou
+Date: 2026-01-29
+Purpose: YOLO26 training configuration with COCO negative samples and multi-GPU DDP (group v1).
+"""
 import os
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"

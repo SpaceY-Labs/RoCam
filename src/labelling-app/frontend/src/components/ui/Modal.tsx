@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Modal and confirmation dialog UI components with keyboard and overlay dismiss support.
+ */
 import { useEffect, useCallback } from 'react';
 import type { ModalProps } from '../../types';
 import './Modal.css';

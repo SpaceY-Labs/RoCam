@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 """
+Author: Xiaotian Lou
+Date: 2026-03-17
+Purpose: Stage 2 robustness fine-tuning with single-GPU, rect training, and Albumentations (80 epochs).
+"""
+"""
 Stage 2: 抗干扰精调 (80 epochs)
 - 单卡训练: rect=True + Albumentations 完整生效
 - optimizer=SGD, lr0=0.0003 (proven fine-tuning lr, cf. train81)

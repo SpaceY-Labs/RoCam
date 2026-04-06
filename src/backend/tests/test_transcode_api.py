@@ -1,9 +1,7 @@
 """
-Unit tests for src/control_process/api/transcode.py
-
-Covers:
-  - _cleanup_pipe() - removes named pipe file, tolerates missing file, swallows OSError
-  - register_transcode_routes() - HTTP 404 when recording not found
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for transcode API pipe cleanup, route registration, and streaming.
 """
 import os
 import pytest

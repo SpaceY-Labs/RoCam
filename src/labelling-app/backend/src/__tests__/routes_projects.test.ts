@@ -1,4 +1,9 @@
 /**
+ * Author: Xiaotian Lou
+ * Date: 2026-03-04
+ * Purpose: Integration tests for project CRUD and image management routes.
+ */
+/**
  * Integration tests for src/routes/projects.ts
  *
  * Uses supertest against a minimal Express app that mounts the projects router.

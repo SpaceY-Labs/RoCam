@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Author: Jianqing Liu
+# Date: 2025-11-15
+# Purpose: Initialize Jetson hardware settings and launch the backend application.
 
 # Navigate to the same directory as this script
 cd "$(dirname "$0")"

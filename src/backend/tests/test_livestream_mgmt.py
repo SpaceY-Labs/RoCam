@@ -1,10 +1,7 @@
 """
-Unit tests for src/control_process/livestream_process_management.py
-
-LivestreamProcessManagement is a thin wrapper that launches a daemon thread
-which loops forever calling subprocess.Popen → wait. We test that:
-  - Construction starts a daemon thread
-  - _start_process_loop calls Popen with the expected command
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for LivestreamProcessManagement daemon thread and subprocess loop.
 """
 import threading
 import time

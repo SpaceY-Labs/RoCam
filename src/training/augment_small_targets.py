@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 """
+Author: Xiaotian Lou
+Date: 2026-03-19
+Purpose: Offline small-target copy-paste augmentation for training data generation.
+"""
+"""
 离线小目标 Copy-Paste 增强脚本
 
 由于 Ultralytics copy_paste 需要 segmentation mask (bbox-only 数据集不支持),

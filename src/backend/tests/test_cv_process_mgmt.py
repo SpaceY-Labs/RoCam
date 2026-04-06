@@ -1,14 +1,7 @@
 """
-Unit tests for src/control_process/cv_process_management.py
-
-Covers:
-  - CVProcessManagement.send_osd_data() - sends OSDData when connection is open
-  - CVProcessManagement.start_recording() - sends RecordingInfo over IPC
-  - CVProcessManagement.stop_recording() - sends StopRecording sentinel
-  - CVProcessManagement.pause_pipeline() - sets paused flag, terminates process
-  - CVProcessManagement.resume_pipeline() - clears paused flag, sets event
-  - CVProcessManagement._on_cv_timeout() - terminates current process
-  - CVProcessManagement._recv_loop() - dispatches CVData and PreviewData
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for CVProcessManagement IPC, recording, and lifecycle methods.
 """
 import threading
 import pytest

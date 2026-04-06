@@ -1,8 +1,7 @@
 """
-Coverage tests for src/control_process/api/api.py.
-
-Calls the actual `run_api_gateway` function (patching app.run and hardware deps)
-to exercise the route handlers defined inside it.
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Coverage tests for run_api_gateway exercising route handlers end-to-end.
 """
 import json
 import pytest

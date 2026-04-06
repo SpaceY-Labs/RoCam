@@ -1,5 +1,7 @@
 """
-Shared pytest fixtures and configuration for RoCam backend unit tests.
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Shared pytest fixtures and configuration for RoCam backend unit tests.
 """
 import sys
 import os

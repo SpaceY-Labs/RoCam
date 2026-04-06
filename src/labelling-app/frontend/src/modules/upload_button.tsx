@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: ZIP file upload button component for batch-uploading images with masks to a project.
+ */
 import { useState, type ChangeEvent } from 'react';
 import { uploadZipToBackend } from './API_Helps';
 

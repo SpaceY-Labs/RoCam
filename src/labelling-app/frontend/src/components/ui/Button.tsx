@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Reusable button UI component with variant, size, and loading state support.
+ */
 import type { ButtonProps } from '../../types';
 import './Button.css';
 

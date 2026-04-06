@@ -1,10 +1,7 @@
 """
-Unit tests for src/control_process/tracking.py
-
-Covers:
-  - Tracking.on_detection() - queue behavior (put, drop-oldest on full)
-  - Tracking.stop() - signals the worker thread and joins
-  - _worker() control-law computation via mocked gimbal
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for Tracking detection queue, stop signaling, and gimbal control law.
 """
 import math
 import time

@@ -1,12 +1,7 @@
 """
-Unit tests for src/control_process/api/sse.py
-
-Covers:
-  - _format_sse() - pure string formatting for SSE events
-  - _MessageAnnouncer.listen() - creates a Queue and registers it
-  - _MessageAnnouncer.remove() - deregisters a Queue
-  - _MessageAnnouncer.announce() - broadcasts to all listeners, drops on Full
-  - register_status_sse() - registers /api/status endpoint and starts broadcast thread
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for SSE formatting, message announcer, and status endpoint registration.
 """
 import queue
 import pytest

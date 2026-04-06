@@ -1,4 +1,9 @@
 /**
+ * Author: Xiaotian Lou
+ * Date: 2026-03-04
+ * Purpose: Unit tests for environment variable loading and configuration validation.
+ */
+/**
  * Unit tests for src/config.ts
  *
  * Because config.ts evaluates everything at module load time,

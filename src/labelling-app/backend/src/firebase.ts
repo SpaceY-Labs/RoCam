@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Initialize Firebase Admin SDK and export Firestore, Auth, and Storage instances.
+ */
 import * as admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
 import { config, requiredConfig } from "./config";

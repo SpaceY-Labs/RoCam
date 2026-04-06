@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Image processing utilities for resizing and format detection using sharp.
+ */
 import sharp from "sharp";
 import { HttpError } from "../middleware/error";
 

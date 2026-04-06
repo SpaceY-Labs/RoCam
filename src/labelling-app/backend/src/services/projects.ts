@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Firestore helpers for project access control and sub-collection references.
+ */
 import { firestore } from "../firebase";
 import { HttpError } from "../middleware/error";
 

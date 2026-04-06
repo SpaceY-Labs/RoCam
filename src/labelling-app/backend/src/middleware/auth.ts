@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Firebase Authentication middleware that verifies ID tokens on incoming requests.
+ */
 import type { Request, Response, NextFunction } from "express";
 import { auth } from "../firebase";
 import { config } from "../config";

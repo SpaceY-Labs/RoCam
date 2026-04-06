@@ -1,4 +1,9 @@
 /**
+ * Author: Xiaotian Lou
+ * Date: 2026-03-04
+ * Purpose: Unit tests for Firebase Storage upload, download, and delete operations.
+ */
+/**
  * Unit tests for Firebase Storage operations in src/services/storage.ts
  *
  * Mocks firebase bucket, config, and cache to test all upload/download

@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Script to run the labelling API contract check tests.
+ */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 

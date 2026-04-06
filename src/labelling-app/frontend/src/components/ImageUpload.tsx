@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Component for uploading images and ZIP archives to a labelling project.
+ */
 import { useState, useRef, useCallback } from 'react';
 import type { ImageStatus, Project } from '../types';
 import { Button, Select, Input, Card, EmptyState, TagBadge } from './ui';

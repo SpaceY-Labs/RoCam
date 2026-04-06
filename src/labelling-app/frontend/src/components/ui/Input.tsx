@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Reusable form input UI components including text input, select, color picker, and textarea.
+ */
 import { useId } from 'react';
 import type { InputProps, SelectProps, TextAreaProps } from '../../types';
 import './Input.css';

@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Empty state and loading state placeholder UI components.
+ */
 import type { ReactNode } from 'react';
 import { Button } from './Button';
 import './EmptyState.css';

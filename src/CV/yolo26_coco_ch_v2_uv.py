@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Author: Xiaotian Lou
+Date: 2026-01-29
+Purpose: YOLO26 training configuration with COCO negative samples and single-GPU setup (channel v2).
+"""
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"

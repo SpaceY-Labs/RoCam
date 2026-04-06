@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Load environment variables and export application configuration constants.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import dotenv from "dotenv";

@@ -1,4 +1,9 @@
 """
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Pytest conftest providing stub modules for NVIDIA/Jetson hardware dependencies.
+"""
+"""
 Stubs for hardware / NVIDIA dependencies that are unavailable outside Jetson.
 Must be imported before any benchmark module is loaded.
 """

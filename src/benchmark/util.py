@@ -1,3 +1,8 @@
+"""
+Author: Jianqing Liu
+Date: 2026-01-26
+Purpose: Utility functions for generating DeepStream pgie configuration files.
+"""
 from pathlib import Path
 
 ENGINE_FILE_NAME = "model_b1_gpu0_fp16.engine"

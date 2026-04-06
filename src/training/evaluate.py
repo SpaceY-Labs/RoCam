@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 """
+Author: Xiaotian Lou
+Date: 2026-03-17
+Purpose: Evaluate model mAP stratified by object size (COCO small/medium/large).
+"""
+"""
 按目标大小分层评估 mAP (COCO small/medium/large)
 用法:
   python evaluate.py --model /path/to/best.pt
