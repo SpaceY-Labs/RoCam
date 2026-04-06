@@ -134,7 +134,7 @@ def pt_yolo11_to_onnx(input_pt: Path, output_onnx: Path):
     """
     Exports a YOLO11 .pt model to a DeepStream-compatible ONNX model.
     """
-    img_size = (int(HEIGHT / 2), int(WIDTH / 2))  # (540, 960)
+    img_size = (544, int(WIDTH / 2))  # 544 (not 540) ensures stride divisibility for P2
     batch_size = 1
     opset_version = 17
     device = torch.device("cpu")
@@ -196,7 +196,7 @@ def pt_yolo26_to_onnx(input_pt: Path, output_onnx: Path):
     """
     Exports a YOLO26 .pt model to a DeepStream-compatible ONNX model.
     """
-    img_size = (int(HEIGHT / 2), int(WIDTH / 2))  # (540, 960)
+    img_size = (544, int(WIDTH / 2))  # 544 (not 540) ensures stride divisibility for P2
     batch_size = 1
     opset_version = 17
     device = torch.device("cpu")

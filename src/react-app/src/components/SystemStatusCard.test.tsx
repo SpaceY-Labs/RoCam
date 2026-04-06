@@ -8,7 +8,6 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen } from '@testing-library/react'
-import React from 'react'
 
 import { renderWithI18n } from '@/test/renderWithProviders'
 
@@ -37,14 +36,6 @@ const mockStatus = {
 vi.mock('@/network/rocamProvider', () => ({
   useRocam: vi.fn(),
 }))
-
-vi.mock('@/store/languageAtom', async (importOriginal) => {
-  const orig = await importOriginal<typeof import('@/store/languageAtom')>()
-
-  return {
-    ...orig,
-  }
-})
 
 vi.mock('jotai', async (importOriginal) => {
   const orig = await importOriginal<typeof import('jotai')>()
