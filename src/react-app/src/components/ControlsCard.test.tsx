@@ -7,7 +7,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent, waitFor } from '@testing-library/react'
 import React from 'react'
 
+import { ControlsCard } from './ControlsCard'
+
 import { renderWithI18n } from '@/test/renderWithProviders'
+import { useRocam } from '@/network/rocamProvider'
 
 // Mock useRocam to control context values
 const mockApiClient = {
@@ -41,18 +44,14 @@ vi.mock('react-use', () => ({
  *
  * @param armed Whether the mocked backend status reports the system as armed.
  * @param isRecording Whether the mocked backend status reports active recording.
- * @returns Promise resolving to the rendered testing-library result.
+ * @returns The rendered testing-library result.
  */
-async function renderCard(armed = false, isRecording = false) {
-  const { useRocam } = await import('@/network/rocamProvider')
-
+function renderCard(armed = false, isRecording = false) {
   ;(useRocam as ReturnType<typeof vi.fn>).mockReturnValue({
     apiClient: mockApiClient,
     status: { armed, is_recording: isRecording },
     statusPollingError: null,
   })
-
-  const { ControlsCard } = await import('./ControlsCard')
 
   return renderWithI18n(<ControlsCard />)
 }
@@ -93,10 +92,35 @@ describe('ControlsCard', () => {
 
     if (disarmBtn) {
       fireEvent.click(disarmBtn)
+      const confirmBtn = await screen.findByRole('button', {
+        name: /Disarm and Manual Control/i,
+      })
+
+      fireEvent.click(confirmBtn)
       await waitFor(() => {
         expect(mockApiClient.disarm).toHaveBeenCalledTimes(1)
       })
     }
+  })
+
+  it('shows disarm/manual dialog when move is attempted while armed', async () => {
+    await renderCard(true)
+    const upBtn = screen.getByTestId('gimbal-up')
+
+    fireEvent.click(upBtn)
+    expect(
+      screen.getByText(/Disarm and switch to manual control/i)
+    ).toBeDefined()
+    expect(mockApiClient.manualMove).not.toHaveBeenCalled()
+
+    const confirmBtn = await screen.findByRole('button', {
+      name: /Disarm and Manual Control/i,
+    })
+
+    fireEvent.click(confirmBtn)
+    await waitFor(() => {
+      expect(mockApiClient.disarm).toHaveBeenCalledTimes(1)
+    })
   })
 
   it('calls startRecording() when record button clicked (not recording)', async () => {
@@ -161,28 +185,22 @@ describe('ControlsCard', () => {
   })
 
   it('renders with null status without crashing', async () => {
-    const { useRocam } = await import('@/network/rocamProvider')
-
     ;(useRocam as ReturnType<typeof vi.fn>).mockReturnValue({
       apiClient: null,
       status: null,
       statusPollingError: null,
     })
-    const { ControlsCard } = await import('./ControlsCard')
 
     renderWithI18n(<ControlsCard />)
     expect(document.body).toBeDefined()
   })
 
   it('disables arm and record buttons when apiClient is null', async () => {
-    const { useRocam } = await import('@/network/rocamProvider')
-
     ;(useRocam as ReturnType<typeof vi.fn>).mockReturnValue({
       apiClient: null,
       status: null,
       statusPollingError: null,
     })
-    const { ControlsCard } = await import('./ControlsCard')
 
     renderWithI18n(<ControlsCard />)
     const buttons = screen.queryAllByRole('button')
@@ -204,44 +222,33 @@ describe('GimbalPad', () => {
 
   it('calls manualMove("up") when up button pressed', async () => {
     await renderCard(false)
-    const buttons = screen.queryAllByRole('button')
-
-    // Press the first icon-only button (up arrow)
-    if (buttons.length >= 4) {
-      fireEvent.click(buttons[0])
-    }
-    // manualMove may or may not have been called depending on button found
-    expect(document.body).toBeDefined()
+    fireEvent.click(screen.getByTestId('gimbal-up'))
+    await waitFor(() => {
+      expect(mockApiClient.manualMove).toHaveBeenCalledWith('up')
+    })
   })
 
   it('calls manualMoveTo(0, 0) when home button pressed', async () => {
     await renderCard(false)
-    const buttons = screen.queryAllByRole('button')
-
-    // Icon-only buttons include up, left, home, right, down
-    if (buttons.length >= 5) {
-      fireEvent.click(buttons[2]) // home is 3rd icon-only button
-    }
-    expect(document.body).toBeDefined()
+    fireEvent.click(screen.getByTestId('gimbal-home'))
+    await waitFor(() => {
+      expect(mockApiClient.manualMoveTo).toHaveBeenCalledWith(0, 0)
+    })
   })
 
   it('calls manualMove("left") when left button pressed', async () => {
     await renderCard(false)
-    const buttons = screen.queryAllByRole('button')
-
-    if (buttons.length >= 2) {
-      fireEvent.click(buttons[1])
-    }
-    expect(document.body).toBeDefined()
+    fireEvent.click(screen.getByTestId('gimbal-left'))
+    await waitFor(() => {
+      expect(mockApiClient.manualMove).toHaveBeenCalledWith('left')
+    })
   })
 
   it('calls manualMove("down") when down button pressed', async () => {
     await renderCard(false)
-    const buttons = screen.queryAllByRole('button')
-
-    if (buttons.length >= 5) {
-      fireEvent.click(buttons[4])
-    }
-    expect(document.body).toBeDefined()
+    fireEvent.click(screen.getByTestId('gimbal-down'))
+    await waitFor(() => {
+      expect(mockApiClient.manualMove).toHaveBeenCalledWith('down')
+    })
   })
 })

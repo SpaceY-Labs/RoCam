@@ -3,7 +3,7 @@
  * Date: 2026-03-04
  * Purpose: Provides shared formatting helpers for frontend status and recording data.
  */
-import type { TemperatureUnit } from '@/store/languageAtom'
+import type { TemperatureUnit } from '@/store/settingsAtom'
 
 /**
  * Formats an angle value for dashboard display.
