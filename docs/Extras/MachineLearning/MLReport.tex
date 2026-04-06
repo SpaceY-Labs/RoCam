@@ -29,6 +29,7 @@
 \usepgfplotslibrary{groupplots}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{colortbl}
 
 \input{../../Comments}
 \input{../../Common}
@@ -38,34 +39,42 @@
 \begin{document}
 
 \title{Robust Small Rocket Detection with YOLO26s:\\
-Aggressive Augmentation Training and FP16 Edge Deployment}
+NMS-Free Edge Deployment, Aggressive Augmentation,\\
+and Comprehensive Ablation Study}
 \author{\authname}
-\date{March 2026}
+\date{April 2026}
 
 \maketitle
 
 \begin{abstract}
-  We present the training methodology and deployment pipeline for a
-  small-rocket detection system designed for real-time edge inference on
-  the NVIDIA Jetson Orin Nano.  Using \textsc{Yolo26s} (9.47M parameters,
-  stride $\{8, 16, 32\}$), we train with aggressive data augmentation
-  centred on \textbf{full mosaic} ($\text{mosaic}=1.0$), multi-scale
-  input ($544$--$960$\,px), and 7~custom Albumentations transforms
-  targeting real-world imaging degradation.  The model is trained for 420
-  epochs on 15{,}832 rocket images supplemented with 4{,}000 COCO hard
-  negatives, achieving validation
-  $\text{mAP}_{50\text{-}95} = 0.694$ and $\text{mAP}_{50} = 0.947$.
-  After ONNX export and TensorRT FP16 compilation, the deployed model
-  achieves \textbf{DeepStream $\text{mAP}_{50\text{-}95} = 0.631$},
+  We present the complete training methodology, deployment pipeline, and
+  experimental validation for a small-rocket detection system designed for
+  real-time edge inference on the NVIDIA Jetson Orin Nano.  Using
+  \textsc{Yolo26s} (9.47M parameters, stride $\{8, 16, 32\}$) with its
+  \textbf{NMS-free one-to-one detection head}, we train with aggressive
+  data augmentation centred on \textbf{full mosaic} ($\text{mosaic}=1.0$),
+  multi-scale input ($544$--$960$\,px), and 7~custom Albumentations
+  transforms targeting real-world imaging degradation.  The model is
+  trained for 420 epochs on 15{,}832 images (including 4{,}000 COCO hard
+  negatives), achieving validation
+  $\text{mAP}_{50\text{-}95} = 0.694$.  After ONNX export and
+  TensorRT FP16 compilation, the deployed model achieves
+  \textbf{DeepStream $\text{mAP}_{50\text{-}95} = 0.631$},
   $\text{mAP}_{50} = 0.875$, and
   $\text{mAP}_{50\text{-}95}(\text{small}) = 0.341$ on the Jetson Orin
-  Nano.  We additionally investigate the \textsc{Yolo26s-P2} variant
-  (stride-4 detection head), which achieves superior training metrics
-  ($\text{mAP}_{50\text{-}95} = 0.765$) but suffers catastrophic
-  degradation under FP16 quantisation ($0.765 \to 0.539$), confirming
-  that \textbf{deployment-validated accuracy} must guide model selection
-  over training-only metrics.  All experiments are conducted on NVIDIA
-  H100 GPUs at McMaster University's Grace HPC cluster.
+  Nano at $540{\times}960$ input resolution.
+
+  We additionally conduct a \textbf{comprehensive ablation study spanning
+  10~experimental plans} (Plans~A through~J), investigating the P2
+  stride-4 architecture, varied mosaic probabilities, tiled (SAHI)
+  training, copy-paste augmentation, and fine-tuning versus
+  from-scratch strategies.  The P2 variant, despite achieving
+  superior training metrics ($\text{mAP}_{50\text{-}95} = 0.765$),
+  suffers catastrophic degradation under FP16 quantisation
+  ($0.765 \to 0.539$, $-29.5\%$), confirming that
+  \textbf{deployment-validated accuracy} must guide model selection.
+  All experiments are conducted on NVIDIA H100 GPUs at McMaster
+  University's Grace HPC cluster.
 \end{abstract}
 
 \pagenumbering{roman}
@@ -78,19 +87,20 @@ Aggressive Augmentation Training and FP16 Edge Deployment}
   2026-03-01          & 1.0           & Initial draft (V1 pipeline)                \\
   2026-03-03          & 2.0           & Added V1 experimental results              \\
   2026-03-10          & 2.1           & Renamed from CVReport to MLReport          \\
-  2026-03-26          & 3.0           & Added V2/V3 P2 pipeline (not deployed)     \\
-  2026-03-28          & 4.0           & Major rewrite: refocused on deployed
-  smallrocket model (train63), added deployment pipeline and FP16
-  benchmark results, documented P2 failure as lesson learned            \\
+  2026-03-26          & 3.0           & Added V2/V3 P2 pipeline results            \\
+  2026-03-28          & 4.0           & Refocused on deployed smallrocket model,
+  added deployment pipeline and FP16 benchmark results                             \\
+  2026-04-06          & 5.0           & Complete rewrite: NMS-free architecture
+  documentation, full inference pipeline, benchmark methodology,
+  10-plan ablation study, model evolution history, restored
+  training curves, added training script to repository                             \\
   \bottomrule
 \end{tabularx}
 
 ~\\
 
 \newpage
-
 \tableofcontents
-
 \newpage
 
 \section{Symbols, Abbreviations, and Acronyms}
@@ -98,26 +108,32 @@ Aggressive Augmentation Training and FP16 Edge Deployment}
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular}{l l}
   \toprule
-  \textbf{Symbol}      & \textbf{Description}                                                \\
+  \textbf{Symbol / Acronym} & \textbf{Description}                                            \\
   \midrule
-  mAP                  & Mean Average Precision --- object detection evaluation metric       \\
-  mAP$_{50}$           & mAP at IoU threshold 0.50                                           \\
-  mAP$_{50\text{-}95}$ & mAP averaged across IoU thresholds 0.50 to 0.95                     \\
-  DS mAP               & mAP measured on DeepStream FP16 deployment                          \\
-  YOLO                 & You Only Look Once --- real-time object detection architecture      \\
-  COCO                 & Common Objects in Context --- large-scale object detection dataset  \\
-  SGD                  & Stochastic Gradient Descent --- optimisation algorithm              \\
-  GFLOPs               & Giga Floating Point Operations --- computational complexity measure \\
-  P2 head              & Stride-4 detection head in YOLO architecture                        \\
-  AMP                  & Automatic Mixed Precision --- FP16/FP32 hybrid training             \\
-  TensorRT             & NVIDIA inference optimisation SDK with FP16/INT8 quantisation       \\
-  DeepStream           & NVIDIA SDK for GPU-accelerated video analytics pipelines            \\
-  ONNX                 & Open Neural Network Exchange --- model interchange format           \\
+  mAP                       & Mean Average Precision                                          \\
+  mAP$_{50}$                & mAP at IoU threshold 0.50                                       \\
+  mAP$_{50\text{-}95}$      & mAP averaged across IoU thresholds 0.50 to 0.95                 \\
+  DS mAP                    & mAP measured on DeepStream FP16 deployment (on Orin)             \\
+  YOLO                      & You Only Look Once                                              \\
+  COCO                      & Common Objects in Context                                       \\
+  SGD                       & Stochastic Gradient Descent                                     \\
+  GFLOPs                    & Giga Floating Point Operations                                  \\
+  P2 head                   & Stride-4 detection head in YOLO architecture                    \\
+  O2O                       & One-to-one detection head (NMS-free inference)                  \\
+  O2M                       & One-to-many detection head (training with NMS)                  \\
+  NMS                       & Non-Maximum Suppression                                         \\
+  AMP                       & Automatic Mixed Precision (FP16/FP32 hybrid training)           \\
+  TensorRT                  & NVIDIA inference optimisation SDK                               \\
+  DeepStream                & NVIDIA SDK for GPU-accelerated video analytics                  \\
+  ONNX                      & Open Neural Network Exchange                                    \\
+  CSI                       & Camera Serial Interface (MIPI standard)                         \\
+  SAHI                      & Slicing Aided Hyper Inference                                   \\
+  FT                        & Fine-Tuning                                                     \\
+  DDP                       & Distributed Data Parallel                                       \\
   \bottomrule
 \end{tabular}\\
 
 \newpage
-
 \pagenumbering{arabic}
 
 %% ====================================================================
@@ -127,41 +143,45 @@ Aggressive Augmentation Training and FP16 Edge Deployment}
 
 Detecting small, fast-moving rockets in surveillance footage poses unique
 challenges for modern object detectors.  The targets of interest typically
-occupy fewer than $30{\times}30$ pixels in $960{\times}960$ frames, can appear
-at \emph{any} orientation ($0$--$360^{\circ}$), and are subject to imaging
-degradation including motion blur, compression artefacts, and varying
-illumination.
+occupy fewer than $30{\times}30$ pixels in $1920{\times}1080$ frames, can
+appear at \emph{any} orientation ($0$--$360^{\circ}$), and are subject to
+imaging degradation including motion blur, compression artefacts, and
+varying illumination.
 
-The \progname{} system requires \textbf{real-time inference on edge hardware}
---- specifically the NVIDIA Jetson Orin Nano (8\,GB), running a DeepStream
-pipeline with TensorRT FP16 quantisation.  This deployment constraint
-introduces a critical gap between training-time and deployment-time accuracy:
-models that excel in FP32 validation may degrade significantly under FP16
-quantisation, particularly architectures with high-resolution feature maps.
+The \progname{} system requires \textbf{real-time inference on edge
+hardware}---specifically the NVIDIA Jetson Orin Nano (8\,GB), running a
+full GPU pipeline: CSI camera capture at $1920{\times}1080$@60\,fps,
+TensorRT FP16 inference at $540{\times}960$, proportional gimbal tracking,
+and GL shader live zoom---all without CPU-bound post-processing.  This
+deployment constraint introduces a critical gap between training-time and
+deployment-time accuracy: models that excel in FP32 validation may degrade
+significantly under FP16 quantisation.
 
-The YOLO family of detectors~\citep{ultralytics2025yolo} offers an attractive
-balance between speed and accuracy for real-time deployment.  We select
-\textsc{Yolo26s} (9.47M parameters, stride $\{8, 16, 32\}$) as our
-architecture, trained with an aggressive augmentation strategy centred on
-\textbf{full mosaic augmentation} ($\text{mosaic} = 1.0$) and multi-scale
-training.
+We select \textsc{Yolo26s} (9.47M parameters, stride $\{8, 16, 32\}$) as
+our architecture, leveraging its \textbf{NMS-free one-to-one detection
+head} that eliminates non-maximum suppression entirely, reducing latency
+and avoiding duplicate-suppression errors on the edge.
 
 \noindent Our contributions include:
 
 \begin{enumerate}[leftmargin=*]
+  \item \textbf{NMS-free edge deployment}: documentation and validation
+        of the one-to-one detection head with DeepStream
+        \texttt{cluster-mode=4}, eliminating NMS post-processing.
   \item \textbf{Deployment-validated training}: end-to-end pipeline from
-        training on H100 GPUs to FP16 benchmark on Jetson Orin Nano, with
+        H100 training to FP16 benchmark on Jetson Orin Nano, with
         deployment metrics as the primary selection criterion.
   \item \textbf{Full mosaic augmentation}: demonstration that
-        $\text{mosaic} = 1.0$ is critical for small-object detection, with
-        all reduced-mosaic variants failing to match baseline performance.
-  \item \textbf{COCO hard negative mining}: 4{,}000 background images
-        ($\sim\!25\%$ of training set) to suppress false positives.
-  \item \textbf{Multi-scale training}: variable input resolution
-        ($544$--$960$\,px) for scale-invariant feature learning.
-  \item \textbf{P2 failure analysis}: documentation that the stride-4
-        detection head, despite $+10\%$ training mAP, suffers $-30\%$
-        deployment degradation under FP16 quantisation.
+        $\text{mosaic} = 1.0$ is critical for small-object detection,
+        with all reduced-mosaic variants failing (Section~\ref{sec:ablation}).
+  \item \textbf{Comprehensive ablation study}: 10~experimental plans
+        spanning architecture variants, augmentation strategies,
+        fine-tuning versus from-scratch training, and tiled inference.
+  \item \textbf{P2 failure analysis}: the stride-4 detection head
+        achieves $+10\%$ training mAP but suffers $-30\%$ deployment
+        degradation under FP16 quantisation.
+  \item \textbf{Model evolution history}: progression from YOLO11s
+        baseline through 5~YOLO26s iterations to the deployed model.
 \end{enumerate}
 
 %% ====================================================================
@@ -171,8 +191,8 @@ training.
 
 \subsection{ROCAM Dataset}
 
-The ROCAM dataset is a single-class (\texttt{rocket}) object detection dataset
-derived from surveillance camera footage of rocket launches.
+The ROCAM dataset is a single-class (\texttt{rocket}) object detection
+dataset derived from surveillance camera footage of rocket launches.
 
 \begin{table}[h]
   \centering
@@ -191,50 +211,48 @@ derived from surveillance camera footage of rocket launches.
   \end{tabular}
 \end{table}
 
-Annotations follow the YOLO format (class, $x_c$, $y_c$, $w$, $h$ normalised
-to $[0,1]$).  Training uses rectangular multi-scale input with base resolution
-$544 {\times} 960$.
+Annotations follow the YOLO format (class, $x_c$, $y_c$, $w$, $h$
+normalised to $[0,1]$).  Training uses rectangular multi-scale input with
+base resolution $544{\times}960$.
 
 \subsection{Target Size Distribution}
 \label{sec:target_size}
 
 A critical characteristic of this dataset is the extreme range of target
-sizes.  Table~\ref{tab:size_dist} shows the distribution at
-$\text{imgsz}=960$.
+sizes.  At $544{\times}960$ training resolution, 28\% of targets are
+COCO-small ($<32$\,px), 11\% are ultra-small ($<16$\,px), and 3.5\% are
+nano ($<8$\,px).
 
 \begin{table}[h]
   \centering
-  \caption{Target size distribution at $960{\times}960$ resolution.  Sizes
-    are measured as $\max(w, h)$ in pixels.  Total bounding boxes: 12{,}976.}
+  \caption{Target size distribution.  Sizes measured as $\max(w, h)$ in
+    pixels.  Total bounding boxes: 12{,}976.}
   \label{tab:size_dist}
   \begin{tabular}{@{}lrr@{}}
     \toprule
-    \textbf{Size Range}            & \textbf{Count} & \textbf{Proportion} \\
+    \textbf{Size Range}                & \textbf{Count}     & \textbf{Proportion} \\
     \midrule
-    $<10$\,px (very small)         & 214            & 1.6\%               \\
-    $10$--$20$\,px                 & 454            & 3.5\%               \\
-    $20$--$32$\,px                 & 622            & 4.8\%               \\
-    $32$--$50$\,px                 & 997            & 7.7\%               \\
-    $50$--$100$\,px                & 2{,}441        & 18.8\%              \\
-    $100$--$200$\,px               & 3{,}014        & 23.2\%              \\
-    $>200$\,px                     & 5{,}234        & 40.3\%              \\
+    $<10$\,px (very small)             & 214                & 1.6\%               \\
+    $10$--$20$\,px                     & 454                & 3.5\%               \\
+    $20$--$32$\,px                     & 622                & 4.8\%               \\
+    $32$--$50$\,px                     & 997                & 7.7\%               \\
+    $50$--$100$\,px                    & 2{,}441            & 18.8\%              \\
+    $100$--$200$\,px                   & 3{,}014            & 23.2\%              \\
+    $>200$\,px                         & 5{,}234            & 40.3\%              \\
     \midrule
-    \textbf{COCO-small ($<32$\,px)} & \textbf{1{,}290} & \textbf{9.9\%}  \\
+    \textbf{COCO-small ($<32$\,px)}    & \textbf{1{,}290}   & \textbf{9.9\%}      \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Nearly 10\% of targets fall below the COCO-small threshold of 32\,px, making
-small-object augmentation strategy a decisive factor in model performance.
-
 \subsection{COCO Hard Negative Mining}
 \label{sec:coco_neg}
 
-To suppress false positives, we inject \textbf{4{,}000 pure background images}
-from MS~COCO~\citep{lin2014coco} into the training set.  Images are randomly
-sampled (seed$=0$) from COCO train2017 and val2017 (${\sim}123$K total), copied
-into the training directory with empty label files to provide pure background
-supervision.
+To suppress false positives, we inject \textbf{4{,}000 pure background
+images} from MS~COCO~\citep{lin2014coco} into the training set.  Images
+are randomly sampled (seed$=0$) from COCO train2017 and val2017
+(${\sim}123$K total), copied into the training directory with empty label
+files to provide pure background supervision.
 
 \begin{algorithm}[h]
   \caption{COCO Hard Negative Mining Pipeline}
@@ -251,10 +269,8 @@ supervision.
   \end{algorithmic}
 \end{algorithm}
 
-The empty label files ensure YOLO treats these images as containing \emph{zero}
-objects.  At 25.3\% of the training set, the COCO negatives force a harder
-decision boundary, which is critical for suppressing false positives during
-real-world deployment.
+At 25.3\% of the training set, the COCO negatives force a harder decision
+boundary critical for suppressing false positives during deployment.
 
 %% ====================================================================
 \section{Model Architecture}
@@ -263,10 +279,11 @@ real-world deployment.
 
 \subsection{YOLO26s}
 
-YOLO26~\citep{ultralytics2025yolo} is the latest generation of the Ultralytics
-YOLO family, featuring an updated backbone and a dual-head design.  The
-\textbf{small} variant (\textsc{Yolo26s}) provides an optimal balance between
-accuracy and inference speed for edge deployment.
+YOLO26~\citep{ultralytics2025yolo} is the latest generation of the
+Ultralytics YOLO family, featuring an updated backbone and a
+\textbf{dual-head design}: a one-to-many (O2M) head used during training
+for higher-recall gradient supervision, and a one-to-one (O2O) head used
+for end-to-end inference without NMS.
 
 \begin{table}[h]
   \centering
@@ -279,16 +296,58 @@ accuracy and inference speed for edge deployment.
     Parameters                & 9.47M                   \\
     Layers                    & 454                     \\
     Detection strides         & $\{8, 16, 32\}$         \\
-    Detection heads           & 3                       \\
-    Pretrained weights        & COCO (yolo26s.pt)       \\
+    Detection heads           & 3 (O2O) + 3 (O2M)      \\
+    Training head             & One-to-many (O2M)       \\
+    Inference head            & One-to-one (O2O)        \\
+    Pretrained weights        & COCO (\texttt{yolo26s.pt}) \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-The standard 3-head architecture with strides $\{8, 16, 32\}$ was selected over
-the P2 variant (stride-4 head) based on deployment testing.  While the P2
-variant achieves higher training metrics, it suffers catastrophic FP16
-quantisation loss (Section~\ref{sec:p2_failure}).
+\subsection{NMS-Free One-to-One Detection Head}
+\label{sec:nms_free}
+
+A key architectural advantage of YOLO26 for edge deployment is its
+\textbf{NMS-free inference pathway}.  During ONNX export for DeepStream,
+only the one-to-one (O2O) detection head is exported via a custom
+\texttt{forward\_deepstream} function
+(\texttt{convert\_tensorrt.py}, lines~49--65).
+This head produces at most one detection per spatial anchor, eliminating
+the need for NMS post-processing entirely.
+
+\begin{figure}[h]
+  \centering
+  \fbox{\parbox{0.92\textwidth}{\small\ttfamily
+    \textbf{forward\_deepstream(self, x):} \\
+    \quad x\_detach = [xi.detach() for xi in x] \\
+    \quad one2one = [cat(self.one2one\_cv2[i](x), \\
+    \quad\quad\quad\quad\quad\quad\quad self.one2one\_cv3[i](x), dim=1) \\
+    \quad\quad\quad\quad\quad for i in range(self.nl)] \\
+    \quad return self.inference(one2one)
+  }}
+  \caption{Simplified ONNX export forward function.  Only the O2O head
+    branches (\texttt{one2one\_cv2}, \texttt{one2one\_cv3}) are exported;
+    the O2M training head is discarded.}
+  \label{lst:forward_ds}
+\end{figure}
+
+On the DeepStream side, the nvinfer plugin is configured with
+\texttt{cluster-mode=4}, which is specifically designed for NMS-free
+architectures (YOLOv10, RT-DETR, and one-to-one heads).  This means:
+
+\begin{itemize}[leftmargin=*]
+  \item \texttt{nms-iou-threshold=0.45} in the pgie configuration is
+        \textbf{not applied}---it is a legacy value that has no effect
+        when \texttt{cluster-mode=4} is active.
+  \item \texttt{pre-cluster-threshold=0.25} performs \textbf{confidence
+        filtering only}---detections below this threshold are discarded.
+  \item No duplicate suppression occurs; the O2O head inherently produces
+        non-overlapping detections.
+\end{itemize}
+
+\noindent This architecture eliminates NMS latency and avoids the risk of
+NMS incorrectly suppressing valid detections, which is particularly
+important for edge deployment where every millisecond counts.
 
 %% ====================================================================
 \section{Training Methodology}
@@ -297,13 +356,13 @@ quantisation loss (Section~\ref{sec:p2_failure}).
 
 \subsection{Training Configuration}
 
-The model is trained from COCO-pretrained weights (\texttt{yolo26s.pt}) for
-420 epochs on a single NVIDIA H100 GPU.  Table~\ref{tab:train_config} lists
-the complete training configuration.
+The model is trained from COCO-pretrained weights (\texttt{yolo26s.pt})
+for 420 epochs on a single NVIDIA H100 GPU.
+Table~\ref{tab:train_config} lists the complete configuration.
 
 \begin{table}[H]
   \centering
-  \caption{Complete training configuration (train63).}
+  \caption{Complete training configuration (train63 / smallrocket.pt).}
   \label{tab:train_config}
   \begin{tabular}{@{}ll@{}}
     \toprule
@@ -312,13 +371,13 @@ the complete training configuration.
     Model                 & \texttt{yolo26s.pt} (COCO pretrained)             \\
     Image size            & $(544, 960)$ with multi-scale                     \\
     Batch size            & 64                                                \\
-    Epochs                & 420                                               \\
+    Epochs                & 420 (all completed, no early stopping)            \\
     GPU                   & 1$\times$H100 PCIe (80\,GB)                       \\
     Precision             & Mixed (AMP, FP16/FP32)                            \\
     Cache                 & Disk                                              \\
     Workers               & 8                                                 \\
     \midrule
-    Optimiser             & SGD (auto)                                        \\
+    Optimiser             & SGD (auto-selected)                               \\
     $\text{lr}_0$         & 0.01                                              \\
     $\text{lrf}$          & 0.01 (linear decay)                               \\
     $\cos\_\text{lr}$     & False                                             \\
@@ -326,26 +385,25 @@ the complete training configuration.
     Weight decay          & 0.0005                                            \\
     NBS                   & 64                                                \\
     Warmup epochs         & 3.0                                               \\
-    Warmup bias lr        & 0.1                                               \\
-    Warmup momentum       & 0.8                                               \\
     \midrule
     Patience              & 30                                                \\
     Save period           & 25                                                \\
     Seed                  & 0                                                 \\
-    Deterministic         & False                                             \\
     \bottomrule
   \end{tabular}
 \end{table}
 
+The training script (\texttt{src/training/train\_smallrocket.py}) is
+included in the repository for full reproducibility.
+
 \subsection{Multi-Scale Training}
 \label{sec:multiscale}
 
-Multi-scale training (\texttt{multi\_scale=True}) varies the input resolution
-between $544$ and $960$ pixels during training.  This forces the model to
-learn scale-invariant features, which is particularly important for our
-dataset where target sizes span from $<10$\,px to $>200$\,px.  The base
-resolution of $(544, 960)$ is a rectangular aspect ratio matching the
-surveillance camera's native format.
+Multi-scale training (\texttt{multi\_scale=True}) varies the input
+resolution between $544$ and $960$ pixels during training, forcing the
+model to learn scale-invariant features.  The base resolution of
+$(544, 960)$ is a rectangular aspect ratio matching the surveillance
+camera's native $16{:}9$ format.
 
 \subsection{Loss Weights}
 
@@ -373,14 +431,14 @@ surveillance camera's native format.
 \label{sec:mosaic}
 
 The single most important augmentation decision is setting
-$\texttt{mosaic} = 1.0$, meaning \textbf{every training image} is composed
-as a $2{\times}2$ mosaic of four random images.  This produces three key
-effects:
+$\texttt{mosaic} = 1.0$, meaning \textbf{every training image} is
+composed as a $2{\times}2$ mosaic of four random images.  This produces
+three key effects:
 
 \begin{enumerate}[leftmargin=*]
   \item \textbf{Object density}: Each mosaic tile contains a full image
-        scaled to $\frac{1}{4}$ area, quadrupling the effective object density
-        per training sample.
+        scaled to $\frac{1}{4}$ area, quadrupling the effective object
+        density per training sample.
   \item \textbf{Scale diversity}: The $\frac{1}{4}$-scale mosaic tiles
         create additional small-object examples, directly augmenting the
         under-represented COCO-small category.
@@ -389,36 +447,7 @@ effects:
 \end{enumerate}
 
 Mosaic is disabled for the final 80 epochs (\texttt{close\_mosaic=80}) to
-allow the model to refine on full-resolution images.  This two-phase
-approach is essential: full mosaic builds robust features, then full-resolution
-training sharpens localisation.
-
-\paragraph{Empirical validation.}  All experiments with reduced mosaic
-($\text{mosaic} < 1.0$) failed to match the baseline's deployment performance.
-Table~\ref{tab:mosaic_ablation} summarises the evidence.
-
-\begin{table}[H]
-  \centering
-  \caption{Effect of mosaic probability on deployment mAP.  All reduced-mosaic
-    variants underperform the $\text{mosaic}=1.0$ baseline.}
-  \label{tab:mosaic_ablation}
-  \small
-  \begin{tabular}{@{}llcccc@{}}
-    \toprule
-    \textbf{Experiment} & \textbf{mosaic} & \textbf{close\_mosaic} &
-    \textbf{Val mAP} & \textbf{DS mAP} & \textbf{DS small} \\
-    \midrule
-    train63 (baseline)  & \textbf{1.0}    & 80                     &
-    0.694             & \textbf{0.631}  & \textbf{0.341}    \\
-    Plan~C (from scratch) & 0.80         & 150                    &
-    0.646             & 0.499           & 0.238             \\
-    Plan~F (small-obj)  & 0.30            & 60                     &
-    ---               & ---             & ---               \\
-    Plan~G (clone63 FT) & 1.0             & 80                     &
-    0.645             & 0.621           & 0.282             \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+allow the model to refine on full-resolution images.
 
 \subsection{Geometric Augmentations}
 
@@ -441,10 +470,6 @@ Table~\ref{tab:mosaic_ablation} summarises the evidence.
     \bottomrule
   \end{tabular}
 \end{table}
-
-The $\texttt{degrees}=180$ setting is critical: rockets can appear at any
-orientation in the surveillance footage, so the model must be fully
-rotation-invariant.
 
 \subsection{Colour and Composition Augmentations}
 
@@ -469,8 +494,8 @@ rotation-invariant.
 \subsection{Custom Albumentations Pipeline}
 \label{sec:albumentations}
 
-Seven custom Albumentations transforms target real-world imaging degradation
-encountered in surveillance footage:
+Seven custom Albumentations transforms target real-world imaging
+degradation encountered in surveillance footage:
 
 \begin{table}[H]
   \centering
@@ -479,21 +504,18 @@ encountered in surveillance footage:
   \small
   \begin{tabular}{@{}llcl@{}}
     \toprule
-    \textbf{Transform}            & \textbf{Parameters}            & \textbf{$p$} & \textbf{Purpose}              \\
+    \textbf{Transform}            & \textbf{Parameters}    & \textbf{$p$} & \textbf{Purpose}       \\
     \midrule
-    MotionBlur                    & blur\_limit$=7$                & 0.15         & Camera/target motion           \\
-    GaussianBlur                  & blur\_limit$=7$                & 0.10         & Defocus simulation             \\
-    GaussNoise                    & var\_limit$=(10, 50)$          & 0.15         & Sensor noise                  \\
-    ImageCompression              & quality$=[40, 95]$             & 0.20         & JPEG artefacts                \\
-    RandomBrightnessContrast      & ---                            & 0.20         & Illumination variation        \\
-    RandomGamma                   & ---                            & 0.10         & Exposure differences          \\
-    CLAHE                         & clip\_limit$=3.0$              & 0.10         & Local contrast enhancement    \\
+    MotionBlur                    & blur\_limit$=7$        & 0.15         & Camera/target motion    \\
+    GaussianBlur                  & blur\_limit$=7$        & 0.10         & Defocus simulation      \\
+    GaussNoise                    & var\_limit$=(10, 50)$  & 0.15         & Sensor noise            \\
+    ImageCompression              & quality$=[40, 95]$     & 0.20         & JPEG artefacts          \\
+    RandomBrightnessContrast      & ---                    & 0.20         & Illumination variation  \\
+    RandomGamma                   & ---                    & 0.10         & Exposure differences    \\
+    CLAHE                         & clip\_limit$=3.0$      & 0.10         & Local contrast          \\
     \bottomrule
   \end{tabular}
 \end{table}
-
-These transforms are passed via Ultralytics' native \texttt{augmentations}
-parameter, ensuring reliable application during training.
 
 %% ====================================================================
 \section{Deployment Pipeline}
@@ -501,49 +523,124 @@ parameter, ensuring reliable application during training.
 %% ====================================================================
 
 The deployment pipeline bridges the gap between training on H100 GPUs and
-inference on the Jetson Orin Nano edge device.
+real-time inference on the Jetson Orin Nano edge device.
+
+\subsection{Full Inference Pipeline}
+\label{sec:full_pipeline}
+
+Figure~\ref{fig:pipeline} illustrates the complete GPU-accelerated
+inference pipeline.  Every stage runs on GPU; no CPU-bound
+post-processing is involved.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+      stage/.style={draw, rounded corners, minimum width=2.2cm,
+          minimum height=0.9cm, align=center, font=\scriptsize},
+      arrow/.style={->, thick, >=stealth},
+      label/.style={font=\tiny, align=center, text=gray}
+    ]
+    \node[stage, fill=blue!10] (cam) at (0,0) {\textbf{CSI Camera}\\1080p@60fps};
+    \node[stage, fill=blue!10] (lb) at (3,0) {\textbf{Letterbox}\\GPU $540{\times}960$};
+    \node[stage, fill=orange!15] (yolo) at (6.3,0) {\textbf{YOLO26s}\\TensorRT FP16};
+    \node[stage, fill=green!10] (sel) at (9.6,0) {\textbf{Best Det.}\\conf filter};
+    \node[stage, fill=green!10] (ctrl) at (12.5,0) {\textbf{P-Control}\\gimbal track};
+    \node[stage, fill=purple!10] (gl) at (12.5,-1.5) {\textbf{GL Shader}\\live zoom};
+
+    \draw[arrow] (cam) -- (lb);
+    \draw[arrow] (lb) -- (yolo);
+    \draw[arrow] (yolo) -- node[above, label] {NMS-free\\O2O head} (sel);
+    \draw[arrow] (sel) -- (ctrl);
+    \draw[arrow] (sel) |- (gl);
+  \end{tikzpicture}
+  \caption{Full GPU inference pipeline on the Jetson Orin Nano.
+    The CSI camera captures at $1920{\times}1080$@60\,fps.
+    \texttt{nvstreammux} letterbox-pads to the model's
+    $540{\times}960$ input.  The NMS-free O2O head outputs
+    filtered detections directly.  The best detection drives
+    proportional gimbal control and GL shader live zoom.}
+  \label{fig:pipeline}
+\end{figure}
+
+\subsection{Model Input Resolution}
+\label{sec:deploy_resolution}
+
+The deployment input resolution is \textbf{$540{\times}960$}, computed as:
+\[
+  \text{height}_\text{deploy} = \frac{1080}{2} = 540, \quad
+  \text{width}_\text{deploy} = \frac{1920}{2} = 960
+\]
+This is hard-coded in \texttt{convert\_tensorrt.py} (lines~35--36).  The
+training resolution is $544{\times}960$; the 4-pixel height difference is
+absorbed by DeepStream's letterbox padding
+(\texttt{maintain-aspect-ratio=1}, \texttt{symmetric-padding=1}).
 
 \subsection{Export and Compilation}
 
 \begin{enumerate}[leftmargin=*]
-  \item \textbf{ONNX export} (on Grace/H100): The trained \texttt{best.pt}
-        weights are exported to ONNX format using Ultralytics' export API
-        with \texttt{simplify=True}.  This must be performed on the Grace
-        server due to numpy PCG64 random state compatibility between
-        numpy~2.x (Grace) and numpy~1.x (Orin).
-  \item \textbf{Transfer}: The ONNX model is transferred to the Orin via
+  \item \textbf{ONNX export} (on Grace/H100): The trained
+        \texttt{best.pt} is exported to ONNX with the
+        \texttt{forward\_deepstream} monkey-patch.  A
+        \texttt{DeepStreamOutput} layer concatenates
+        $[\text{boxes}, \text{scores}, \text{labels}]$ into a single
+        output tensor.  Export must be performed on Grace due to
+        numpy~2.x PCG64 random-state compatibility.
+  \item \textbf{Transfer}: The ONNX model is transferred to Orin via
         \texttt{scp}.
-  \item \textbf{TensorRT compilation} (on Orin): The ONNX model is compiled
-        to a TensorRT engine with \textbf{FP16 precision} at the target
-        deployment resolution.
+  \item \textbf{TensorRT compilation} (on Orin): The ONNX model is
+        compiled to a TensorRT engine with \textbf{FP16 precision}.
+        Engines are cached by MD5 hash in
+        \texttt{/mnt/data/tensorrt\_engine\_cache}.
 \end{enumerate}
-
-\subsection{DeepStream Integration}
-
-The compiled TensorRT engine is integrated into NVIDIA DeepStream, which
-provides a GPU-accelerated video analytics pipeline.  Accuracy is benchmarked
-using a custom \texttt{accuracy\_benchmark.py} script that evaluates the
-DeepStream pipeline's output against ground-truth annotations from the
-validation set.
 
 \subsection{FP16 Quantisation Considerations}
 
-TensorRT FP16 quantisation reduces model weights and activations from FP32
-to FP16, halving memory bandwidth and enabling Tensor Core acceleration.
+TensorRT FP16 quantisation reduces weights and activations from FP32 to
+FP16, halving memory bandwidth and enabling Tensor Core acceleration.
 However, FP16's reduced dynamic range (5-bit exponent vs.\ 8-bit in FP32)
-can cause accuracy degradation, particularly in:
+can cause accuracy degradation, particularly in architectures with
+high-resolution feature maps (e.g., stride-4 heads producing
+$240{\times}240$ feature maps).  The standard \textsc{Yolo26s} (minimum
+stride$=8$) is robust to FP16, with a manageable $-9.1\%$ accuracy gap.
 
-\begin{itemize}[leftmargin=*]
-  \item High-resolution feature maps where small activation differences
-        encode spatial precision.
-  \item Architectures with many layers operating at fine spatial resolution
-        (e.g., stride-4 heads).
-\end{itemize}
+%% ====================================================================
+\section{Benchmark Methodology}
+\label{sec:benchmark}
+%% ====================================================================
 
-\noindent The standard \textsc{Yolo26s} (minimum stride$=8$) is robust to
-FP16 quantisation, with a manageable $0.694 \to 0.631$ accuracy gap
-($-9.1\%$).  The P2 variant (minimum stride$=4$) is not
-(Section~\ref{sec:p2_failure}).
+All deployment metrics are measured using a custom
+\texttt{accuracy\_benchmark.py} script that evaluates the DeepStream
+pipeline's output against ground-truth annotations.
+
+\subsection{Evaluation Protocol}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Image staging}: Original images are letterbox-padded
+        (not resized) to $1920{\times}1080$ to match the camera's native
+        resolution.  Aspect ratio is preserved with symmetric black
+        padding.
+  \item \textbf{Ground truth conversion}: YOLO-format normalised
+        annotations are transformed to staged pixel coordinates,
+        accounting for the letterbox offset.
+  \item \textbf{DeepStream inference}: Each staged image is pushed through
+        the full DeepStream pipeline (nvinfer with TensorRT FP16,
+        \texttt{cluster-mode=4}, \texttt{pre-cluster-threshold=0.25}).
+  \item \textbf{Single detection selection}: For each image, only the
+        highest-confidence detection is retained.  This matches the
+        production pipeline where one rocket per frame is expected.
+  \item \textbf{COCO-style evaluation}: Detections and ground truth are
+        evaluated using \texttt{pycocotools.COCOeval}, producing mAP at
+        IoU thresholds 0.50--0.95.
+\end{enumerate}
+
+\subsection{Size-Based Metrics}
+
+COCO evaluation reports mAP by object size:
+\textbf{small} ($\text{area} < 32^2$\,px$^2$),
+\textbf{medium} ($32^2 \leq \text{area} < 96^2$),
+\textbf{large} ($\text{area} \geq 96^2$).
+The \textbf{DS mAP$_{50\text{-}95}$(small)} metric is our primary
+decision criterion.
 
 %% ====================================================================
 \section{Experimental Results}
@@ -575,36 +672,34 @@ The model completes all 420 epochs without early stopping.
 
 \begin{table}[H]
   \centering
-  \caption{DeepStream FP16 benchmark results on Jetson Orin Nano.}
+  \caption{DeepStream FP16 benchmark results on Jetson Orin Nano.
+    Input resolution: $540{\times}960$.}
   \label{tab:deploy_results}
   \begin{tabular}{@{}lc@{}}
     \toprule
-    \textbf{Metric}                      & \textbf{Value}       \\
+    \textbf{Metric}                          & \textbf{Value}       \\
     \midrule
-    DS mAP$_{50}$                        & 0.875                \\
-    DS mAP$_{50\text{-}95}$              & \textbf{0.631}       \\
-    DS mAP$_{50\text{-}95}$ (small)      & \textbf{0.341}       \\
+    DS mAP$_{50}$                            & 0.875                \\
+    DS mAP$_{50\text{-}95}$                  & \textbf{0.631}       \\
+    DS mAP$_{50\text{-}95}$ (small)          & \textbf{0.341}       \\
     \midrule
-    Quantisation gap (mAP$_{50\text{-}95}$) & $-0.063$ ($-9.1\%$)\\
+    Quantisation gap (mAP$_{50\text{-}95}$)  & $-0.063$ ($-9.1\%$)  \\
     \bottomrule
   \end{tabular}
 \end{table}
-
-The $-9.1\%$ quantisation gap is within acceptable range for FP16 deployment
-and represents the production baseline that all improvement efforts must exceed.
 
 \subsection{Training--Deployment Gap Analysis}
 
 \begin{table}[H]
   \centering
-  \caption{Training vs.\ deployment metric comparison.}
+  \caption{Training (FP32) vs.\ deployment (FP16) metric comparison.}
   \label{tab:gap}
   \begin{tabular}{@{}lccc@{}}
     \toprule
-    \textbf{Metric}          & \textbf{Training (FP32)} & \textbf{DeepStream (FP16)} & \textbf{Gap}    \\
+    \textbf{Metric}          & \textbf{Training (FP32)} & \textbf{DS (FP16)} & \textbf{Gap}    \\
     \midrule
-    mAP$_{50}$               & 0.947                    & 0.875                      & $-7.6\%$        \\
-    mAP$_{50\text{-}95}$     & 0.694                    & 0.631                      & $-9.1\%$        \\
+    mAP$_{50}$               & 0.947                    & 0.875              & $-7.6\%$        \\
+    mAP$_{50\text{-}95}$     & 0.694                    & 0.631              & $-9.1\%$        \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -613,22 +708,88 @@ and represents the production baseline that all improvement efforts must exceed.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.7\textwidth]{results_train63.png}
-  \caption{Training curves for the deployed model (train63, 420 epochs).
-    The loss curves show steady convergence with a notable inflection after
-    epoch~340 when mosaic augmentation is disabled
-    (\texttt{close\_mosaic}$=80$).}
-  \label{fig:train_curves}
+  \begin{tikzpicture}
+    \begin{axis}[
+        width=\textwidth,
+        height=7cm,
+        xlabel={Epoch},
+        ylabel={mAP$_{50\text{-}95}$},
+        xmin=0, xmax=420,
+        ymin=0.1, ymax=0.75,
+        grid=major,
+        grid style={gray!20},
+        legend pos=south east,
+        legend style={font=\small, cells={anchor=west}},
+        every axis plot/.append style={thick},
+      ]
+      \addplot[blue, mark=none] coordinates {
+          (9, 0.1834) (19, 0.3061) (29, 0.3561) (39, 0.4064) (49, 0.4487)
+          (59, 0.4817) (69, 0.5017) (79, 0.5164) (89, 0.5250) (99, 0.5329)
+          (109, 0.5325) (119, 0.5355) (129, 0.5385) (139, 0.5437) (149, 0.5477)
+          (159, 0.5490) (169, 0.5568) (179, 0.5596) (189, 0.5656) (199, 0.5731)
+          (209, 0.5791) (219, 0.5842) (229, 0.5911) (239, 0.5960) (249, 0.6013)
+          (259, 0.6081) (269, 0.6133) (279, 0.6159) (289, 0.6196) (299, 0.6250)
+          (309, 0.6288) (319, 0.6345) (329, 0.6412) (339, 0.6456) (349, 0.6516)
+          (359, 0.6578) (369, 0.6622) (379, 0.6704) (389, 0.6771) (399, 0.6833)
+          (409, 0.6884) (419, 0.6939)
+        };
+      \addlegendentry{train63 (\textsc{Yolo26s})}
+      \draw[red, dashed, thin] (axis cs:340,0.1) -- (axis cs:340,0.75)
+        node[pos=0.95, right, font=\tiny, text=red] {close\_mosaic};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{mAP$_{50\text{-}95}$ learning curve for the deployed model
+    (train63, 420 epochs).  The dashed red line marks epoch~340 when
+    mosaic is disabled (\texttt{close\_mosaic}$=80$).  A notable
+    acceleration occurs in the final 80 epochs.}
+  \label{fig:map_curves}
 \end{figure}
 
-\subsection{Precision--Recall Analysis}
+\subsection{Validation Loss}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+        width=0.85\textwidth,
+        height=5.5cm,
+        xlabel={Epoch},
+        ylabel={Validation Box Loss},
+        xmin=0, xmax=420,
+        ymin=1.0, ymax=2.4,
+        grid=major,
+        grid style={gray!20},
+        legend pos=north east,
+        legend style={font=\small},
+        every axis plot/.append style={thick},
+      ]
+      \addplot[blue, mark=none] coordinates {
+          (9, 2.2495) (19, 1.9797) (29, 1.8625) (39, 1.7202) (49, 1.6386)
+          (59, 1.5687) (69, 1.5186) (79, 1.4843) (89, 1.4667) (99, 1.4400)
+          (109, 1.4368) (119, 1.4402) (129, 1.4395) (139, 1.4358) (149, 1.4262)
+          (159, 1.4239) (169, 1.4076) (179, 1.4047) (189, 1.3905) (199, 1.3721)
+          (209, 1.3607) (219, 1.3420) (229, 1.3325) (239, 1.3309) (249, 1.3199)
+          (259, 1.3101) (269, 1.3053) (279, 1.2987) (289, 1.2954) (299, 1.2861)
+          (309, 1.2823) (319, 1.2723) (329, 1.2574) (339, 1.2472) (349, 1.2348)
+          (359, 1.2149) (369, 1.2055) (379, 1.1868) (389, 1.1682) (399, 1.1484)
+          (409, 1.1411) (419, 1.1315)
+        };
+      \addlegendentry{train63 (deployed model)}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Validation box loss for the deployed model.  The loss
+    continues to decrease throughout all 420 epochs with no overfitting.}
+  \label{fig:val_loss}
+\end{figure}
+
+\subsection{Precision--Recall and Confusion Matrix}
 
 \begin{figure}[H]
   \centering
   \begin{subfigure}[t]{0.48\textwidth}
     \centering
     \includegraphics[width=\textwidth]{pr_train63.png}
-    \caption{Precision--Recall curve}
+    \caption{Precision--Recall curve (mAP$_{50} = 0.947$)}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{0.48\textwidth}
@@ -637,8 +798,7 @@ and represents the production baseline that all improvement efforts must exceed.
     \caption{Normalised confusion matrix}
   \end{subfigure}
   \caption{Precision--Recall curve and confusion matrix for the deployed
-    model.  The PR curve shows strong performance across all confidence
-    thresholds with mAP$_{50} = 0.947$.}
+    model (train63).}
   \label{fig:pr_cm}
 \end{figure}
 
@@ -657,20 +817,209 @@ and represents the production baseline that all improvement efforts must exceed.
     \includegraphics[width=\textwidth]{val_pred_train63.jpg}
     \caption{Validation batch predictions}
   \end{subfigure}
-  \caption{(a)~Training label distribution showing the spatial and size
-    distribution of rocket annotations.  (b)~Sample validation predictions
-    demonstrating accurate detection across various target sizes.}
+  \caption{(a)~Spatial and size distribution of rocket annotations.
+    (b)~Sample validation predictions.}
   \label{fig:labels_qual}
 \end{figure}
+
+%% ====================================================================
+\section{Model Evolution}
+\label{sec:evolution}
+%% ====================================================================
+
+Table~\ref{tab:evolution} traces the progression of detection models
+from the original YOLO11s baseline to the deployed smallrocket.pt.
+
+\begin{table}[H]
+  \centering
+  \caption{Model evolution: DeepStream FP16 benchmark results on
+    Jetson Orin Nano.  All metrics are mAP$_{50\text{-}95}$.}
+  \label{tab:evolution}
+  \small
+  \begin{tabular}{@{}llccccl@{}}
+    \toprule
+    \textbf{Model}          & \textbf{Arch}  & \textbf{DS small} & \textbf{DS med} &
+    \textbf{DS large}       & \textbf{Date}  & \textbf{Notes}                       \\
+    \midrule
+    original.pt             & YOLO11s        & 0.254             & 0.552           &
+    0.635                   & ---            & Initial baseline                     \\
+    first\_yolo26.pt        & YOLO26s        & 0.304             & 0.565           &
+    0.664                   & Jan~28         & Architecture upgrade                 \\
+    small\_rocket.pt        & YOLO26s        & 0.340             & 0.620           &
+    0.716                   & Jan~31         & Augmentation tuning                  \\
+    small27.pt              & YOLO26s        & \textbf{0.361}    & \textbf{0.663}  &
+    0.704                   & Feb~7          & Best small mAP                       \\
+    pt28.pt                 & YOLO26s        & 0.342             & 0.644           &
+    \textbf{0.740}          & Feb~8          & FT from small27                      \\
+    \textbf{smallrocket.pt} & \textbf{YOLO26s} & 0.341          & ---             &
+    ---                     & train63        & \textbf{Deployed model}              \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Key observation.}  Model \texttt{pt28.pt}, fine-tuned from
+\texttt{small27.pt}, improved large-object mAP ($0.704 \to 0.740$) but
+\emph{regressed} small-object mAP ($0.361 \to 0.342$).  This
+\textbf{fine-tuning small-object regression} pattern recurs throughout our
+experiments (Plans~D and~G in Section~\ref{sec:ablation}).
+
+%% ====================================================================
+\section{Comprehensive Ablation Study}
+\label{sec:ablation}
+%% ====================================================================
+
+Building on the baseline deployed model (DS~mAP$_{50\text{-}95} = 0.631$,
+DS~small~$= 0.341$), we conducted 10~experimental plans to improve
+small-object detection while maintaining FP16 deployment compatibility.
+
+\begin{table}[H]
+  \centering
+  \caption{Comprehensive ablation: 10 experimental plans.  Target:
+    DS mAP$_{50\text{-}95} > 0.631$ and DS small $> 0.341$.
+    Plans marked $\dag$ completed training but await DS benchmark.}
+  \label{tab:ablation}
+  \footnotesize
+  \begin{tabular}{@{}clp{3.5cm}ccccl@{}}
+    \toprule
+    \textbf{Plan} & \textbf{Arch} & \textbf{Strategy} &
+    \textbf{mosaic} & \textbf{Val mAP} & \textbf{DS mAP} &
+    \textbf{DS small} & \textbf{Status}                         \\
+    \midrule
+    \rowcolor{green!8}
+    Baseline      & 3-head        & mosaic=1.0, multi-scale, 420ep &
+    1.0             & 0.694            & \textbf{0.631}  &
+    \textbf{0.341}  & Deployed                                  \\
+    \midrule
+    A             & P2 4-head     & Multi-stage FT (V1/V2/V3) &
+    var.            & \textbf{0.765}   & 0.525--0.539    &
+    0.146--0.150    & \textcolor{red}{\ding{55}}                \\
+    C             & 3-head        & From scratch @544, 300ep &
+    0.80            & 0.543            & 0.499           &
+    0.238           & \textcolor{red}{\ding{55}}                \\
+    D             & 3-head        & FT smallrocket @544, 80ep &
+    0.0             & 0.684            & 0.641           &
+    0.312           & $\triangle$                               \\
+    E             & 3-head        & From scratch @640, 200ep &
+    0.80            & 0.551            & ---             &
+    ---             & \textcolor{red}{\ding{55}}                \\
+    F             & 3-head        & FT small-obj focus &
+    0.30            & ---              & ---             &
+    ---             & \textcolor{red}{\ding{55}} abandoned      \\
+    G             & 3-head        & Clone63 FT, 150ep &
+    1.0             & 0.576            & 0.621           &
+    0.282           & \textcolor{red}{\ding{55}}                \\
+    H$^\dag$      & 3-head        & Enhanced aug scratch, 420ep &
+    1.0             & 0.676            & ---             &
+    ---             & DS pending                                \\
+    I$^\dag$      & 3-head        & SAHI tiled 50K img, 300ep &
+    1.0             & 0.688            & ---             &
+    ---             & DS pending                                \\
+    J$^\dag$      & 3-head        & Copy-paste aug, 420ep &
+    1.0             & 0.682            & ---             &
+    ---             & DS pending                                \\
+    \bottomrule
+  \end{tabular}
+  \vspace{2pt}
+
+  \footnotesize\textcolor{red}{\ding{55}} = failed to exceed baseline;
+  $\triangle$ = overall improved but small regressed;
+  DS~pending = training complete, awaiting Orin benchmark.
+\end{table}
+
+\subsection{Mosaic Ablation}
+\label{sec:mosaic_ablation}
+
+\begin{table}[H]
+  \centering
+  \caption{Effect of mosaic probability on deployment mAP.}
+  \label{tab:mosaic_ablation}
+  \small
+  \begin{tabular}{@{}llcccc@{}}
+    \toprule
+    \textbf{Experiment} & \textbf{mosaic} & \textbf{close\_mosaic} &
+    \textbf{Val mAP} & \textbf{DS mAP} & \textbf{DS small}          \\
+    \midrule
+    train63 (baseline)  & \textbf{1.0}    & 80                     &
+    0.694             & \textbf{0.631}  & \textbf{0.341}             \\
+    Plan~C              & 0.80            & 150                    &
+    0.543             & 0.499           & 0.238                      \\
+    Plan~F              & 0.30            & 60                     &
+    ---               & ---             & ---                        \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Every experiment with $\text{mosaic} < 1.0$ underperformed the baseline.
+Plan~C with $\text{mosaic} = 0.80$ suffered $-20.9\%$ DS~mAP drop and
+$-30.2\%$ DS~small drop.
+
+\subsection{From-Scratch vs.\ Fine-Tuning}
+\label{sec:ft_vs_scratch}
+
+A consistent pattern is that \textbf{fine-tuning improves overall mAP but
+regresses small-object mAP}:
+
+\begin{table}[H]
+  \centering
+  \caption{Fine-tuning causes small-object regression.}
+  \label{tab:ft_regression}
+  \begin{tabular}{@{}llccc@{}}
+    \toprule
+    \textbf{Plan} & \textbf{Strategy}    & \textbf{DS mAP} &
+    \textbf{DS small} & \textbf{$\Delta$ small}                          \\
+    \midrule
+    Baseline      & From scratch, 420ep  & 0.631           &
+    \textbf{0.341}    & ---                                              \\
+    D             & FT @544, 80ep        & \textbf{0.641}  &
+    0.312             & $-8.5\%$                                         \\
+    G             & Clone63 FT, 150ep    & 0.621           &
+    0.282             & $-17.3\%$                                        \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Plan~G's early stopping at epoch~31 (patience$=30$) demonstrates that
+fine-tuning converges faster but to a suboptimal solution for small
+objects that require prolonged mosaic exposure.
+
+\subsection{Phase~2: Completed Experiments Awaiting Deployment Benchmark}
+
+Three experiments completed training and await DeepStream FP16 benchmark:
+
+\begin{table}[H]
+  \centering
+  \caption{Phase~2 training results (all completed).}
+  \label{tab:phase2}
+  \small
+  \begin{tabular}{@{}lp{4.2cm}ccccc@{}}
+    \toprule
+    \textbf{Plan} & \textbf{Strategy} & \textbf{Epochs} & \textbf{P} &
+    \textbf{R} & \textbf{mAP$_{50}$} & \textbf{mAP$_{50\text{-}95}$} \\
+    \midrule
+    H & Enhanced aug (erasing$=0.5$, scale$=0.4$,
+        close\_mosaic$=100$), @544 &
+        420 & 0.923 & 0.874 & 0.929 & 0.676                          \\
+    I & SAHI tiled: 15.8K orig + 34.9K tiles $= 50.7$K,
+        train63 recipe &
+        300 & 0.939 & 0.872 & 0.930 & \textbf{0.688}                 \\
+    J & Custom bbox copy-paste (3{,}581 crops,
+        $p{=}0.5$), train63 recipe &
+        420 & 0.935 & 0.874 & 0.930 & 0.682                          \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Plan~I (tiled/SAHI) achieved the highest validation mAP ($0.688$) and
+is the most promising candidate for exceeding the baseline.
 
 %% ====================================================================
 \section{P2 Architecture Investigation}
 \label{sec:p2_failure}
 %% ====================================================================
 
-Prior to selecting the standard \textsc{Yolo26s}, we extensively investigated
-the \textsc{Yolo26s-P2} variant with a stride-4 detection head, hypothesising
-that higher spatial resolution would improve small-object detection.
+Prior to selecting the standard \textsc{Yolo26s}, we extensively
+investigated the \textsc{Yolo26s-P2} variant with a stride-4 detection
+head.
 
 \subsection{P2 Architecture}
 
@@ -694,8 +1043,8 @@ level (stride~8).
 
 \subsection{P2 Training Results}
 
-Through a three-stage fine-tuning protocol (V1) and subsequent regime-consistent
-training (V3), the P2 model achieved impressive training metrics:
+Through three pipeline iterations, the P2 model achieved impressive
+training metrics:
 
 \begin{table}[H]
   \centering
@@ -704,21 +1053,83 @@ training (V3), the P2 model achieved impressive training metrics:
   \small
   \begin{tabular}{@{}llcccc@{}}
     \toprule
-    \textbf{Pipeline} & \textbf{Stage}   & \textbf{P} & \textbf{R} & \textbf{mAP$_{50}$} &
-    \textbf{mAP$_{50\text{-}95}$} \\
+    \textbf{Pipeline} & \textbf{Stage}   & \textbf{P} & \textbf{R} &
+    \textbf{mAP$_{50}$} & \textbf{mAP$_{50\text{-}95}$}                \\
     \midrule
-    V1                & Stage~III        & 0.961      & 0.915      & 0.958               & 0.750 \\
-    V2                & Stage~1b         & 0.958      & 0.912      & 0.960               & 0.762 \\
-    V3                & Phase~2          & 0.960      & 0.915      & 0.962               & \textbf{0.765} \\
+    V1 & Stage~III (ultra-fine polish)  & 0.961 & 0.915 & 0.958 & 0.750 \\
+    V2 & Stage~1b (SGD throughout)      & 0.958 & 0.912 & 0.960 & 0.762 \\
+    V3 & Phase~2 (regime-consistent)    & 0.960 & 0.915 & 0.962 & \textbf{0.765} \\
     \bottomrule
   \end{tabular}
 \end{table}
 
+\subsection{P2 Training Curves}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+        width=\textwidth,
+        height=7cm,
+        xlabel={Epoch},
+        ylabel={mAP$_{50\text{-}95}$},
+        xmin=0, xmax=420,
+        ymin=0.1, ymax=0.78,
+        grid=major,
+        grid style={gray!20},
+        legend pos=south east,
+        legend style={font=\small, cells={anchor=west}},
+        every axis plot/.append style={thick},
+      ]
+      \addplot[blue, mark=none] coordinates {
+          (9, 0.1834) (19, 0.3061) (29, 0.3561) (39, 0.4064) (49, 0.4487)
+          (59, 0.4817) (69, 0.5017) (79, 0.5164) (89, 0.5250) (99, 0.5329)
+          (109, 0.5325) (119, 0.5355) (129, 0.5385) (139, 0.5437) (149, 0.5477)
+          (159, 0.5490) (169, 0.5568) (179, 0.5596) (189, 0.5656) (199, 0.5731)
+          (209, 0.5791) (219, 0.5842) (229, 0.5911) (239, 0.5960) (249, 0.6013)
+          (259, 0.6081) (269, 0.6133) (279, 0.6159) (289, 0.6196) (299, 0.6250)
+          (309, 0.6288) (319, 0.6345) (329, 0.6412) (339, 0.6456) (349, 0.6516)
+          (359, 0.6578) (369, 0.6622) (379, 0.6704) (389, 0.6771) (399, 0.6833)
+          (409, 0.6884) (419, 0.6939)
+        };
+      \addlegendentry{Baseline (train63, \textsc{Yolo26s})}
+      \addplot[red, mark=none] coordinates {
+          (9, 0.1694) (19, 0.2825) (29, 0.2875) (39, 0.3318) (49, 0.4074)
+          (59, 0.4363) (69, 0.4491) (79, 0.4775) (89, 0.4908) (99, 0.5152)
+          (109, 0.5337) (119, 0.5488) (129, 0.5645) (139, 0.5712) (149, 0.5797)
+          (159, 0.5923) (169, 0.5963) (179, 0.6012) (189, 0.5994) (199, 0.6003)
+          (209, 0.6041) (219, 0.6068) (229, 0.6089) (239, 0.6111) (249, 0.6124)
+          (259, 0.6127) (269, 0.6130) (279, 0.6126) (289, 0.6130) (299, 0.6109)
+          (309, 0.6122)
+        };
+      \addlegendentry{P2 Stage~I (train77)}
+      \addplot[orange, mark=*, mark size=1.2pt] coordinates {
+          (4, 0.6243) (9, 0.5657) (14, 0.6216) (19, 0.5925) (24, 0.5857)
+          (29, 0.6117) (34, 0.6409) (39, 0.6633) (44, 0.6650) (49, 0.6539)
+          (54, 0.6721) (59, 0.6865) (64, 0.6942) (69, 0.6990) (74, 0.6949)
+          (79, 0.7064) (84, 0.7162) (89, 0.7157) (94, 0.7172) (99, 0.7165)
+        };
+      \addlegendentry{P2 Stage~II (train78)}
+      \addplot[green!60!black, mark=triangle*, mark size=1.5pt] coordinates {
+          (2, 0.7195) (5, 0.7217) (8, 0.7323) (11, 0.7298) (14, 0.7323)
+          (17, 0.7383) (20, 0.7410) (23, 0.7284) (26, 0.7340) (29, 0.7397)
+          (32, 0.7451) (35, 0.7492) (38, 0.7460) (41, 0.7468) (44, 0.7480)
+          (47, 0.7479) (50, 0.7487) (53, 0.7495) (56, 0.7441) (59, 0.7439)
+        };
+      \addlegendentry{P2 Stage~III (train81)}
+      \addplot[blue, dashed, thin] coordinates {(0, 0.694) (420, 0.694)};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{mAP$_{50\text{-}95}$ learning curves: baseline vs.\
+    P2 multi-stage pipeline.  The P2 surpasses the baseline in
+    \emph{training} metrics, but this advantage reverses under FP16.}
+  \label{fig:p2_curves}
+\end{figure}
+
 \subsection{Deployment Failure}
 
-Despite achieving $\text{mAP}_{50\text{-}95} = 0.765$ in FP32 training
-($+10.2\%$ over baseline), the P2 model catastrophically degrades under
-FP16 quantisation on the Jetson Orin Nano:
+Despite mAP$_{50\text{-}95} = 0.765$ in FP32 ($+10.2\%$ over baseline),
+the P2 model catastrophically degrades under FP16:
 
 \begin{table}[H]
   \centering
@@ -726,132 +1137,111 @@ FP16 quantisation on the Jetson Orin Nano:
   \label{tab:p2_deploy}
   \begin{tabular}{@{}lcccc@{}}
     \toprule
-    \textbf{Model}    & \textbf{Val mAP} & \textbf{DS mAP} & \textbf{DS small} & \textbf{Quant.\ gap} \\
+    \textbf{Model}      & \textbf{Val mAP} & \textbf{DS mAP} & \textbf{DS small} & \textbf{Quant.\ gap} \\
     \midrule
-    \textsc{Yolo26s}  & 0.694            & \textbf{0.631}  & \textbf{0.341}    & $-9.1\%$             \\
-    \textsc{Yolo26s-P2} & \textbf{0.765} & 0.539           & 0.150             & $-29.5\%$            \\
+    \textsc{Yolo26s}    & 0.694            & \textbf{0.631}  & \textbf{0.341}    & $-9.1\%$             \\
+    \textsc{Yolo26s-P2} & \textbf{0.765}   & 0.539           & 0.150             & $-29.5\%$            \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-\paragraph{Key finding.}  The P2 model's training mAP$_{50\text{-}95}$ is
-$+10.2\%$ better than the baseline, but its deployment mAP is $-14.6\%$
-\emph{worse}.  The quantisation gap is $3.2{\times}$ larger for the P2 model
-($-29.5\%$ vs.\ $-9.1\%$).
-
-\subsection{Root Cause: FP16 Quantisation Sensitivity}
-
-The stride-4 detection head operates on feature maps at $240{\times}240$
-resolution (for $960{\times}960$ input), producing $16{\times}$ more spatial
-positions than the stride-8 head ($120{\times}120$).  FP16's reduced numerical
-precision (${\sim}3$ decimal digits vs.\ ${\sim}7$ in FP32) causes:
-
-\begin{enumerate}[leftmargin=*]
-  \item \textbf{Spatial precision loss}: Fine-grained positional encoding
-        in the stride-4 feature map is quantised away, degrading small-object
-        localisation.
-  \item \textbf{Activation range compression}: The high-resolution head
-        produces activations with a wider dynamic range that FP16 cannot
-        faithfully represent.
-  \item \textbf{Accumulated rounding}: More layers operating at high
-        resolution means more sequential rounding errors.
-\end{enumerate}
-
-\paragraph{Lesson.}  Architecture selection for edge deployment must be
-validated \textbf{end-to-end at the target precision}.  Training metrics
-alone are insufficient---the P2 model's $+10.2\%$ training advantage became
-a $-14.6\%$ deployment disadvantage.
-
-%% ====================================================================
-\section{Improvement Efforts}
-\label{sec:improvements}
-%% ====================================================================
-
-Building on the baseline deployed model (DS mAP$_{50\text{-}95} = 0.631$),
-we are investigating several strategies to improve small-object detection
-while maintaining FP16 deployment compatibility.
+Plan~A further confirmed this at multiple deployment resolutions:
 
 \begin{table}[H]
   \centering
-  \caption{Ongoing improvement experiments.  Target:
-    DS mAP$_{50\text{-}95} > 0.631$ and DS small $> 0.341$.}
-  \label{tab:improvements}
-  \small
-  \begin{tabular}{@{}lp{5.5cm}cc@{}}
+  \caption{Plan~A: P2 at varied deployment resolutions on Orin.}
+  \label{tab:plan_a}
+  \begin{tabular}{@{}lccc@{}}
     \toprule
-    \textbf{Plan} & \textbf{Strategy} & \textbf{Status} & \textbf{DS mAP} \\
+    \textbf{Resolution}   & \textbf{DS mAP} & \textbf{DS small} & \textbf{Notes}         \\
     \midrule
-    D & Fine-tune smallrocket at 544$\times$960 &
-        Complete & 0.641 (small: 0.312) \\
-    G & Clone train63 recipe, 150\,ep fine-tune &
-        Complete & 0.621 (small: 0.282) \\
-    H & From-scratch with enhanced augmentation, 420\,ep &
-        Training & --- \\
-    I & Tiled (SAHI) training with 50K mixed images &
-        Training & --- \\
-    J & Copy-paste augmentation, 420\,ep &
-        Training & --- \\
+    $544{\times}960$       & 0.539           & 0.149             & Standard               \\
+    $736{\times}960$       & 0.525           & 0.150             & Higher input           \\
+    $816{\times}960$       & 0.526           & 0.146             & Near training res      \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Plans~D and G confirm that fine-tuning from the baseline tends to
-\emph{improve} overall mAP but \emph{regress} small-object detection.
-Plans~H, I, and J explore from-scratch training with augmentation strategies
-specifically targeting small objects.
+Increasing deployment resolution did \emph{not} recover the P2's
+accuracy, confirming FP16 quantisation as the root cause.
+
+\subsection{Root Cause: FP16 Quantisation Sensitivity}
+
+The stride-4 head operates on $240{\times}240$ feature maps, producing
+$16{\times}$ more spatial positions than stride-8.  FP16's reduced
+precision causes:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Spatial precision loss}: Fine-grained positional encoding
+        is quantised away.
+  \item \textbf{Activation range compression}: Wider dynamic range in
+        high-res features cannot be faithfully represented.
+  \item \textbf{Accumulated rounding}: More layers at high resolution
+        means more sequential rounding errors.
+\end{enumerate}
+
+\paragraph{Lesson.}  Architecture selection for edge deployment must be
+validated \textbf{end-to-end at the target precision}.
 
 %% ====================================================================
 \section{Conclusion}
 \label{sec:conclusion}
 %% ====================================================================
 
-We have presented the training methodology and deployment pipeline for a
-small-rocket detection system achieving
+We have presented the complete training methodology, NMS-free deployment
+pipeline, and comprehensive experimental validation for a small-rocket
+detection system achieving
 DS~mAP$_{50\text{-}95} = \mathbf{0.631}$ and
 DS~mAP$_{50\text{-}95}(\text{small}) = \mathbf{0.341}$ on the Jetson Orin
-Nano with TensorRT FP16.  The key insights are:
+Nano with TensorRT FP16 at $540{\times}960$.  The key insights are:
 
 \begin{enumerate}[leftmargin=*]
-  \item \textbf{Full mosaic is non-negotiable for small objects.}  Setting
-        $\text{mosaic} = 1.0$ with $\texttt{close\_mosaic} = 80$ provides
-        the best balance of augmented feature diversity and full-resolution
-        refinement.  All reduced-mosaic variants underperformed.
+  \item \textbf{NMS-free deployment eliminates post-processing latency.}
+        YOLO26's one-to-one detection head, combined with DeepStream's
+        \texttt{cluster-mode=4}, produces non-overlapping detections
+        without NMS.  The \texttt{nms-iou-threshold} config parameter
+        is not applied.
+
+  \item \textbf{Full mosaic is non-negotiable for small objects.}
+        $\text{mosaic} = 1.0$ with $\texttt{close\_mosaic} = 80$
+        provides the best augmentation balance.  All reduced-mosaic
+        variants ($0.80$, $0.30$) underperformed by $-20\%$ or more.
 
   \item \textbf{Deployment metrics must drive model selection.}  The P2
         architecture achieves $+10.2\%$ higher training mAP but $-14.6\%$
-        lower deployment mAP due to FP16 quantisation sensitivity.
-        Training-only evaluation would have led to the wrong model choice.
+        \emph{lower} deployment mAP due to FP16 quantisation.  Across
+        10~plans, training metrics were unreliable predictors of
+        deployment performance.
 
-  \item \textbf{COCO hard negatives suppress false positives.}  Injecting
-        4{,}000 pure background images (25\% of training set) forces a harder
-        decision boundary, which is critical for real-world deployment.
+  \item \textbf{Fine-tuning regresses small-object detection.}
+        Three fine-tuning experiments consistently improved overall mAP
+        while degrading small-object mAP by $8$--$17\%$.  From-scratch
+        training with 420 epochs and full mosaic is superior.
 
-  \item \textbf{Multi-scale training improves robustness.}  Variable input
-        resolution ($544$--$960$\,px) with $\texttt{multi\_scale}=\text{True}$
-        produces scale-invariant features essential for the extreme size range
-        in our dataset.
-
-  \item \textbf{Custom Albumentations target deployment conditions.}  Seven
-        transforms targeting motion blur, sensor noise, compression artefacts,
-        and illumination variation improve robustness to real-world imaging
-        degradation.
-
-  \item \textbf{The quantisation gap is architecture-dependent.}  Standard
-        \textsc{Yolo26s} loses $9.1\%$ under FP16, while \textsc{Yolo26s-P2}
-        loses $29.5\%$---architectures with high-resolution feature maps are
+  \item \textbf{The quantisation gap is architecture-dependent.}
+        \textsc{Yolo26s} loses $9.1\%$ under FP16; \textsc{Yolo26s-P2}
+        loses $29.5\%$.  High-resolution feature maps (stride-4) are
         disproportionately affected.
+
+  \item \textbf{COCO hard negatives suppress false positives.}
+        4{,}000 pure background images (25\%) force a harder decision
+        boundary critical for real-world deployment.
+
+  \item \textbf{Multi-scale training improves robustness.}  Variable
+        resolution ($544$--$960$\,px) produces scale-invariant features
+        for the extreme size range in our dataset.
 \end{enumerate}
 
-\noindent Ongoing experiments (Plans~H, I, J) explore from-scratch training
-with enhanced augmentation, tiled (SAHI) training, and copy-paste augmentation
-to improve small-object detection beyond the current baseline.
+\noindent Three additional experiments (Plans~H, I, J) completed training
+and await deployment benchmark.  Plan~I (tiled/SAHI training with
+50{,}741 mixed images) achieved the highest validation mAP ($0.688$) and
+represents the most promising path forward.
 
 \bibliographystyle{plainnat}
 
 \bibliography{../../../refs/References}
 
 \newpage
-
 \appendix
 
 %% ====================================================================
@@ -865,15 +1255,14 @@ to improve small-object detection beyond the current baseline.
   \label{tab:hardware}
   \begin{tabular}{@{}lll@{}}
     \toprule
-    \textbf{Component}  & \textbf{Training (Grace HPC)}          & \textbf{Deployment (Orin)}      \\
+    \textbf{Component}  & \textbf{Training (Grace HPC)}             & \textbf{Deployment (Orin)}      \\
     \midrule
-    Device              & NVIDIA H100 PCIe, 80\,GB               & NVIDIA Jetson Orin Nano, 8\,GB  \\
-    Training mode       & Single GPU                             & ---                             \\
-    Precision           & AMP (FP16/FP32)                        & TensorRT FP16                   \\
-    Framework           & Ultralytics (PyTorch)                  & DeepStream + TensorRT           \\
-    Disk cache          & Enabled                                & ---                             \\
+    Device              & NVIDIA H100 PCIe, 80\,GB                  & Jetson Orin Nano, 8\,GB         \\
+    Training mode       & Single GPU (baseline) / 4-GPU DDP (P2)    & ---                             \\
+    Precision           & AMP (FP16/FP32)                           & TensorRT FP16                   \\
+    Framework           & Ultralytics (PyTorch)                     & DeepStream + TensorRT           \\
     \midrule
-    Server              & McMaster Grace HPC, RHEL 9             & Jetson Orin Nano (on-site)      \\
+    Server              & McMaster Grace HPC, RHEL~9                & Jetson Orin Nano (on-site)      \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -900,7 +1289,7 @@ to improve small-object detection beyond the current baseline.
                          & epochs               & 420              & Full training         \\
                          & device               & 0                & Single H100           \\
                          & amp                  & True             &                       \\
-                         & multi\_scale         & True             & 544--960\,px range    \\
+                         & multi\_scale         & True             & 544--960\,px          \\
     \midrule
     \multirow{6}{*}{Optimiser}
                          & optimizer            & auto (SGD)       &                       \\
@@ -933,7 +1322,7 @@ to improve small-object detection beyond the current baseline.
     \midrule
     \multirow{3}{*}{Control}
                          & patience             & 30               &                       \\
-                         & save\_period          & 25               &                       \\
+                         & save\_period          & 25              &                       \\
                          & seed                 & 0                &                       \\
     \bottomrule
   \end{tabular}
@@ -944,14 +1333,10 @@ to improve small-object detection beyond the current baseline.
 \label{app:p2_history}
 %% ====================================================================
 
-For completeness, Table~\ref{tab:p2_history} documents the full P2 training
-progression across three pipeline iterations.
-
 \begin{table}[H]
   \centering
-  \caption{P2 training history across V1/V2/V3 pipelines.  Despite reaching
-    mAP$_{50\text{-}95} = 0.765$, the model was not deployed due to FP16
-    quantisation failure.}
+  \caption{P2 training history.  Despite mAP$_{50\text{-}95} = 0.765$,
+    the model was not deployed due to FP16 failure.}
   \label{tab:p2_history}
   \small
   \begin{tabular}{@{}lllccc@{}}
@@ -968,5 +1353,95 @@ progression across three pipeline iterations.
     \bottomrule
   \end{tabular}
 \end{table}
+
+%% ====================================================================
+\section{Training Results Plots (All Stages)}
+\label{app:results_plots}
+%% ====================================================================
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{results_train63.png}
+    \caption{Baseline (train63, 420 epochs)}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{results_train77.png}
+    \caption{P2 Stage~I (train77, 317 epochs)}
+  \end{subfigure}
+
+  \vspace{0.5cm}
+
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{results_train78.png}
+    \caption{P2 Stage~II (train78, 100 epochs)}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{results_train81.png}
+    \caption{P2 Stage~III (train81, 60 epochs)}
+  \end{subfigure}
+
+  \caption{Ultralytics training result plots for each stage.}
+  \label{fig:ultralytics_plots}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{pr_train63.png}
+    \caption{Baseline (train63): mAP$_{50} = 0.948$}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{pr_train81.png}
+    \caption{P2 final (train81): mAP$_{50} = 0.958$}
+  \end{subfigure}
+  \caption{Precision--Recall curve comparison.  Despite higher PR, the
+    P2 model fails under FP16 deployment.}
+  \label{fig:pr_compare}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{cm_train63.png}
+    \caption{Baseline (train63)}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{cm_train81.png}
+    \caption{P2 final (train81)}
+  \end{subfigure}
+  \caption{Normalised confusion matrices.}
+  \label{fig:cm_compare}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{val_pred_train63.jpg}
+    \caption{Baseline predictions (train63)}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{val_pred_train81.jpg}
+    \caption{P2 predictions (train81)}
+  \end{subfigure}
+  \caption{Validation predictions.  Both models are accurate in FP32;
+    the difference emerges only under FP16 deployment.}
+  \label{fig:qual_compare}
+\end{figure}
 
 \end{document}
