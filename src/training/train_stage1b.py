@@ -3,8 +3,7 @@
 Author: Xiaotian Lou
 Date: 2026-03-18
 Purpose: Stage 1b extended training from Stage 1 best checkpoint with SGD and cosine LR (200 epochs).
-"""
-"""
+
 Stage 1b: 从 Stage 1 best.pt 延长训练 (200 epochs)
 - 4-GPU DDP (Ultralytics 内置): device 由 preflight 动态分配
 - optimizer="SGD" + cos_lr (proven fine-tuning approach, cf. train81)

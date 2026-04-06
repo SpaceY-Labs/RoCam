@@ -2,10 +2,9 @@
 Author: Xiaotian Lou
 Date: 2026-03-04
 Purpose: Unit tests for CPU-side computational functions in accuracy_benchmark.py.
-"""
-"""
+
 Tests for pure computational functions in accuracy_benchmark.py.
-Hardware/GPU code is not exercised – only CPU-side logic is tested.
+Hardware/GPU code is not exercised -- only CPU-side logic is tested.
 """
 import sys
 import io

@@ -2,9 +2,7 @@
 Author: Jianqing Liu
 Date: 2026-01-27
 Purpose: Build a /images/zip-compatible archive from a folder of images using SAM auto-segmentation.
-"""
 
-"""
 Build a `/images/zip`-compatible archive from a folder of images using SAM (Ultralytics).
 
 Flow:
