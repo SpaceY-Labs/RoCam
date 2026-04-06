@@ -311,3 +311,6 @@ coverage.json
 
 # D2 final presentation: PNG cache from html_to_pptx.py (regenerate locally)
 docs/Presentations/D2_FinalPresentation/slide_images/
+
+
+feedback/
