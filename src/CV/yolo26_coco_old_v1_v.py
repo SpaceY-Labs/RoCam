@@ -1,3 +1,8 @@
+"""
+Author: Xiaotian Lou
+Date: 2026-01-29
+Purpose: Legacy YOLOv26 COCO training configuration (old v1 variant).
+"""
 # -*- coding: utf-8 -*-
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
