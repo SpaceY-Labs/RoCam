@@ -41,7 +41,10 @@ type StatusItem = {
   progress?: number
 }
 
-/** Shared presentation helpers for status values displayed in the dashboard. */
+/**
+ * Shared presentation helpers for status values displayed in the dashboard.
+ * The helpers below convert backend telemetry into UI-ready strings and percentages.
+ */
 function formatDegrees(degrees: number) {
   return `${Math.round(degrees * 10) / 10}°`
 }
@@ -123,6 +126,13 @@ function formatServerTime(timestampMs: number) {
   })
 }
 
+/**
+ * Builds the set of display rows rendered by the status card.
+ *
+ * @param status Latest backend status payload.
+ * @param temperatureUnit Preferred temperature unit for display.
+ * @returns Display-ready status items rendered by the dashboard card.
+ */
 function buildStatusItems(
   status: StatusResponse,
   temperatureUnit: TemperatureUnit
@@ -220,7 +230,11 @@ function buildStatusItems(
   ]
 }
 
-/** Shows live telemetry reported by the backend along with freshness metadata. */
+/**
+ * Shows live telemetry reported by the backend along with freshness metadata.
+ *
+ * @returns Card section containing the latest backend status metrics.
+ */
 export function SystemStatusCard() {
   const { status } = useRocam()
   const temperatureUnit = useAtomValue(temperatureUnitAtom)
@@ -283,7 +297,12 @@ export function SystemStatusCard() {
   )
 }
 
-/** Renders one metric row, optionally including a progress indicator. */
+/**
+ * Renders one metric row, optionally including a progress indicator.
+ *
+ * @param item Display-ready status item rendered inside the card grid.
+ * @returns Metric row containing the label, value, and optional progress bar.
+ */
 function StatusItemRow({ item }: { item: StatusItem }) {
   return (
     <div className="grow basis-0 my-4 min-w-48">

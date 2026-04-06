@@ -22,7 +22,11 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { useRocam } from '@/network/rocamProvider'
 import { getErrorMessage } from '@/utils'
 
-/** Groups manual movement, zoom, arming, and recording controls. */
+/**
+ * Groups manual movement, zoom, arming, and recording controls.
+ *
+ * @returns Card section containing the primary operator controls.
+ */
 export function ControlsCard() {
   const { t } = useLingui()
   const { apiClient, status } = useRocam()
@@ -38,6 +42,11 @@ export function ControlsCard() {
     setIsCooldownActive(false)
   }, 1500)
 
+  /**
+   * Starts the shared interaction cooldown used by arm and record actions.
+   *
+   * @returns No return value.
+   */
   const startCooldown = () => {
     setIsCooldownActive(true)
     reset()
@@ -45,6 +54,11 @@ export function ControlsCard() {
 
   const cooldownOrLoading = isCooldownActive || isArmLoading || isRecordLoading
 
+  /**
+   * Toggles the armed state through the backend API.
+   *
+   * @returns Promise that settles after the backend request completes.
+   */
   const handleToggleArm = async () => {
     if (!apiClient || cooldownOrLoading) return
     setIsArmLoading(true)
@@ -66,6 +80,11 @@ export function ControlsCard() {
     }
   }
 
+  /**
+   * Toggles recording through the backend API.
+   *
+   * @returns Promise that settles after the backend request completes.
+   */
   const handleToggleRecording = async () => {
     if (!apiClient || cooldownOrLoading) return
     setIsRecordLoading(true)
@@ -131,11 +150,22 @@ export function ControlsCard() {
   )
 }
 
-/** Renders the directional pad used for manual gimbal movement commands. */
+/**
+ * Renders the directional pad used for manual gimbal movement commands.
+ *
+ * @returns Directional control grid for manual camera movement.
+ */
 function GimbalPad() {
   const { t } = useLingui()
   const { apiClient, status } = useRocam()
   const disabled = !!status?.armed
+  /**
+   * Runs a movement request and reports any backend failure to the user.
+   *
+   * @param move Movement request executed against the backend API.
+   * @param actionLabel Human-readable action label used in the error message.
+   * @returns Promise that settles after the movement request completes.
+   */
   const handleMove = async (
     move: () => Promise<unknown>,
     actionLabel: string
@@ -226,7 +256,11 @@ function GimbalPad() {
   )
 }
 
-/** Renders focal-length controls that step within the backend-reported range. */
+/**
+ * Renders focal-length controls that step within the backend-reported range.
+ *
+ * @returns Zoom control buttons for the current camera session.
+ */
 function ZoomControls() {
   const { t } = useLingui()
   const { apiClient, status } = useRocam()
@@ -237,6 +271,12 @@ function ZoomControls() {
     status?.focal_length_min_mm != null &&
     status?.focal_length_max_mm != null
 
+  /**
+   * Steps the focal length in the requested direction.
+   *
+   * @param direction Zoom direction requested by the operator.
+   * @returns Promise that settles after the focal-length request completes.
+   */
   const handleZoom = async (direction: 'in' | 'out') => {
     if (!apiClient || !status || !focalAvailable) return
     const range = status.focal_length_max_mm - status.focal_length_min_mm

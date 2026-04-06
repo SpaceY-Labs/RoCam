@@ -1,10 +1,7 @@
 /**
- * Unit tests for src/components/SystemStatusCard.tsx
- *
- * Covers:
- *   - Renders nothing meaningful when status is null
- *   - Renders status data when provided via mocked useRocam
- *   - Temperature display respects celsius/fahrenheit preference
+ * Author: Zifan Si
+ * Date: 2026-03-04
+ * Purpose: Verifies the system status card renders backend telemetry safely.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen } from '@testing-library/react'

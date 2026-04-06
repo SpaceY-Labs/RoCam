@@ -1,7 +1,7 @@
 /**
- * Unit tests for src/App.tsx
- *
- * Covers routing: each path renders the correct page (mocked).
+ * Author: Zifan Si
+ * Date: 2026-03-04
+ * Purpose: Verifies the frontend route table renders the expected page for each path.
  */
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
@@ -16,7 +16,12 @@ vi.mock('@/pages/recordings', () => ({
   default: () => <div data-testid="recordings-page">RecordingsPage</div>,
 }))
 
-// Lazy import App after mocks are set
+/**
+ * Renders the application router at a specific path using mocked page modules.
+ *
+ * @param initialPath Initial route entry supplied to the memory router.
+ * @returns Promise resolving to the rendered testing-library result.
+ */
 async function renderApp(initialPath = '/') {
   const { default: App } = await import('./App')
 

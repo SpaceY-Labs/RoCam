@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2026-03-04
+ * Purpose: Verifies language selection updates the persisted language preference.
+ */
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
@@ -78,6 +83,11 @@ vi.mock('@heroui/button', () => ({
 
 import { LanguageSelector } from './LanguageSelector'
 
+/**
+ * Renders the language selector inside the i18n provider used by component tests.
+ *
+ * @returns Rendered testing-library result for the language selector.
+ */
 const renderSelector = () =>
   render(
     <I18nProvider i18n={i18n}>

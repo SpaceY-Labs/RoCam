@@ -17,7 +17,11 @@ import { Trans, useLingui } from '@lingui/react/macro'
 
 import { ConfigurationMenu } from './ConfigurationMenu'
 
-/** Provides primary navigation plus global control actions for the app shell. */
+/**
+ * Provides primary navigation plus global control actions for the app shell.
+ *
+ * @returns Application navigation bar with routing and global actions.
+ */
 export const Navbar = () => {
   const { t } = useLingui()
   const location = useLocation()

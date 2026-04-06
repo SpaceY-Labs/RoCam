@@ -1,10 +1,7 @@
 /**
- * Unit tests for src/network/rocamProvider.tsx
- *
- * Covers:
- *   - useRocam() throws when used outside RocamProvider
- *   - RocamProvider renders children
- *   - RocamProvider exposes null status initially
+ * Author: Zifan Si
+ * Date: 2026-03-04
+ * Purpose: Verifies the backend context provider exposes status and API state safely.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, act } from '@testing-library/react'
@@ -71,7 +68,12 @@ describe('useRocam', () => {
   })
 })
 
-// Helper to wrap RocamProvider with I18nProvider
+/**
+ * Renders UI under the i18n and backend provider wrappers used by the app.
+ *
+ * @param ui React element rendered inside the provider tree.
+ * @returns Rendered testing-library result for the wrapped UI.
+ */
 function renderWithProvider(ui: React.ReactElement) {
   return render(
     <I18nProvider i18n={i18n}>

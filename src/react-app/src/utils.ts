@@ -3,7 +3,12 @@
  * Date: 2026-03-05
  * Purpose: Provides shared frontend utility helpers for UI-facing errors.
  */
-/** Extracts a readable message from thrown values used in toast and UI errors. */
+/**
+ * Extracts a readable message from thrown values used in toast and UI errors.
+ *
+ * @param error Unknown value thrown by frontend or network code.
+ * @returns Human-readable message suitable for UI feedback.
+ */
 export function getErrorMessage(error: unknown): string {
   if (
     error instanceof Object &&

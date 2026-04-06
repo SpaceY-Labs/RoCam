@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2025-11-15
+ * Purpose: Defines the linting rules and file coverage used by the frontend workspace.
+ */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 

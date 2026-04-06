@@ -1,11 +1,7 @@
 /**
- * Unit tests for src/components/navbar.tsx
- *
- * Covers:
- *   - Renders navigation links for Control and Recordings
- *   - Active route highlighting
- *   - Fullscreen toggle (enter/exit)
- *   - Emergency Stop button
+ * Author: Zifan Si
+ * Date: 2026-03-04
+ * Purpose: Verifies the navigation bar renders routes and global actions correctly.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent } from '@testing-library/react'
@@ -20,6 +16,12 @@ vi.mock('./ConfigurationMenu', () => ({
     React.createElement('div', { 'data-testid': 'config-menu' }),
 }))
 
+/**
+ * Renders the navigation bar at a requested route.
+ *
+ * @param initialPath Initial route entry supplied to the memory router.
+ * @returns Promise resolving to the rendered testing-library result.
+ */
 async function renderNavbar(initialPath = '/') {
   const { Navbar } = await import('./navbar')
 

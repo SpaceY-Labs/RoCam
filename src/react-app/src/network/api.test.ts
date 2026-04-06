@@ -1,11 +1,7 @@
 /**
- * Unit tests for src/network/api.ts
- *
- * Covers:
- *   - ApiError class construction
- *   - ApiClient URL helpers (pure methods)
- *   - ApiClient.createAutomatic() probe logic
- *   - All ApiClient request methods (manualMove, arm/disarm, recording CRUD)
+ * Author: Zifan Si
+ * Date: 2026-03-04
+ * Purpose: Verifies API client helpers, discovery logic, and request wrappers.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
@@ -136,6 +132,12 @@ describe('ApiClient.createAutomatic', () => {
 // ApiClient request methods
 // ---------------------------------------------------------------------------
 
+/**
+ * Creates a successful fetch mock that returns a JSON payload.
+ *
+ * @param body JSON body returned by the mocked response.
+ * @returns Mocked fetch implementation that resolves with an OK response.
+ */
 function makeFetchOk(body: unknown = {}) {
   return vi.fn().mockResolvedValue({
     ok: true,
@@ -144,6 +146,13 @@ function makeFetchOk(body: unknown = {}) {
   })
 }
 
+/**
+ * Creates a failed fetch mock that returns an error payload.
+ *
+ * @param status HTTP status returned by the mocked response.
+ * @param body JSON body returned by the mocked response.
+ * @returns Mocked fetch implementation that resolves with a failed response.
+ */
 function makeFetchError(status: number, body: unknown = { error: 'Oops' }) {
   return vi.fn().mockResolvedValue({
     ok: false,

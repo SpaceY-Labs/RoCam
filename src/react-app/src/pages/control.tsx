@@ -21,10 +21,16 @@ import {
 } from '@/store/settingsAtom'
 import { Navbar } from '@/components/navbar'
 
-/** Minimum milliseconds between consecutive manualMoveTo API calls. */
+/**
+ * Minimum milliseconds between consecutive manual move requests issued by drag input.
+ */
 const DRAG_THROTTLE_MS = 50
 
-/** Renders the live control dashboard for preview, status, and camera input. */
+/**
+ * Renders the live control dashboard for preview, status, and camera input.
+ *
+ * @returns Full control-page layout for live camera operation.
+ */
 export default function ControlPage() {
   const { t } = useLingui()
   const { apiClient, status } = useRocam()
@@ -64,6 +70,12 @@ export default function ControlPage() {
     lastCallTime: 0,
   })
 
+  /**
+   * Starts a drag interaction when manual camera control is allowed.
+   *
+   * @param e Pointer event raised by the preview interaction overlay.
+   * @returns No return value.
+   */
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     const s = statusRef.current
 
@@ -78,6 +90,12 @@ export default function ControlPage() {
     e.currentTarget.setPointerCapture(e.pointerId)
   }, [])
 
+  /**
+   * Converts drag movement into throttled pan and tilt updates.
+   *
+   * @param e Pointer event raised while the preview overlay is being dragged.
+   * @returns No return value.
+   */
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     const drag = dragRef.current
 
@@ -101,6 +119,11 @@ export default function ControlPage() {
     client.manualMoveTo(newTilt, newPan)
   }, [])
 
+  /**
+   * Ends the current drag interaction.
+   *
+   * @returns No return value.
+   */
   const handlePointerUp = useCallback(() => {
     dragRef.current.isDragging = false
   }, [])
@@ -110,6 +133,12 @@ export default function ControlPage() {
   // The overlay captures gestures without interfering with the rendered preview.
   const overlayRef = useRef<HTMLDivElement>(null)
 
+  /**
+   * Converts mouse-wheel input into focal-length updates.
+   *
+   * @param e Wheel event raised by the preview overlay.
+   * @returns No return value.
+   */
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault()
     const s = statusRef.current

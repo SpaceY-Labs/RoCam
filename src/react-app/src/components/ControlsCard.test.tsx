@@ -1,11 +1,7 @@
 /**
- * Unit tests for src/components/ControlsCard.tsx
- *
- * Covers:
- *   - Renders without crashing when useRocam returns null status
- *   - Arm button triggers apiClient.arm()
- *   - Disarm button triggers apiClient.disarm() when armed
- *   - Record start/stop buttons trigger corresponding API calls
+ * Author: Zifan Si
+ * Date: 2026-03-04
+ * Purpose: Verifies control card actions invoke the expected backend commands.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent, waitFor } from '@testing-library/react'
@@ -40,6 +36,13 @@ vi.mock('react-use', () => ({
   useTimeoutFn: () => [null, null, vi.fn()],
 }))
 
+/**
+ * Renders the controls card with mocked backend state.
+ *
+ * @param armed Whether the mocked backend status reports the system as armed.
+ * @param isRecording Whether the mocked backend status reports active recording.
+ * @returns Promise resolving to the rendered testing-library result.
+ */
 async function renderCard(armed = false, isRecording = false) {
   const { useRocam } = await import('@/network/rocamProvider')
 

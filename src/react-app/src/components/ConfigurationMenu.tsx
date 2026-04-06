@@ -40,7 +40,11 @@ const TEMPERATURE_UNITS: { key: TemperatureUnit; label: string }[] = [
   { key: 'fahrenheit', label: '°F (Fahrenheit)' },
 ]
 
-/** Exposes persisted app preferences from a single settings dropdown. */
+/**
+ * Exposes persisted app preferences from a single settings dropdown.
+ *
+ * @returns Settings menu used to change frontend preferences.
+ */
 export function ConfigurationMenu() {
   const { t } = useLingui()
   const [language, setLanguage] = useAtom(languageAtom)
@@ -49,7 +53,12 @@ export function ConfigurationMenu() {
   const [dragSensitivity, setDragSensitivity] = useAtom(dragSensitivityAtom)
   const [showLogs, setShowLogs] = useAtom(showLogsAtom)
 
-  /** Applies menu actions to the matching preference atom. */
+  /**
+   * Applies a menu action to the matching persisted preference atom.
+   *
+   * @param key Dropdown action key emitted by the settings menu.
+   * @returns No return value.
+   */
   const handleAction = (key: Key) => {
     const keyStr = String(key)
 

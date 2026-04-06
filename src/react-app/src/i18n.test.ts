@@ -1,8 +1,7 @@
 /**
- * Unit tests for src/i18n.ts
- *
- * Covers dynamicActivate() - mocks the dynamic import and verifies
- * that i18n.load() and i18n.activate() are called with the correct locale.
+ * Author: Zifan Si
+ * Date: 2026-03-04
+ * Purpose: Verifies locale activation loads and enables the expected Lingui catalog.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 

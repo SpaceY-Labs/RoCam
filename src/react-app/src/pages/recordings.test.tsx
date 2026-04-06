@@ -1,11 +1,7 @@
 /**
- * Unit tests for src/pages/recordings.tsx
- *
- * Covers:
- *   - Shows loading spinner initially
- *   - Shows "no recordings" message when list is empty
- *   - Renders recording items when data is available
- *   - Handles delete action
+ * Author: Zifan Si
+ * Date: 2026-03-04
+ * Purpose: Verifies recordings page loading, item actions, and preview behavior.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, waitFor, fireEvent } from '@testing-library/react'
@@ -35,6 +31,11 @@ vi.mock('@/layouts/default', () => ({
     React.createElement('div', { 'data-testid': 'layout' }, children),
 }))
 
+/**
+ * Renders the recordings page with a mocked backend context.
+ *
+ * @returns Promise resolving to the rendered testing-library result.
+ */
 async function renderRecordingsPage() {
   const { useRocam } = await import('@/network/rocamProvider')
 

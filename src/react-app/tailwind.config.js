@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2025-11-15
+ * Purpose: Configures Tailwind and HeroUI scanning for the frontend workspace.
+ */
 import {heroui} from "@heroui/theme"
 
 /** @type {import('tailwindcss').Config} */

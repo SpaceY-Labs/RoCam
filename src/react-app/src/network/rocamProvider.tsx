@@ -40,7 +40,12 @@ interface RocamProviderProps {
   children: ReactNode
 }
 
-/** Provides shared backend status, logs, and API access to the app tree. */
+/**
+ * Provides shared backend status, logs, and API access to the app tree.
+ *
+ * @param children Nested application content that consumes backend state.
+ * @returns Context provider that exposes backend status, logs, and API access.
+ */
 export function RocamProvider({ children }: RocamProviderProps) {
   const { t } = useLingui()
   const [apiClient, setApiClient] = useState<ApiClient | null>(null)
@@ -163,9 +168,10 @@ export function RocamProvider({ children }: RocamProviderProps) {
 }
 
 /**
- * Hook to access the API client from the Rocam context
- * @returns The API client, loading state, error state, and current status
- * @throws Error if used outside of RocamProvider
+ * Returns the backend context consumed throughout the frontend.
+ *
+ * @returns Backend context containing the API client, latest status, and buffered logs.
+ * @throws Error if the hook is used outside `RocamProvider`.
  */
 export function useRocam() {
   const context = useContext(RocamContext)
@@ -177,7 +183,13 @@ export function useRocam() {
   return context
 }
 
-/** Converts raw SSE log payloads into normalized log entries for display. */
+/**
+ * Converts raw SSE log payloads into normalized log entries for display.
+ *
+ * @param rawData Raw event payload received from the backend log stream.
+ * @param id Stable identifier assigned to the parsed log entry.
+ * @returns Parsed log entry, or `null` when the payload is not usable.
+ */
 function parseLogEvent(rawData: string, id: number): LogEntry | null {
   try {
     const data = JSON.parse(rawData) as {

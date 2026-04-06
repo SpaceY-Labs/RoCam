@@ -9,7 +9,11 @@ import ControlPage from './pages/control'
 
 import RecordingsPage from '@/pages/recordings'
 
-/** Defines the top-level route map for the frontend application. */
+/**
+ * Defines the top-level route map for the frontend application.
+ *
+ * @returns Route definitions for the control page, recordings page, and fallback redirect.
+ */
 function App() {
   return (
     <Routes>
