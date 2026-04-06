@@ -1,3 +1,11 @@
+"""
+Author: Jianqing Liu
+Date: 2025-11-09
+Purpose: Serial client for the custom gimbal protocol, providing thread-safe
+    methods to query gimbal info, read/write tilt-pan angles, control LEDs,
+    set focal length, and retrieve GPS data over UART.
+"""
+
 import struct
 import serial
 import math

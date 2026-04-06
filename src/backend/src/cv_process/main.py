@@ -1,3 +1,11 @@
+"""
+Author: Mike Chen, Jianqing Liu
+Date: 2025-11-19
+Purpose: Implements the computer vision process, running a GStreamer + DeepStream
+    inference pipeline for real-time object detection, OSD overlay rendering,
+    JPEG recording, preview thumbnailing, and livestream frame output via shared memory.
+"""
+
 import os
 import subprocess
 import time

@@ -1,3 +1,11 @@
+"""
+Author: Jianqing Liu
+Date: 2026-01-25
+Purpose: Manages the lifecycle of the livestream child process with automatic
+    restart, including stderr monitoring to detect and recover from NVIDIA
+    memory-copy failures.
+"""
+
 import logging
 import sys
 import threading

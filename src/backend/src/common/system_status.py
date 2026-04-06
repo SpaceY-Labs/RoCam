@@ -1,3 +1,10 @@
+"""
+Author: Xiaotian Lou
+Date: 2026-01-31
+Purpose: Monitors Jetson system health metrics (CPU/GPU utilization, temperature,
+    power draw, memory usage, and network interfaces) via jtop and psutil.
+"""
+
 import logging
 import psutil
 from jtop import jtop

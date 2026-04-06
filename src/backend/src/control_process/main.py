@@ -1,3 +1,11 @@
+"""
+Author: Jianqing Liu
+Date: 2026-01-23
+Purpose: Entry points for the control process, providing both the full
+    run_control_process (with gimbal, CV, and livestream) and a lightweight
+    run_recording_management mode for recording-only operation.
+"""
+
 import logging
 
 from common.utils import set_scheduler_fifo, set_scheduler_other

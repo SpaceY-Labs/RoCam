@@ -1,3 +1,11 @@
+"""
+Author: Jianqing Liu
+Date: 2025-11-19
+Purpose: Defines IPC data structures (BoundingBox, CVData, OSDData, PreviewData,
+    RecordingInfo) and helper functions for creating Unix-socket IPC servers and clients
+    used for inter-process communication between backend processes.
+"""
+
 import os
 import logging
 from multiprocessing.connection import Client, Listener

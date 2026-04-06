@@ -1,3 +1,11 @@
+"""
+Author: Jianqing Liu
+Date: 2026-01-24
+Purpose: Manages the lifecycle of the CV child process, including automatic restart
+    on crash or timeout, IPC message routing for CVData/PreviewData/OSDData, and
+    pause/resume support during transcoding downloads.
+"""
+
 from multiprocessing.connection import Connection
 import logging
 from cv_process.main import CV_SOCKET_PATH

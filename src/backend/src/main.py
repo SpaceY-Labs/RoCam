@@ -1,3 +1,11 @@
+"""
+Author: Jianqing Liu
+Date: 2026-01-23
+Purpose: Top-level entry point for the RoCam backend. Dispatches to the appropriate
+    subprocess (control, recording-management, cv, livestream, or transcode) based
+    on command-line arguments.
+"""
+
 import os
 import logging
 import sys

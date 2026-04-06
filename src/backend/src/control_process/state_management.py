@@ -1,3 +1,11 @@
+"""
+Author: Jianqing Liu
+Date: 2025-11-15
+Purpose: Central state manager for the control process, coordinating gimbal
+    movement, object tracking, recording lifecycle, system status aggregation,
+    and CV/livestream subprocess orchestration.
+"""
+
 import logging
 import time
 import threading

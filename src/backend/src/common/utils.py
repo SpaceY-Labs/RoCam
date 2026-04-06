@@ -1,3 +1,11 @@
+"""
+Author: Jianqing Liu
+Date: 2026-01-23
+Purpose: Provides shared utility functions including Linux scheduler configuration
+    (FIFO, CFS, batch), network address discovery, and a helper to launch and
+    monitor GStreamer pipelines on background threads.
+"""
+
 from concurrent.futures import Future
 import os
 import subprocess
