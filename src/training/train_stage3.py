@@ -4,8 +4,8 @@ Author: Xiaotian Lou
 Date: 2026-03-17
 Purpose: Stage 3 ultra-low learning rate polishing with reduced augmentation (40 epochs).
 
-Stage 3: 极低 LR 抛光 (40 epochs)
-- 单卡训练: rect=True + Albumentations (概率降低 30%)
+Stage 3: Ultra-low LR polishing (40 epochs)
+- Single-GPU training: rect=True + Albumentations (probabilities reduced by 30%)
 - optimizer=SGD, lr0=0.0001 (ultra-low for polishing)
 - warmup_epochs=3, cos_lr=True
 """
@@ -37,9 +37,9 @@ def select_best_gpu():
     gpu_free = get_gpu_free_memory()
     usable = sorted(gpu_free.items(), key=lambda x: -x[1])
     if not usable or usable[0][1] < 40_000:
-        raise RuntimeError(f"无 GPU > 40GB 可用: {gpu_free}")
+        raise RuntimeError(f"No GPU with > 40GB available: {gpu_free}")
     best_id, free_mb = usable[0]
-    print(f"[GPU] 选择 GPU {best_id} (free={free_mb}MiB)")
+    print(f"[GPU] Selected GPU {best_id} (free={free_mb}MiB)")
     return str(best_id)
 
 
@@ -48,7 +48,7 @@ def patch_albumentations_stage3():
         import albumentations as A
         from ultralytics.data.augment import Albumentations
     except Exception as e:
-        print(f"[AUG] albumentations 不可用: {e}")
+        print(f"[AUG] albumentations not available: {e}")
         return
 
     _orig_init = Albumentations.__init__
@@ -66,7 +66,7 @@ def patch_albumentations_stage3():
             A.Downscale(scale_range=(0.7, 0.9), p=0.07),
         ])
         self.contains_spatial = False
-        print("[AUG] Stage 3 Albumentations 已注入 (概率降低 30%)")
+        print("[AUG] Stage 3 Albumentations injected (probabilities reduced by 30%)")
 
     Albumentations.__init__ = _custom_init
 
@@ -83,7 +83,7 @@ def get_ram_available_gb():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str, required=True, help="Stage 2 best.pt 路径")
+    parser.add_argument("--model", type=str, required=True, help="Path to Stage 2 best.pt")
     parser.add_argument("--epochs", type=int, default=40)
     parser.add_argument("--batch", type=int, default=32)
     parser.add_argument("--project", type=str, default=str(DATA_DIR / "runs" / "detect"))
@@ -148,12 +148,12 @@ def main():
             if (c / "weights" / "best.pt").exists():
                 save_dir = c
                 break
-    print(f"[DONE] Stage 3 完成: {save_dir}")
+    print(f"[DONE] Stage 3 finished: {save_dir}")
     result_file = Path(cli.project) / cli.name / ".stage3_result"
     result_file.parent.mkdir(parents=True, exist_ok=True)
     best_pt = Path(save_dir) / "weights" / "best.pt"
     if not best_pt.exists():
-        raise FileNotFoundError(f"best.pt 不存在: {best_pt}")
+        raise FileNotFoundError(f"best.pt does not exist: {best_pt}")
     result_file.write_text(str(best_pt))
     print(f"[DONE] best.pt = {best_pt}")
 

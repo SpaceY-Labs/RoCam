@@ -4,11 +4,11 @@ Author: Xiaotian Lou
 Date: 2026-03-17
 Purpose: Stage 2 robustness fine-tuning with single-GPU, rect training, and Albumentations (80 epochs).
 
-Stage 2: 抗干扰精调 (80 epochs)
-- 单卡训练: rect=True + Albumentations 完整生效
+Stage 2: Robustness fine-tuning (80 epochs)
+- Single-GPU training: rect=True + Albumentations fully effective
 - optimizer=SGD, lr0=0.0003 (proven fine-tuning lr, cf. train81)
 - warmup_epochs=5, cos_lr=True
-- 从 Stage 1b best.pt 加载 (model=path, 非 resume=True)
+- Load from Stage 1b best.pt (model=path, not resume=True)
 """
 import os
 os.environ["MKL_THREADING_LAYER"] = "GNU"
@@ -38,9 +38,9 @@ def select_best_gpu():
     gpu_free = get_gpu_free_memory()
     usable = sorted(gpu_free.items(), key=lambda x: -x[1])
     if not usable or usable[0][1] < 40_000:
-        raise RuntimeError(f"无 GPU > 40GB 可用: {gpu_free}")
+        raise RuntimeError(f"No GPU with > 40GB available: {gpu_free}")
     best_id, free_mb = usable[0]
-    print(f"[GPU] 选择 GPU {best_id} (free={free_mb}MiB)")
+    print(f"[GPU] Selected GPU {best_id} (free={free_mb}MiB)")
     return str(best_id)
 
 
@@ -49,7 +49,7 @@ def patch_albumentations():
         import albumentations as A
         from ultralytics.data.augment import Albumentations
     except Exception as e:
-        print(f"[AUG] albumentations 不可用: {e}")
+        print(f"[AUG] albumentations not available: {e}")
         return
 
     _orig_init = Albumentations.__init__
@@ -67,7 +67,7 @@ def patch_albumentations():
             A.Downscale(scale_range=(0.7, 0.9), p=0.10),
         ])
         self.contains_spatial = False
-        print("[AUG] Stage 2 Albumentations 已注入")
+        print("[AUG] Stage 2 Albumentations injected")
 
     Albumentations.__init__ = _custom_init
 
@@ -84,7 +84,7 @@ def get_ram_available_gb():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str, required=True, help="Stage 1 best.pt 路径")
+    parser.add_argument("--model", type=str, required=True, help="Path to Stage 1 best.pt")
     parser.add_argument("--epochs", type=int, default=80)
     parser.add_argument("--batch", type=int, default=32)
     parser.add_argument("--project", type=str, default=str(DATA_DIR / "runs" / "detect"))
@@ -154,12 +154,12 @@ def main():
             if (c / "weights" / "best.pt").exists():
                 save_dir = c
                 break
-    print(f"[DONE] Stage 2 完成: {save_dir}")
+    print(f"[DONE] Stage 2 finished: {save_dir}")
     result_file = Path(cli.project) / cli.name / ".stage2_result"
     result_file.parent.mkdir(parents=True, exist_ok=True)
     best_pt = Path(save_dir) / "weights" / "best.pt"
     if not best_pt.exists():
-        raise FileNotFoundError(f"best.pt 不存在: {best_pt}")
+        raise FileNotFoundError(f"best.pt does not exist: {best_pt}")
     result_file.write_text(str(best_pt))
     print(f"[DONE] best.pt = {best_pt}")
 

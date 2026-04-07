@@ -4,15 +4,15 @@ Author: Xiaotian Lou
 Date: 2026-03-17
 Purpose: Stage 1 main training script for YOLO26s-P2 with multi-GPU DDP (300 epochs).
 
-Stage 1: YOLO26s-P2 主训练 (300 epochs)
-- Ultralytics 内置 DDP: device="0,1,2,3" 让框架自己管理多卡
-- patience=0 禁用早停，保证 close_mosaic 在 ep250 生效
-- mosaic=0.4 保护小目标，multi_scale=False 避免缩到 480px
-- nbs=batch 防止 weight_decay 被隐式放大
-用法:
-  冒烟测试:  python train_stage1.py --smoke
-  50ep验证:  python train_stage1.py --epochs 50
-  正式训练:  python train_stage1.py  (由 run_pipeline.bash 调用)
+Stage 1: YOLO26s-P2 main training (300 epochs)
+- Ultralytics built-in DDP: device="0,1,2,3" lets the framework manage multi-GPU
+- patience=0 disables early stopping, ensuring close_mosaic takes effect at ep250
+- mosaic=0.4 protects small targets, multi_scale=False avoids downscaling to 480px
+- nbs=batch prevents weight_decay from being implicitly scaled up
+Usage:
+  Smoke test:  python train_stage1.py --smoke
+  50ep check:  python train_stage1.py --epochs 50
+  Full train:  python train_stage1.py  (called by run_pipeline.bash)
 """
 import os
 os.environ["MKL_THREADING_LAYER"] = "GNU"
@@ -41,7 +41,7 @@ COCO_ZIPS = {
 }
 
 
-# --------------- GPU / RAM 探测 ---------------
+# --------------- GPU / RAM detection ---------------
 
 def get_gpu_free_memory():
     result = subprocess.run(
@@ -79,7 +79,7 @@ def preflight(target_batch=128):
         )
     n_gpu = len(usable)
     if n_gpu == 0:
-        raise RuntimeError(f"无 GPU 剩余 > 40GB: {gpu_free}")
+        raise RuntimeError(f"No GPU with > 40GB free: {gpu_free}")
 
     per_gpu = target_batch // n_gpu
     actual_batch = per_gpu * n_gpu
@@ -88,18 +88,18 @@ def preflight(target_batch=128):
     ram_gb = get_ram_available_gb()
     workers = 8 if ram_gb > 40 else 4 if ram_gb > 20 else 2
 
-    print(f"[PREFLIGHT] GPU: {device_str} ({n_gpu}卡), batch={actual_batch}, "
+    print(f"[PREFLIGHT] GPU: {device_str} ({n_gpu} GPUs), batch={actual_batch}, "
           f"workers={workers}, RAM={ram_gb:.1f}GB")
     return device_str, actual_batch, n_gpu, workers
 
 
-# --------------- COCO 负样本 ---------------
+# --------------- COCO negative samples ---------------
 
 def _download(url, dst):
     dst.parent.mkdir(parents=True, exist_ok=True)
     if dst.exists():
         return
-    print(f"[COCO] 下载 {dst.name} ...")
+    print(f"[COCO] Downloading {dst.name} ...")
     urllib.request.urlretrieve(url, dst)
 
 
@@ -107,7 +107,7 @@ def ensure_coco_images():
     train_dir = COCO_ROOT / "images" / "train2017"
     val_dir = COCO_ROOT / "images" / "val2017"
     if train_dir.exists() and val_dir.exists():
-        print("[COCO] 已存在, 跳过下载")
+        print("[COCO] Already exists, skipping download")
         return
     COCO_ROOT.mkdir(parents=True, exist_ok=True)
     images_dir = COCO_ROOT / "images"
@@ -123,13 +123,13 @@ def ensure_coco_images():
 def prepare_coco_negatives():
     existing = sorted(ROCAM_TRAIN_DIR.glob("coco_neg_*.jpg"))
     if len(existing) >= COCO_NEG_MAX:
-        print(f"[COCO] 已有 {len(existing)} 负样本 >= {COCO_NEG_MAX}, 跳过")
+        print(f"[COCO] Already have {len(existing)} negative samples >= {COCO_NEG_MAX}, skipping")
         return
     images_dir = COCO_ROOT / "images"
     all_imgs = list((images_dir / "train2017").glob("*.jpg")) + \
                list((images_dir / "val2017").glob("*.jpg"))
     if not all_imgs:
-        print("[COCO] 无 COCO 图片, 跳过负样本准备")
+        print("[COCO] No COCO images found, skipping negative sample preparation")
         return
     n = min(COCO_NEG_MAX, len(all_imgs))
     random.seed(0)
@@ -144,23 +144,24 @@ def prepare_coco_negatives():
             added += 1
         (ROCAM_LABEL_TRAIN_DIR / f"{dst.stem}.txt").touch(exist_ok=True)
         if i % 500 == 0 or i == n:
-            print(f"[COCO] {i}/{n} (新增 {added})")
-    print(f"[COCO] 负样本就绪: {n} 张 (新增 {added})")
+            print(f"[COCO] {i}/{n} (newly added {added})")
+    print(f"[COCO] Negative samples ready: {n} images (newly added {added})")
 
 
-# --------------- Albumentations 猴子补丁 ---------------
+# --------------- Albumentations monkey-patch ---------------
 
 def patch_albumentations():
     """
-    猴子补丁注入自定义成像退化增强。
-    注意: Ultralytics 内置 DDP 会重新产生子进程，此补丁不会传播到子进程。
-    Stage 2/3 使用单卡训练，补丁可完整生效。
+    Monkey-patch to inject custom imaging degradation augmentations.
+    Note: Ultralytics built-in DDP respawns subprocesses, so this patch will not
+    propagate to subprocesses. Stage 2/3 use single-GPU training where the patch
+    takes full effect.
     """
     try:
         import albumentations as A
         from ultralytics.data.augment import Albumentations
     except Exception as e:
-        print(f"[AUG] albumentations 不可用: {e}")
+        print(f"[AUG] albumentations not available: {e}")
         return
 
     _orig_init = Albumentations.__init__
@@ -178,13 +179,13 @@ def patch_albumentations():
             A.Downscale(scale_range=(0.7, 0.9), p=0.10),
         ])
         self.contains_spatial = False
-        print("[AUG] 自定义 Albumentations 已注入 (pixel-only, blur5, downscale)")
+        print("[AUG] Custom Albumentations injected (pixel-only, blur5, downscale)")
 
     Albumentations.__init__ = _custom_init
-    print("[AUG] 猴子补丁已安装")
+    print("[AUG] Monkey-patch installed")
 
 
-# --------------- 训练入口 ---------------
+# --------------- Training entry point ---------------
 
 def build_args(device_str, batch, workers, epochs=300, smoke=False):
     if smoke:
@@ -233,7 +234,7 @@ def build_args(device_str, batch, workers, epochs=300, smoke=False):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--smoke", action="store_true", help="2ep 单卡冒烟测试")
+    parser.add_argument("--smoke", action="store_true", help="2-epoch single-GPU smoke test")
     parser.add_argument("--epochs", type=int, default=300)
     parser.add_argument("--batch", type=int, default=128)
     parser.add_argument("--project", type=str, default=str(DATA_DIR / "runs" / "detect"))
@@ -267,12 +268,12 @@ def main():
             if (c / "weights" / "best.pt").exists():
                 save_dir = c
                 break
-    print(f"[DONE] Stage 1 完成: {save_dir}")
+    print(f"[DONE] Stage 1 finished: {save_dir}")
     result_file = Path(cli.project) / cli.name / ".stage1_result"
     result_file.parent.mkdir(parents=True, exist_ok=True)
     best_pt = Path(save_dir) / "weights" / "best.pt"
     if not best_pt.exists():
-        raise FileNotFoundError(f"best.pt 不存在: {best_pt}")
+        raise FileNotFoundError(f"best.pt does not exist: {best_pt}")
     result_file.write_text(str(best_pt))
     print(f"[DONE] best.pt = {best_pt}")
 

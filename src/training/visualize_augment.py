@@ -4,9 +4,9 @@ Author: Xiaotian Lou
 Date: 2026-03-17
 Purpose: Visualize and compare augmentation effects on small targets at different mosaic levels.
 
-Level 0 验证: 增强可视化 (0 GPU 时间)
-对比 mosaic=0.8 vs mosaic=0.4 下小目标是否可见
-用法:
+Level 0 validation: augmentation visualization (0 GPU time)
+Compare whether small targets are visible under mosaic=0.8 vs mosaic=0.4.
+Usage:
   python visualize_augment.py
   python visualize_augment.py --n 20 --outdir /tmp/aug_vis
 """
@@ -69,7 +69,7 @@ def build_dataset(mosaic_p, rect=False):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--n", type=int, default=10, help="每种 mosaic 可视化几张")
+    parser.add_argument("--n", type=int, default=10, help="Number of images to visualize per mosaic level")
     parser.add_argument("--outdir", type=str, default=str(DATA_DIR / "aug_visualize"))
     cli = parser.parse_args()
 
@@ -90,14 +90,14 @@ def main():
             break
 
     if not small_target_indices:
-        print("[WARN] 未找到小目标样本, 使用前 N 张")
+        print("[WARN] No small target samples found, using the first N images")
         small_target_indices = list(range(min(cli.n, len(ds_scan))))
 
     indices = small_target_indices[:cli.n]
 
     for mosaic_p, tag in [(0.8, "mosaic08"), (0.4, "mosaic04"), (0.0, "no_mosaic")]:
         ds = build_dataset(mosaic_p)
-        print(f"\n[VIS] 生成 {tag} 样本...")
+        print(f"\n[VIS] Generating {tag} samples...")
         for j, idx in enumerate(indices):
             try:
                 sample = ds[idx % len(ds)]
@@ -119,9 +119,9 @@ def main():
             out_path = outdir / f"{tag}_{j:03d}.jpg"
             cv2.imwrite(str(out_path), img)
 
-        print(f"[VIS] {tag}: {len(indices)} 张已保存到 {outdir}")
+        print(f"[VIS] {tag}: {len(indices)} images saved to {outdir}")
 
-    print(f"\n[DONE] 可视化完成, 查看 {outdir}/ 对比小目标在不同 mosaic 下的可见性")
+    print(f"\n[DONE] Visualization complete, check {outdir}/ to compare small target visibility under different mosaic levels")
 
 
 if __name__ == "__main__":

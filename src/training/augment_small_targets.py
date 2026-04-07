@@ -4,22 +4,23 @@ Author: Xiaotian Lou
 Date: 2026-03-19
 Purpose: Offline small-target copy-paste augmentation for training data generation.
 
-离线小目标 Copy-Paste 增强脚本
+Offline small-target copy-paste augmentation script.
 
-由于 Ultralytics copy_paste 需要 segmentation mask (bbox-only 数据集不支持),
-本脚本通过离线方式在训练图像中复制粘贴小目标区域, 生成额外训练样本。
+Since Ultralytics copy_paste requires segmentation masks (not supported for bbox-only datasets),
+this script copies and pastes small target regions onto training images offline to generate
+additional training samples.
 
-功能:
-  1. 扫描训练集中所有 < threshold_px 的小目标
-  2. 裁剪小目标区域 (带少量 padding)
-  3. 对每个小目标应用随机变换 (轻微旋转、缩放、亮度)
-  4. 粘贴到其他训练图像的随机位置 (避免与现有标注重叠)
-  5. 生成额外训练图像和对应标签
+Features:
+  1. Scan the training set for all small targets below threshold_px
+  2. Crop small target regions (with a small amount of padding)
+  3. Apply random transforms to each small target (slight rotation, scaling, brightness)
+  4. Paste onto random positions in other training images (avoiding overlap with existing annotations)
+  5. Generate additional training images and corresponding labels
 
-用法:
-  python augment_small_targets.py                    # 默认生成 5000 张
-  python augment_small_targets.py --num_images 10000 # 生成 10000 张
-  python augment_small_targets.py --dry_run           # 仅统计, 不生成
+Usage:
+  python augment_small_targets.py                    # default: generate 5000 images
+  python augment_small_targets.py --num_images 10000 # generate 10000 images
+  python augment_small_targets.py --dry_run           # only count, do not generate
 """
 import argparse
 import glob
@@ -48,7 +49,7 @@ def load_labels(label_path):
 
 
 def find_small_targets(label_dir, img_dir, threshold_px=50):
-    """找到所有小目标及其来源图像."""
+    """Find all small targets and their source images."""
     targets = []
     label_files = glob.glob(os.path.join(label_dir, "*.txt"))
 
@@ -83,7 +84,7 @@ def find_small_targets(label_dir, img_dir, threshold_px=50):
 
 
 def crop_target(img, cx, cy, w, h, padding=0.3):
-    """从图像中裁剪目标区域, 带 padding."""
+    """Crop the target region from the image, with padding."""
     ih, iw = img.shape[:2]
     pw = int(w * iw * (1 + padding))
     ph = int(h * ih * (1 + padding))
@@ -98,7 +99,7 @@ def crop_target(img, cx, cy, w, h, padding=0.3):
 
 
 def random_transform_crop(crop):
-    """对裁剪区域做轻微随机变换."""
+    """Apply slight random transforms to the cropped region."""
     h, w = crop.shape[:2]
     if h < 3 or w < 3:
         return crop
@@ -119,7 +120,7 @@ def random_transform_crop(crop):
 
 
 def boxes_overlap(box1, box2, threshold=0.1):
-    """检查两个 YOLO 格式 box 是否重叠超过阈值 (IoA)."""
+    """Check whether two YOLO-format boxes overlap beyond the threshold (IoA)."""
     cx1, cy1, w1, h1 = box1
     cx2, cy2, w2, h2 = box2
 
@@ -139,7 +140,7 @@ def boxes_overlap(box1, box2, threshold=0.1):
 
 
 def paste_target_on_image(bg_img, crop, existing_boxes, max_attempts=20):
-    """在背景图上粘贴小目标, 避免与现有标注重叠."""
+    """Paste a small target onto the background image, avoiding overlap with existing annotations."""
     bh, bw = bg_img.shape[:2]
     ch, cw = crop.shape[:2]
 
@@ -175,7 +176,7 @@ def paste_target_on_image(bg_img, crop, existing_boxes, max_attempts=20):
 
 def generate_augmented_images(targets, img_dir, label_dir, out_img_dir, out_label_dir,
                               num_images=5000, pastes_per_image=(1, 3)):
-    """生成增强后的训练图像."""
+    """Generate augmented training images."""
     os.makedirs(out_img_dir, exist_ok=True)
     os.makedirs(out_label_dir, exist_ok=True)
 
@@ -183,7 +184,7 @@ def generate_augmented_images(targets, img_dir, label_dir, out_img_dir, out_labe
     bg_images = [p for p in bg_images if p.lower().endswith((".jpg", ".jpeg", ".png", ".bmp"))]
 
     if not targets:
-        print("[WARN] 未找到小目标, 跳过生成")
+        print("[WARN] No small targets found, skipping generation")
         return 0
 
     generated = 0
@@ -227,7 +228,7 @@ def generate_augmented_images(targets, img_dir, label_dir, out_img_dir, out_labe
             generated += 1
 
         if (i + 1) % 500 == 0:
-            print(f"  进度: {i + 1}/{num_images}, 已生成 {generated} 张")
+            print(f"  Progress: {i + 1}/{num_images}, generated {generated} images")
 
     return generated
 
@@ -235,23 +236,23 @@ def generate_augmented_images(targets, img_dir, label_dir, out_img_dir, out_labe
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--threshold_px", type=int, default=50,
-                        help="小目标阈值 (像素, 基于 imgsz=960)")
+                        help="Small target threshold (pixels, based on imgsz=960)")
     parser.add_argument("--num_images", type=int, default=5000)
     parser.add_argument("--dry_run", action="store_true",
-                        help="仅统计小目标, 不生成")
+                        help="Only count small targets, do not generate")
     cli = parser.parse_args()
 
     img_dir = str(DATA_ROOT / "images" / "train")
     label_dir = str(DATA_ROOT / "labels" / "train")
 
-    print(f"[扫描] 查找 < {cli.threshold_px}px 的小目标...")
+    print(f"[SCAN] Finding small targets < {cli.threshold_px}px...")
     targets = find_small_targets(label_dir, img_dir, cli.threshold_px)
-    print(f"[结果] 找到 {len(targets)} 个小目标")
+    print(f"[RESULT] Found {len(targets)} small targets")
 
     if cli.dry_run:
         sizes = [max(t["w_px"], t["h_px"]) for t in targets]
         if sizes:
-            print(f"  平均最大尺寸: {np.mean(sizes):.1f}px")
+            print(f"  Average max dimension: {np.mean(sizes):.1f}px")
             print(f"  < 10px: {sum(1 for s in sizes if s < 10)}")
             print(f"  10-20px: {sum(1 for s in sizes if 10 <= s < 20)}")
             print(f"  20-30px: {sum(1 for s in sizes if 20 <= s < 30)}")
@@ -260,13 +261,13 @@ def main():
 
     out_img_dir = str(DATA_ROOT / "images" / "train")
     out_label_dir = str(DATA_ROOT / "labels" / "train")
-    print(f"[生成] 将生成 {cli.num_images} 张增强图像到训练集...")
+    print(f"[GENERATE] Will generate {cli.num_images} augmented images into the training set...")
     n = generate_augmented_images(
         targets, img_dir, label_dir,
         out_img_dir, out_label_dir,
         num_images=cli.num_images,
     )
-    print(f"[完成] 共生成 {n} 张小目标增强图像")
+    print(f"[DONE] Generated {n} small-target augmented images in total")
 
 
 if __name__ == "__main__":

@@ -4,13 +4,13 @@ Author: Xiaotian Lou
 Date: 2026-03-19
 Purpose: V3 Phase 2 low learning rate fine-tuning with reduced augmentation (80 epochs).
 
-V3 Phase 2: 低 LR 精调 (80 epochs)
-- 单卡 H100, batch=32, nbs=128 (与 Phase 1 一致, 避免 regime 变化)
+V3 Phase 2: Low LR fine-tuning (80 epochs)
+- Single H100 GPU, batch=32, nbs=128 (consistent with Phase 1 to avoid regime change)
 - SGD, lr0=0.0001, cos_lr=True
-- 增强强度降低: mosaic/mixup 关闭, scale/erasing/Albumentations 概率降低
-- rect=False (与 Phase 1 保持一致, 修复 V2 Stage2/3 的 regime 剧变问题)
+- Reduced augmentation intensity: mosaic/mixup disabled, scale/erasing/Albumentations probabilities lowered
+- rect=False (consistent with Phase 1, fixing the regime shift issue from V2 Stage 2/3)
 
-用法:
+Usage:
   python train_v3_phase2.py --model /path/to/v3_phase1/best.pt
 """
 import os
@@ -45,9 +45,9 @@ def select_best_gpu():
     gpu_free = get_gpu_free_memory()
     usable = sorted(gpu_free.items(), key=lambda x: -x[1])
     if not usable or usable[0][1] < 40_000:
-        raise RuntimeError(f"无 GPU > 40GB 可用: {gpu_free}")
+        raise RuntimeError(f"No GPU with > 40GB available: {gpu_free}")
     best_id, free_mb = usable[0]
-    print(f"[GPU] 选择 GPU {best_id} (free={free_mb}MiB)")
+    print(f"[GPU] Selected GPU {best_id} (free={free_mb}MiB)")
     return str(best_id)
 
 
@@ -78,7 +78,7 @@ def build_albumentations_phase2():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str, required=True, help="Phase 1 best.pt 路径")
+    parser.add_argument("--model", type=str, required=True, help="Path to Phase 1 best.pt")
     parser.add_argument("--epochs", type=int, default=80)
     parser.add_argument("--batch", type=int, default=32)
     parser.add_argument("--project", type=str, default=str(DATA_DIR / "runs" / "detect"))
@@ -90,7 +90,7 @@ def main():
     workers = 8 if ram_gb > 40 else 4 if ram_gb > 20 else 2
 
     augmentations = build_albumentations_phase2()
-    print(f"[AUG] Phase 2: {len(augmentations)} transforms (概率约为 Phase 1 的 60%)")
+    print(f"[AUG] Phase 2: {len(augmentations)} transforms (probabilities ~60% of Phase 1)")
 
     args = dict(
         data=DATA_YAML,
@@ -164,12 +164,12 @@ def main():
                 save_dir = c
                 break
 
-    print(f"[DONE] V3 Phase 2 完成: {save_dir}")
+    print(f"[DONE] V3 Phase 2 finished: {save_dir}")
     result_file = Path(cli.project) / cli.name / ".v3_phase2_result"
     result_file.parent.mkdir(parents=True, exist_ok=True)
     best_pt = Path(save_dir) / "weights" / "best.pt"
     if not best_pt.exists():
-        raise FileNotFoundError(f"best.pt 不存在: {best_pt}")
+        raise FileNotFoundError(f"best.pt does not exist: {best_pt}")
     result_file.write_text(str(best_pt))
     print(f"[DONE] best.pt = {best_pt}")
 

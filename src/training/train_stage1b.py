@@ -4,13 +4,13 @@ Author: Xiaotian Lou
 Date: 2026-03-18
 Purpose: Stage 1b extended training from Stage 1 best checkpoint with SGD and cosine LR (200 epochs).
 
-Stage 1b: 从 Stage 1 best.pt 延长训练 (200 epochs)
-- 4-GPU DDP (Ultralytics 内置): device 由 preflight 动态分配
+Stage 1b: Extended training from Stage 1 best.pt (200 epochs)
+- 4-GPU DDP (Ultralytics built-in): device dynamically assigned by preflight
 - optimizer="SGD" + cos_lr (proven fine-tuning approach, cf. train81)
 - lr0=0.0005 (conservative, between train81's 0.0003 and failed 0.002)
-- mosaic=0.2 低强度继续生成小目标, close_mosaic=30
-- patience=0 训练满全部 epoch
-用法:
+- mosaic=0.2 low-intensity to continue generating small targets, close_mosaic=30
+- patience=0 trains for all epochs
+Usage:
   python train_stage1b.py
   python train_stage1b.py --model /path/to/best.pt --epochs 200
 """
@@ -68,7 +68,7 @@ def preflight(target_batch=128):
         )
     n_gpu = len(usable)
     if n_gpu == 0:
-        raise RuntimeError(f"无 GPU 剩余 > 40GB: {gpu_free}")
+        raise RuntimeError(f"No GPU with > 40GB free: {gpu_free}")
 
     per_gpu = target_batch // n_gpu
     actual_batch = per_gpu * n_gpu
@@ -77,7 +77,7 @@ def preflight(target_batch=128):
     ram_gb = get_ram_available_gb()
     workers = 8 if ram_gb > 40 else 4 if ram_gb > 20 else 2
 
-    print(f"[PREFLIGHT] GPU: {device_str} ({n_gpu}卡), batch={actual_batch}, "
+    print(f"[PREFLIGHT] GPU: {device_str} ({n_gpu} GPUs), batch={actual_batch}, "
           f"workers={workers}, RAM={ram_gb:.1f}GB")
     return device_str, actual_batch, n_gpu, workers
 
@@ -87,7 +87,7 @@ def patch_albumentations():
         import albumentations as A
         from ultralytics.data.augment import Albumentations
     except Exception as e:
-        print(f"[AUG] albumentations 不可用: {e}")
+        print(f"[AUG] albumentations not available: {e}")
         return
 
     _orig_init = Albumentations.__init__
@@ -105,16 +105,16 @@ def patch_albumentations():
             A.Downscale(scale_range=(0.7, 0.9), p=0.10),
         ])
         self.contains_spatial = False
-        print("[AUG] Stage 1b Albumentations 已注入")
+        print("[AUG] Stage 1b Albumentations injected")
 
     Albumentations.__init__ = _custom_init
-    print("[AUG] 猴子补丁已安装 (DDP 子进程不生效, Stage 2/3 单卡时完整生效)")
+    print("[AUG] Monkey-patch installed (does not take effect in DDP subprocesses; fully effective in single-GPU Stage 2/3)")
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, default=STAGE1_BEST,
-                        help="Stage 1 best.pt 路径")
+                        help="Path to Stage 1 best.pt")
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument("--batch", type=int, default=128)
     parser.add_argument("--project", type=str,
@@ -191,12 +191,12 @@ def main():
             if (c / "weights" / "best.pt").exists():
                 save_dir = c
                 break
-    print(f"[DONE] Stage 1b 完成: {save_dir}")
+    print(f"[DONE] Stage 1b finished: {save_dir}")
     result_file = Path(cli.project) / cli.name / ".stage1b_result"
     result_file.parent.mkdir(parents=True, exist_ok=True)
     best_pt = Path(save_dir) / "weights" / "best.pt"
     if not best_pt.exists():
-        raise FileNotFoundError(f"best.pt 不存在: {best_pt}")
+        raise FileNotFoundError(f"best.pt does not exist: {best_pt}")
     result_file.write_text(str(best_pt))
     print(f"[DONE] best.pt = {best_pt}")
 
