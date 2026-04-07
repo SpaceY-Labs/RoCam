@@ -16,8 +16,11 @@ define COMPILE_BIBTEX
 	cd $(dir $1) && $(BIBTEX_CMD)
 endef
 
-# Default target: Compile all .tex files if no specific target is given
-all: $(patsubst %.tex, %.pdf, $(shell find . -mindepth 2 -name "*.tex"))
+# Find all .tex files that are standalone documents (contain \documentclass)
+TEX_FILES := $(shell grep -rl '\\documentclass' --include='*.tex' . | grep -v './Comments.tex' | grep -v './Common.tex')
+
+# Default target: Compile all standalone .tex files
+all: $(patsubst %.tex, %.pdf, $(TEX_FILES))
 
 # Rule for compiling .tex to .pdf
 %.pdf: %.tex
