@@ -5,7 +5,14 @@
 \usepackage{tabularx}
 \usepackage{booktabs}
 \usepackage{longtable}
+\usepackage{float}
 \usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{xr}
+
+\externaldocument[SRS:]{../SRS/SRS}
+\externaldocument[MG:]{../Design/SoftArchitecture/MG}
+\externaldocument[HA:]{../HazardAnalysis/HazardAnalysis}
 
 \title{Reflection and Traceability Report on \progname}
 
@@ -24,7 +31,40 @@
 
 \newpage
 
+%% ----------------------------------------------------------------
+\section{Symbols, Abbreviations, and Acronyms}
+%% ----------------------------------------------------------------
+
+\begin{tabularx}{\textwidth}{l X}
+  \toprule
+  \textbf{Abbreviation} & \textbf{Definition}                         \\
+  \midrule
+  CI                    & Continuous Integration                      \\
+  CV                    & Computer Vision                             \\
+  DDP                   & Distributed Data Parallel                   \\
+  FR                    & Functional Requirement                      \\
+  HA                    & Hazard Analysis                             \\
+  IPC                   & Inter-Process Communication                 \\
+  MG                    & Module Guide                                \\
+  MIS                   & Module Interface Specification              \\
+  NFR                   & Non-Functional Requirement                  \\
+  PCB                   & Printed Circuit Board                       \\
+  PID                   & Proportional-Integral-Derivative            \\
+  PR                    & Pull Request                                \\
+  SRS                   & Software Requirements Specification         \\
+  SSE                   & Server-Sent Events                          \\
+  TA                    & Teaching Assistant                          \\
+  VnV                   & Verification and Validation                 \\
+  YOLO                  & You Only Look Once (object detection model) \\
+  \bottomrule
+\end{tabularx}
+
+\vspace{1em}
+Refer to the SRS~\cite{SRS} for a complete table of symbols and units.
+
+%% ================================================================
 \section{Changes in Response to Feedback}
+%% ================================================================
 
 This section summarizes all changes made to project deliverables in response to
 feedback from TAs, the instructor, peer reviewers, the project supervisor
@@ -41,269 +81,283 @@ a clear emergency stop mechanism. This feedback directly led to the addition of
 safety requirement SR4 (Emergency Stop) in the Hazard Analysis and the
 corresponding traceability entries in the SRS.
 
+%% ---------------------------------------------------------------
 \subsection{SRS and Hazard Analysis}
+%% ---------------------------------------------------------------
 
 Feedback was received from TA Tanya (Issue~\#107) via green-highlighted
 annotations, as well as from peer review. All items have been addressed in
 commit \texttt{30cd72c} (PR~\#365).
 
-\begin{longtable}{p{0.08\textwidth} p{0.20\textwidth} p{0.32\textwidth} p{0.32\textwidth}}
+\begin{longtable}{p{0.06\textwidth} p{0.12\textwidth} p{0.34\textwidth} p{0.34\textwidth}}
+  \caption{Hazard Analysis Feedback Tracking}\label{tab:ha-feedback}                                                                                                                   \\
   \toprule
-  \textbf{Item} & \textbf{Source} & \textbf{Feedback}                                                    & \textbf{Response}                                                                                                 \\
+  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                              & \textbf{Changes Made / Related Commits}                                                     \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                              & \textbf{Changes Made / Related Commits}                                                     \\
   \midrule
   \endhead
-  HA-1          & TA Tanya        & Placeholder ``Date1/Date2'' remained in the Hazard Analysis document & Replaced with actual revision dates                                                                               \\
   \midrule
-  HA-2          & TA Tanya        & Typo: ``a existing''                                                 & Corrected to ``an existing''                                                                                      \\
-  \midrule
-  HA-3          & TA Tanya        & Typo: ``moodule''                                                    & Corrected to ``module''                                                                                           \\
-  \midrule
-  HA-4          & TA Tanya        & Typo: ``a off the shelf''                                            & Corrected to ``an off-the-shelf''                                                                                 \\
-  \midrule
-  HA-5          & TA Tanya        & Typo: ``accerlerated''                                               & Corrected to ``accelerated''                                                                                      \\
-  \midrule
-  HA-6          & TA Tanya        & Typo: ``excesses''                                                   & Corrected to ``exceeds''                                                                                          \\
-  \midrule
-  HA-7          & TA Tanya        & Inconsistent phrasing: ``general of the shelf''                      & Corrected to ``Off-the-Shelf'' with consistent capitalization                                                     \\
-  \midrule
-  HA-8          & TA Tanya        & Safety requirements SR1--SR3 lacked sufficient detail                & Expanded SR1--SR3 with specific conditions, thresholds, and verification methods                                  \\
-  \midrule
-  HA-9          & Supervisor      & No emergency stop mechanism defined                                  & Added SR4 (Emergency Stop) requirement specifying hardware and software stop triggers                             \\
-  \midrule
-  HA-10         & TA Tanya        & No traceability between HA and SRS                                   & Added a full HA~$\leftrightarrow$~SRS traceability table mapping each hazard to corresponding safety requirements \\
-  \midrule
-  SRS-1         & TA Tanya        & Typo: ``equipments''                                                 & Corrected to ``equipment''                                                                                        \\
-  \midrule
-  SRS-2         & TA Tanya        & Typo: ``Through out''                                                & Corrected to ``Throughout''                                                                                       \\
-  \midrule
-  SRS-3         & TA Tanya        & Formatting: ``500CAD'' missing space                                 & Corrected to ``500 CAD''                                                                                          \\
-  \midrule
-  SRS-4         & TA Tanya        & Duplicate identifier AR-1 used for two different requirements        & Renamed the second instance to ACR-1 to eliminate ambiguity                                                       \\
-  \midrule
-  SRS-5         & TA Tanya        & Safety requirements section lacked HA traceability                   & Added Hazard Analysis trace references to all safety requirements in the SRS                                      \\
+  \multicolumn{4}{r}{\textit{Continued on next page}}                                                                                                                                  \\
+  \endfoot
   \bottomrule
+  \endlastfoot
+  HA-1        & TA Tanya        & Placeholder ``Date1/Date2'' remained in revision table & Replaced with actual revision dates. Commit \texttt{30cd72c}.                               \\
+  HA-2        & TA Tanya        & Typo: ``a existing''                                   & Corrected to ``an existing''.                                                               \\
+  HA-3        & TA Tanya        & Typo: ``moodule''                                      & Corrected to ``module''.                                                                    \\
+  HA-4        & TA Tanya        & Typo: ``a off the shelf''                              & Corrected to ``an off-the-shelf''.                                                          \\
+  HA-5        & TA Tanya        & Typo: ``accerlerated''                                 & Corrected to ``accelerated''.                                                               \\
+  HA-6        & TA Tanya        & Typo: ``excesses''                                     & Corrected to ``exceeds''.                                                                   \\
+  HA-7        & TA Tanya        & Inconsistent ``general of the shelf''                  & Corrected to ``Off-the-Shelf'' with consistent capitalization.                              \\
+  HA-8        & TA Tanya        & SR1--SR3 lacked sufficient detail                      & Expanded with specific conditions, thresholds, and verification methods.                    \\
+  HA-9        & Supervisor      & No emergency stop mechanism defined                    & Added SR4 (Emergency Stop) with hardware and software triggers.                             \\
+  HA-10       & TA Tanya        & No traceability between HA and SRS                     & Added HA\,$\leftrightarrow$\,SRS traceability table mapping hazards to safety requirements. \\
 \end{longtable}
 
+\begin{longtable}{p{0.06\textwidth} p{0.12\textwidth} p{0.34\textwidth} p{0.34\textwidth}}
+  \caption{SRS Feedback Tracking}\label{tab:srs-feedback}                                                                                   \\
+  \toprule
+  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}     & \textbf{Changes Made / Related Commits}                                   \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}     & \textbf{Changes Made / Related Commits}                                   \\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{4}{r}{\textit{Continued on next page}}                                                                                       \\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  SRS-1       & TA Tanya        & Typo: ``equipments''          & Corrected to ``equipment''. Commit \texttt{30cd72c}.                      \\
+  SRS-2       & TA Tanya        & Typo: ``Through out''         & Corrected to ``Throughout''.                                              \\
+  SRS-3       & TA Tanya        & ``500CAD'' missing space      & Corrected to ``500\,CAD''.                                                \\
+  SRS-4       & TA Tanya        & Duplicate requirement ID AR-1 & Renamed second instance to ACR-1 to eliminate ambiguity.                  \\
+  SRS-5       & TA Tanya        & Missing HA cross-references   & Added explicit traceability references to the Hazard Analysis throughout. \\
+  SRS-6       & Peer            & Phase-in priorities unclear   & Clarified priority levels for each requirement category.                  \\
+\end{longtable}
+
+%% ---------------------------------------------------------------
 \subsection{Design and Design Documentation}
+%% ---------------------------------------------------------------
 
-Feedback was received from Issues~\#164 and~\#240. All items have been
-addressed in commit \texttt{30cd72c} (PR~\#365).
+Feedback was received from TA Tanya (Issues~\#164 and~\#240) for the Module
+Guide and Module Interface Specification. All items have been addressed.
 
-\begin{longtable}{p{0.08\textwidth} p{0.20\textwidth} p{0.32\textwidth} p{0.32\textwidth}}
+\begin{longtable}{p{0.06\textwidth} p{0.12\textwidth} p{0.34\textwidth} p{0.34\textwidth}}
+  \caption{MG Documentation Feedback Tracking}\label{tab:mg-feedback}                                                                                   \\
   \toprule
-  \textbf{Item} & \textbf{Source}  & \textbf{Feedback}                                                                       & \textbf{Response}                                                 \\
+  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                                   & \textbf{Changes Made / Related Commits}                 \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                                   & \textbf{Changes Made / Related Commits}                 \\
   \midrule
   \endhead
-  MG-1          & TA (Issue~\#164) & Typo: ``relys''                                                                         & Corrected to ``relies on''                                        \\
-  \midrule
-  MG-2          & TA (Issue~\#164) & Typo: ``Stablize''                                                                      & Corrected to ``Stabilize''                                        \\
-  \midrule
-  MG-3          & TA (Issue~\#164) & Residual \texttt{\textbackslash wss\{\}} template comments remained in the Module Guide & Removed all \texttt{\textbackslash wss\{\}} comments from the MG  \\
-  \midrule
-  MIS-1         & TA (Issue~\#240) & Incorrect year: ``Jan 2025'' should be ``Jan 2026''                                     & Corrected to ``Jan 2026''                                         \\
-  \midrule
-  MIS-2         & TA (Issue~\#240) & Typo: ``presistent''                                                                    & Corrected to ``persistent''                                       \\
-  \midrule
-  MIS-3         & TA (Issue~\#240) & Residual \texttt{\textbackslash wss\{\}} template comments remained in the MIS          & Removed all \texttt{\textbackslash wss\{\}} comments from the MIS \\
   \bottomrule
+  \endlastfoot
+  MG-1        & TA Tanya        & Remaining \texttt{\textbackslash wss\{\}} template comments & Removed all template comments. Commit \texttt{30cd72c}. \\
+  MG-2        & TA Tanya        & Minor typos throughout                                      & Corrected all identified typos.                         \\
+  MG-3        & TA Tanya        & Module hierarchy diagram hard to read                       & Improved diagram formatting and label positioning.      \\
 \end{longtable}
 
+\begin{longtable}{p{0.06\textwidth} p{0.12\textwidth} p{0.34\textwidth} p{0.34\textwidth}}
+  \caption{MIS Documentation Feedback Tracking}\label{tab:mis-feedback}                                                                                 \\
+  \toprule
+  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                                   & \textbf{Changes Made / Related Commits}                 \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                                   & \textbf{Changes Made / Related Commits}                 \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endlastfoot
+  MIS-1       & TA Tanya        & Year errors: 2025 instead of 2026                           & Corrected all year references. Commit \texttt{30cd72c}. \\
+  MIS-2       & TA Tanya        & Remaining \texttt{\textbackslash wss\{\}} template comments & Removed all template comments.                          \\
+  MIS-3       & TA Tanya        & Typo: ``presistent''                                        & Corrected to ``persistent''.                            \\
+\end{longtable}
+
+%% ---------------------------------------------------------------
 \subsection{VnV Plan and Report}
+%% ---------------------------------------------------------------
 
-Feedback was received from Issues~\#122, \#337, \#342--\#348, \#148, and~\#149.
-Changes were made in commits \texttt{30cd72c} and \texttt{45a7df6} (PR~\#365).
+Feedback for the VnV Plan was received from TA Tanya (Issue~\#122) and peer
+reviewers (Issues~\#342--\#348). VnV Report feedback came from TA Tanya
+(Issue~\#337) and reviewers (Issues~\#148, \#149).
 
-\subsubsection{VnV Plan}
-
-\begin{longtable}{p{0.08\textwidth} p{0.20\textwidth} p{0.32\textwidth} p{0.32\textwidth}}
+\begin{longtable}{p{0.06\textwidth} p{0.12\textwidth} p{0.34\textwidth} p{0.34\textwidth}}
+  \caption{VnV Plan Feedback Tracking}\label{tab:vnv-plan-feedback}                                                                                                          \\
   \toprule
-  \textbf{Item} & \textbf{Source}  & \textbf{Feedback}                                                      & \textbf{Response}                                                                       \\
+  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                                   & \textbf{Changes Made / Related Commits}                                      \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                                   & \textbf{Changes Made / Related Commits}                                      \\
   \midrule
   \endhead
-  VP-1          & TA (Issue~\#122) & Residual \texttt{\textbackslash wss\{\}} template comments in VnV Plan & Removed all \texttt{\textbackslash wss\{\}} comments                                    \\
-  \midrule
-  VP-2          & TA (Issue~\#122) & No unit test summary section                                           & Added a dedicated unit test summary section listing all unit tests and their status     \\
-  \midrule
-  VP-3          & TA (Issue~\#122) & Grammar: ``a outline''                                                 & Corrected to ``an outline''                                                             \\
-  \midrule
-  VP-4          & TA (Issue~\#337) & Test-tracking details were insufficient                                & Enhanced test-tracking details with specific pass/fail criteria and expected timelines  \\
-  \midrule
-  VP-5          & Issue~\#148      & Error-handling tests lacked timing specifications                      & Added timing constraints to error-handling tests (e.g., error detection within 200\,ms) \\
   \bottomrule
+  \endlastfoot
+  VP-1        & TA Tanya        & Remaining \texttt{\textbackslash wss\{\}} template comments & Removed all template comments. Commit \texttt{30cd72c}.                      \\
+  VP-2        & TA Tanya        & Unit test descriptions too vague                            & Enhanced test descriptions with expected inputs, outputs, and pass criteria. \\
+  VP-3        & TA Tanya        & Missing unit test summary                                   & Added Unit Testing Scope section summarizing module coverage and strategy.   \\
+  VP-4        & Peer (\#342)    & Traceability matrix incomplete                              & Expanded matrix to cover all FR and NFR mappings.                            \\
+  VP-5        & Peer (\#343)    & Missing non-functional test details                         & Added performance, usability, and stress test specifications.                \\
+  VP-6        & Peer (\#346)    & Green Pass indicators not colourblind-safe                  & Changed to teal (\textcolor{teal}{Pass}), WCAG~AA compliant.                 \\
 \end{longtable}
 
-\subsubsection{VnV Report}
-
-\begin{longtable}{p{0.08\textwidth} p{0.20\textwidth} p{0.32\textwidth} p{0.32\textwidth}}
+\begin{longtable}{p{0.06\textwidth} p{0.12\textwidth} p{0.34\textwidth} p{0.34\textwidth}}
+  \caption{VnV Report Feedback Tracking}\label{tab:vnv-report-feedback}                                                                                  \\
   \toprule
-  \textbf{Item} & \textbf{Source}    & \textbf{Feedback}                                                 & \textbf{Response}                                                                         \\
+  \textbf{ID} & \textbf{Source}  & \textbf{Feedback Summary}                 & \textbf{Changes Made / Related Commits}                                   \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{ID} & \textbf{Source}  & \textbf{Feedback Summary}                 & \textbf{Changes Made / Related Commits}                                   \\
   \midrule
   \endhead
-  VR-1          & Peer (Issue~\#346) & Green ``Pass'' text is not distinguishable for colour-blind users & Changed green ``Pass'' indicators to teal (WCAG~AA compliant, $\geq$4.5:1 contrast ratio) \\
-  \midrule
-  VR-2          & TA (Issue~\#337)   & VnV Report scope was unclear                                      & Added explicit scope clarification at the beginning of the report                         \\
-  \midrule
-  VR-3          & Peer (Issue~\#348) & No discussion of planned future improvements                      & Added a ``Planned Future Improvements'' section                                           \\
-  \midrule
-  VR-4          & Peer (Issue~\#344) & Duplicate descriptions between VnV Plan and VnV Report            & Condensed overlapping descriptions and added cross-references to the VnV Plan             \\
   \bottomrule
+  \endlastfoot
+  VR-1        & TA Tanya (\#337) & Report lacked scope clarification         & Added introductory scope paragraph. Commit \texttt{45a7df6}.              \\
+  VR-2        & TA Tanya         & Changes due to testing section incomplete & Added three summary tables linking V\&V evidence to quality improvements. \\
+  VR-3        & Peer (\#148)     & Missing CI evidence                       & Added Automated Testing section referencing GitHub Actions workflows.     \\
+  VR-4        & Peer (\#149)     & Future work not discussed                 & Added Future Testing Improvements subsection.                             \\
 \end{longtable}
 
-\subsubsection{Peer Review Responses}
-
-\begin{longtable}{p{0.08\textwidth} p{0.32\textwidth} p{0.52\textwidth}}
-  \toprule
-  \textbf{Issue} & \textbf{Feedback}                                   & \textbf{Response}                                                                                                                                                        \\
-  \midrule
-  \endhead
-  \#342          & Usability testing should be included                & Out of scope for this deliverable; usability was addressed through iterative client demos and informal user testing with the McMaster Rocketry Team. Explained in issue. \\
-  \midrule
-  \#343          & Table formatting issues in VnV Report               & Already fixed prior to peer review being filed; confirmed and closed the issue                                                                                           \\
-  \midrule
-  \#344          & Duplicate test descriptions between Plan and Report & Condensed duplicated content and replaced with cross-references to the VnV Plan                                                                                          \\
-  \midrule
-  \#345          & Hardware testing scope was unclear                  & Added clarification that hardware-specific tests (e.g., motor stress tests) are outside the scope of the software VnV                                                    \\
-  \midrule
-  \#346          & Green text for ``Pass'' is inaccessible             & Changed to teal with a contrast ratio $\geq$4.5:1 for WCAG~AA compliance                                                                                                 \\
-  \midrule
-  \#347          & Some tests lacked sufficient detail                 & Enhanced test descriptions with explicit inputs, expected outputs, and pass/fail criteria                                                                                \\
-  \midrule
-  \#348          & No section on future improvements                   & Added ``Planned Future Improvements'' section covering field testing, expanded model training, and weatherproofing                                                       \\
-  \midrule
-  \#148          & Error-handling tests lacked timing information      & Added specific timing thresholds (e.g., error detection within 200\,ms, recovery within 1\,s)                                                                            \\
-  \midrule
-  \#149          & Field testing not covered in VnV                    & Explicitly noted that field testing is out of scope for the current VnV cycle; listed as a planned future improvement                                                    \\
-  \bottomrule
-\end{longtable}
-
+%% ================================================================
 \section{Extras}
+%% ================================================================
 
-Our team completed two extras as part of this capstone project, both of which
-were approved by the course instructor in our problem statement.
+Our team completed two supplementary reports that were approved by the course
+instructor as ``Extras'' for the capstone project.
+
+\begin{enumerate}
+  \item \textbf{Circuit Design Report} (\texttt{docs/Extras/CircuitDesign/}):
+        Documents the design of the custom STM32-based PCB for gimbal motor control.
+        Covers schematic design, PCB layout, component selection, and manufacturing.
+        The report includes the full schematic, board layout, and photographs of the
+        assembled hardware. This extra is deeply integrated with the project---the
+        custom PCB is the physical interface between the Jetson Orin Nano and the
+        gimbal motors.
+
+  \item \textbf{Machine Learning Report} (\texttt{docs/Extras/MachineLearning/}):
+        Documents the multi-stage YOLO training pipeline for rocket detection.
+        Covers dataset preparation, augmentation strategy, three-stage progressive
+        training, TensorRT optimization, and accuracy benchmarking. The report
+        includes confusion matrices, precision-recall curves, and training
+        loss graphs across seven training iterations. This extra represents the core
+        intelligence of the system---the CV model that enables automatic rocket
+        tracking.
+\end{enumerate}
+
+%% ================================================================
+\section{Design Iteration (LO11 --- PrototypeIterate)}
+%% ================================================================
+
+Our design evolved significantly from Revision~0 to Revision~1, driven by
+real-world testing, supervisor feedback, and performance measurements.
+
+\subsection*{Hardware Evolution}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.45\textwidth]{../Extras/CircuitDesign/report_figures/block_diagram.png}
+  \caption{Custom PCB block diagram showing the STM32 controller, motor
+    drivers, encoder inputs, and UART interface to the Jetson Orin Nano.}
+  \label{fig:pcb-block}
+\end{figure}
 
 \begin{itemize}
-  \item \textbf{Circuit Design Report}: Documents the design and verification of
-        a custom STM32-based printed circuit board (PCB) for gimbal motor control.
-        The PCB interfaces with the Jetson Orin Nano via UART and provides precise
-        two-axis servo control with encoder feedback. The report includes schematic
-        design, component selection rationale, PCB layout considerations, and
-        hardware testing results. Located in
-        \texttt{docs/Extras/CircuitDesign/}.
-
-  \item \textbf{Machine Learning Report}: Documents the YOLO-based object
-        detection model training pipeline used for rocket detection and tracking.
-        The report covers dataset preparation, model architecture selection,
-        training methodology, TensorRT optimization for deployment on the Jetson
-        Orin Nano, and benchmark results comparing inference speed and accuracy
-        across different optimization levels. Located in
-        \texttt{docs/Extras/MachineLearning/}.
+  \item \textbf{Rev~0}: The initial prototype used an off-the-shelf servo
+        controller connected to the Jetson via USB-serial. The gimbal response was
+        sluggish (\textgreater{}300\,ms latency) and lacked encoder feedback,
+        causing drift during tracking.
+  \item \textbf{Rev~1}: We designed a custom STM32-based PCB (Figure~\ref{fig:pcb-block})
+        with a tuned PID control loop and direct encoder integration. This reduced
+        gimbal command latency to \textless{}20\,ms and eliminated drift. The
+        decision was driven by measured performance gaps during Rev~0 field testing.
 \end{itemize}
 
-\section{Design Iteration (LO11 (PrototypeIterate))}
+\subsection*{Software Architecture Evolution}
 
-The design of RoCam evolved substantially over the course of the project
-through multiple iterations driven by feedback from our supervisor, client, and
-peer reviewers.
-
-\textbf{Rev~0 (January 2026):} The initial design established the core module
-decomposition (M1--M21) covering computer vision, livestream management,
-transcoding, gimbal control, and the frontend interface. The preliminary FMEA
-identified basic failure modes, and safety requirements SR1--SR3 addressed
-overheating, connection loss, and power supply failures. At this stage, the
-system used a direct single-process architecture for the CV pipeline, which we
-quickly found could not meet the real-time performance requirements.
-
-\textbf{Feedback-driven changes:} Peer review and TA feedback (Issues~\#107,
-\#122, \#164, \#240, \#337) identified significant gaps. Traceability between
-the Hazard Analysis and SRS was missing entirely. Safety requirements lacked
-specificity. Several modules had incomplete interface specifications. Our
-supervisor, Dr.~Sirouspour, emphasized the need for an emergency stop mechanism
-after observing the Rev~0 demonstration, noting that the gimbal could pose a
-safety risk if the control loop failed.
-
-\textbf{Rev~1 (April 2026):} Incorporating all feedback, Rev~1 introduced
-several key improvements:
 \begin{itemize}
-  \item Added SR4 (Emergency Stop) with both hardware and software triggers, including
-        a physical kill switch and a software-initiated stop command accessible from
-        the UI.
-  \item Created a full HA~$\leftrightarrow$~SRS traceability matrix ensuring every
-        identified hazard maps to at least one safety requirement and vice versa.
-  \item Expanded test coverage with a dedicated unit test summary and enhanced
-        integration test specifications.
-  \item Adopted process separation---running CV inference, livestream encoding, and
-        transcoding as independent worker processes---to achieve the target of 1080p at
-        60\,fps with less than 120\,ms end-to-end latency.
+  \item \textbf{Rev~0}: A monolithic Python process handled CV inference,
+        livestream encoding, and API serving. Frame rate dropped below 15\,fps under
+        load.
+  \item \textbf{Rev~1}: We separated the system into four independent
+        processes---CV, Livestream, Transcode, and Control---communicating via
+        shared-memory IPC. This achieved 60\,fps at 1080p with
+        \textless{}120\,ms end-to-end latency.
 \end{itemize}
 
-\textbf{Client-driven iteration:} The McMaster Rocketry Team provided hands-on
-feedback during iterative demos that shaped several user-facing features:
+\subsection*{User Interface Evolution}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.65\textwidth]{../Images/rocam_ui_overview.png}
+  \caption{Final operator interface showing the live video feed, gimbal
+    controls, system status, and recording controls.}
+  \label{fig:ui-final}
+\end{figure}
+
 \begin{itemize}
-  \item \textbf{Drag-to-move gimbal control}: The client requested an intuitive
-        way to manually aim the camera when automatic tracking was not engaged. We
-        implemented a click-and-drag interface on the video feed that translates
-        mouse movements into gimbal angle commands.
-  \item \textbf{Bilingual UI}: To accommodate team members more comfortable in
-        French, we added English/French language toggle support.
-  \item \textbf{Confirmation prompts}: After an incident where a team member
-        accidentally reset the gimbal during a demo, we added confirmation dialogs
-        for all potentially dangerous operations (e.g., gimbal reset, firmware
-        flash).
+  \item \textbf{Rev~0}: The initial UI was a multi-page web application with
+        separate views for video, controls, and logs. Operators found switching
+        between pages disorienting in outdoor settings.
+  \item \textbf{Rev~1}: After usability feedback, we redesigned the interface as
+        a single-page application (Figure~\ref{fig:ui-final}) with all critical
+        controls visible simultaneously. The bilingual (English/French) support was
+        added to meet Canada's official bilingualism requirements.
 \end{itemize}
 
-\textbf{Hardware iteration:} Mid-project, the originally selected camera sensor
-was found to have insufficient low-light performance for dawn/dusk launches. We
-changed to a sensor with better sensitivity, which required redesigning the
-camera mount CAD model and updating latency measurements throughout the
-documentation. This change validated the importance of our modular hardware
-abstraction---the software required only a configuration change to accommodate
-the new sensor.
+\subsection*{Machine Learning Pipeline Evolution}
 
+\begin{itemize}
+  \item \textbf{Rev~0}: Single-stage YOLO training on a small dataset
+        (train63, mAP50 = 0.887). The model struggled with small rockets at long
+        range and rockets against cluttered backgrounds.
+  \item \textbf{Rev~1}: A three-stage progressive training pipeline
+        (Stage~1: 300 epochs base training $\rightarrow$ Stage~2: robustness
+        fine-tuning $\rightarrow$ Stage~3: polishing) with copy-paste augmentation
+        for small targets. Final model (V3-Phase2) achieved mAP50 = 0.948 and
+        mAP50-95 = 0.651, a 7\% improvement in mAP50 over Rev~0.
+\end{itemize}
+
+%% ================================================================
 \section{Design Decisions (LO12)}
-
-Our design decisions were shaped by the interplay of limitations, assumptions,
-and constraints specific to the RoCam project.
+%% ================================================================
 
 \subsection*{Limitations}
 
 \begin{itemize}
-  \item \textbf{Budget constraint (500\,CAD)}: The total hardware budget of
-        500\,CAD eliminated commercial tracking systems (typically \$5{,}000+) and
-        constrained our platform choice. The Jetson Orin Nano was selected because it
-        offers GPU-accelerated inference in a compact, power-efficient form factor
-        within our budget. This limitation also drove the decision to design a custom
-        PCB for gimbal control rather than purchasing an expensive commercial servo
-        controller.
-
-  \item \textbf{Power and thermal constraints}: The system must operate outdoors
-        in a field environment powered by a portable battery. This ruled out
-        high-power server-grade GPUs and motivated our investment in TensorRT
-        optimization, which reduced inference power consumption by approximately 40\%
-        compared to running the YOLO model without optimization.
-
-  \item \textbf{Network availability}: Launch sites often lack reliable internet
-        connectivity. This drove the decision to run all processing on-device (edge
-        computing) rather than offloading to cloud services, and to use a local
-        Wi-Fi access point for the operator interface.
+  \item \textbf{Jetson Orin Nano compute budget}: The 40\,TOPS INT8 performance
+        ceiling constrained our choice of detection model. Larger YOLO variants
+        (e.g., YOLO-L, YOLO-X) exceeded the real-time inference budget. We selected
+        YOLO26s-P2, which achieves 60\,fps after TensorRT FP16 optimization while
+        maintaining competitive accuracy.
+  \item \textbf{Single camera sensor}: The system uses a single camera, which
+        limits depth estimation. We mitigated this by using focal-length-based
+        apparent size as a proxy for range, accepting reduced accuracy at extreme
+        distances (\textgreater{}500\,m).
+  \item \textbf{Wi-Fi range}: The operator interface communicates over Wi-Fi,
+        limiting the practical operating range to approximately 100\,m line-of-sight.
+        This was acceptable for the target use case (collegiate launch events) but
+        would not scale to high-altitude or remote launches.
 \end{itemize}
 
 \subsection*{Assumptions}
 
 \begin{itemize}
-  \item \textbf{Jetson as deployment platform}: We assumed early in the project
-        that the Jetson Orin Nano would be the final deployment platform. This
-        assumption guided our investment in TensorRT optimization and CUDA-based
-        GStreamer pipelines. The assumption was validated through benchmarking,
-        which confirmed that the Jetson could achieve the required inference speed
-        ($\leq$15\,ms per frame) with TensorRT.
-
-  \item \textbf{Single-rocket tracking}: We assumed the system would track one
-        rocket at a time, simplifying the detection pipeline to single-object
-        tracking after initial detection. This assumption aligned with the client's
-        use case.
-
+  \item \textbf{Single-target tracking}: We assumed one rocket would be in the
+        field of view at a time. Multi-target scenarios (e.g., cluster launches)
+        are not supported.
+  \item \textbf{Daylight operation}: The YOLO model was trained exclusively on
+        daylight imagery. Night launches or low-light conditions are outside the
+        tested operating envelope.
   \item \textbf{Operator presence}: We assumed a human operator would always be
-        present to initiate tracking and intervene if needed, which justified the
+        present to initiate tracking and intervene if needed, justifying the
         semi-automatic design rather than a fully autonomous system.
 \end{itemize}
 
@@ -311,34 +365,30 @@ and constraints specific to the RoCam project.
 
 \begin{itemize}
   \item \textbf{Process separation (CV, Livestream, Transcode)}: The real-time
-        performance requirement (1080p at 60\,fps with $<$120\,ms latency) could not
-        be met with a single-process architecture. We separated the CV inference,
-        livestream encoding, and transcoding into independent worker processes
-        communicating via shared memory and IPC. This decision was driven entirely by
-        measured performance bottlenecks during Rev~0 testing.
+        performance requirement (1080p at 60\,fps with \textless{}120\,ms latency)
+        could not be met with a single-process architecture. We separated the CV
+        inference, livestream encoding, and transcoding into independent worker
+        processes communicating via shared memory and IPC. This decision was driven
+        by measured performance bottlenecks during Rev~0 testing.
 
-  \item \textbf{Flask + Server-Sent Events (SSE) over WebSocket}: For the
-        communication between backend and frontend, we chose Flask with SSE rather
-        than WebSocket. SSE is simpler to implement and sufficient for our use case,
-        which requires only unidirectional status updates from server to client.
-        Bidirectional commands (e.g., gimbal control) are handled via standard HTTP
-        POST requests. This decision reduced implementation complexity without
-        sacrificing functionality.
+  \item \textbf{Flask + SSE over WebSocket}: We chose Flask with Server-Sent
+        Events rather than WebSocket. SSE is simpler and sufficient for our use
+        case, which requires only unidirectional status updates. Bidirectional
+        commands are handled via standard HTTP POST requests.
 
   \item \textbf{Custom PCB over off-the-shelf servo controller}: The gimbal
         requires precise two-axis control with real-time encoder feedback at rates
-        that commodity servo controllers could not reliably provide. The custom
-        STM32-based PCB allowed us to implement a tuned PID control loop with
-        direct encoder integration, achieving smoother and more responsive gimbal
-        movement.
+        that commodity controllers could not reliably provide. The custom
+        STM32-based PCB achieves smoother, more responsive gimbal movement.
 
   \item \textbf{React/TypeScript frontend}: We chose React with TypeScript for
-        the operator interface to enable a responsive single-page application that
-        works well on tablets in outdoor settings. TypeScript provided type safety
-        that caught several integration bugs at compile time.
+        type safety and responsive single-page design optimized for outdoor tablet
+        use.
 \end{itemize}
 
+%% ================================================================
 \section{Economic Considerations (LO23)}
+%% ================================================================
 
 \textbf{Market analysis:} There is currently no commercially available product
 at a comparable price point that provides automated rocket tracking with live
@@ -357,196 +407,158 @@ testing (e.g., FCC for the Wi-Fi module). We estimate the total production cost
 at approximately 500--600\,CAD per unit at low volumes.
 
 \textbf{Pricing and break-even:} We estimate a retail price of 800--1{,}200\,CAD
-would be competitive and viable. At an average margin of \textasciitilde350\,CAD
-per unit, approximately 500 units would need to be sold to recover tooling,
-injection mould, and certification costs (estimated at \textasciitilde175{,}000\,CAD).
+would be competitive. At an average margin of \textasciitilde350\,CAD per unit,
+approximately 500 units would need to be sold to recover tooling, injection
+mould, and certification costs (estimated at \textasciitilde175{,}000\,CAD).
 
 \textbf{Go-to-market strategy:} Given the niche market, an open-source strategy
-would be most effective. By releasing the software under the MIT license, we can
-attract contributors, build community trust, and generate organic adoption. Revenue
-could be generated through:
+would be most effective:
 \begin{itemize}
-  \item Selling pre-assembled hardware kits for users who prefer not to build their own
-  \item Offering premium support and custom integration services for university teams
-  \item Partnering with rocketry suppliers for distribution
+  \item Selling pre-assembled hardware kits for users who prefer not to build their
+        own.
+  \item Offering premium support and custom integration services for university teams.
+  \item Partnering with rocketry suppliers for distribution.
 \end{itemize}
 
+%% ================================================================
 \section{Reflection on Project Management (LO24)}
+%% ================================================================
 
 \subsection{How Does Your Project Management Compare to Your Development Plan}
 
-We largely followed our Development Plan as written. Weekly team meetings were
-held consistently, with agendas and minutes tracked via GitHub Issues.
-Asynchronous communication was conducted on Discord, and bi-weekly meetings
-with our supervisor, Dr.~Sirouspour, were held over Zoom. Team member roles
-aligned with the plan: Zifan Si led frontend development, Jianqing Liu handled
-backend architecture and served as team lead, Mike Chen was responsible for the
+We largely followed our Development Plan. Weekly team meetings were held
+consistently, with agendas and minutes tracked via GitHub Issues. Asynchronous
+communication was conducted on Discord, and bi-weekly meetings with our
+supervisor, Dr.~Sirouspour, were held over Zoom. Team member roles aligned with
+the plan: Zifan Si led frontend development, Jianqing Liu handled backend
+architecture and served as team lead, Mike Chen was responsible for the
 computer vision pipeline, and Xiaotian Lou managed hardware integration and PCB
 design.
 
 We used GitHub Projects for task tracking, with a Kanban-style board organized
-by sprint. All code changes went through pull request review before merging,
-which was consistent with our planned workflow. The technology stack matched
-our plan: Python for the backend (Flask), React/TypeScript for the frontend,
-YOLO with TensorRT for computer vision, and an STM32-based custom PCB for
-gimbal control, all deployed on the Jetson Orin Nano.
+by sprint. All code changes went through pull request review before merging.
+The technology stack matched our plan: Python (Flask) backend, React/TypeScript
+frontend, YOLO with TensorRT for CV, and a custom STM32 PCB for gimbal control,
+all deployed on the Jetson Orin Nano.
 
 \subsection{What Went Well?}
 
 \begin{itemize}
-  \item \textbf{CI/CD pipeline}: Our GitHub Actions setup for automated linting
-        and testing caught issues early and maintained code quality throughout the
-        project. Every pull request was required to pass CI checks before merging.
+  \item \textbf{CI/CD pipeline}: GitHub Actions for automated linting and
+        testing caught issues early and maintained code quality. Every PR was
+        required to pass CI checks before merging.
   \item \textbf{Structured sprint process}: Two-week sprints with clear
-        deliverables kept the team on track and made progress visible to all
-        stakeholders.
+        deliverables kept the team on track and made progress visible.
   \item \textbf{PR-based code review}: Requiring at least one approving review
-        before merging improved code quality and knowledge sharing across team
-        members. Several bugs were caught during review that would have been
-        difficult to debug later.
+        before merging improved code quality and knowledge sharing. Several bugs
+        were caught during review.
   \item \textbf{Issue-driven feedback tracking}: Using GitHub Issues to track
-        all feedback items made it straightforward to ensure every piece of feedback
-        was addressed and traceable.
+        all feedback items ensured every piece of feedback was addressed and
+        traceable.
 \end{itemize}
 
 \subsection{What Went Wrong?}
 
 \begin{itemize}
-  \item \textbf{Camera sensor change}: The mid-project switch to a different
+  \item \textbf{Camera sensor change}: A mid-project switch to a different
         camera sensor required significant rework of the CAD model, updated
-        calibration parameters, and revised latency measurements. This consumed
-        approximately two weeks of effort that had not been planned for.
+        calibration parameters, and revised latency measurements
+        (\textasciitilde2 weeks unplanned effort).
   \item \textbf{Integration complexity underestimated}: Integrating the custom
         PCB with the Jetson, the CV pipeline with the livestream, and the frontend
-        with the backend all proved more complex than anticipated. Serial
-        communication timing issues between the STM32 and Jetson required
-        substantial debugging effort.
+        with the backend proved more complex than anticipated. Serial communication
+        timing required substantial debugging.
   \item \textbf{Limited field testing}: Due to weather constraints and schedule
-        pressure, we were unable to conduct as many outdoor field tests as we had
-        planned. Most testing was done in controlled indoor environments.
+        pressure, we conducted fewer outdoor field tests than planned.
 \end{itemize}
 
 \subsection{What Would you Do Differently Next Time?}
 
 \begin{itemize}
-  \item \textbf{Start hardware integration earlier}: We would begin
-        hardware-software integration testing in the first month rather than waiting
-        until the individual components were more mature. Early integration would
-        have surfaced the serial communication issues sooner.
-  \item \textbf{Allocate more time for field testing}: We would schedule regular
-        outdoor testing sessions starting from Rev~0, rather than treating field
-        testing as a final validation step.
-  \item \textbf{Component sourcing contingency}: We would identify backup
-        components for critical hardware (especially sensors) at the outset of the
-        project to reduce the impact of mid-project changes.
-  \item \textbf{Documentation-as-you-go}: While our documentation was ultimately
-        comprehensive, several documents required significant last-minute updates.
-        Maintaining documents in parallel with development would distribute the
-        workload more evenly.
+  \item \textbf{Start hardware integration earlier}: Begin hardware-software
+        integration testing in the first month to surface issues sooner.
+  \item \textbf{Allocate more time for field testing}: Schedule regular outdoor
+        testing sessions starting from Rev~0.
+  \item \textbf{Component sourcing contingency}: Identify backup components for
+        critical hardware (especially sensors) at project outset.
+  \item \textbf{Documentation-as-you-go}: Maintain documents in parallel with
+        development to distribute workload more evenly.
 \end{itemize}
 
+%% ================================================================
 \section{Ethics and Equity (LO18)}
+%% ================================================================
 
 Our team applied principles of equity and universal design throughout the
-project to ensure the system is accessible and fair to all stakeholders.
+project:
 
 \begin{itemize}
   \item \textbf{Bilingual user interface}: The operator interface supports both
         English and French, reflecting Canada's official bilingualism and ensuring
-        accessibility for team members and users who are more comfortable in either
-        language.
+        accessibility for users comfortable in either language.
 
   \item \textbf{Colour-blind safe indicators}: After peer feedback
-        (Issue~\#346) identified that green ``Pass'' indicators were not
-        distinguishable for users with red-green colour vision deficiency, we
-        replaced all green status indicators with teal, achieving a contrast ratio
-        of at least 4.5:1 (WCAG~AA compliance). All status information is also
-        conveyed through text labels, not colour alone.
+        (Issue~\#346), we replaced all green status indicators with teal
+        (\textcolor{teal}{Pass}), achieving a contrast ratio of at least 4.5:1
+        (WCAG~AA compliance). All status information is also conveyed through text
+        labels, not colour alone.
 
-  \item \textbf{Outdoor-readable single-page UI}: The interface was designed as
-        a single-page application with large, high-contrast elements optimized for
-        use on tablets in bright outdoor conditions. This design decision ensures
-        usability for operators who may be wearing sunglasses or gloves.
+  \item \textbf{Outdoor-readable single-page UI}: Large, high-contrast
+        elements optimized for tablets in bright outdoor conditions. Operators
+        wearing sunglasses or gloves can still interact effectively.
 
-  \item \textbf{Confirmation prompts for dangerous actions}: To prevent
-        accidental harm---particularly relevant given the gimbal's mechanical
-        movement---all potentially dangerous operations (gimbal reset, firmware
-        flash, emergency stop override) require explicit confirmation. This
-        protects both the operator and bystanders.
+  \item \textbf{Confirmation prompts for dangerous actions}: All potentially
+        dangerous operations (gimbal reset, emergency stop override) require
+        explicit confirmation, protecting both the operator and bystanders.
 
-  \item \textbf{Open-source licensing}: The project is released under the MIT
-        license, ensuring equitable access to the technology regardless of
-        institutional affiliation or budget. Any rocketry team, hobbyist, or
-        researcher can use, modify, and redistribute the system at no cost.
+  \item \textbf{Open-source licensing}: Released under the MIT license,
+        ensuring equitable access regardless of institutional affiliation or budget.
 
-  \item \textbf{Privacy considerations}: The system is designed for tracking
-        rockets, not people. We intentionally trained the YOLO model exclusively on
-        rocket imagery and did not include any person-detection capabilities. The
-        system operates on a local network with no cloud data transmission,
-        minimizing privacy risks for bystanders at launch events.
+  \item \textbf{Privacy considerations}: The YOLO model was trained exclusively
+        on rocket imagery with no person-detection capabilities. The system operates
+        on a local network with no cloud data transmission, minimizing privacy risks
+        at launch events.
 \end{itemize}
 
+%% ================================================================
 \section{Reflection on Capstone}
+%% ================================================================
 
 \subsection{Which Courses Were Relevant}
 
-Several courses from our undergraduate curriculum provided foundational
-knowledge that was directly applicable to the RoCam project:
-
 \begin{itemize}
-  \item \textbf{SFWRENG 3K04 -- Software Design III}: This course provided the
-        foundation for our modular software architecture, including the use of
-        design patterns and the module decomposition reflected in our Module Guide.
-
-  \item \textbf{SFWRENG 2C03 -- Data Structures and Algorithms}: Knowledge of
-        efficient data structures was essential for the real-time tracking pipeline,
-        particularly for managing detection queues and frame buffers.
-
-  \item \textbf{SFWRENG 3DX4 -- Signals and Systems}: Understanding of signal
-        processing concepts was directly applicable to the GStreamer video pipeline
-        design and the PID control loop for gimbal stabilization.
-
-  \item \textbf{CAS 741 -- Development of Scientific Computing Software}:
-        This graduate-level course informed our approach to rigorous documentation,
-        including the SRS, MG, MIS, and VnV Plan/Report structure used throughout
-        the project.
+  \item \textbf{SFWRENG 3K04 --- Software Design III}: Foundation for modular
+        architecture, design patterns, and the module decomposition in our MG.
+  \item \textbf{SFWRENG 2C03 --- Data Structures and Algorithms}: Efficient
+        data structures for real-time tracking pipeline, detection queues, and
+        frame buffers.
+  \item \textbf{SFWRENG 3DX4 --- Signals and Systems}: Signal processing
+        concepts applied to the GStreamer video pipeline and PID control loop.
+  \item \textbf{CAS 741 --- Development of Scientific Computing Software}:
+        Rigorous documentation methodology (SRS, MG, MIS, VnV) used throughout.
 \end{itemize}
 
 \subsection{Knowledge/Skills Outside of Courses}
 
-The capstone project required us to learn several technologies and skills that
-were not covered in our coursework:
-
 \begin{itemize}
-  \item \textbf{TensorRT optimization}: None of our courses covered
-        NVIDIA's TensorRT framework. We learned to convert YOLO models to TensorRT
-        engines, perform INT8 calibration, and benchmark inference performance on
-        the Jetson Orin Nano.
-
-  \item \textbf{GStreamer pipelines}: Building low-latency video encoding and
-        decoding pipelines using GStreamer with hardware-accelerated codecs required
-        substantial self-directed learning, as no course covered multimedia
-        framework programming.
-
-  \item \textbf{PCB design}: Designing the custom STM32-based PCB required
-        learning schematic capture, PCB layout, design rule checking, and
-        manufacturing processes (Xiaotian). This included learning KiCad and
-        understanding EMI/EMC considerations for motor control circuits.
-
-  \item \textbf{Real-time systems programming}: While courses touched on
-        concurrency, the practical challenges of building a real-time system with
-        strict latency requirements ($<$120\,ms end-to-end) required learning about
-        process isolation, shared memory IPC, and Linux real-time scheduling.
-
-  \item \textbf{React and TypeScript frontend development}: The frontend was
-        built with React and TypeScript, neither of which was covered in our
-        curriculum. We learned component-based UI architecture, state management,
-        and responsive design for the operator interface.
-
-  \item \textbf{Embedded firmware development}: Writing firmware for the STM32
-        microcontroller, including UART communication protocols and PID motor
-        control, required learning the STM32 HAL library and embedded C programming
-        practices.
+  \item \textbf{TensorRT optimization}: Converting YOLO models to TensorRT
+        engines, INT8 calibration, and inference benchmarking on the Jetson.
+  \item \textbf{GStreamer pipelines}: Low-latency video encoding/decoding with
+        hardware-accelerated codecs (NVENC/NVDEC).
+  \item \textbf{PCB design}: Schematic capture, PCB layout, DRC, and
+        manufacturing (KiCad, EMI/EMC considerations for motor control).
+  \item \textbf{Real-time systems programming}: Process isolation, shared
+        memory IPC, and Linux real-time scheduling for
+        \textless{}120\,ms latency.
+  \item \textbf{React and TypeScript}: Component-based UI architecture, state
+        management, and responsive design for the operator interface.
+  \item \textbf{Embedded firmware}: STM32 firmware with UART protocols and PID
+        motor control (Embassy async runtime in Rust).
 \end{itemize}
+
+%% ================================================================
+
+\bibliographystyle{IEEEtran}
+\bibliography{../../refs/References}
 
 \end{document}
