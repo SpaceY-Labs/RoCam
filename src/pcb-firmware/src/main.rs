@@ -1,3 +1,7 @@
+//! Author: Jianqing Liu
+//! Date: 2025-10-28
+//! Purpose: Entry point for the PCB gimbal firmware running on STM32 with Embassy async runtime.
+
 #![no_std]
 #![no_main]
 #![feature(impl_trait_in_assoc_type)]

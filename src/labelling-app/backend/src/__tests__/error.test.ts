@@ -1,3 +1,8 @@
+/**
+ * Author: Xiaotian Lou
+ * Date: 2026-03-04
+ * Purpose: Unit tests for HttpError class and error-handling middleware.
+ */
 import { describe, it, expect, vi } from "vitest";
 import { HttpError, notFound, errorHandler } from "../middleware/error";
 import type { Request, Response, NextFunction } from "express";

@@ -1,3 +1,11 @@
+"""
+Author: Jianqing Liu
+Date: 2026-02-04
+Purpose: Defines the Flask REST API gateway for the control process, exposing
+    endpoints for gimbal control, recording management, arm/disarm, focal length
+    adjustment, and serving the frontend single-page application.
+"""
+
 import logging
 import os
 from pathlib import Path

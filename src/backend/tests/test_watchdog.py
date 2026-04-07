@@ -1,12 +1,7 @@
 """
-Unit tests for src/common/watchdog.py
-
-Covers:
-  - Watchdog.__init__() stores parameters correctly
-  - Watchdog.refresh() creates and starts a Timer
-  - Watchdog.refresh() cancels the previous Timer before creating a new one
-  - Watchdog.clear() cancels the timer and sets it to None
-  - Watchdog.clear() is idempotent when no timer exists
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for Watchdog timer init, refresh, and clear lifecycle.
 """
 import threading
 import pytest

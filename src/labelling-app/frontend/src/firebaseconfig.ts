@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Firebase configuration and service initialization (app, auth, storage).
+ */
 import { getStorage} from "firebase/storage";
 import { initializeApp } from "firebase/app";
 import {getAuth} from "firebase/auth";  

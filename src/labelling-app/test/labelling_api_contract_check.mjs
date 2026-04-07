@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: End-to-end contract test for the labelling API (projects, images, masks, locks).
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

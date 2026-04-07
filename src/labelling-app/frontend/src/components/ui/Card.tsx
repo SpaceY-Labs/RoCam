@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Reusable card and stat-card UI components for content containers.
+ */
 import type { CSSProperties, ReactNode } from 'react';
 import './Card.css';
 

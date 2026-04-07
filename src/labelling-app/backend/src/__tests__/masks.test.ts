@@ -1,4 +1,9 @@
 /**
+ * Author: Xiaotian Lou
+ * Date: 2026-03-04
+ * Purpose: Unit tests for mask parsing and color-mapped overlay generation.
+ */
+/**
  * Unit tests for src/services/masks.ts
  *
  * Tests all pure-logic functions without requiring Firebase or real Feather data.

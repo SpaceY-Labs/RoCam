@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Form component for creating new labelling projects with label class definitions.
+ */
 import { useState, type ChangeEvent } from 'react';
 import type { Label, LabelsMap, ProjectFormData } from '../types';
 import { Button, Input, TextArea, ColorInput, ClassBadge, Card } from './ui';

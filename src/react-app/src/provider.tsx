@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2025-11-15
+ * Purpose: Composes shared providers for state, i18n, UI, and backend access.
+ */
 import type { NavigateOptions } from 'react-router-dom'
 
 import React from 'react'
@@ -20,8 +25,15 @@ declare module '@react-types/shared' {
   }
 }
 
+/**
+ * Loads the active locale before rendering the application shell.
+ *
+ * @param children Nested application content that should render after i18n is ready.
+ * @returns Localized application content, or `null` while catalogs are loading.
+ */
 function I18nLoader({ children }: { children: React.ReactNode }) {
   const language = useAtomValue(languageAtom)
+  // Delay rendering until the requested message catalog has been activated.
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -33,6 +45,12 @@ function I18nLoader({ children }: { children: React.ReactNode }) {
   return <I18nProvider i18n={i18n}>{children}</I18nProvider>
 }
 
+/**
+ * Composes the global providers used throughout the frontend.
+ *
+ * @param children Nested application content that requires shared providers.
+ * @returns Application content wrapped in state, i18n, UI, and backend providers.
+ */
 export function Provider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate()
 

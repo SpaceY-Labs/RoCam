@@ -1,15 +1,7 @@
 """
-Unit tests for src/main.py
-
-Covers the command-line dispatch logic:
-  - Default (no args) → run_control_process
-  - 'recording-management' → run_recording_management
-  - 'cv' → run_cv_process
-  - 'livestream' → run_livestream_process
-  - 'download-stabilized' → start_transcode_process with correct args
-  - 'preview-stabilized' → start_transcode_process with correct args
-  - 'cleanup' → cleanup()
-  - Unknown command → sys.exit(1)
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for the main.py command-line dispatch logic.
 """
 import sys
 import types

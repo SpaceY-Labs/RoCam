@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2025-11-15
+ * Purpose: Displays primary navigation and global frontend actions.
+ */
 import { NavLink, useLocation } from 'react-router-dom'
 import {
   Navbar as HeroUINavbar,
@@ -12,6 +17,11 @@ import { Trans, useLingui } from '@lingui/react/macro'
 
 import { ConfigurationMenu } from './ConfigurationMenu'
 
+/**
+ * Provides primary navigation plus global control actions for the app shell.
+ *
+ * @returns Application navigation bar with routing and global actions.
+ */
 export const Navbar = () => {
   const { t } = useLingui()
   const location = useLocation()

@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+Author: Xiaotian Lou
+Date: 2026-01-25
+Purpose: DeepStream-based accuracy benchmark pipeline with COCO mAP evaluation.
+"""
 import os
 import argparse
 import logging

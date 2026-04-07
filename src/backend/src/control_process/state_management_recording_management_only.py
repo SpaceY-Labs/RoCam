@@ -1,3 +1,11 @@
+"""
+Author: Xiaotian Lou
+Date: 2026-01-29
+Purpose: Lightweight state management stub that exposes the same interface as
+    StateManagement but only supports recording database operations and system
+    status, with all gimbal and tracking methods as no-ops.
+"""
+
 import logging
 import time
 from control_process.database import RecordingDatabase

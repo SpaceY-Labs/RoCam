@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Interactive mask labelling interface for assigning labels to segmented image regions.
+ */
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { Project, ProjectImage, SparseColorMap, MaskApiItem, MaskMapApiItem, MaskOverlay } from '../types';
 import { Button, Card, StatusBadge, EmptyState } from './ui';

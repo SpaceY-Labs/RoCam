@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: TypeScript type definitions for the labelling-app frontend (projects, images, masks, UI props).
+ */
 // ============================================================================
 // LABEL TYPES
 // ============================================================================

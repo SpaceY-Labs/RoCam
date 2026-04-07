@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2025-11-15
+ * Purpose: Renders the recordings management and preview page.
+ */
 import type { Recording, ApiClient } from '@/network/api'
 
 import { useEffect, useRef, useState } from 'react'
@@ -21,16 +26,27 @@ import { useRocam } from '@/network/rocamProvider'
 import { getErrorMessage } from '@/utils'
 import { Navbar } from '@/components/navbar'
 
+/**
+ * Displays saved recordings with inline management and preview actions.
+ *
+ * @returns Recordings page layout, including the list state and preview modal.
+ */
 export default function RecordingsPage() {
   const { t } = useLingui()
   const { apiClient } = useRocam()
 
+  // Page state keeps the fetched list, loading shell, and active preview modal.
   const [recordings, setRecordings] = useState<Recording[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedRecording, setSelectedRecording] = useState<Recording | null>(
     null
   )
 
+  /**
+   * Loads the current recording list once an API client is available.
+   *
+   * @returns Promise that settles after the recording list has been refreshed.
+   */
   async function loadRecordings() {
     if (!apiClient) return
 
@@ -55,6 +71,13 @@ export default function RecordingsPage() {
     }
   }, [apiClient])
 
+  /**
+   * Persists a renamed recording and refreshes local state when required.
+   *
+   * @param id Identifier of the recording being renamed.
+   * @param newName New filename requested by the user.
+   * @returns Promise that settles after the rename flow completes.
+   */
   const handleRename = async (id: string, newName: string) => {
     if (!apiClient) return
     try {
@@ -76,6 +99,12 @@ export default function RecordingsPage() {
     }
   }
 
+  /**
+   * Deletes a recording after user confirmation.
+   *
+   * @param r Recording selected for deletion.
+   * @returns Promise that settles after the delete flow completes.
+   */
   const handleDelete = async (r: Recording) => {
     if (!apiClient) return
     if (!confirm(t`Delete "${r.name}"? This cannot be undone.`)) return
@@ -97,6 +126,12 @@ export default function RecordingsPage() {
     }
   }
 
+  /**
+   * Opens the preview modal for a selected recording.
+   *
+   * @param r Recording selected for preview.
+   * @returns No return value.
+   */
   const handlePreview = (r: Recording) => {
     setSelectedRecording(r)
   }
@@ -149,6 +184,12 @@ interface RecordingItemProps {
   onPreview: (r: Recording) => void
 }
 
+/**
+ * Renders a single recording row with rename, preview, download, and delete actions.
+ *
+ * @param props Recording row props supplied by the parent page.
+ * @returns Recording row for the recordings list.
+ */
 function RecordingItem({
   recording: r,
   apiClient,
@@ -156,6 +197,7 @@ function RecordingItem({
   onDelete,
   onPreview,
 }: RecordingItemProps) {
+  /** Local draft state lets the filename be edited inline before persisting. */
   const [filenameDraft, setFilenameDraft] = useState(r.name)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -165,6 +207,11 @@ function RecordingItem({
     setFilenameDraft(r.name)
   }, [r.name])
 
+  /**
+   * Persists the current filename draft when it differs from the saved value.
+   *
+   * @returns Promise that settles after the rename attempt completes.
+   */
   const handleSave = async () => {
     const trimmed = filenameDraft.trim()
 
@@ -183,6 +230,11 @@ function RecordingItem({
     }
   }
 
+  /**
+   * Runs the delete action for the current recording row.
+   *
+   * @returns Promise that settles after the delete attempt completes.
+   */
   const handleDelete = async () => {
     if (isDeleting) return
     setIsDeleting(true)
@@ -279,10 +331,18 @@ interface PreviewModalProps {
   onClose: () => void
 }
 
+/**
+ * Plays the stabilized preview for the selected recording inside a modal.
+ *
+ * @param recording Recording currently selected for preview.
+ * @param onClose Callback used to close the preview modal.
+ * @returns Modal containing the stabilized video preview when a recording is selected.
+ */
 function PreviewModal({ recording, onClose }: PreviewModalProps) {
   const { t } = useLingui()
   const { apiClient } = useRocam()
   const videoRef = useRef<HTMLVideoElement>(null)
+  // Playback state drives the overlay controls and loading feedback.
   const [currentTime, setCurrentTime] = useState(0)
   const [isWaiting, setIsWaiting] = useState(true)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -314,10 +374,21 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
     }
   }, [])
 
+  /**
+   * Syncs playback progress from the video element into component state.
+   *
+   * @param e Video time update event raised by the preview element.
+   * @returns No return value.
+   */
   const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     setCurrentTime(e.currentTarget.currentTime)
   }
 
+  /**
+   * Toggles preview playback for the selected recording.
+   *
+   * @returns No return value.
+   */
   const handlePlayPause = () => {
     if (!videoRef.current) return
 
@@ -339,15 +410,31 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
     }
   }
 
+  /**
+   * Updates UI state when preview playback starts.
+   *
+   * @returns No return value.
+   */
   const handlePlaying = () => {
     setIsWaiting(false)
     setIsPlaying(true)
   }
 
+  /**
+   * Updates UI state when preview playback pauses.
+   *
+   * @returns No return value.
+   */
   const handlePause = () => {
     setIsPlaying(false)
   }
 
+  /**
+   * Formats elapsed preview seconds for the playback overlay.
+   *
+   * @param s Elapsed playback time in seconds.
+   * @returns Two-part `MM:SS` string for the preview footer.
+   */
   const formatSeconds = (s: number) => {
     const mins = Math.floor(s / 60)
     const secs = Math.floor(s % 60)
@@ -425,6 +512,12 @@ function PreviewModal({ recording, onClose }: PreviewModalProps) {
  * UTILS
  */
 
+/**
+ * Formats a recording start timestamp for the metadata row.
+ *
+ * @param timestampMs Recording start timestamp in milliseconds, or `null`.
+ * @returns Localized date-time string, or an empty string when unavailable.
+ */
 function formatDate(timestampMs: number | null): string {
   if (timestampMs === null || !Number.isFinite(timestampMs)) return ''
   const d = new Date(timestampMs)
@@ -440,6 +533,12 @@ function formatDate(timestampMs: number | null): string {
   })
 }
 
+/**
+ * Formats a recording duration in minutes and seconds for list display.
+ *
+ * @param durationMs Recording duration in milliseconds, or `null`.
+ * @returns `MM:SS` string, or an empty string when the value is unavailable.
+ */
 function formatDuration(durationMs: number | null): string {
   if (durationMs === null || !Number.isFinite(durationMs) || durationMs < 0)
     return ''
@@ -450,6 +549,12 @@ function formatDuration(durationMs: number | null): string {
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
+/**
+ * Converts byte counts into compact human-readable storage units.
+ *
+ * @param bytes Raw recording size in bytes.
+ * @returns Rounded storage string, or `-` when the value is invalid.
+ */
 function formatBytes(bytes: number) {
   if (!Number.isFinite(bytes) || bytes < 0) return '-'
   const units = ['B', 'KB', 'MB', 'GB']

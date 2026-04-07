@@ -1,3 +1,8 @@
+/**
+ * Author: Xiaotian Lou
+ * Date: 2026-03-04
+ * Purpose: Unit tests for LRU cache factory and size estimator functions.
+ */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   createLruCache,

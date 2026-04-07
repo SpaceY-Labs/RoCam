@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Express router handling all project CRUD, image upload, and mask management endpoints.
+ */
 import path from "node:path";
 import { Router } from "express";
 import multer from "multer";

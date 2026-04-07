@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 """
+Author: Xiaotian Lou
+Date: 2026-03-17
+Purpose: Stage 1 main training script for YOLO26s-P2 with multi-GPU DDP (300 epochs).
+
 Stage 1: YOLO26s-P2 主训练 (300 epochs)
 - Ultralytics 内置 DDP: device="0,1,2,3" 让框架自己管理多卡
 - patience=0 禁用早停，保证 close_mosaic 在 ep250 生效

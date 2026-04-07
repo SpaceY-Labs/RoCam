@@ -1,3 +1,8 @@
+/**
+ * Author: Xiaotian Lou
+ * Date: 2026-03-04
+ * Purpose: Unit tests for Firebase Storage path construction and signed URL generation.
+ */
 import { describe, it, expect, vi } from "vitest";
 
 // Mock firebase and config to prevent real initialization

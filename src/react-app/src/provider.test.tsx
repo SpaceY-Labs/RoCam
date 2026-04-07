@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2026-03-04
+ * Purpose: Verifies the frontend provider stack loads i18n and wraps children correctly.
+ */
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, act } from '@testing-library/react'
@@ -46,6 +51,12 @@ vi.mock('jotai', async (importOriginal) => {
 
 import { Provider } from './provider'
 
+/**
+ * Renders the shared frontend provider tree around optional child content.
+ *
+ * @param children Optional child node to render inside the provider stack.
+ * @returns Rendered testing-library result for the provider tree.
+ */
 const renderProvider = (children?: React.ReactNode) =>
   render(
     <MemoryRouter>

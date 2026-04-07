@@ -1,4 +1,9 @@
 /**
+ * Author: Xiaotian Lou
+ * Date: 2026-03-04
+ * Purpose: Integration tests for the health check endpoint.
+ */
+/**
  * Integration tests for src/routes/health.ts
  * Uses supertest to exercise the GET /health endpoint.
  */

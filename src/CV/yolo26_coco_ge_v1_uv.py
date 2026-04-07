@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Author: Xiaotian Lou
+Date: 2026-01-29
+Purpose: YOLO26 training configuration with high-resolution input and small-target augmentation (general v1).
+"""
 import os
 from ultralytics import YOLO
 from pathlib import Path

@@ -1,6 +1,7 @@
 """
-Unit tests for StateManagementRecordingManagementOnly and
-control_process/main.py entry-point functions.
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for StateManagementRecordingManagementOnly and control_process entry points.
 """
 import pytest
 from unittest.mock import MagicMock, patch

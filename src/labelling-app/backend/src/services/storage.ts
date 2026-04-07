@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Firebase Cloud Storage operations for uploading, downloading, and managing files.
+ */
 import { storage } from "../firebase";
 import { config } from "../config";
 import { HttpError } from "../middleware/error";

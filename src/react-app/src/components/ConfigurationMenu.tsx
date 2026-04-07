@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2026-02-01
+ * Purpose: Displays the configuration menu for persisted frontend preferences.
+ */
 import {
   Dropdown,
   DropdownTrigger,
@@ -23,16 +28,23 @@ import {
   type TemperatureUnit,
 } from '@/store/settingsAtom'
 
+/** Enumerates the locale options exposed in the shared configuration menu. */
 const LANGUAGES: { key: Language; label: string }[] = [
   { key: 'en', label: 'EN' },
   { key: 'fr', label: 'FR' },
 ]
 
+/** Enumerates the temperature display units available in the status panel. */
 const TEMPERATURE_UNITS: { key: TemperatureUnit; label: string }[] = [
   { key: 'celsius', label: '°C (Celsius)' },
   { key: 'fahrenheit', label: '°F (Fahrenheit)' },
 ]
 
+/**
+ * Exposes persisted app preferences from a single settings dropdown.
+ *
+ * @returns Settings menu used to change frontend preferences.
+ */
 export function ConfigurationMenu() {
   const { t } = useLingui()
   const [language, setLanguage] = useAtom(languageAtom)
@@ -41,6 +53,12 @@ export function ConfigurationMenu() {
   const [dragSensitivity, setDragSensitivity] = useAtom(dragSensitivityAtom)
   const [showLogs, setShowLogs] = useAtom(showLogsAtom)
 
+  /**
+   * Applies a menu action to the matching persisted preference atom.
+   *
+   * @param key Dropdown action key emitted by the settings menu.
+   * @returns No return value.
+   */
   const handleAction = (key: Key) => {
     const keyStr = String(key)
 

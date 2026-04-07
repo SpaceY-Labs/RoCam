@@ -1,3 +1,11 @@
+"""
+Author: Xiaotian Lou, Jianqing Liu
+Date: 2026-01-25
+Purpose: Implements the livestream process, which receives RGBA frames from the CV
+    process via shared-memory ring buffer and renders them to the local display
+    through a GStreamer appsrc-to-nvdrmvideosink pipeline.
+"""
+
 import os
 
 import logging

@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Root application component with routing, project management, and image workflow orchestration.
+ */
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import './styles/app-shell.css';

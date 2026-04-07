@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2026-02-03
+ * Purpose: Displays manual camera, zoom, arm, and recording controls.
+ */
 import { useState } from 'react'
 import { Button } from '@heroui/button'
 import { Card, CardBody } from '@heroui/card'
@@ -24,6 +29,11 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { useRocam } from '@/network/rocamProvider'
 import { getErrorMessage } from '@/utils'
 
+/**
+ * Groups manual movement, zoom, arming, and recording controls.
+ *
+ * @returns Card section containing the primary operator controls.
+ */
 export function ControlsCard() {
   const { t } = useLingui()
   const { apiClient, status } = useRocam()
@@ -35,10 +45,16 @@ export function ControlsCard() {
   const isArmed = !!status?.armed
   const isRecording = !!status?.is_recording
 
+  // A short cooldown prevents rapid duplicate control requests from the UI.
   const [, , reset] = useTimeoutFn(() => {
     setIsCooldownActive(false)
   }, 1500)
 
+  /**
+   * Starts the shared interaction cooldown used by arm and record actions.
+   *
+   * @returns No return value.
+   */
   const startCooldown = () => {
     setIsCooldownActive(true)
     reset()
@@ -50,6 +66,11 @@ export function ControlsCard() {
     setShowDisarmConfirm(true)
   }
 
+  /**
+   * Toggles the armed state through the backend API.
+   *
+   * @returns Promise that settles after the backend request completes.
+   */
   const handleToggleArm = async () => {
     if (!apiClient || cooldownOrLoading) return
     if (isArmed) {
@@ -73,6 +94,11 @@ export function ControlsCard() {
     }
   }
 
+  /**
+   * Confirms and executes the disarm action through the backend API.
+   *
+   * @returns Promise that settles after the backend request completes.
+   */
   const handleConfirmDisarm = async () => {
     if (!apiClient || cooldownOrLoading) return
 
@@ -92,6 +118,11 @@ export function ControlsCard() {
     }
   }
 
+  /**
+   * Toggles recording through the backend API.
+   *
+   * @returns Promise that settles after the backend request completes.
+   */
   const handleToggleRecording = async () => {
     if (!apiClient || cooldownOrLoading) return
     setIsRecordLoading(true)
@@ -210,12 +241,24 @@ type GimbalPadProps = {
   onMoveAttemptWhileArmed: () => void
 }
 
+/**
+ * Renders the directional pad used for manual gimbal movement commands.
+ *
+ * @returns Directional control grid for manual camera movement.
+ */
 function GimbalPad({
   isInteractionBlocked,
   onMoveAttemptWhileArmed,
 }: GimbalPadProps) {
   const { t } = useLingui()
   const { apiClient, status } = useRocam()
+  /**
+   * Runs a movement request and reports any backend failure to the user.
+   *
+   * @param move Movement request executed against the backend API.
+   * @param actionLabel Human-readable action label used in the error message.
+   * @returns Promise that settles after the movement request completes.
+   */
   const handleMove = async (
     move: () => Promise<unknown>,
     actionLabel: string
@@ -323,6 +366,11 @@ function GimbalPad({
   )
 }
 
+/**
+ * Renders focal-length controls that step within the backend-reported range.
+ *
+ * @returns Zoom control buttons for the current camera session.
+ */
 function ZoomControls() {
   const { t } = useLingui()
   const { apiClient, status } = useRocam()
@@ -333,6 +381,12 @@ function ZoomControls() {
     status?.focal_length_min_mm != null &&
     status?.focal_length_max_mm != null
 
+  /**
+   * Steps the focal length in the requested direction.
+   *
+   * @param direction Zoom direction requested by the operator.
+   * @returns Promise that settles after the focal-length request completes.
+   */
   const handleZoom = async (direction: 'in' | 'out') => {
     if (!apiClient || !status || !focalAvailable) return
     const range = status.focal_length_max_mm - status.focal_length_min_mm

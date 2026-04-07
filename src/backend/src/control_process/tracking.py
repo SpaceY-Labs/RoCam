@@ -1,3 +1,10 @@
+"""
+Author: Jianqing Liu
+Date: 2025-11-15
+Purpose: Implements proportional-control object tracking that converts bounding-box
+    center offsets into gimbal tilt/pan adjustments on a dedicated worker thread.
+"""
+
 from typing import Tuple, Optional
 import threading
 import queue

@@ -1,3 +1,11 @@
+"""
+Author: Jianqing Liu
+Date: 2026-02-04
+Purpose: Implements Server-Sent Events (SSE) endpoints for real-time status
+    broadcasting at 30 Hz (/api/status) and log streaming (/api/logs) to
+    connected frontend clients.
+"""
+
 import json
 import logging
 import queue

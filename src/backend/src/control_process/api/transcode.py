@@ -1,3 +1,11 @@
+"""
+Author: Jianqing Liu
+Date: 2026-01-23
+Purpose: Registers Flask routes for on-demand video transcoding, streaming
+    stabilized preview and download variants of recordings through a named-pipe
+    bridge to a child transcode process.
+"""
+
 import fcntl
 import logging
 import os

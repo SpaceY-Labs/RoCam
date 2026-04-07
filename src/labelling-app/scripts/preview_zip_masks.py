@@ -1,4 +1,8 @@
 """
+Author: Jianqing Liu
+Date: 2026-01-27
+Purpose: Preview images and mask overlays from a ZIP archive formatted for the labelling backend.
+
 Preview images and mask overlays from a ZIP formatted for /projects/:projectId/images/zip.
 
 Expected ZIP structure:

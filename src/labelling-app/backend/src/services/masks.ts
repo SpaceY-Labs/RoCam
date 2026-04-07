@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Parse Feather-format mask files and generate color-mapped overlay images.
+ */
 import { tableFromIPC } from "apache-arrow";
 
 /**

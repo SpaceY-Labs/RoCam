@@ -1,9 +1,7 @@
 """
-Unit tests for src/cv_process/main.py
-
-Covers pure/testable functions:
-  - _format_time() - formats a millisecond timestamp to human-readable string
-  - update_osd() - builds OSD text and sets properties on mocked GStreamer elements
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for _format_time and update_osd in cv_process/main.py.
 """
 import math
 import pytest

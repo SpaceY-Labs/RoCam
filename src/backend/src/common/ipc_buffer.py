@@ -1,3 +1,11 @@
+"""
+Author: Jianqing Liu
+Date: 2026-01-25
+Purpose: Implements a lock-free shared-memory ring buffer for high-throughput,
+    best-effort IPC between processes (e.g., passing video frames from the CV
+    process to the livestream process).
+"""
+
 import multiprocessing as mp
 import logging
 from multiprocessing import shared_memory

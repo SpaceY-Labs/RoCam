@@ -1,3 +1,8 @@
+/*
+ * Author: Zifan Si
+ * Date: 2025-11-15
+ * Purpose: Imports the global Tailwind stylesheet and project Tailwind configuration.
+ */
 @import "tailwindcss";
 
 @config "../../tailwind.config.js"

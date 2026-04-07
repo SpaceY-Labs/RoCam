@@ -1,10 +1,7 @@
 """
-Unit tests for src/common/system_status.py
-
-Covers:
-  - SystemStatusMonitor construction (mocked jtop + psutil)
-  - _callback() updates internal state from mocked data
-  - All getter methods return the correct cached values
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for SystemStatusMonitor construction, callback, and getter methods.
 """
 import pytest
 from unittest.mock import MagicMock, patch

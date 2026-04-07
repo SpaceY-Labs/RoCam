@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 """
+Author: Xiaotian Lou
+Date: 2026-03-19
+Purpose: V3 Phase 1 joint training for small-target detection and robustness with gradient accumulation (250 epochs).
+
 V3 Phase 1: 小目标 + 鲁棒性联合训练 (250 epochs)
 - 单卡 H100, batch=32, nbs=128 (梯度累积 4 步, 等价于 4-GPU DDP batch=128)
 - SGD, lr0=0.0003, cos_lr=True

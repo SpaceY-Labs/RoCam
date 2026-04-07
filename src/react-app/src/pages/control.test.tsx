@@ -1,14 +1,7 @@
 /**
- * Unit tests for src/pages/control.tsx
- *
- * Covers:
- *   - Renders camera preview image when status.preview is set
- *   - Renders spinner when preview is absent
- *   - Renders bounding-box overlay when bbox is set
- *   - Shows REC indicator when recording
- *   - Shows ARMED indicator when armed
- *   - Drag interaction handlers (pointerdown, pointermove, pointerup)
- *   - Logs statusPollingError to console.error
+ * Author: Zifan Si
+ * Date: 2026-03-04
+ * Purpose: Verifies the control dashboard renders preview state and interaction affordances.
  */
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -74,6 +67,12 @@ vi.mock('@lingui/react/macro', () => ({
 
 import ControlPage from './control'
 
+/**
+ * Renders the control page with a mocked backend status payload.
+ *
+ * @param statusOverride Optional backend status object supplied to the page.
+ * @returns Rendered testing-library result for the control page.
+ */
 const renderControl = (statusOverride?: object) => {
   mockUseRocam.mockReturnValue({
     apiClient: mockApiClient,

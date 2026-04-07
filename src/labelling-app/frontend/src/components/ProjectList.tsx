@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Component displaying the list of labelling projects with selection and deletion actions.
+ */
 import type { Project, Label } from '../types';
 import { Card, StatCard, ClassBadge, EmptyState, Button } from './ui';
 import './ProjectList.css';

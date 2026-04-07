@@ -1,3 +1,7 @@
+//! Author: Jianqing Liu
+//! Date: 2025-10-28
+//! Purpose: RPC server handling gimbal commands over half-duplex UART serial.
+
 use defmt::{error, info};
 use embassy_stm32::{
     gpio::Level,

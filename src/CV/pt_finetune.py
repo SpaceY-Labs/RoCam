@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 """
+Author: Xiaotian Lou
+Date: 2026-02-08
+Purpose: YOLO26s-P2 fine-tuning script for the close-mosaic phase after early stopping.
+
 YOLO26s-p2 精调脚本 — Close-Mosaic Phase
 ==========================================
 目的：补上 train77 中因 EarlyStopping 而缺失的 close_mosaic 精调阶段。

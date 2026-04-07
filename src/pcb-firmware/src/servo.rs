@@ -1,3 +1,7 @@
+//! Author: Jianqing Liu
+//! Date: 2025-10-28
+//! Purpose: Servo motor control task converting angle commands to PWM pulse widths.
+
 use embassy_stm32::{
     Peri,
     gpio::{AnyPin, Level, Output, Speed},

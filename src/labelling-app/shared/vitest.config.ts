@@ -1,3 +1,8 @@
+/**
+ * Author: Xiaotian Lou
+ * Date: 2026-03-04
+ * Purpose: Vitest configuration for running shared module unit tests with V8 coverage.
+ */
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({

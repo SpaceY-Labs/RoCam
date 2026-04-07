@@ -1,10 +1,7 @@
 """
-Unit tests for the StateManagement class in
-src/control_process/state_management.py.
-
-All hardware dependencies (GimbalSerial, CVProcessManagement,
-LivestreamProcessManagement, SystemStatusMonitor) are mocked so
-tests run on any platform without NVIDIA hardware.
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for the StateManagement class with fully mocked hardware dependencies.
 """
 import time
 import pytest

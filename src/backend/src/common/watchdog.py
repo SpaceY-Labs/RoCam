@@ -1,3 +1,10 @@
+"""
+Author: Jianqing Liu
+Date: 2026-01-27
+Purpose: Implements a resettable watchdog timer that fires a callback if not
+    refreshed within a specified timeout, used to detect stalled child processes.
+"""
+
 import threading
 from typing import Callable
 

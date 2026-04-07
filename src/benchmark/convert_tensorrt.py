@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+Author: Jianqing Liu
+Date: 2026-01-26
+Purpose: Convert YOLO .pt models to TensorRT engines via ONNX export and DeepStream integration.
+"""
 import argparse
 import os
 import shutil

@@ -1,12 +1,7 @@
 """
-Unit tests for src/common/ipc.py
-
-Covers:
-  - BoundingBox.center()
-  - BoundingBox.get_rotate_90_deg()
-  - Dataclass construction for CVData, OSDData, PreviewData, RecordingInfo, StopRecording
-  - create_rocam_ipc_server() (mocked)
-  - create_rocam_ipc_client() (mocked)
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for IPC dataclasses, BoundingBox helpers, and IPC server/client factories.
 """
 import math
 import pytest

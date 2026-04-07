@@ -1,7 +1,7 @@
 /**
- * Unit tests for src/utils/formatters.ts
- *
- * All functions are pure (no React/DOM dependency), so this runs in Node mode.
+ * Author: Zifan Si
+ * Date: 2026-03-04
+ * Purpose: Verifies the shared formatting helpers produce stable display-ready values.
  */
 import { describe, it, expect } from 'vitest'
 

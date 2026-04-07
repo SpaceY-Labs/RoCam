@@ -1,3 +1,8 @@
+/**
+ * Author: Xiaotian Lou
+ * Date: 2026-03-04
+ * Purpose: Vitest configuration for backend unit and integration tests.
+ */
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({

@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Configure and export the Express application with middleware and routes.
+ */
 import express from "express";
 import cors from "cors";
 import healthRouter from "./routes/health";

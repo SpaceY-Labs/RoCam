@@ -1,3 +1,11 @@
+"""
+Author: Jianqing Liu
+Date: 2026-01-29
+Purpose: Provides a file-system-backed recording database that allocates, lists,
+    renames, and deletes recordings, and extracts duration/timestamp metadata from
+    JSONL log files for the recordings API.
+"""
+
 import os
 import json
 import uuid

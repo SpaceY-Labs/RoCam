@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2025-11-15
+ * Purpose: Defines backend API types and the frontend API client.
+ */
 // API Types
 
 export type BoundingBox = {
@@ -50,6 +55,12 @@ export type ApiResponse<T = Record<string, unknown>> = T
 export class ApiError extends Error {
   status: number
 
+  /**
+   * Creates an error wrapper for failed backend API responses.
+   *
+   * @param status HTTP status code returned by the backend.
+   * @param message Human-readable error message derived from the response.
+   */
   constructor(status: number, message: string) {
     super(message)
     this.status = status
@@ -62,6 +73,11 @@ export class ApiError extends Error {
 export class ApiClient {
   private baseUrl: string
 
+  /**
+   * Creates an API client bound to a specific backend base URL.
+   *
+   * @param baseUrl Backend base URL prefix used for all requests.
+   */
   constructor(baseUrl: string = '') {
     this.baseUrl = baseUrl
   }
@@ -69,8 +85,9 @@ export class ApiClient {
   /**
    * Automatically creates an ApiClient by trying different base URLs in order.
    * Probes each URL with GET /api/generate_204 and returns the first working instance.
-   * @returns Promise resolving to an ApiClient instance with a working base URL
-   * @throws Error if none of the base URLs are accessible
+   *
+   * @returns Promise resolving to an ApiClient instance with a working base URL.
+   * @throws Error if none of the candidate base URLs are accessible.
    */
   static async createAutomatic(): Promise<ApiClient> {
     const baseUrls = ['', 'http://localhost:5000', 'http://100.117.52.117']
@@ -95,29 +112,61 @@ export class ApiClient {
     )
   }
 
-  /** URL for the status SSE stream (GET /api/status). */
+  /**
+   * Returns the URL used for the live status event stream.
+   *
+   * @returns Absolute or relative URL for `GET /api/status`.
+   */
   getStatusStreamUrl(): string {
     return `${this.baseUrl}/api/status`
   }
 
-  /** URL for backend logs SSE stream (GET /api/logs). */
+  /**
+   * Returns the URL used for the backend logs event stream.
+   *
+   * @returns Absolute or relative URL for `GET /api/logs`.
+   */
   getLogsStreamUrl(): string {
     return `${this.baseUrl}/api/logs`
   }
 
-  /** URL for discovery probe (GET /api/generate_204). */
+  /**
+   * Returns the URL used to probe backend availability.
+   *
+   * @returns Absolute or relative URL for `GET /api/generate_204`.
+   */
   getGenerate204Url(): string {
     return `${this.baseUrl}/api/generate_204`
   }
 
+  /**
+   * Returns the preview URL for a stabilized recording.
+   *
+   * @param recordingId Identifier of the recording to preview.
+   * @returns Absolute or relative URL for the stabilized preview stream.
+   */
   getPreviewStabilizedUrl(recordingId: string): string {
     return `${this.baseUrl}/api/recordings/${recordingId}/preview-stabilized`
   }
 
+  /**
+   * Returns the download URL for a stabilized recording.
+   *
+   * @param recordingId Identifier of the recording to download.
+   * @returns Absolute or relative URL for the stabilized recording asset.
+   */
   getDownloadStabilizedUrl(recordingId: string): string {
     return `${this.baseUrl}/api/recordings/${recordingId}/download-stabilized`
   }
 
+  /**
+   * Sends a JSON request and normalizes failed responses into `ApiError`.
+   *
+   * @param method HTTP method used for the backend request.
+   * @param endpoint Backend endpoint relative to the configured base URL.
+   * @param body Optional JSON body sent with the request.
+   * @returns Parsed JSON payload returned by the backend.
+   */
   private async requestJson<T>(
     method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
     endpoint: string,
@@ -147,9 +196,10 @@ export class ApiClient {
   }
 
   /**
-   * Sends a manual move command to the backend
-   * @param direction - The direction to move
-   * @returns Promise resolving to an empty response
+   * Sends a manual movement command to the backend.
+   *
+   * @param direction Direction that the gimbal should move.
+   * @returns Promise resolving to the backend response payload.
    */
   async manualMove(
     direction: 'up' | 'down' | 'left' | 'right'
@@ -160,10 +210,11 @@ export class ApiClient {
   }
 
   /**
-   * Sends a manual move to command to the backend
-   * @param tilt - The tilt angle to move to
-   * @param pan - The pan angle to move to
-   * @returns Promise resolving to an empty response
+   * Sends an absolute pan and tilt target to the backend.
+   *
+   * @param tilt Tilt angle that the gimbal should move to.
+   * @param pan Pan angle that the gimbal should move to.
+   * @returns Promise resolving to the backend response payload.
    */
   async manualMoveTo(tilt: number, pan: number): Promise<ApiResponse> {
     const body = { tilt, pan }
@@ -172,33 +223,57 @@ export class ApiClient {
   }
 
   /**
-   * Arms the system
-   * @returns Promise resolving to an empty response
+   * Arms the tracking system.
+   *
+   * @returns Promise resolving to the backend response payload.
    */
   async arm(): Promise<ApiResponse> {
     return this.requestJson<ApiResponse>('POST', '/api/arm')
   }
 
   /**
-   * Disarms the system
-   * @returns Promise resolving to an empty response
+   * Disarms the tracking system.
+   *
+   * @returns Promise resolving to the backend response payload.
    */
   async disarm(): Promise<ApiResponse> {
     return this.requestJson<ApiResponse>('POST', '/api/disarm')
   }
 
+  /**
+   * Starts backend-side recording for the active session.
+   *
+   * @returns Promise resolving to the backend response payload.
+   */
   async startRecording(): Promise<ApiResponse> {
     return this.requestJson<ApiResponse>('POST', '/api/recordings/start')
   }
 
+  /**
+   * Stops the current backend recording session.
+   *
+   * @returns Promise resolving to the backend response payload.
+   */
   async stopRecording(): Promise<ApiResponse> {
     return this.requestJson<ApiResponse>('POST', '/api/recordings/stop')
   }
 
+  /**
+   * Fetches the available recording list for the recordings page.
+   *
+   * @returns Promise resolving to the current recording collection.
+   */
   async listRecordings(): Promise<RecordingListResponse> {
     return this.requestJson<RecordingListResponse>('GET', '/api/recordings')
   }
 
+  /**
+   * Renames a recording through the backend API.
+   *
+   * @param recordingId Identifier of the recording to rename.
+   * @param newName New recording name requested by the user.
+   * @returns Promise resolving to the backend response payload.
+   */
   async renameRecording(
     recordingId: string,
     newName: string
@@ -212,12 +287,24 @@ export class ApiClient {
     )
   }
 
+  /**
+   * Updates the lens focal length used by camera controls.
+   *
+   * @param focalLengthMm New focal length in millimeters.
+   * @returns Promise resolving to the backend response payload.
+   */
   async setFocalLength(focalLengthMm: number): Promise<ApiResponse> {
     return this.requestJson<ApiResponse>('POST', '/api/set_focal_length', {
       focal_length_mm: focalLengthMm,
     })
   }
 
+  /**
+   * Removes a recording from backend storage.
+   *
+   * @param recordingId Identifier of the recording to delete.
+   * @returns Promise resolving to the backend response payload.
+   */
   async deleteRecording(recordingId: string): Promise<ApiResponse> {
     return this.requestJson<ApiResponse>(
       'DELETE',

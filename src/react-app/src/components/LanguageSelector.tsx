@@ -1,3 +1,8 @@
+/**
+ * Author: Zifan Si
+ * Date: 2026-02-01
+ * Purpose: Displays a compact control for switching application language.
+ */
 import {
   Dropdown,
   DropdownTrigger,
@@ -15,10 +20,21 @@ const LANGUAGES: { key: Language; label: string }[] = [
   { key: 'fr', label: 'FR' },
 ]
 
+/**
+ * Switches the active locale from a compact language dropdown.
+ *
+ * @returns Language selector button and menu.
+ */
 export function LanguageSelector() {
   const { t } = useLingui()
   const [language, setLanguage] = useAtom(languageAtom)
 
+  /**
+   * Updates the active language preference from the selected menu key.
+   *
+   * @param key Selected dropdown key representing a supported language.
+   * @returns No return value.
+   */
   const handleLanguageChange = (key: React.Key) => {
     const lang = key as Language
 

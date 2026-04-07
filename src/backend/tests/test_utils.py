@@ -1,9 +1,7 @@
 """
-Unit tests for src/common/utils.py
-
-Covers:
-  - ip4_addresses() with mocked netifaces
-  - set_scheduler_fifo() / set_scheduler_other() / set_scheduler_batch() validation
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for ip4_addresses and Linux scheduler priority helpers.
 """
 import pytest
 from unittest.mock import patch, MagicMock

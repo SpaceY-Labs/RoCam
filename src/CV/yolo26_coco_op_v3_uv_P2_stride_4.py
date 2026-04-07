@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Author: Xiaotian Lou
+Date: 2026-02-06
+Purpose: YOLO26s-P2 (stride-4 detection head) training configuration with COCO negative samples (optimized v3).
+"""
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "1,2,3"
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"

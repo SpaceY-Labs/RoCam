@@ -1,3 +1,11 @@
+"""
+Author: Xiaotian Lou, Jianqing Liu
+Date: 2026-01-29
+Purpose: Implements the transcode process, which re-encodes a raw AVI recording
+    with digital stabilization and OSD overlay into a VP8/WebM stream for either
+    low-resolution preview or full-quality download.
+"""
+
 import json
 from typing import Literal
 

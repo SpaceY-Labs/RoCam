@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: API helper functions for communicating with the labelling backend (projects, images, masks).
+ */
 import { signInAnonymously } from "firebase/auth";
 import { auth } from "../firebaseconfig";
 import type {

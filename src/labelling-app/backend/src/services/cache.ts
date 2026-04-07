@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: LRU cache factory with TTL and configurable size limits for mask and image data.
+ */
 import { config } from "../config";
 
 const MB = 1024 * 1024;

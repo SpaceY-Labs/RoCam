@@ -1,3 +1,8 @@
+/**
+ * Author: Jianqing Liu
+ * Date: 2026-01-27
+ * Purpose: Reusable badge UI components for status indicators, class labels, and tags.
+ */
 import type { CSSProperties, ReactNode } from 'react';
 import type { ImageStatus } from '../../types';
 import './Badge.css';

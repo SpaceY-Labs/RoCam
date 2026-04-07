@@ -1,8 +1,7 @@
 /**
- * Unit tests for ConfigurationMenu component
- *
- * Covers: language switching, temperature unit switching, invert-drag toggle,
- * and drag sensitivity slider interaction.
+ * Author: Zifan Si
+ * Date: 2026-03-04
+ * Purpose: Verifies configuration menu actions update the expected frontend preferences.
  */
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -150,6 +149,11 @@ vi.mock('@tabler/icons-react', () => ({
 
 import { ConfigurationMenu } from './ConfigurationMenu'
 
+/**
+ * Renders the configuration menu inside the i18n provider used by component tests.
+ *
+ * @returns Rendered testing-library result for the configuration menu.
+ */
 const renderMenu = () =>
   render(
     <I18nProvider i18n={i18n}>

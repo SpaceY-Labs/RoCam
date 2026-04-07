@@ -1,10 +1,7 @@
 """
-Unit tests for src/control_process/state_management.py
-
-Focuses on the pure-logic components:
-  - BoundingBoxCollection.received_data() - max-10 list management
-  - BoundingBoxCollection.get_bbox() - pts_ns lookup within 40ms window
-  - BoundingBoxCollection.get_latest_valid_bbox() - newest non-None bbox
+Author: Xiaotian Lou
+Date: 2026-03-04
+Purpose: Unit tests for BoundingBoxCollection data management and lookup logic.
 """
 import pytest
 from common.ipc import BoundingBox, CVData

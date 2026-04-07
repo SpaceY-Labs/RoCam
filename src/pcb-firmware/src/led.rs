@@ -1,3 +1,7 @@
+//! Author: Jianqing Liu
+//! Date: 2025-10-28
+//! Purpose: LED control tasks for arm and status indicator LEDs via GPIO watches.
+
 use embassy_stm32::{
     Peri,
     gpio::{Level, Output, Speed},

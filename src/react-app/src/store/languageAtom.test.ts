@@ -1,8 +1,7 @@
 /**
- * Unit tests for src/store/settingsAtom.ts
- *
- * Tests that atoms are created with correct default values
- * and that their keys are correctly configured.
+ * Author: Zifan Si
+ * Date: 2026-03-04
+ * Purpose: Verifies the persisted settings atoms remain defined with expected value shapes.
  */
 import { describe, it, expect } from 'vitest'
 
