@@ -4,14 +4,14 @@ Author: Xiaotian Lou
 Date: 2026-03-19
 Purpose: V3 Phase 1 joint training for small-target detection and robustness with gradient accumulation (250 epochs).
 
-V3 Phase 1: 小目标 + 鲁棒性联合训练 (250 epochs)
-- 单卡 H100, batch=32, nbs=128 (梯度累积 4 步, 等价于 4-GPU DDP batch=128)
+V3 Phase 1: Joint small-target + robustness training (250 epochs)
+- Single H100 GPU, batch=32, nbs=128 (gradient accumulation over 4 steps, equivalent to 4-GPU DDP batch=128)
 - SGD, lr0=0.0003, cos_lr=True
-- scale=0.25 (V2 仅 0.08), erasing=0.30 (V2 为 0)
-- 原生 augmentations 参数传入自定义 Albumentations (无需 monkey-patch)
-- close_mosaic=40 自动在最后 40 epoch 关闭 mosaic
+- scale=0.25 (V2 was only 0.08), erasing=0.30 (V2 was 0)
+- Native augmentations parameter passes custom Albumentations (no monkey-patch needed)
+- close_mosaic=40 automatically disables mosaic in the last 40 epochs
 
-用法:
+Usage:
   python train_v3_phase1.py
   python train_v3_phase1.py --model /path/to/best.pt --epochs 250
 """
@@ -48,9 +48,9 @@ def select_best_gpu():
     gpu_free = get_gpu_free_memory()
     usable = sorted(gpu_free.items(), key=lambda x: -x[1])
     if not usable or usable[0][1] < 40_000:
-        raise RuntimeError(f"无 GPU > 40GB 可用: {gpu_free}")
+        raise RuntimeError(f"No GPU with > 40GB available: {gpu_free}")
     best_id, free_mb = usable[0]
-    print(f"[GPU] 选择 GPU {best_id} (free={free_mb}MiB)")
+    print(f"[GPU] Selected GPU {best_id} (free={free_mb}MiB)")
     return str(best_id)
 
 
@@ -68,18 +68,18 @@ def build_albumentations():
     import albumentations as A
 
     return [
-        # --- 小目标增强 ---
+        # --- Small target augmentation ---
         A.Downscale(scale_range=(0.5, 0.85), p=0.12),
         A.CoarseDropout(
             max_holes=6, max_height=40, max_width=40,
             min_holes=1, min_height=8, min_width=8, p=0.10,
         ),
-        # --- 传感器/传输鲁棒性 ---
+        # --- Sensor/transmission robustness ---
         A.MotionBlur(blur_limit=7, p=0.15),
         A.GaussianBlur(blur_limit=(3, 5), p=0.08),
         A.GaussNoise(std_range=(0.01, 0.04), p=0.15),
         A.ImageCompression(quality_range=(30, 95), p=0.18),
-        # --- 光照/色彩鲁棒性 ---
+        # --- Lighting/color robustness ---
         A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.22),
         A.RandomGamma(gamma_limit=(60, 140), p=0.12),
         A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=0.10),
@@ -100,7 +100,7 @@ def main():
     workers = 8 if ram_gb > 40 else 4 if ram_gb > 20 else 2
 
     augmentations = build_albumentations()
-    print(f"[AUG] {len(augmentations)} Albumentations transforms (原生参数, 非 monkey-patch)")
+    print(f"[AUG] {len(augmentations)} Albumentations transforms (native parameter, no monkey-patch)")
     for t in augmentations:
         print(f"  {t.__class__.__name__}(p={t.p})")
 
@@ -176,12 +176,12 @@ def main():
                 save_dir = c
                 break
 
-    print(f"[DONE] V3 Phase 1 完成: {save_dir}")
+    print(f"[DONE] V3 Phase 1 finished: {save_dir}")
     result_file = Path(cli.project) / cli.name / ".v3_phase1_result"
     result_file.parent.mkdir(parents=True, exist_ok=True)
     best_pt = Path(save_dir) / "weights" / "best.pt"
     if not best_pt.exists():
-        raise FileNotFoundError(f"best.pt 不存在: {best_pt}")
+        raise FileNotFoundError(f"best.pt does not exist: {best_pt}")
     result_file.write_text(str(best_pt))
     print(f"[DONE] best.pt = {best_pt}")
 

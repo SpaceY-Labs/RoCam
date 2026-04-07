@@ -4,8 +4,8 @@ Author: Xiaotian Lou
 Date: 2026-03-17
 Purpose: Evaluate model mAP stratified by object size (COCO small/medium/large).
 
-按目标大小分层评估 mAP (COCO small/medium/large)
-用法:
+Evaluate mAP stratified by object size (COCO small/medium/large).
+Usage:
   python evaluate.py --model /path/to/best.pt
   python evaluate.py --model /path/to/best.pt --imgsz 544 960
 """
@@ -39,8 +39,8 @@ def compute_size_stratified_map(model, data_yaml, imgsz, conf=0.001, iou_thres=0
 
     predictions_json = Path(results.save_dir) / "predictions.json"
     if not predictions_json.exists():
-        print("[WARN] predictions.json 不存在, 无法做分层分析")
-        print(f"[INFO] 整体指标: mAP50={results.box.map50:.4f}, mAP50-95={results.box.map:.4f}")
+        print("[WARN] predictions.json does not exist, cannot perform stratified analysis")
+        print(f"[INFO] Overall metrics: mAP50={results.box.map50:.4f}, mAP50-95={results.box.map:.4f}")
         return results
 
     val_labels_dir = Path(DATA_DIR / "rocam_data_15000" / "data_15000" / "labels" / "val")
@@ -77,7 +77,7 @@ def compute_size_stratified_map(model, data_yaml, imgsz, conf=0.001, iou_thres=0
                     size_bins["large"].append(area)
 
     print("\n" + "=" * 60)
-    print("目标大小分布 (验证集)")
+    print("Object Size Distribution (Validation Set)")
     print("=" * 60)
     total = sum(len(v) for v in size_bins.values())
     for name, areas in size_bins.items():
@@ -87,7 +87,7 @@ def compute_size_stratified_map(model, data_yaml, imgsz, conf=0.001, iou_thres=0
     print(f"  {'total':8s}: {total:5d}")
 
     print("\n" + "=" * 60)
-    print("整体验证指标")
+    print("Overall Validation Metrics")
     print("=" * 60)
     print(f"  Precision:  {results.box.mp:.4f}")
     print(f"  Recall:     {results.box.mr:.4f}")

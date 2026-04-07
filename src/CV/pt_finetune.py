@@ -4,26 +4,26 @@ Author: Xiaotian Lou
 Date: 2026-02-08
 Purpose: YOLO26s-P2 fine-tuning script for the close-mosaic phase after early stopping.
 
-YOLO26s-p2 精调脚本 — Close-Mosaic Phase
-==========================================
-目的：补上 train77 中因 EarlyStopping 而缺失的 close_mosaic 精调阶段。
+YOLO26s-p2 Fine-tuning Script -- Close-Mosaic Phase
+=====================================================
+Purpose: Complete the close_mosaic fine-tuning phase that was missed in train77 due to EarlyStopping.
 
-train77 回顾：
+train77 Recap:
   best epoch = 267   mAP50 = 0.920   mAP50-95 = 0.614
-  close_mosaic=250 → 原计划 epoch 350 关闭 mosaic，但 317 就早停了
-  → mosaic 从未关闭，模型始终在 1/4 分辨率拼接图上训练
+  close_mosaic=250 -> Originally planned to disable mosaic at epoch 350, but early stopping triggered at 317
+  -> Mosaic was never disabled; the model always trained on 1/4 resolution mosaic images
 
-精调策略：
-  1. 从 best.pt (ep267) 加载，完全关闭 mosaic/mixup
-  2. 用较低学习率 + cosine schedule 在全分辨率下精调
-  3. 保留几何增强 & albumentations 成像退化增强
-  4. 目标：提升小目标定位精度，突破 mAP50-95 瓶颈
+Fine-tuning Strategy:
+  1. Load from best.pt (ep267), fully disable mosaic/mixup
+  2. Use a lower learning rate + cosine schedule to fine-tune at full resolution
+  3. Retain geometric augmentation & albumentations imaging degradation augmentation
+  4. Goal: Improve small-target localization accuracy, break through the mAP50-95 bottleneck
 
-学习率设计：
-  train77 effective lr0 = 0.01 × (batch/nbs) = 0.01 × 3 = 0.03
-  epoch 267 时 effective lr ≈ 0.017
-  精调取 plateau lr 的 ~1/3 → lr0=0.002 (effective ≈ 0.006)
-  cosine 衰减至 lr0×lrf = 0.002×0.05 = 0.0001
+Learning Rate Design:
+  train77 effective lr0 = 0.01 x (batch/nbs) = 0.01 x 3 = 0.03
+  effective lr at epoch 267 ~ 0.017
+  Fine-tuning uses ~1/3 of the plateau lr -> lr0=0.002 (effective ~ 0.006)
+  cosine decay to lr0 x lrf = 0.002 x 0.05 = 0.0001
 """
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
@@ -38,73 +38,73 @@ os.environ["NCCL_BLOCKING_WAIT"] = "0"
 from ultralytics import YOLO
 from pathlib import Path
 
-# ========= 路径配置 =========
+# ========= Path Configuration =========
 BASE_DIR  = Path(__file__).resolve().parent
 BEST_PT   = BASE_DIR / "runs" / "detect" / "train77" / "weights" / "best.pt"
 DATA_YAML = "rocam_data_15000/data_15000/data.yaml"
 IMG_H, IMG_W = 544, 960
 
-# ========= 精调参数 =========
+# ========= Fine-tuning Parameters =========
 args = dict(
     data=DATA_YAML,
-    imgsz=max(IMG_H, IMG_W),       # 960，与推理分辨率一致
-    batch=192,                      # 4 卡 DDP，每卡 48（与 train77 一致）
-    epochs=100,                     # 精调不需要太长
+    imgsz=max(IMG_H, IMG_W),       # 960, consistent with inference resolution
+    batch=192,                      # 4-GPU DDP, 48 per GPU (same as train77)
+    epochs=100,                     # Fine-tuning does not need many epochs
     cache='disk',
     device="0,1,2,3",
     workers=8,
     amp=True,
 
-    # ──── 学习率（精调核心）────
-    lr0=0.002,                      # train77 的 1/5，精调需要低学习率
-    lrf=0.05,                       # 终态 = 0.002 × 0.05 = 0.0001
-    cos_lr=True,                    # cosine annealing 比线性更平滑
-    warmup_epochs=5,                # 稍长热身，让模型平滑过渡到无 mosaic 分布
+    # ---- Learning Rate (core of fine-tuning) ----
+    lr0=0.002,                      # 1/5 of train77; fine-tuning needs a low learning rate
+    lrf=0.05,                       # final = 0.002 x 0.05 = 0.0001
+    cos_lr=True,                    # cosine annealing is smoother than linear
+    warmup_epochs=5,                # Slightly longer warmup for smooth transition to no-mosaic distribution
 
-    # ──── mosaic 完全关闭（精调核心目的）────
-    mosaic=0.0,                     # ★ 关闭！让模型看全分辨率原图
-    mixup=0.0,                      # ★ 关闭！不再混合图片
-    close_mosaic=0,                 # 已无 mosaic，无需 close
-    cutmix=0.0,                     # 关闭
-    copy_paste=0.0,                 # 关闭
+    # ---- Mosaic fully disabled (core purpose of fine-tuning) ----
+    mosaic=0.0,                     # Disabled! Let the model see full-resolution images
+    mixup=0.0,                      # Disabled! No more image mixing
+    close_mosaic=0,                 # Mosaic already off, no need to close
+    cutmix=0.0,                     # Disabled
+    copy_paste=0.0,                 # Disabled
 
-    # ──── 几何增强（保留，与 train77 一致）────
-    degrees=180,                    # 火箭飞行中任意朝向
-    flipud=0.5,                     # 火箭可上可下
+    # ---- Geometric Augmentation (retained, same as train77) ----
+    degrees=180,                    # Rockets can point in any direction during flight
+    flipud=0.5,                     # Rockets can face up or down
     fliplr=0.5,
     shear=5.0,
     perspective=0.0002,
     translate=0.05,
     scale=0.15,
 
-    # ──── 颜色增强（保留）────
+    # ---- Color Augmentation (retained) ----
     hsv_h=0.015,
     hsv_s=0.6,
     hsv_v=0.4,
 
-    # ──── 其他增强 ────
-    erasing=0.2,                    # 从 0.4 降到 0.2，精调减少信息遮挡
+    # ---- Other Augmentation ----
+    erasing=0.2,                    # Reduced from 0.4 to 0.2; less information occlusion during fine-tuning
 
-    # ──── 训练控制 ────
-    rect=False,                     # 与 train77 一致
-    multi_scale=True,               # 保留多尺度，小目标友好
-    patience=40,                    # 精调收敛快，但要给足够观察窗口
+    # ---- Training Control ----
+    rect=False,                     # Same as train77
+    multi_scale=True,               # Keep multi-scale; friendly for small targets
+    patience=40,                    # Fine-tuning converges quickly, but allow enough observation window
     seed=0,
     deterministic=False,
-    save_period=10,                 # 每 10 轮存一次 checkpoint
+    save_period=10,                 # Save checkpoint every 10 epochs
 )
 
 
 def attach_albumentations_if_available():
     """
-    注入自定义成像退化增强（与 train77 完全一致）。
-    blur/noise/jpeg/亮度等对小目标鲁棒性很关键，精调阶段保留。
+    Inject custom imaging degradation augmentation (identical to train77).
+    blur/noise/jpeg/brightness etc. are critical for small-target robustness; retained during fine-tuning.
     """
     try:
         import albumentations as A
         from ultralytics.data.augment import Albumentations
     except Exception as e:
-        print("[AUG] 未安装 albumentations 或版本不兼容，跳过。", repr(e))
+        print("[AUG] albumentations not installed or version incompatible, skipping.", repr(e))
         return
 
     _orig_init = Albumentations.__init__
@@ -120,41 +120,41 @@ def attach_albumentations_if_available():
             A.RandomGamma(p=0.10),
             A.CLAHE(clip_limit=3.0, p=0.10),
         ], bbox_params=A.BboxParams(format="yolo", min_visibility=0.0))
-        print("[AUG] 已注入自定义 Albumentations 增强（精调保留成像退化）")
+        print("[AUG] Custom Albumentations augmentation injected (imaging degradation retained for fine-tuning)")
 
     Albumentations.__init__ = _custom_init
-    print("[AUG] Albumentations 管线已就绪（DDP 兼容）")
+    print("[AUG] Albumentations pipeline ready (DDP compatible)")
 
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("  YOLO26s-p2 精调 — Close-Mosaic Phase")
-    print(f"  基线模型:  {BEST_PT}")
-    print(f"  数据集:    {DATA_YAML}")
-    print(f"  核心变化:  mosaic=0  mixup=0  lr0=0.002  cos_lr=True")
+    print("  YOLO26s-p2 Fine-tuning -- Close-Mosaic Phase")
+    print(f"  Baseline model:  {BEST_PT}")
+    print(f"  Dataset:         {DATA_YAML}")
+    print(f"  Key changes:     mosaic=0  mixup=0  lr0=0.002  cos_lr=True")
     print("=" * 60)
 
     if not BEST_PT.exists():
-        raise FileNotFoundError(f"找不到 best.pt: {BEST_PT}")
+        raise FileNotFoundError(f"Cannot find best.pt: {BEST_PT}")
 
-    # 直接加载 best.pt（已含模型结构 + 权重，无需指定 .yaml）
+    # Load best.pt directly (contains model architecture + weights, no .yaml needed)
     model = YOLO(str(BEST_PT))
-    print(f"[MODEL] 已加载 train77/best.pt (ep267  mAP50=0.920  mAP50-95=0.614)")
+    print(f"[MODEL] Loaded train77/best.pt (ep267  mAP50=0.920  mAP50-95=0.614)")
 
-    # 挂载 albumentations（猴子补丁方式，兼容 DDP 多卡）
+    # Attach albumentations (monkey-patch approach, compatible with multi-GPU DDP)
     attach_albumentations_if_available()
 
-    # 开始精调
+    # Start fine-tuning
     results = model.train(**args)
 
     save_dir = getattr(results, "save_dir", "see runs/detect/")
     print("=" * 60)
-    print(f"  精调完成！结果: {save_dir}")
+    print(f"  Fine-tuning complete! Results: {save_dir}")
     print("=" * 60)
 
-    # 最终验证（可选）
+    # Final validation (optional)
     try:
         metrics = model.val(data=DATA_YAML, imgsz=max(IMG_H, IMG_W))
-        print(f"[VAL] 最终指标: {metrics}")
+        print(f"[VAL] Final metrics: {metrics}")
     except Exception as e:
-        print(f"[WARN] 最终验证失败: {repr(e)}")
+        print(f"[WARN] Final validation failed: {repr(e)}")

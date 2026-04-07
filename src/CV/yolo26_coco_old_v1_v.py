@@ -18,25 +18,25 @@ from ultralytics import YOLO
 from pathlib import Path
 import random, zipfile, urllib.request, shutil
 
-# ========= 你的原始配置（保持不变） =========
+# ========= Original Configuration (unchanged) =========
 DATA_YAML = "rocam_data_15000/data_15000/data.yaml"
 IMG_H, IMG_W = 544, 960
 MODEL     = "yolo26s.pt"
 batch = 64
 
-# ========= 新增：COCO 相关配置 =========
+# ========= COCO-related Configuration =========
 BASE_DIR         = Path(__file__).resolve().parent
 
-# COCO 下载 & 解压的根目录（可以按需改）
+# COCO download & extraction root directory (adjust as needed)
 COCO_ROOT        = BASE_DIR / "external" / "coco2017"
 
-# 你的训练图片目录（一定要和 data.yaml 里的 train 对应上）
+# Training image directory (must match the train path in data.yaml)
 ROCAM_TRAIN_DIR  = BASE_DIR / "rocam_data_15000" / "data_15000" / "images" / "train"
 
-# 最多从 COCO 抽多少张图片作为负样本
+# Maximum number of COCO images to sample as negative examples
 COCO_NEG_MAX = 1000
 
-# 只用 image 就够了（当负样本不用标注）
+# Only images are needed (negative samples do not require annotations)
 COCO_ZIPS = {
     "train2017.zip": "http://images.cocodataset.org/zips/train2017.zip",
     "val2017.zip":   "http://images.cocodataset.org/zips/val2017.zip",
@@ -45,23 +45,23 @@ COCO_ZIPS = {
 def _download(url: str, dst: Path):
     dst.parent.mkdir(parents=True, exist_ok=True)
     if dst.exists():
-        print(f"[COCO] 已存在: {dst.name}，跳过下载")
+        print(f"[COCO] Already exists: {dst.name}, skipping download")
         return
-    print(f"[COCO] 正在下载 {dst.name} -> {dst}")
+    print(f"[COCO] Downloading {dst.name} -> {dst}")
     urllib.request.urlretrieve(url, dst)
-    print(f"[COCO] 下载完成: {dst.name}")
+    print(f"[COCO] Download complete: {dst.name}")
 
 def ensure_coco_images():
     """
-    下载并解压 COCO train/val 到 COCO_ROOT/images 下。
-    只在第一次运行时真正下载和解压，之后检测到目录存在就直接跳过。
+    Download and extract COCO train/val to COCO_ROOT/images.
+    Only actually downloads and extracts on the first run; skips if directories already exist.
     """
     images_dir = COCO_ROOT / "images"
     train_dir  = images_dir / "train2017"
     val_dir    = images_dir / "val2017"
 
     if train_dir.exists() and val_dir.exists():
-        print("[COCO] train2017 / val2017 已存在，跳过下载和解压")
+        print("[COCO] train2017 / val2017 already exist, skipping download and extraction")
         return
 
     COCO_ROOT.mkdir(parents=True, exist_ok=True)
@@ -70,60 +70,60 @@ def ensure_coco_images():
     for fname, url in COCO_ZIPS.items():
         zip_path = COCO_ROOT / fname
         _download(url, zip_path)
-        print(f"[COCO] 正在解压 {fname}")
+        print(f"[COCO] Extracting {fname}")
         with zipfile.ZipFile(zip_path, "r") as zf:
             zf.extractall(images_dir)
-        zip_path.unlink()  # 解压后删除 zip 节省空间
-        print(f"[COCO] 解压完成并删除压缩包: {fname}")
+        zip_path.unlink()  # Delete zip after extraction to save space
+        print(f"[COCO] Extraction complete, archive deleted: {fname}")
 
 def prepare_coco_negatives():
     """
-    从 COCO train2017/val2017 里随机抽一些图，拷贝到你的 train 目录，
-    不生成 label 文件 → 作为纯背景负样本。
+    Randomly sample images from COCO train2017/val2017, copy them to your train directory.
+    No label files are generated -> serving as pure background negative samples.
 
-    注意：只做一次，会在 train 目录下写一个 .coco_neg_done 标记文件。
+    Note: Only runs once; writes a .coco_neg_done sentinel file in the train directory.
     """
     if not ROCAM_TRAIN_DIR.exists():
-        raise FileNotFoundError(f"[COCO] 找不到你的训练图片目录: {ROCAM_TRAIN_DIR}")
+        raise FileNotFoundError(f"[COCO] Cannot find training image directory: {ROCAM_TRAIN_DIR}")
 
     sentinel = ROCAM_TRAIN_DIR / ".coco_neg_done"
     if sentinel.exists():
-        print("[COCO] 负样本已经准备过了，跳过这一阶段")
+        print("[COCO] Negative samples already prepared, skipping this step")
         return
 
     images_dir = COCO_ROOT / "images"
     train_dir  = images_dir / "train2017"
     val_dir    = images_dir / "val2017"
     if not (train_dir.exists() and val_dir.exists()):
-        raise FileNotFoundError("[COCO] 请先调用 ensure_coco_images() 完成下载和解压")
+        raise FileNotFoundError("[COCO] Please call ensure_coco_images() first to complete download and extraction")
 
     all_imgs = list(train_dir.glob("*.jpg")) + list(val_dir.glob("*.jpg"))
     if not all_imgs:
-        raise RuntimeError("[COCO] 在 train2017/val2017 里没有找到 jpg 图片")
+        raise RuntimeError("[COCO] No jpg images found in train2017/val2017")
 
     n = min(COCO_NEG_MAX, len(all_imgs))
-    print(f"[COCO] 一共找到 {len(all_imgs)} 张 COCO 图片，将抽取 {n} 张作为负样本")
+    print(f"[COCO] Found {len(all_imgs)} COCO images total, will sample {n} as negative examples")
 
     random.seed(0)
     sample = random.sample(all_imgs, n)
 
     ROCAM_TRAIN_DIR.mkdir(parents=True, exist_ok=True)
     for i, src in enumerate(sample, 1):
-        # 为避免命名冲突，统一增加前缀
+        # Add prefix to avoid naming conflicts
         dst = ROCAM_TRAIN_DIR / f"coco_neg_{i:06d}{src.suffix.lower()}"
         if not dst.exists():
             shutil.copy2(src, dst)
         if i % 1000 == 0 or i == n:
-            print(f"[COCO] 已拷贝 {i}/{n} 张")
+            print(f"[COCO] Copied {i}/{n} images")
 
     sentinel.touch()
-    print("[COCO] 负样本准备完成！下次不会重复拷贝")
+    print("[COCO] Negative sample preparation complete! Will not repeat on next run")
 
 
-# ========= 训练参数（尽量保持不变，仅做 YOLO26 关键调整） =========
-# 关键调整：
-# 1) 不强行指定 optimizer / lr0 / lrf / warmup 等，让 YOLO26/Ultralytics 默认策略接管
-# 2) 保留 imgsz tuple；若新版本不兼容，则在 main 里自动 fallback
+# ========= Training Parameters (minimal changes, only key YOLO26 adjustments) =========
+# Key adjustments:
+# 1) Do not force optimizer / lr0 / lrf / warmup etc.; let YOLO26/Ultralytics defaults take over
+# 2) Keep imgsz tuple; if incompatible with newer versions, auto-fallback in main
 
 args = dict(
     data=DATA_YAML,
@@ -144,10 +144,10 @@ args = dict(
     save_period=25,
     deterministic=False,
 
-    # ---- 颜色抖动 ----
+    # ---- Color Jitter ----
     hsv_h=0.015, hsv_s=0.6, hsv_v=0.4,
 
-    # ---- 几何增强 ----
+    # ---- Geometric Augmentation ----
     degrees=180,
     flipud=0.5,
     fliplr=0.5,
@@ -156,7 +156,7 @@ args = dict(
     translate=0.1,
     scale=0.6,
 
-    # ---- 组合型增强 ----
+    # ---- Composite Augmentation ----
     mosaic=1.0,
     mixup=0.05,
     copy_paste=0.1,
@@ -164,23 +164,23 @@ args = dict(
 )
 
 if __name__ == "__main__":
-    # 1) 自动下载 & 解压 COCO（只会在第一次真下载）
+    # 1) Auto-download & extract COCO (only actually downloads on first run)
     ensure_coco_images()
 
-    # 2) 自动把 COCO 图片拷贝到你的 train 目录，当作负样本（只做一次）
+    # 2) Auto-copy COCO images to train directory as negative samples (only once)
     prepare_coco_negatives()
 
-    # 3) 正常开始 YOLO 训练
+    # 3) Start YOLO training
     model = YOLO(MODEL)
 
     try:
         results = model.train(**args)
     except Exception as e:
-        # 某些新版本/新模型可能不接受 imgsz=(H,W) 这种 tuple
-        # 这里做一个“只在失败时触发”的 fallback：用长边 imgsz + rect=True
-        print("[WARN] model.train 失败，可能是 imgsz tuple 不兼容。错误如下：")
+        # Some newer versions/models may not accept imgsz=(H,W) tuple
+        # This fallback only triggers on failure: use long-edge imgsz + rect=True
+        print(“[WARN] model.train failed, possibly imgsz tuple incompatibility. Error:”)
         print(e)
-        print("[WARN] 尝试 fallback：imgsz=max(H,W) + rect=True 重新训练...")
+        print(“[WARN] Trying fallback: imgsz=max(H,W) + rect=True for retraining...”)
 
         args2 = dict(args)
         args2["imgsz"] = max(IMG_H, IMG_W)  # 960
