@@ -4,15 +4,16 @@
 
 \usepackage{tabularx}
 \usepackage{booktabs}
-\usepackage{longtable}
+\usepackage[x11names]{xcolor}
+\usepackage{amssymb}
 \usepackage{float}
-\usepackage{enumitem}
-\usepackage{xcolor}
+\usepackage{longtable}
 \usepackage{xr}
+\usepackage{enumitem}
 
-\externaldocument[SRS:]{../SRS/SRS}
-\externaldocument[MG:]{../Design/SoftArchitecture/MG}
-\externaldocument[HA:]{../HazardAnalysis/HazardAnalysis}
+\externaldocument[MG-]{../Design/SoftArchitecture/MG}
+\externaldocument[SRS-]{../SRS/SRS}
+\externaldocument[HA-]{../HazardAnalysis/HazardAnalysis}
 
 \title{Reflection and Traceability Report on \progname}
 
@@ -23,207 +24,471 @@
 \input{../Comments}
 \input{../Common}
 
+\geometry{letterpaper, portrait, margin=1.2in}
+
+\newcommand{\ghIssue}[1]{\href{https://github.com/ZifanSi/vision-guided-tracker/issues/#1}{Issue~\##1}}
+\newcommand{\ghPR}[1]{\href{https://github.com/ZifanSi/vision-guided-tracker/pull/#1}{PR~\##1}}
+\newcommand{\ghCommit}[2]{\href{https://github.com/ZifanSi/vision-guided-tracker/commit/#1}{Commit~#2}}
+\newcommand{\feedbackheader}{
+  \hline
+  \textbf{Feedback Source} & \textbf{Feedback Summary} & \textbf{Changes Made} &
+  \textbf{Related \newline Commits/Issues} \\
+  \hline
+}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\renewcommand{\arraystretch}{1.15}
+
 \begin{document}
 
 \maketitle
 
-\tableofcontents
-
+\newpage
 \newpage
 
-%% ----------------------------------------------------------------
 \section{Symbols, Abbreviations, and Acronyms}
-%% ----------------------------------------------------------------
 
-\begin{tabularx}{\textwidth}{l X}
-  \toprule
-  \textbf{Abbreviation} & \textbf{Definition}                         \\
-  \midrule
-  CI                    & Continuous Integration                      \\
-  CV                    & Computer Vision                             \\
-  DDP                   & Distributed Data Parallel                   \\
-  FR                    & Functional Requirement                      \\
-  HA                    & Hazard Analysis                             \\
-  IPC                   & Inter-Process Communication                 \\
-  MG                    & Module Guide                                \\
-  MIS                   & Module Interface Specification              \\
-  NFR                   & Non-Functional Requirement                  \\
-  PCB                   & Printed Circuit Board                       \\
-  PID                   & Proportional-Integral-Derivative            \\
-  PR                    & Pull Request                                \\
-  SRS                   & Software Requirements Specification         \\
-  SSE                   & Server-Sent Events                          \\
-  TA                    & Teaching Assistant                          \\
-  VnV                   & Verification and Validation                 \\
-  YOLO                  & You Only Look Once (object detection model) \\
-  \bottomrule
-\end{tabularx}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|}
+    \hline
+    \textbf{Symbol} & \textbf{Description} \\
+    \hline
+    CI   & Continuous Integration \\
+    CV   & Computer Vision \\
+    DDP  & Distributed Data Parallel \\
+    FR   & Functional Requirement \\
+    HA   & Hazard Analysis \\
+    IPC  & Inter-Process Communication \\
+    MG   & Module Guide \\
+    MIS  & Module Interface Specification \\
+    NFR  & Non-Functional Requirement \\
+    PCB  & Printed Circuit Board \\
+    PID  & Proportional-Integral-Derivative \\
+    PR   & Pull Request \\
+    SRS  & Software Requirements Specification \\
+    SSE  & Server-Sent Events \\
+    TA   & Teaching Assistant \\
+    VnV  & Verification and Validation \\
+    YOLO & You Only Look Once \\
+    \hline
+  \end{tabular}
+  \caption{Symbols, abbreviations, and acronyms used in this report.}
+  \label{tab:symbols-acronyms}
+\end{table}
 
-\vspace{1em}
-Refer to the SRS~\cite{SRS} for a complete table of symbols and units.
+See SRS documentation~\cite{SRS} for the complete table of symbols and units
+used in \progname.
 
-%% ================================================================
+\newpage
+\tableofcontents
+\listoftables
+\listoffigures
+\newpage
+
 \section{Changes in Response to Feedback}
-%% ================================================================
 
-This section summarizes all changes made to project deliverables in response to
-feedback from TAs, the instructor, peer reviewers, the project supervisor
-(Dr.~Shahin Sirouspour), and the client (McMaster Rocketry Team). Our team used
-GitHub Issues and pull requests to track every item of feedback and the
-corresponding changes. The primary commit addressing documentation feedback is
-\texttt{30cd72c} (PR~\#365), with additional changes in commit
-\texttt{45a7df6}.
+This section summarizes the changes made to project deliverables in response to
+feedback from the TA, \textcolor{blue}{Tanya Djavaherpour}, peer reviewers, the
+course staff, the project supervisor (\textcolor{blue}{Dr.~Shahin
+Sirouspour}), and the client (\textcolor{blue}{McMaster Rocketry Team}). Our team used
+GitHub issues, pull requests, and follow-up commits to keep the feedback
+traceable.
 
-Our supervisor, Dr.~Sirouspour, provided feedback throughout the project,
-particularly after the Rev~0 demonstration. His feedback emphasized the
-importance of robust error handling in the gimbal control loop and the need for
-a clear emergency stop mechanism. This feedback directly led to the addition of
-safety requirement SR4 (Emergency Stop) in the Hazard Analysis and the
-corresponding traceability entries in the SRS.
+All TA and supervisor suggestions were implemented in the final revision of the
+documentation. Most peer review suggestions were also implemented. Several
+peer review items were intentionally not adopted because they were
+duplicates, conflicted with the structure we selected for the document, or were
+outside the intended scope. In those cases, we replied in the corresponding
+GitHub issues with the rationale for not implementing the suggestion.
 
-%% ---------------------------------------------------------------
+\begin{longtable}{|L{2.1cm}|L{5.3cm}|L{6cm}|}
+  \caption{Peer Review Items Not Implemented}
+  \label{tab:peer-not-implemented} \\
+  \hline
+  \textbf{Issue} & \textbf{Feedback Summary} & \textbf{Reason Not Implemented} \\
+  \hline
+  \endfirsthead
+  \multicolumn{3}{c}{{\bfseries Table \thetable\ continued from previous page}} \\
+  \hline
+  \textbf{Issue} & \textbf{Feedback Summary} & \textbf{Reason Not Implemented} \\
+  \hline
+  \endhead
+  \hline \multicolumn{3}{|r|}{{Continued on next page}} \\ \hline
+  \endfoot
+  \endlastfoot
+  \ghIssue{185} &
+  Design Doc - Minimal Anticipated changes &
+  We kept the anticipated changes section focused on the most realistic
+  high-impact changes. Adding more speculative items would have reduced clarity
+  without improving the design rationale. \\
+  \hline
+  \ghIssue{184} &
+  Design Doc - Clarify and tighten module dependency &
+  We did not change the dependency structure because the existing relationships
+  already matched the implemented architecture. Tightening them further would
+  have hidden valid interactions between modules. \\
+  \hline
+  \ghIssue{133} &
+  V\&V Plan: include structured review procedure for 3.3 Design Verification &
+  We kept the review procedure lightweight because roles, review artifacts, and
+  verification activities were already documented elsewhere in the plan. Adding
+  another procedure would have duplicated process information. \\
+  \hline
+  \ghIssue{116} &
+  Lack of Traceability Matrix for Requirements &
+  We did not add a separate matrix in response to this issue because the final
+  document already provided sufficient traceability through the existing
+  requirement mappings and linked documentation. A second overlapping matrix
+  would have been redundant. \\
+  \hline
+  \ghIssue{112} &
+  Lack of Identification of Template used &
+  We did not add a separate template-identification note because the document
+  had already diverged substantially from the original capstone template and
+  the final deliverable was meant to stand on its own structure and content. \\
+  \hline
+  \ghIssue{69} &
+  Did not assign roles to individual members and did not create a plan for
+  rotating roles &
+  We intentionally kept stable team roles instead of rotating them because the
+  project depended on specialized ownership in hardware, CV, backend, and
+  frontend work. Forced rotation would have increased coordination cost without
+  clear benefit. \\
+  \hline
+  \ghIssue{181} &
+  Design Doc - Add leaf modules to API gateway &
+  We did not implement this issue separately because it was marked as a
+  duplicate of an existing feedback item. The underlying concern was already
+  tracked elsewhere, so keeping both would have duplicated work and discussion. \\
+  \hline
+  \ghIssue{372} &
+  No clear differentiation in Section 8 &
+  This comment arrived late and remained open at the time of writing. We did
+  not revise the document again before submission, but the issue thread records
+  the outstanding concern. \\
+  \hline
+  Other peer review tickets &
+  Additional peer review issues in the repository that are not listed above &
+  Some review activity was conducted jointly with two teams at the same time.
+  As a result, a few peer review tickets in the repository were associated with
+  the combined review process rather than being direct feedback that applied to
+  this document set, so they are not counted here as unimplemented RoCam
+  feedback. \\
+  \hline
+\end{longtable}
+
+The main documentation revision was completed in
+\ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}
+through \ghPR{365}, with an additional VnV Report update in
+\ghCommit{45a7df634441cacb560f3a238e4f6942b7322cd9}{45a7df6}. Where a table row
+does not list a separate GitHub issue, the change came from direct review
+annotations or discussion during the corresponding document review.
+
+The tables below focus on feedback items that produced document changes. Peer
+review issues that were closed as WONTFIX, duplicate, stale, or otherwise did
+not produce a document change are accounted for in their linked issue threads
+rather than repeated as change rows in the implementation tables below.
+
+Supervisor feedback had the largest impact on safety-related documentation. In
+particular, the request for a clearer emergency-stop strategy directly led to
+the addition of SR4 in the Hazard Analysis~\cite{HazardAnalysis} and the
+corresponding traceability updates in the SRS~\cite{SRS}.
+
 \subsection{SRS and Hazard Analysis}
-%% ---------------------------------------------------------------
 
-Feedback was received from TA Tanya (Issue~\#107) via green-highlighted
-annotations, as well as from peer review. All items have been addressed in
-commit \texttt{30cd72c} (PR~\#365).
+Table~\ref{tab:srs-feedback-tracking} outlines the changes for the SRS
+document. Table~\ref{tab:hazard-feedback-tracking} outlines the changes for the
+Hazard Analysis document.
 
-\begin{longtable}{p{0.06\textwidth} p{0.12\textwidth} p{0.34\textwidth} p{0.34\textwidth}}
-  \caption{Hazard Analysis Feedback Tracking}\label{tab:ha-feedback}                                                                                                                   \\
-  \toprule
-  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                              & \textbf{Changes Made / Related Commits}                                                     \\
-  \midrule
+\begin{longtable}{|L{2cm}|L{4.2cm}|L{4.4cm}|L{3cm}|}
+  \caption{SRS Feedback Tracking and Implementation}
+  \label{tab:srs-feedback-tracking} \\
+  \feedbackheader
   \endfirsthead
-  \toprule
-  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                              & \textbf{Changes Made / Related Commits}                                                     \\
-  \midrule
+  \multicolumn{4}{c}{{\bfseries Table \thetable\ continued from previous page}} \\
+  \feedbackheader
   \endhead
-  \midrule
-  \multicolumn{4}{r}{\textit{Continued on next page}}                                                                                                                                  \\
+  \hline \multicolumn{4}{|r|}{{Continued on next page}} \\ \hline
   \endfoot
-  \bottomrule
   \endlastfoot
-  HA-1        & TA Tanya        & Placeholder ``Date1/Date2'' remained in revision table & Replaced with actual revision dates. Commit \texttt{30cd72c}.                               \\
-  HA-2        & TA Tanya        & Typo: ``a existing''                                   & Corrected to ``an existing''.                                                               \\
-  HA-3        & TA Tanya        & Typo: ``moodule''                                      & Corrected to ``module''.                                                                    \\
-  HA-4        & TA Tanya        & Typo: ``a off the shelf''                              & Corrected to ``an off-the-shelf''.                                                          \\
-  HA-5        & TA Tanya        & Typo: ``accerlerated''                                 & Corrected to ``accelerated''.                                                               \\
-  HA-6        & TA Tanya        & Typo: ``excesses''                                     & Corrected to ``exceeds''.                                                                   \\
-  HA-7        & TA Tanya        & Inconsistent ``general of the shelf''                  & Corrected to ``Off-the-Shelf'' with consistent capitalization.                              \\
-  HA-8        & TA Tanya        & SR1--SR3 lacked sufficient detail                      & Expanded with specific conditions, thresholds, and verification methods.                    \\
-  HA-9        & Supervisor      & No emergency stop mechanism defined                    & Added SR4 (Emergency Stop) with hardware and software triggers.                             \\
-  HA-10       & TA Tanya        & No traceability between HA and SRS                     & Added HA\,$\leftrightarrow$\,SRS traceability table mapping hazards to safety requirements. \\
+  TA Tanya &
+  Typo: ``equipments''. &
+  Corrected the wording to ``equipment''. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{107} \\
+  \hline
+  TA Tanya &
+  Typo: ``Through out''. &
+  Corrected the wording to ``Throughout''. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{107} \\
+  \hline
+  TA Tanya &
+  ``500CAD'' missing spacing. &
+  Reformatted the value as ``500\,CAD''. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{107} \\
+  \hline
+  TA Tanya &
+  Duplicate requirement ID AR-1. &
+  Renamed the duplicate entry to ACR-1 to remove ambiguity. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{107} \\
+  \hline
+  TA Tanya &
+  Missing cross-references to the Hazard Analysis. &
+  Added explicit HA references throughout the SRS traceability material. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{107} \\
+  \hline
+  Peer &
+  Phase-in priorities were unclear. &
+  Clarified the priority levels used across requirement categories. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c} \\
+  \hline
 \end{longtable}
 
-\begin{longtable}{p{0.06\textwidth} p{0.12\textwidth} p{0.34\textwidth} p{0.34\textwidth}}
-  \caption{SRS Feedback Tracking}\label{tab:srs-feedback}                                                                                   \\
-  \toprule
-  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}     & \textbf{Changes Made / Related Commits}                                   \\
-  \midrule
+\begin{longtable}{|L{2cm}|L{4.2cm}|L{4.4cm}|L{3cm}|}
+  \caption{Hazard Analysis Feedback Tracking and Implementation}
+  \label{tab:hazard-feedback-tracking} \\
+  \feedbackheader
   \endfirsthead
-  \toprule
-  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}     & \textbf{Changes Made / Related Commits}                                   \\
-  \midrule
+  \multicolumn{4}{c}{{\bfseries Table \thetable\ continued from previous page}} \\
+  \feedbackheader
   \endhead
-  \midrule
-  \multicolumn{4}{r}{\textit{Continued on next page}}                                                                                       \\
+  \hline \multicolumn{4}{|r|}{{Continued on next page}} \\ \hline
   \endfoot
-  \bottomrule
   \endlastfoot
-  SRS-1       & TA Tanya        & Typo: ``equipments''          & Corrected to ``equipment''. Commit \texttt{30cd72c}.                      \\
-  SRS-2       & TA Tanya        & Typo: ``Through out''         & Corrected to ``Throughout''.                                              \\
-  SRS-3       & TA Tanya        & ``500CAD'' missing space      & Corrected to ``500\,CAD''.                                                \\
-  SRS-4       & TA Tanya        & Duplicate requirement ID AR-1 & Renamed second instance to ACR-1 to eliminate ambiguity.                  \\
-  SRS-5       & TA Tanya        & Missing HA cross-references   & Added explicit traceability references to the Hazard Analysis throughout. \\
-  SRS-6       & Peer            & Phase-in priorities unclear   & Clarified priority levels for each requirement category.                  \\
+  TA Tanya &
+  Placeholder ``Date1/Date2'' remained in the revision table. &
+  Replaced the placeholder values with the actual revision dates. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{107} \\
+  \hline
+  TA Tanya &
+  Typo: ``a existing''. &
+  Corrected the phrase to ``an existing''. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{107} \\
+  \hline
+  TA Tanya &
+  Typo: ``moodule''. &
+  Corrected the spelling to ``module''. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{107} \\
+  \hline
+  TA Tanya &
+  Typo: ``a off the shelf''. &
+  Corrected the phrase to ``an off-the-shelf''. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{107} \\
+  \hline
+  TA Tanya &
+  Typo: ``accerlerated''. &
+  Corrected the spelling to ``accelerated''. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{107} \\
+  \hline
+  TA Tanya &
+  Typo: ``excesses''. &
+  Corrected the wording to ``exceeds''. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{107} \\
+  \hline
+  TA Tanya &
+  Inconsistent wording around ``off-the-shelf'' terminology. &
+  Standardized the term and capitalization across the document. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{107} \\
+  \hline
+  TA Tanya &
+  SR1--SR3 lacked sufficient detail. &
+  Expanded the requirements with clearer conditions, thresholds, and
+  verification intent. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{107} \\
+  \hline
+  Supervisor &
+  No emergency-stop mechanism was defined. &
+  Added SR4 (Emergency Stop) with both hardware and software triggers. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c} \\
+  \hline
+  TA Tanya &
+  Missing traceability between HA and SRS. &
+  Added an HA-to-SRS traceability table mapping hazards to safety
+  requirements. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{107} \\
+  \hline
 \end{longtable}
 
-%% ---------------------------------------------------------------
 \subsection{Design and Design Documentation}
-%% ---------------------------------------------------------------
 
-Feedback was received from TA Tanya (Issues~\#164 and~\#240) for the Module
-Guide and Module Interface Specification. All items have been addressed.
+Table~\ref{tab:mg-feedback-tracking} outlines the feedback incorporated into
+the Module Guide~\cite{MG}. Table~\ref{tab:mis-feedback-tracking} outlines the
+feedback incorporated into the Module Interface Specification~\cite{MIS}.
 
-\begin{longtable}{p{0.06\textwidth} p{0.12\textwidth} p{0.34\textwidth} p{0.34\textwidth}}
-  \caption{MG Documentation Feedback Tracking}\label{tab:mg-feedback}                                                                                   \\
-  \toprule
-  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                                   & \textbf{Changes Made / Related Commits}                 \\
-  \midrule
+\begin{longtable}{|L{2cm}|L{4.2cm}|L{4.4cm}|L{3cm}|}
+  \caption{MG Documentation Feedback Tracking and Implementation}
+  \label{tab:mg-feedback-tracking} \\
+  \feedbackheader
   \endfirsthead
-  \toprule
-  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                                   & \textbf{Changes Made / Related Commits}                 \\
-  \midrule
+  \multicolumn{4}{c}{{\bfseries Table \thetable\ continued from previous page}} \\
+  \feedbackheader
   \endhead
-  \bottomrule
+  \hline \multicolumn{4}{|r|}{{Continued on next page}} \\ \hline
+  \endfoot
   \endlastfoot
-  MG-1        & TA Tanya        & Remaining \texttt{\textbackslash wss\{\}} template comments & Removed all template comments. Commit \texttt{30cd72c}. \\
-  MG-2        & TA Tanya        & Minor typos throughout                                      & Corrected all identified typos.                         \\
-  MG-3        & TA Tanya        & Module hierarchy diagram hard to read                       & Improved diagram formatting and label positioning.      \\
+  TA Tanya &
+  Remaining capstone template comments. &
+  Removed all remaining template comments from the MG. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{164}\newline
+  \ghIssue{240} \\
+  \hline
+  TA Tanya &
+  Minor typos throughout the document. &
+  Corrected the identified spelling and grammar issues. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{164}\newline
+  \ghIssue{240} \\
+  \hline
+  TA Tanya &
+  Module hierarchy diagram was hard to read. &
+  Improved formatting and label placement in the hierarchy diagram. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{164}\newline
+  \ghIssue{240} \\
+  \hline
 \end{longtable}
 
-\begin{longtable}{p{0.06\textwidth} p{0.12\textwidth} p{0.34\textwidth} p{0.34\textwidth}}
-  \caption{MIS Documentation Feedback Tracking}\label{tab:mis-feedback}                                                                                 \\
-  \toprule
-  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                                   & \textbf{Changes Made / Related Commits}                 \\
-  \midrule
+\begin{longtable}{|L{2cm}|L{4.2cm}|L{4.4cm}|L{3cm}|}
+  \caption{MIS Documentation Feedback Tracking and Implementation}
+  \label{tab:mis-feedback-tracking} \\
+  \feedbackheader
   \endfirsthead
-  \toprule
-  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                                   & \textbf{Changes Made / Related Commits}                 \\
-  \midrule
+  \multicolumn{4}{c}{{\bfseries Table \thetable\ continued from previous page}} \\
+  \feedbackheader
   \endhead
-  \bottomrule
+  \hline \multicolumn{4}{|r|}{{Continued on next page}} \\ \hline
+  \endfoot
   \endlastfoot
-  MIS-1       & TA Tanya        & Year errors: 2025 instead of 2026                           & Corrected all year references. Commit \texttt{30cd72c}. \\
-  MIS-2       & TA Tanya        & Remaining \texttt{\textbackslash wss\{\}} template comments & Removed all template comments.                          \\
-  MIS-3       & TA Tanya        & Typo: ``presistent''                                        & Corrected to ``persistent''.                            \\
+  TA Tanya &
+  Year values still referred to 2025 instead of 2026. &
+  Corrected the year references throughout the MIS. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{164}\newline
+  \ghIssue{240} \\
+  \hline
+  TA Tanya &
+  Remaining capstone template comments. &
+  Removed the leftover template comments from the MIS. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{164}\newline
+  \ghIssue{240} \\
+  \hline
+  TA Tanya &
+  Typo: ``presistent''. &
+  Corrected the spelling to ``persistent''. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{164}\newline
+  \ghIssue{240} \\
+  \hline
 \end{longtable}
 
-%% ---------------------------------------------------------------
 \subsection{VnV Plan and Report}
-%% ---------------------------------------------------------------
 
-Feedback for the VnV Plan was received from TA Tanya (Issue~\#122) and peer
-reviewers (Issues~\#342--\#348). VnV Report feedback came from TA Tanya
-(Issue~\#337) and reviewers (Issues~\#148, \#149).
+Table~\ref{tab:vnvplan-feedback-tracking} outlines the changes for the VnV
+Plan~\cite{VnVPlan} document. Table~\ref{tab:vnvreport-feedback-tracking}
+outlines the changes for the VnV Report~\cite{VnVReport} document.
 
-\begin{longtable}{p{0.06\textwidth} p{0.12\textwidth} p{0.34\textwidth} p{0.34\textwidth}}
-  \caption{VnV Plan Feedback Tracking}\label{tab:vnv-plan-feedback}                                                                                                          \\
-  \toprule
-  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                                   & \textbf{Changes Made / Related Commits}                                      \\
-  \midrule
+\begin{longtable}{|L{2cm}|L{4.2cm}|L{4.4cm}|L{3cm}|}
+  \caption{VnV Plan Feedback Tracking and Implementation}
+  \label{tab:vnvplan-feedback-tracking} \\
+  \feedbackheader
   \endfirsthead
-  \toprule
-  \textbf{ID} & \textbf{Source} & \textbf{Feedback Summary}                                   & \textbf{Changes Made / Related Commits}                                      \\
-  \midrule
+  \multicolumn{4}{c}{{\bfseries Table \thetable\ continued from previous page}} \\
+  \feedbackheader
   \endhead
-  \bottomrule
+  \hline \multicolumn{4}{|r|}{{Continued on next page}} \\ \hline
+  \endfoot
   \endlastfoot
-  VP-1        & TA Tanya        & Remaining \texttt{\textbackslash wss\{\}} template comments & Removed all template comments. Commit \texttt{30cd72c}.                      \\
-  VP-2        & TA Tanya        & Unit test descriptions too vague                            & Enhanced test descriptions with expected inputs, outputs, and pass criteria. \\
-  VP-3        & TA Tanya        & Missing unit test summary                                   & Added Unit Testing Scope section summarizing module coverage and strategy.   \\
-  VP-4        & Peer (\#342)    & Traceability matrix incomplete                              & Expanded matrix to cover all FR and NFR mappings.                            \\
-  VP-5        & Peer (\#343)    & Missing non-functional test details                         & Added performance, usability, and stress test specifications.                \\
-  VP-6        & Peer (\#346)    & Green Pass indicators not colourblind-safe                  & Changed to teal (\textcolor{teal}{Pass}), WCAG~AA compliant.                 \\
+  TA Tanya &
+  Remaining capstone template comments. &
+  Removed all remaining template comments from the VnV Plan. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{122} \\
+  \hline
+  TA Tanya &
+  Unit test descriptions were too vague. &
+  Added expected inputs, outputs, and pass criteria to the affected tests. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{122} \\
+  \hline
+  TA Tanya &
+  Missing unit test summary section. &
+  Added a Unit Testing Scope section summarizing coverage and strategy. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{122} \\
+  \hline
+  Peer &
+  Traceability matrix was incomplete. &
+  Expanded the matrix to cover all FR and NFR mappings. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{342} \\
+  \hline
+  Peer &
+  Missing non-functional test details. &
+  Added performance, usability, and stress-test specifications. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{343} \\
+  \hline
+  Peer &
+  Pass indicators were not colour-blind safe. &
+  Changed the visual indicator to teal text and kept a textual status label. &
+  \ghCommit{30cd72c86c5ebf03a82fe1bf078d257ad5a5a88a}{30cd72c}\newline
+  \ghIssue{346} \\
+  \hline
 \end{longtable}
 
-\begin{longtable}{p{0.06\textwidth} p{0.12\textwidth} p{0.34\textwidth} p{0.34\textwidth}}
-  \caption{VnV Report Feedback Tracking}\label{tab:vnv-report-feedback}                                                                                  \\
-  \toprule
-  \textbf{ID} & \textbf{Source}  & \textbf{Feedback Summary}                 & \textbf{Changes Made / Related Commits}                                   \\
-  \midrule
+\begin{longtable}{|L{2cm}|L{4.2cm}|L{4.4cm}|L{3cm}|}
+  \caption{VnV Report Feedback Tracking and Implementation}
+  \label{tab:vnvreport-feedback-tracking} \\
+  \feedbackheader
   \endfirsthead
-  \toprule
-  \textbf{ID} & \textbf{Source}  & \textbf{Feedback Summary}                 & \textbf{Changes Made / Related Commits}                                   \\
-  \midrule
+  \multicolumn{4}{c}{{\bfseries Table \thetable\ continued from previous page}} \\
+  \feedbackheader
   \endhead
-  \bottomrule
+  \hline \multicolumn{4}{|r|}{{Continued on next page}} \\ \hline
+  \endfoot
   \endlastfoot
-  VR-1        & TA Tanya (\#337) & Report lacked scope clarification         & Added introductory scope paragraph. Commit \texttt{45a7df6}.              \\
-  VR-2        & TA Tanya         & Changes due to testing section incomplete & Added three summary tables linking V\&V evidence to quality improvements. \\
-  VR-3        & Peer (\#148)     & Missing CI evidence                       & Added Automated Testing section referencing GitHub Actions workflows.     \\
-  VR-4        & Peer (\#149)     & Future work not discussed                 & Added Future Testing Improvements subsection.                             \\
+  TA Tanya &
+  Report lacked scope clarification. &
+  Added an introductory paragraph clarifying the report scope. &
+  \ghCommit{45a7df634441cacb560f3a238e4f6942b7322cd9}{45a7df6}\newline
+  \ghIssue{337} \\
+  \hline
+  TA Tanya &
+  ``Changes due to testing'' section was incomplete. &
+  Added summary tables linking V\&V evidence to quality improvements. &
+  \ghCommit{45a7df634441cacb560f3a238e4f6942b7322cd9}{45a7df6}\newline
+  \ghIssue{337} \\
+  \hline
+  Peer &
+  Missing CI evidence. &
+  Added an Automated Testing section referencing GitHub Actions workflows. &
+  \ghCommit{45a7df634441cacb560f3a238e4f6942b7322cd9}{45a7df6}\newline
+  \ghIssue{148} \\
+  \hline
+  Peer &
+  Future work was not discussed. &
+  Added a Future Testing Improvements subsection. &
+  \ghCommit{45a7df634441cacb560f3a238e4f6942b7322cd9}{45a7df6}\newline
+  \ghIssue{149} \\
+  \hline
 \end{longtable}
 
 %% ================================================================
@@ -234,7 +499,8 @@ Our team completed two supplementary reports that were approved by the course
 instructor as ``Extras'' for the capstone project.
 
 \begin{enumerate}
-  \item \textbf{Circuit Design Report} (\texttt{docs/Extras/CircuitDesign/}):
+  \item \textbf{Circuit Design Report} (\texttt{docs/Extras/CircuitDesign/},
+        \cite{CircuitDesignReport}):
         Documents the design of the custom STM32-based PCB for gimbal motor control.
         Covers schematic design, PCB layout, component selection, and manufacturing.
         The report includes the full schematic, board layout, and photographs of the
@@ -242,7 +508,8 @@ instructor as ``Extras'' for the capstone project.
         custom PCB is the physical interface between the Jetson Orin Nano and the
         gimbal motors.
 
-  \item \textbf{Machine Learning Report} (\texttt{docs/Extras/MachineLearning/}):
+  \item \textbf{Machine Learning Report} (\texttt{docs/Extras/MachineLearning/},
+        \cite{MLReport}):
         Documents the multi-stage YOLO training pipeline for rocket detection.
         Covers dataset preparation, augmentation strategy, three-stage progressive
         training, TensorRT optimization, and accuracy benchmarking. The report
@@ -259,26 +526,68 @@ instructor as ``Extras'' for the capstone project.
 Our design evolved significantly from Revision~0 to Revision~1, driven by
 real-world testing, supervisor feedback, and performance measurements.
 
+\subsection*{User Interface Evolution}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{../Images/rocam_ui_rev_0.png}
+  \caption{Revision~0 operator interface before the final single-page layout
+    and integrated hardware presentation.}
+  \label{fig:ui-rev0}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Rev~0}: The initial UI was a multi-page web application with
+        separate views for video, controls, and logs (Figure~\ref{fig:ui-rev0}).
+        Operators found switching between pages disorienting in outdoor settings.
+  \item \textbf{Rev~1}: After usability feedback, we redesigned the interface as
+        a single-page application integrated into the final deployed system
+        (Figures~\ref{fig:rocam-final-1} and~\ref{fig:rocam-final-2}) with all
+        critical controls visible simultaneously. The bilingual
+        (English/French) support was added to meet Canada's official bilingualism
+        requirements.
+\end{itemize}
+
 \subsection*{Hardware Evolution}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.45\textwidth]{../Extras/CircuitDesign/report_figures/block_diagram.png}
-  \caption{Custom PCB block diagram showing the STM32 controller, motor
-    drivers, encoder inputs, and UART interface to the Jetson Orin Nano.}
-  \label{fig:pcb-block}
+  \includegraphics[width=0.6\textwidth]{../Images/hardware_initial.png}
+  \caption{Initial hardware revision used during early integration and control
+    experiments.}
+  \label{fig:hardware-initial}
 \end{figure}
 
 \begin{itemize}
   \item \textbf{Rev~0}: The initial prototype used an off-the-shelf servo
-        controller connected to the Jetson via USB-serial. The gimbal response was
-        sluggish (\textgreater{}300\,ms latency) and lacked encoder feedback,
-        causing drift during tracking.
-  \item \textbf{Rev~1}: We designed a custom STM32-based PCB (Figure~\ref{fig:pcb-block})
-        with a tuned PID control loop and direct encoder integration. This reduced
-        gimbal command latency to \textless{}20\,ms and eliminated drift. The
-        decision was driven by measured performance gaps during Rev~0 field testing.
+        controller connected to the Jetson via USB-serial (Figure~\ref{fig:hardware-initial}).
+        The gimbal response was sluggish (\textgreater{}300\,ms latency) and
+        lacked encoder feedback, causing drift during tracking.
+  \item \textbf{Rev~1}: We designed a custom STM32-based PCB and integrated it
+        into the final RoCam system shown in Figures~\ref{fig:rocam-final-1}
+        and~\ref{fig:rocam-final-2}, with a tuned PID control loop and direct
+        encoder integration. This reduced gimbal command latency to
+        \textless{}20\,ms and eliminated drift. The decision was driven by
+        measured performance gaps during Rev~0 field testing.
 \end{itemize}
+
+\subsection*{Final Integrated System}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{../Images/rocam_final_1.png}
+  \caption{Final RoCam hardware and operator interface at the McMaster Expo on
+    April 7, 2026 (view 1).}
+  \label{fig:rocam-final-1}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{../Images/rocam_final_2.png}
+  \caption{Final RoCam hardware and operator interface at the McMaster Expo on
+    April 7, 2026 (view 2).}
+  \label{fig:rocam-final-2}
+\end{figure}
 
 \subsection*{Software Architecture Evolution}
 
@@ -290,26 +599,6 @@ real-world testing, supervisor feedback, and performance measurements.
         processes---CV, Livestream, Transcode, and Control---communicating via
         shared-memory IPC. This achieved 60\,fps at 1080p with
         \textless{}120\,ms end-to-end latency.
-\end{itemize}
-
-\subsection*{User Interface Evolution}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.65\textwidth]{../Images/rocam_ui_overview.png}
-  \caption{Final operator interface showing the live video feed, gimbal
-    controls, system status, and recording controls.}
-  \label{fig:ui-final}
-\end{figure}
-
-\begin{itemize}
-  \item \textbf{Rev~0}: The initial UI was a multi-page web application with
-        separate views for video, controls, and logs. Operators found switching
-        between pages disorienting in outdoor settings.
-  \item \textbf{Rev~1}: After usability feedback, we redesigned the interface as
-        a single-page application (Figure~\ref{fig:ui-final}) with all critical
-        controls visible simultaneously. The bilingual (English/French) support was
-        added to meet Canada's official bilingualism requirements.
 \end{itemize}
 
 \subsection*{Machine Learning Pipeline Evolution}
@@ -498,7 +787,7 @@ project:
         accessibility for users comfortable in either language.
 
   \item \textbf{Colour-blind safe indicators}: After peer feedback
-        (Issue~\#346), we replaced all green status indicators with teal
+        (\ghIssue{346}), we replaced all green status indicators with teal
         (\textcolor{teal}{Pass}), achieving a contrast ratio of at least 4.5:1
         (WCAG~AA compliance). All status information is also conveyed through text
         labels, not colour alone.
@@ -527,15 +816,36 @@ project:
 \subsection{Which Courses Were Relevant}
 
 \begin{itemize}
-  \item \textbf{SFWRENG 3K04 --- Software Design III}: Foundation for modular
-        architecture, design patterns, and the module decomposition in our MG.
-  \item \textbf{SFWRENG 2C03 --- Data Structures and Algorithms}: Efficient
-        data structures for real-time tracking pipeline, detection queues, and
-        frame buffers.
-  \item \textbf{SFWRENG 3DX4 --- Signals and Systems}: Signal processing
-        concepts applied to the GStreamer video pipeline and PID control loop.
-  \item \textbf{CAS 741 --- Development of Scientific Computing Software}:
-        Rigorous documentation methodology (SRS, MG, MIS, VnV) used throughout.
+  \item \textbf{SFWRENG 3A04 --- Software Design III}: Applied to modular
+        decomposition, interface design, and the overall software structure in
+        the MG and MIS.
+  \item \textbf{SFWRENG 3BB4 --- Software Design II}: Helpful for state
+        management, abstraction boundaries, and designing maintainable
+        component interactions.
+  \item \textbf{SFWRENG 3DX4 --- Dynamic Systems and Control}: Directly
+        relevant to the gimbal dynamics, feedback control behaviour, and PID
+        tuning considerations.
+  \item \textbf{SFWRENG 3MX3 --- Signals and Systems}: Provided the signal
+        processing background needed for camera motion response, filtering, and
+        reasoning about time-varying behaviour in the control path.
+  \item \textbf{SFWRENG 3RA3 --- Software Requirements \& Security Concepts}:
+        Applied throughout the SRS, hazard traceability, safety thinking, and
+        security-related requirement specification.
+  \item \textbf{SFWRENG 3S03 --- Software Testing}: Directly supported the
+        VnV Plan, VnV Report, unit testing strategy, and traceability from
+        requirements to verification evidence.
+  \item \textbf{ENGINEER 3PX3 --- Engineering Economics}: Used for the market,
+        pricing, cost, and break-even analysis in the economic considerations
+        section.
+  \item \textbf{COMPSCI 3DM3 --- Introduction to Data Mining}: Helpful for
+        dataset handling, evaluation metrics, and analysing model performance
+        trends during YOLO training.
+  \item \textbf{STATS 3Y03 --- Probability and Statistics for Engineering}:
+        Used when interpreting experimental results, benchmarking accuracy, and
+        reasoning about system performance variability.
+  \item \textbf{COMPSCI 4AL3 --- Applications of Machine Learning}: Directly
+        relevant to the object detection pipeline, model training iterations,
+        and performance evaluation used in the CV subsystem.
 \end{itemize}
 
 \subsection{Knowledge/Skills Outside of Courses}
