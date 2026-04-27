@@ -1,16 +1,18 @@
-# cv-v2: Class-Agnostic Mask-Conditioned Object Tracker — Design Spec
+# cv-v2: Class-Agnostic Mask-Conditioned Tracker ("Track Anything") — Design Spec
 
 **Status:** Draft for review
 **Date:** 2026-04-27
 **Author:** Shike Chen
 **Code location:** `src/cv-v2/`
-**Supersedes (in role):** `src/CV/` YOLOv26 detector (kept in service for the v1 rocket-only pipeline)
+**Relationship to v1:** cv-v2 is a different task, not a successor of the same task. v1 (`src/CV/`) is a single-class YOLOv26 *detector* trained to find rockets. cv-v2 is a *class-agnostic mask-conditioned tracker* that can follow any object the user masks once — rockets are not its native vocabulary, they are just one of infinitely many possible targets.
 
 ---
 
 ## 1. Goal
 
-Train a class-agnostic, mask-conditioned segmentation model that, given a reference image with the target masked plus a target image, predicts the target's mask in the target image. This replaces the v1 single-class YOLOv26 rocket detector with a general-purpose tracker that can follow any object the user masks once.
+Train a **class-agnostic, mask-conditioned segmentation model** — given a reference image with the target masked plus a target image, predict the target's mask in the target image. The model has no notion of "rocket" or any other class; it tracks whatever the user masks.
+
+The headline use case is generic ("user clicks/draws a mask on any object → camera follows it"). Rocket footage is one possible fine-tune domain, *not* a target class. The Stage-1-only model (trained on YouTube-VOS + DAVIS) is the primary deliverable: a tracker that works on cars, animals, drones, balls, people, rockets, or anything else with a clear visual boundary in a video.
 
 **Inputs**
 
@@ -223,9 +225,11 @@ Multi-scale broadens the deployment-resolution envelope without requiring separa
 | Eval cadence | DAVIS val J&F every 5 epochs |
 | Patience | 0 (run all 80 epochs; let cosine schedule finish) |
 
-### 5.4 Stage 2 — rocket fine-tune (conditional)
+### 5.4 Stage 2 — domain fine-tune (optional)
 
-Run only if rocket mask data has been produced (per §4.4). If skipped, the Stage 1 best-on-DAVIS-val checkpoint is the deliverable.
+Stage 1 produces the class-agnostic shippable model. Stage 2 is an *optional* domain-adaptation experiment for any specific footage type the user wants extra accuracy on. The first such domain is rocket footage (sky background, very small targets, motion blur), since that data exists from the v1 detector pipeline. Other domains (cars, drones, etc.) can be added later by repeating the same procedure on their respective data.
+
+If Stage 2 is skipped (or the chosen domain's data isn't ready), the Stage 1 best-on-DAVIS-val checkpoint is the shipped cv-v2 model.
 
 | Parameter | Value |
 |---|---|
@@ -294,9 +298,9 @@ Report J&F under both modes for every checkpoint that crosses a "best so far" th
 
 ### 6.3 Success criteria
 
-- **Stage 1 acceptance:** DAVIS-2017 val **J&F ≥ 0.65** under Mode A. (For reference, SiamMask original paper reports ~0.55 J&F on DAVIS-2017; STM/STCN reach 0.85+ with memory networks. 0.65 is realistic for a 9M-param pure-CNN pairwise model.)
-- **Stage 2 acceptance (only if Stage 2 is run):** rockets-masks val **mIoU ≥ 0.70** under Mode A. Mode B mIoU within 0.05 of Mode A on sequences <100 frames.
-- **If Stage 2 is skipped:** Stage 1 acceptance is sufficient. The shipped cv-v2 model is the Stage-1-best checkpoint and is generic across object categories (the rocket-specific gain is foregone, not lost).
+- **Stage 1 acceptance (mandatory; defines whether cv-v2 ships):** DAVIS-2017 val **J&F ≥ 0.65** under Mode A. (For reference, SiamMask original paper reports ~0.55 J&F on DAVIS-2017; STM/STCN reach 0.85+ with memory networks. 0.65 is realistic for a 9M-param pure-CNN pairwise model.) This is a class-agnostic metric — DAVIS contains 30 diverse object categories.
+- **Stage 2 acceptance (only if a domain fine-tune is run):** for the chosen domain, val **mIoU ≥ 0.70** under Mode A, and Mode B mIoU within 0.05 of Mode A on sequences <100 frames. The rocket fine-tune, if run, uses `rockets-masks/val` for this measurement.
+- **Default ship plan:** Stage 1 best checkpoint is the cv-v2 deliverable. Stage 2 is a future enhancement, not a release blocker.
 - **Param count:** Final model targeting ~10M params; ~20M is the suggested upper bound per `goal.md` rather than a hard cap. Anything beyond 20M needs explicit justification.
 
 If Stage 1 misses the J&F target by more than 0.05, root-cause before starting Stage 2 — likely candidates are insufficient negative-pair ratio, decoder under-capacity, or fusion-kernel size.
@@ -329,9 +333,9 @@ src/cv-v2/
 │   └── schedulers.py             # cosine + warmup
 │
 ├── scripts/
-│   ├── prepare_rocket_masks.py   # bbox→rectangle (default) or SAM-assisted mask generation
-│   ├── train_stage1.sh           # VOS pretrain on Grace
-│   ├── train_stage2.sh           # rocket fine-tune on Grace
+│   ├── prepare_domain_masks.py   # bbox→rectangle (default) or SAM-assisted mask generation; domain-agnostic, rockets is the first user
+│   ├── train_stage1.sh           # VOS pretrain on Grace (mandatory)
+│   ├── train_stage2.sh           # domain fine-tune on Grace (optional; takes a domain root as arg)
 │   └── run_pipeline.sh           # tmux orchestrator (mirrors V3 detector pipeline)
 │
 ├── checkpoints/                  # gitignored; output dir
@@ -342,6 +346,8 @@ src/cv-v2/
 
 ## 8. Implementation order (informational; full plan in writing-plans output)
 
+**Mandatory path (produces the shippable cv-v2 model):**
+
 1. Rewrite `data/dataset.py` to the new schema; add `augmentations.py`, `samplers.py`. Verify by visualising 50 sample pairs.
 2. Implement `models/backbone.py` (YOLO26-mini) + param-count test.
 3. Implement `models/fusion.py` and `models/decoder.py` + shape test on a single dummy pair.
@@ -349,10 +355,14 @@ src/cv-v2/
 5. Implement `engines/losses.py` + unit tests on toy masks.
 6. Implement `engines/train.py` with a smoke test (1 epoch on DAVIS only, batch 2, 384×384) before scheduling Stage 1 on Grace.
 7. Implement `engines/eval.py` with J&F on DAVIS val.
-8. Run Stage 1 on Grace. Acceptance: DAVIS J&F ≥ 0.65.
-9. Build `scripts/prepare_rocket_masks.py` and generate rockets-masks data.
-10. Run Stage 2 on Grace. Acceptance: rockets-masks mIoU ≥ 0.70.
-11. Final FLOP/param/eval report.
+8. Run Stage 1 on Grace. Acceptance: DAVIS J&F ≥ 0.65. **At this point cv-v2 is shippable.**
+9. Final FLOP/param/eval report.
+
+**Optional path (per-domain fine-tune; gated on having that domain's data):**
+
+10. Build `scripts/prepare_domain_masks.py` and generate domain mask data (rockets first, but the script is domain-agnostic).
+11. Run Stage 2 on Grace for the chosen domain. Acceptance: domain val mIoU ≥ 0.70.
+12. Add domain-specific eval report.
 
 ## 9. Decisions log (for traceability)
 
@@ -369,13 +379,13 @@ src/cv-v2/
 | Defer inference target | User decision — focus this spec on training | 2026-04-27 |
 | 10M target / 20M upper bound treated as guideline, not hard cap | User clarification — `goal.md` numbers are suggested sizes, not enforced limits | 2026-04-27 |
 | SAM only relevant for rockets (not VOS data) | DAVIS and YT-VOS already ship pixel-perfect masks; SAM was incorrectly framed as labelling for all stages in the first draft | 2026-04-27 |
-| Stage 2 (rocket fine-tune) is conditional on rocket-mask data being produced | Stage-1-only model is a valid shippable cv-v2 if rocket labelling is deferred | 2026-04-27 |
+| Stage 2 (domain fine-tune) is fully optional, not just conditional | cv-v2 is "track anything", not "track rockets". Stage 1 is the deliverable; rocket fine-tune is one of many possible domain-adaptation experiments and is not on the critical path. | 2026-04-27 |
 
 ## 10. Risks and open questions
 
 - **R1: rocket mask data labelling cost.** Cheapest path is bbox→rectangle pseudo-masks (zero extra cost). SAM-assisted upgrade is 8–17 GPU-hours upfront on ~30k frames. Pick based on whether Stage-1-only quality is already acceptable on rocket footage.
 - **R2: pure CNN may underperform attention-based competitors at the J&F=0.65 target.** Mitigation: if Stage 1 plateaus below target, the first lever is decoder capacity (cheap), then fusion-kernel size (k=5→7), then giving up the "no attention" constraint as a v3.
-- **R3: Stage 2 rocket data is visually narrow** (sky background, small targets). Risk of catastrophic forgetting on the general-VOS distribution. Mitigation: continue mixing 30% YT-VOS samples into Stage 2 batches if rockets-masks val mIoU plateaus.
+- **R3: Any domain fine-tune narrows the distribution** (the rocket case is sky background + small targets, but the same applies to any single-domain fine-tune). Risk of catastrophic forgetting on the general-VOS distribution. Mitigation: continue mixing 30% YT-VOS samples into Stage 2 batches if domain val mIoU plateaus, and always keep a Stage-1-only checkpoint available for users who want the generic tracker.
 - **R4: Multi-scale training increases dataloader CPU load.** May need to bump `num_workers` from 8 to 16 on Grace, and pre-resize-cache YT-VOS at 640 max-side to speed up I/O.
 - **Q1:** Confirm that the v1 detector dataset path (`/u50/loux8/datafrompega/rocam_data_15000/data_15000/`) is still accessible from Grace under the same user account. If not, the rocket data flow needs a different source.
 - **Q2:** Eval cadence per 5 epochs of YT-VOS is potentially expensive (DAVIS-2017 val has 30 sequences × ~70 frames = ~2100 inferences). Confirm whether to eval per-5-epochs or per-10-epochs based on first-run timing.
