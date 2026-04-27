@@ -318,6 +318,9 @@ docs/Presentations/D2_FinalPresentation/slide_images/
 feedback/
 PPT/
 # cv-v2: track code, ignore data, checkpoints, runs (heavy artifacts)
+!src/cv-v2/data/
+!src/cv-v2/data/**/*.py
+!src/cv-v2/data/**/*.md
 src/cv-v2/data/DAVIS/
 src/cv-v2/data/youtube-vos/
 src/cv-v2/data/rockets/
