@@ -159,7 +159,7 @@ For each training sample:
 3. Pick two annotated frames `(t_ref, t_tgt)` with temporal gap drawn from `Uniform[1, max_gap]`. `max_gap = 30` for YT-VOS, `15` for DAVIS (shorter videos).
 4. Crop a context-padded square around the object's bbox in both frames. Context factor 2.5× the object's max side, jittered ±20% in scale and ±15% in translation independently per frame.
 5. Resize both crops to the iteration's sampled `H×W`.
-6. Apply photometric augmentation (color jitter, ±5% gray, horizontal flip with mask flipped accordingly) to each crop independently.
+6. Apply photometric augmentation (color jitter, ±5% gray, horizontal flip with mask flipped accordingly) and **random rotation** (Stage 1: ±15°, Stage 2: ±20°; bilinear for image, nearest for mask, zero-pad border) to each crop independently. Reference and target rotate independently so the model learns rotation-invariant matching rather than a temporally-correlated rotation prior.
 7. Compute `reference_mask` as `(annotation == object_id)` from the reference frame; same for `target_mask` in the target frame.
 
 **Negative-pair augmentation (10% of samples):** with probability 0.1, the reference is replaced by a random object from a *different* video. `target_mask` is forced to all-zero. This teaches the model to predict empty masks when the reference does not appear in the target image — important for the deployment case where the gimbal loses the rocket and the tracker must report "absent" via low mask confidence.
@@ -220,7 +220,7 @@ Multi-scale broadens the deployment-resolution envelope without requiring separa
 | Warmup | 3 epochs, linear from 0 to `lr0` |
 | Loss | `1.0 * BCEWithLogits + 1.0 * Dice` (per-pixel, averaged over batch) |
 | Negative-pair ratio | 10% |
-| Augmentation | Color jitter (brightness ±0.3, contrast ±0.3, saturation ±0.4), horizontal flip 0.5, random gray 0.05, scale jitter ±20%, translate jitter ±15% |
+| Augmentation | Color jitter (brightness ±0.3, contrast ±0.3, saturation ±0.4), horizontal flip 0.5, random gray 0.05, scale jitter ±20%, translate jitter ±15%, rotation ±15° (independent per ref/tgt) |
 | Checkpoint cadence | Every 5 epochs + best-on-DAVIS-val J&F |
 | Eval cadence | DAVIS val J&F every 5 epochs |
 | Patience | 0 (run all 80 epochs; let cosine schedule finish) |
@@ -245,7 +245,7 @@ If Stage 2 is skipped (or the chosen domain's data isn't ready), the Stage 1 bes
 | Warmup | 1 epoch |
 | Loss | `1.0 * BCEWithLogits + 1.0 * Dice + 0.5 * BoundaryDice` — adds a boundary-only Dice term to sharpen mask edges, which matters for distant small rockets |
 | Negative-pair ratio | 5% |
-| Augmentation | Stage-1 augmentations + 30% random erasing (matches V3 detector) + 10% motion blur |
+| Augmentation | Stage-1 augmentations + 30% random erasing (matches V3 detector) + 10% motion blur + rotation widened to ±20° |
 | Patience | 15 epochs on val Dice |
 | Initialization | Stage 1 best-on-DAVIS-val checkpoint |
 
@@ -380,6 +380,7 @@ src/cv-v2/
 | 10M target / 20M upper bound treated as guideline, not hard cap | User clarification — `goal.md` numbers are suggested sizes, not enforced limits | 2026-04-27 |
 | SAM only relevant for rockets (not VOS data) | DAVIS and YT-VOS already ship pixel-perfect masks; SAM was incorrectly framed as labelling for all stages in the first draft | 2026-04-27 |
 | Stage 2 (domain fine-tune) is fully optional, not just conditional | cv-v2 is "track anything", not "track rockets". Stage 1 is the deliverable; rocket fine-tune is one of many possible domain-adaptation experiments and is not on the critical path. | 2026-04-27 |
+| Rotation augmentation (Stage 1 ±15°, Stage 2 ±20°), independent per ref/tgt | User decision — drone/rocket/animal targets appear at any orientation, and rotating ref+tgt independently forces the model to learn rotation-invariant matching instead of a temporally-correlated prior | 2026-04-27 |
 
 ## 10. Risks and open questions
 
@@ -387,5 +388,5 @@ src/cv-v2/
 - **R2: pure CNN may underperform attention-based competitors at the J&F=0.65 target.** Mitigation: if Stage 1 plateaus below target, the first lever is decoder capacity (cheap), then fusion-kernel size (k=5→7), then giving up the "no attention" constraint as a v3.
 - **R3: Any domain fine-tune narrows the distribution** (the rocket case is sky background + small targets, but the same applies to any single-domain fine-tune). Risk of catastrophic forgetting on the general-VOS distribution. Mitigation: continue mixing 30% YT-VOS samples into Stage 2 batches if domain val mIoU plateaus, and always keep a Stage-1-only checkpoint available for users who want the generic tracker.
 - **R4: Multi-scale training increases dataloader CPU load.** May need to bump `num_workers` from 8 to 16 on Grace, and pre-resize-cache YT-VOS at 640 max-side to speed up I/O.
-- **Q1:** Confirm that the v1 detector dataset path (`/u50/loux8/datafrompega/rocam_data_15000/data_15000/`) is still accessible from Grace under the same user account. If not, the rocket data flow needs a different source.
-- **Q2:** Eval cadence per 5 epochs of YT-VOS is potentially expensive (DAVIS-2017 val has 30 sequences × ~70 frames = ~2100 inferences). Confirm whether to eval per-5-epochs or per-10-epochs based on first-run timing.
+- **R5: Dataset upload to Grace.** DAVIS (~2.5 GB) and YouTube-VOS 2019 (~20 GB) have not yet been uploaded to Grace. Upload them before Stage 1 kickoff. The download scripts under `src/cv-v2/scripts/` (`download_davis.{ps1,sh}`, `download_youtube_vos.{ps1,sh}`) can be run directly on Grace to fetch DAVIS; YT-VOS requires Kaggle CLI auth or a manually staged zip. Plan a one-time ~30-minute upload/download window into the Stage 1 prep checklist.
+- **Decided: eval cadence = every 5 epochs.** DAVIS-2017 val is ~2100 inferences; at a generous 50 ms/inference that's <2 minutes per eval pass, which is negligible against an 80-epoch Stage 1 run.
