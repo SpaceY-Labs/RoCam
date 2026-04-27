@@ -109,7 +109,9 @@ Approximate, will be verified with `fvcore.nn.FlopCountAnalysis` once implemente
 | Fusion (DW corr + 1×1 + GN) | ~0.3M |
 | FPN decoder | ~2.5M |
 | **Total target** | **~9.0M** |
-| **Hard cap** | **20M** |
+| **Suggested upper bound (per `goal.md`)** | **~20M** |
+
+The 10M target / 20M upper bound from `goal.md` is treated as a guideline, not a hard constraint. If a design choice (e.g., a wider decoder, k=7 fusion kernel, or an extra FPN stage) materially improves accuracy and pushes the count to 12–15M, that's acceptable. Anything that would push the count past 20M needs explicit justification in the implementation plan.
 
 ### 3.6 Resolution behavior
 
@@ -124,10 +126,10 @@ Approximate, will be verified with `fvcore.nn.FlopCountAnalysis` once implemente
 
 | Source | Status | Role |
 |---|---|---|
-| YouTube-VOS 2019 train (3,471 videos) | Downloaded under `src/cv-v2/data/youtube-vos/train/` | Stage 1 pretraining (primary) |
-| DAVIS 2017 trainval (65 videos) | Downloaded under `src/cv-v2/data/DAVIS/` | Stage 1 pretraining + held-out eval (val split) |
-| `rockets-masks/` (mask-annotated rocket footage) | **Empty.** Train and val subdirs exist but contain no data | Stage 2 fine-tune. Data preparation is a prerequisite for Stage 2. |
-| `rockets/` (YOLO bbox-only) | **Empty.** Subdirs exist | Optional auxiliary signal (bbox→rectangular pseudo-mask), only if `rockets-masks/` is too small |
+| YouTube-VOS 2019 train (3,471 videos) | Downloaded under `src/cv-v2/data/youtube-vos/train/`. Ships with pixel-perfect mask annotations (no further labelling needed). | Stage 1 pretraining (primary) |
+| DAVIS 2017 trainval (65 videos) | Downloaded under `src/cv-v2/data/DAVIS/`. Ships with pixel-perfect mask annotations (no further labelling needed). | Stage 1 pretraining + held-out eval (val split) |
+| `rockets-masks/` (mask-annotated rocket footage) | **Empty.** Train and val subdirs exist but contain no data. | Stage 2 fine-tune. Conditional — only runs if rocket masks are produced. |
+| `rockets/` (YOLO bbox-only) | **Empty.** Subdirs exist | Source frames + bboxes that can be converted to pseudo-masks if the rocket fine-tune is desired |
 
 ### 4.2 Replacement of existing `dataset.py`
 
@@ -160,13 +162,17 @@ For each training sample:
 
 **Negative-pair augmentation (10% of samples):** with probability 0.1, the reference is replaced by a random object from a *different* video. `target_mask` is forced to all-zero. This teaches the model to predict empty masks when the reference does not appear in the target image — important for the deployment case where the gimbal loses the rocket and the tracker must report "absent" via low mask confidence.
 
-### 4.4 Rocket data preparation (Stage 2 prerequisite)
+### 4.4 Rocket data preparation (only if Stage 2 is run)
 
-This spec does not block on rocket data being ready, but Stage 2 cannot run without it. Three concrete sub-tasks, scoped to the implementation plan that follows this spec:
+DAVIS and YT-VOS ship with pixel-perfect mask annotations, so Stage 1 needs no labelling work. Stage 2 is the only stage that needs new mask data, because the v1 rocket dataset is YOLO-bbox only — no pixel masks. Three options for producing rocket masks, in increasing labelling cost:
 
-1. Copy raw rocket frames from the v1 detector dataset (`/u50/loux8/datafrompega/rocam_data_15000/data_15000/`) into `src/cv-v2/data/rockets-masks/{train,val}/JPEGImages/<seq>/`.
-2. Generate pixel-level masks from the existing YOLO bboxes. Recommended path: SAM-assisted (`segment-anything` ViT-B, pre-prompted with each YOLO bbox) — produces high-quality pseudo-masks at ~1–2s/image on H100. Fallback: GrabCut from bbox.
-3. Spot-check a 5% sample manually; if mask quality is poor on small targets (<32 px), supplement with manual labelling on those.
+1. **Bbox→rectangle pseudo-masks.** Convert each YOLO bbox to a filled rectangle. Cheap, instant, no extra tooling. Quality is poor for shape but fine for "where is the rocket" — adequate if the rocket fine-tune is just about adapting to the visual domain (sky background, motion blur, low-resolution targets) rather than learning fine mask shape.
+2. **SAM-assisted pseudo-masks.** `segment-anything` ViT-B, prompted with each existing YOLO bbox, produces tight pixel masks. ~1–2 s/image on H100; on ~30k frames that's 8–17 GPU-hours upfront. No human time required.
+3. **Manual labelling.** Highest quality, highest cost. Reserve for a held-out val split (~500 frames is enough for evaluation).
+
+Recommended default: (1) for the bulk of training data + (3) for the val split. (2) is an upgrade path if (1) caps Stage 2 mIoU below the acceptance threshold.
+
+If Stage 2 isn't worth the labelling cost yet, **ship the Stage-1-only model as cv-v2** and treat rocket fine-tune as a follow-up. The acceptance criteria below distinguish the two cases.
 
 The data-prep scripts go under `src/cv-v2/scripts/`. They are idempotent and do not block on completion of subsequent training stages.
 
@@ -217,11 +223,13 @@ Multi-scale broadens the deployment-resolution envelope without requiring separa
 | Eval cadence | DAVIS val J&F every 5 epochs |
 | Patience | 0 (run all 80 epochs; let cosine schedule finish) |
 
-### 5.4 Stage 2 — rocket fine-tune
+### 5.4 Stage 2 — rocket fine-tune (conditional)
+
+Run only if rocket mask data has been produced (per §4.4). If skipped, the Stage 1 best-on-DAVIS-val checkpoint is the deliverable.
 
 | Parameter | Value |
 |---|---|
-| Data | `rockets-masks/train` (with `rockets/` bbox→pseudo-mask as optional supplement) |
+| Data | `rockets-masks/train` (using whichever mask source from §4.4 was chosen) |
 | Resolution | Multi-scale 768–1024 (see §5.2) |
 | Epochs | 40 |
 | Batch (per-iter) | 4 at 960; auto-scaled by resolution |
@@ -287,8 +295,9 @@ Report J&F under both modes for every checkpoint that crosses a "best so far" th
 ### 6.3 Success criteria
 
 - **Stage 1 acceptance:** DAVIS-2017 val **J&F ≥ 0.65** under Mode A. (For reference, SiamMask original paper reports ~0.55 J&F on DAVIS-2017; STM/STCN reach 0.85+ with memory networks. 0.65 is realistic for a 9M-param pure-CNN pairwise model.)
-- **Stage 2 acceptance:** rockets-masks val **mIoU ≥ 0.70** under Mode A. Mode B mIoU within 0.05 of Mode A on sequences <100 frames.
-- **Param count:** Final model ≤ 12M params (target 10M, ceiling 20M per `goal.md`).
+- **Stage 2 acceptance (only if Stage 2 is run):** rockets-masks val **mIoU ≥ 0.70** under Mode A. Mode B mIoU within 0.05 of Mode A on sequences <100 frames.
+- **If Stage 2 is skipped:** Stage 1 acceptance is sufficient. The shipped cv-v2 model is the Stage-1-best checkpoint and is generic across object categories (the rocket-specific gain is foregone, not lost).
+- **Param count:** Final model targeting ~10M params; ~20M is the suggested upper bound per `goal.md` rather than a hard cap. Anything beyond 20M needs explicit justification.
 
 If Stage 1 misses the J&F target by more than 0.05, root-cause before starting Stage 2 — likely candidates are insufficient negative-pair ratio, decoder under-capacity, or fusion-kernel size.
 
@@ -320,7 +329,7 @@ src/cv-v2/
 │   └── schedulers.py             # cosine + warmup
 │
 ├── scripts/
-│   ├── prepare_rocket_masks.py   # SAM-assisted mask generation from existing YOLO bboxes
+│   ├── prepare_rocket_masks.py   # bbox→rectangle (default) or SAM-assisted mask generation
 │   ├── train_stage1.sh           # VOS pretrain on Grace
 │   ├── train_stage2.sh           # rocket fine-tune on Grace
 │   └── run_pipeline.sh           # tmux orchestrator (mirrors V3 detector pipeline)
@@ -358,10 +367,13 @@ src/cv-v2/
 | AdamW (not SGD) | Standard for from-scratch CNN segmentation; converges faster than SGD on this task family | 2026-04-27 |
 | Single-GPU + grad-accum (no DDP) | V3 documented regime-switch regression; consistency over throughput | 2026-04-27 |
 | Defer inference target | User decision — focus this spec on training | 2026-04-27 |
+| 10M target / 20M upper bound treated as guideline, not hard cap | User clarification — `goal.md` numbers are suggested sizes, not enforced limits | 2026-04-27 |
+| SAM only relevant for rockets (not VOS data) | DAVIS and YT-VOS already ship pixel-perfect masks; SAM was incorrectly framed as labelling for all stages in the first draft | 2026-04-27 |
+| Stage 2 (rocket fine-tune) is conditional on rocket-mask data being produced | Stage-1-only model is a valid shippable cv-v2 if rocket labelling is deferred | 2026-04-27 |
 
 ## 10. Risks and open questions
 
-- **R1: rockets-masks data preparation cost.** SAM-assisted labelling on ~30k frames at 1–2s/image on H100 is 8–17 hours of compute, all upfront. Acceptable, but plan accordingly.
+- **R1: rocket mask data labelling cost.** Cheapest path is bbox→rectangle pseudo-masks (zero extra cost). SAM-assisted upgrade is 8–17 GPU-hours upfront on ~30k frames. Pick based on whether Stage-1-only quality is already acceptable on rocket footage.
 - **R2: pure CNN may underperform attention-based competitors at the J&F=0.65 target.** Mitigation: if Stage 1 plateaus below target, the first lever is decoder capacity (cheap), then fusion-kernel size (k=5→7), then giving up the "no attention" constraint as a v3.
 - **R3: Stage 2 rocket data is visually narrow** (sky background, small targets). Risk of catastrophic forgetting on the general-VOS distribution. Mitigation: continue mixing 30% YT-VOS samples into Stage 2 batches if rockets-masks val mIoU plateaus.
 - **R4: Multi-scale training increases dataloader CPU load.** May need to bump `num_workers` from 8 to 16 on Grace, and pre-resize-cache YT-VOS at 640 max-side to speed up I/O.
