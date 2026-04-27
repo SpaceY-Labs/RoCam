@@ -54,10 +54,10 @@ def test_backbone_works_at_non_square_resolution():
     assert out[16].shape == (1, 256, 24, 40)
 
 
-def test_backbone_rejects_non_multiple_of_32_input():
+def test_backbone_rejects_non_multiple_of_16_input():
     bb = Backbone(in_channels=3).eval()
     x = torch.randn(1, 3, 100, 100)
-    with pytest.raises(ValueError, match="multiple of 32"):
+    with pytest.raises(ValueError, match="multiple of 16"):
         bb(x)
 
 

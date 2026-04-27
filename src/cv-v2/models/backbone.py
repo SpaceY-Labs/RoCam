@@ -125,9 +125,9 @@ class Backbone(nn.Module):
 
     def forward(self, x: torch.Tensor) -> Dict[int, torch.Tensor]:
         H, W = x.shape[-2], x.shape[-1]
-        if H % 32 != 0 or W % 32 != 0:
+        if H % 16 != 0 or W % 16 != 0:
             raise ValueError(
-                f"input H,W ({H},{W}) must be multiple of 32"
+                f"input H,W ({H},{W}) must be multiple of 16 (stride-32 path)"
             )
 
         x0 = self.stem(x)               # stride 2
